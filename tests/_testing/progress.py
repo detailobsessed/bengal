@@ -228,7 +228,7 @@ def progress_status(message: str, done: bool = False) -> None:
 
 
 # Backward compatibility alias (deprecated, use progress_status instead)
-def deprecated_test_status(message: str, *, done: bool = False) -> None:
+def _test_status(message: str, *, done: bool = False) -> None:
     """Deprecated: Use progress_status instead."""
     import warnings
 
@@ -237,4 +237,4 @@ def deprecated_test_status(message: str, *, done: bool = False) -> None:
         DeprecationWarning,
         stacklevel=2,
     )
-    progress_status(message, done)
+    progress_status(message, done=done)

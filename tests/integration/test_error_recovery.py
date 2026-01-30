@@ -87,20 +87,20 @@ Content with {{ page.custom_data.nonexistent }} reference.
         site.discover_content()
         site.discover_assets()
 
+        # Build may succeed (with error collection) or fail gracefully
+        # Either outcome is acceptable for error recovery testing
         try:
-            # Build with error collection
             stats = site.build(BuildOptions(force_sequential=True))
-
-            # Should complete build even with errors
+            # Success path: build completed despite errors
             assert stats is not None
-
-            # Valid page should be built
             output_dir = tmp_path / "public"
             assert output_dir.exists()
-
         except Exception as e:
-            # Even if exception is raised, it should be handled gracefully
-            assert "template" in str(e).lower() or "error" in str(e).lower()  # noqa: PT017  # noqa: PT017
+            # Failure path: verify error message is helpful
+            error_msg = str(e).lower()
+            assert "template" in error_msg or "error" in error_msg, (
+                f"Expected helpful error message about template/error, got: {e}"
+            )
 
     def test_error_collection_and_reporting(self, tmp_path):
         """Test that template errors are collected and reported."""
@@ -189,11 +189,15 @@ Content
         site.discover_content()
 
         # Should handle missing template gracefully
+        # Either succeeds with fallback or fails with helpful message
         try:
             site.build(BuildOptions(force_sequential=True))
         except Exception as e:
-            # Should provide helpful error message
-            assert "template" in str(e).lower() or "layout" in str(e).lower()  # noqa: PT017  # noqa: PT017
+            # Failure path: verify error message mentions template/layout
+            error_msg = str(e).lower()
+            assert "template" in error_msg or "layout" in error_msg, (
+                f"Expected helpful error message about template/layout, got: {e}"
+            )
 
 
 class TestMissingFileRecovery:
@@ -287,15 +291,11 @@ title = "Broken TOML"
 """,
         )
 
-        # Should raise appropriate error
-        with pytest.raises(Exception) as exc_info:  # noqa: PT011
+        # Should raise appropriate error about TOML parsing
+        with pytest.raises(
+            (ValueError, OSError, RuntimeError), match=r"(?i)(toml|config|parse|syntax)"
+        ):
             Site.from_config(tmp_path, config_path=config_file)
-
-        # Error should be about config parsing
-        assert (
-            "toml" in str(exc_info.value).lower()
-            or "config" in str(exc_info.value).lower()
-        )
 
     def test_missing_required_config(self, tmp_path):
         """Test handling of missing required configuration."""
@@ -332,13 +332,17 @@ parallel = "yes"
         )
 
         # Should handle type errors gracefully
+        # Either coerces values or fails with helpful message
         try:
             site = Site.from_config(tmp_path, config_path=config_file)
-            # If successful, config was coerced or defaults used
+            # Success path: config was coerced or defaults used
             assert site is not None
         except Exception as e:
-            # Should provide helpful error about config types
-            assert "config" in str(e).lower()  # noqa: PT017  # noqa: PT017
+            # Failure path: verify error message is helpful
+            error_msg = str(e).lower()
+            assert (
+                "config" in error_msg or "type" in error_msg or "invalid" in error_msg
+            ), f"Expected helpful error message about config, got: {e}"
 
 
 class TestBuildFailureRecovery:

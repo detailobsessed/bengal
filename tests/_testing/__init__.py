@@ -59,7 +59,9 @@ from tests._testing.progress import (
     TestProgressReporter,
     create_test_progress,
     progress_status,
-    test_status,  # Deprecated, kept for backward compatibility
+)
+from tests._testing.progress import (
+    _test_status as test_status,  # Deprecated, kept for backward compatibility
 )
 
 __version__ = "1.2.0"

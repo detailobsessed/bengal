@@ -114,6 +114,16 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]   # Allow unused imports in __init__ files
 "tests/**/*.py" = ["S101"] # Allow assert in tests
+"bengal/rendering/template_tests.py" = ["PT028"]  # Jinja test functions use test_ prefix (not pytest tests)
+"bengal/rendering/template_functions/navigation/scaffold.py" = ["SIM118"]  # LRUCache.keys() returns list, not dict
+
+# PT017: These tests verify "either success or graceful failure" - not a standard pytest.raises() pattern
+# PT012/SIM117: These tests verify context manager exception handling - nested structure avoids PT012
+"tests/integration/test_error_recovery.py" = ["PT017"]
+"tests/integration/test_config_system_integration.py" = ["PT017"]
+"tests/integration/warm_build/test_data_files.py" = ["PT017"]
+"tests/unit/rendering/test_asset_manifest_contextvar.py" = ["PT012", "SIM117"]
+"tests/unit/rendering/parsers/test_patitas/test_contextvar_config.py" = ["PT012", "SIM117"]
 
 [tool.ty.environment]
 python-version = "3.14"
