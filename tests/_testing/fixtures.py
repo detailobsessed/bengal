@@ -23,22 +23,17 @@ from bengal.core.site import Site
 from bengal.icons import resolver as icon_resolver
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def reset_icon_resolver():
     """
-    Reset icon resolver state before and after the test.
+    Reset icon resolver state before and after each test.
 
-    This is an opt-in fixture for tests that use the icon resolver or
-    theme system. It ensures test isolation by clearing and resetting
-    the resolver state.
-
-    Usage:
-        def test_icon_feature(reset_icon_resolver):
-            # Icon resolver is cleared before this test runs
-            ...
+    This fixture is autouse because icon resolver state can leak between
+    tests when running in parallel with pytest-xdist. The operations are
+    fast (just clearing an in-memory cache and resetting flags).
 
     """
-    # Clear cache before test
+    # Clear cache before test (fast - just clears dict)
     icon_resolver.clear_cache()
 
     yield
