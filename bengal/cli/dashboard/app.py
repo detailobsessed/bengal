@@ -48,24 +48,24 @@ if TYPE_CHECKING:
 class BengalApp(App):
     """
     Unified Bengal dashboard application.
-    
+
     Provides a multi-screen dashboard with:
     - Landing screen: Site overview and quick actions
     - Build screen: Build progress and phase timing
     - Serve screen: Dev server with file watching
     - Health screen: Site health explorer
-    
+
     Navigate between screens with number keys (1, 2, 3)
     or use the command palette (Ctrl+P).
-    
+
     Signals:
         config_changed_signal: Published when config values change
             Payload: tuple of (key: str, value: Any)
-    
+
     Example:
             >>> app = BengalApp(site=site)
             >>> app.run()
-        
+
     """
 
     # Load CSS from bengal.tcss
@@ -118,7 +118,9 @@ class BengalApp(App):
         self.startup_error = startup_error
 
         # Config signal for reactive updates (Toad pattern)
-        self.config_changed_signal: Signal[tuple[str, Any]] = Signal(self, "config_changed")
+        self.config_changed_signal: Signal[tuple[str, Any]] = Signal(
+            self, "config_changed"
+        )
 
         # Internal config storage
         self._config: dict[str, Any] = {
@@ -230,11 +232,13 @@ class BengalApp(App):
         """Trigger a site rebuild."""
         # If on build screen, delegate to its rebuild action
         if hasattr(self.screen, "action_rebuild") and self.screen.name == "build":
-            self.screen.action_rebuild()
+            self.screen.action_rebuild()  # type: ignore[operator]
         else:
             # Switch to build screen and trigger rebuild
             self.push_screen("build")
-            self.notify("Switch to Build screen and press 'r' to rebuild", title="Build")
+            self.notify(
+                "Switch to Build screen and press 'r' to rebuild", title="Build"
+            )
 
     def action_open_browser(self) -> None:
         """Open site in browser."""
@@ -278,15 +282,15 @@ def run_unified_dashboard(
 ) -> None:
     """
     Run the unified Bengal dashboard.
-    
+
     This is the entry point called by `bengal --dashboard`.
-    
+
     Args:
         site: Site instance (optional, will load from current dir if not provided)
         start_screen: Initial screen to show (build, serve, health)
         startup_error: Error from site loading (displayed as notification on mount)
         **kwargs: Additional options
-        
+
     """
     app = BengalApp(
         site=site,

@@ -6,8 +6,6 @@ Tests the centralized cache registry with metadata, dependency tracking,
 and coordinated invalidation.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.utils.cache_registry import (
@@ -87,7 +85,10 @@ class TestRegisterCache:
         register_cache(
             "nav_cache",
             lambda: None,
-            invalidate_on={InvalidationReason.CONFIG_CHANGED, InvalidationReason.STRUCTURAL_CHANGE},
+            invalidate_on={
+                InvalidationReason.CONFIG_CHANGED,
+                InvalidationReason.STRUCTURAL_CHANGE,
+            },
         )
 
         info = get_cache_info("nav_cache")
@@ -221,7 +222,9 @@ class TestInvalidateWithDependents:
 
         register_cache("root", lambda: cleared.append("root"))
         register_cache("level1", lambda: cleared.append("level1"), depends_on={"root"})
-        register_cache("level2", lambda: cleared.append("level2"), depends_on={"level1"})
+        register_cache(
+            "level2", lambda: cleared.append("level2"), depends_on={"level1"}
+        )
 
         invalidate_with_dependents("root", InvalidationReason.FULL_REBUILD)
 

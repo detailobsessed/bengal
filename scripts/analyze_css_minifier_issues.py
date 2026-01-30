@@ -24,7 +24,11 @@ def test_problematic_patterns():
         # Test 1: Spaces around operators in calc()
         ("calc() with spaces", "div { width: calc(100% - 20px); }", "calc(100%-20px)"),
         # Test 2: Spaces in function arguments
-        ("function args", "div { transform: translate(10px, 20px); }", "translate(10px,20px)"),
+        (
+            "function args",
+            "div { transform: translate(10px, 20px); }",
+            "translate(10px,20px)",
+        ),
         # Test 3: Spaces around colons in media queries
         ("media query", "@media (min-width: 768px) { }", "@media(min-width:768px)"),
         # Test 4: Spaces in attribute selectors
@@ -69,7 +73,9 @@ def test_problematic_patterns():
         try:
             minified = minify_css(css)
             if expected_substring not in minified:
-                issues.append(f"{name}: Expected '{expected_substring}' not found in '{minified}'")
+                issues.append(
+                    f"{name}: Expected '{expected_substring}' not found in '{minified}'"
+                )
                 print(f"❌ {name}")
                 print(f"   Input:  {css}")
                 print(f"   Output: {minified}")

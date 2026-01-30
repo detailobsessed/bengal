@@ -21,8 +21,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from bengal.utils.primitives.hashing import hash_file
 from bengal.utils.observability.logger import get_logger
+from bengal.utils.primitives.hashing import hash_file
 
 if TYPE_CHECKING:
     pass
@@ -33,16 +33,16 @@ logger = get_logger(__name__)
 class FileTrackingMixin:
     """
     Mixin providing file tracking, hashing, and dependency management.
-    
+
     Requires these attributes on the host class:
         - file_fingerprints: dict[str, dict[str, Any]]
         - dependencies: dict[str, set[str]]
         - output_sources: dict[str, str]
-    
+
     Performance Optimization:
     - Added reverse_dependencies for O(1) affected pages lookup
     - get_affected_pages(): O(n) → O(1)
-        
+
     """
 
     # Type hints for mixin attributes (provided by host class)
@@ -76,7 +76,9 @@ class FileTrackingMixin:
             )
             return ""
 
-    def should_bypass(self, source_path: Path, changed_sources: set[Path] | None = None) -> bool:
+    def should_bypass(
+        self, source_path: Path, changed_sources: set[Path] | None = None
+    ) -> bool:
         """
         Determine if cache should be bypassed for a source file.
 
@@ -190,7 +192,9 @@ class FileTrackingMixin:
 
         except OSError as e:
             # Can't stat file, treat as changed
-            logger.debug("cache_miss", file=file_key, reason="stat_failed", error=str(e))
+            logger.debug(
+                "cache_miss", file=file_key, reason="stat_failed", error=str(e)
+            )
             return True
 
     def update_file(self, file_path: Path) -> None:
@@ -235,7 +239,9 @@ class FileTrackingMixin:
                 error_type=type(e).__name__,
             )
 
-    def track_output(self, source_path: Path, output_path: Path, output_dir: Path) -> None:
+    def track_output(
+        self, source_path: Path, output_path: Path, output_dir: Path
+    ) -> None:
         """
         Track the relationship between a source file and its output file.
 
@@ -252,7 +258,11 @@ class FileTrackingMixin:
             self.output_sources[rel_output] = str(source_path)
         except ValueError:
             # output_path not relative to output_dir, skip
-            logger.debug("output_not_relative", output=str(output_path), output_dir=str(output_dir))
+            logger.debug(
+                "output_not_relative",
+                output=str(output_path),
+                output_dir=str(output_dir),
+            )
 
     def add_dependency(self, source: Path, dependency: Path) -> None:
         """

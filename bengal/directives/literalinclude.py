@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import contextlib
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from mistune.directives import DirectivePlugin
 
@@ -50,11 +50,11 @@ MAX_INCLUDE_SIZE = 10 * 1024 * 1024  # 10 MB - prevent memory exhaustion
 class LiteralIncludeDirective(DirectivePlugin):
     """
     Literal include directive for including code files as code blocks.
-    
+
     Syntax:
             ```{literalinclude} path/to/file.py
             ```
-    
+
     Or with options:
             ```{literalinclude} path/to/file.py
             :language: python
@@ -63,20 +63,22 @@ class LiteralIncludeDirective(DirectivePlugin):
             :emphasize-lines: 7,8,9
             :linenos: true
             ```
-    
+
     Paths are resolved relative to:
     1. Current page's directory (if source_path available in state)
     2. Site root (if root_path available in state)
     3. Current working directory (fallback)
-    
+
     Security: Only allows paths within the site root to prevent path traversal.
-        
+
     """
 
     # Directive names this class registers (for health check introspection)
-    DIRECTIVE_NAMES = ["literalinclude"]
+    DIRECTIVE_NAMES: ClassVar[list[str]] = ["literalinclude"]
 
-    def parse(self, block: BlockParser, m: Match[str], state: BlockState) -> dict[str, Any]:
+    def parse(
+        self, block: BlockParser, m: Match[str], state: BlockState
+    ) -> dict[str, Any]:
         """
         Parse literalinclude directive.
 
@@ -375,7 +377,9 @@ class LiteralIncludeDirective(DirectivePlugin):
             return "".join(lines).rstrip()
 
         except Exception as e:
-            logger.warning("literalinclude_load_error", path=str(file_path), error=str(e))
+            logger.warning(
+                "literalinclude_load_error", path=str(file_path), error=str(e)
+            )
             return None
 
     def __call__(self, directive: Any, md: Any) -> None:
@@ -389,15 +393,15 @@ class LiteralIncludeDirective(DirectivePlugin):
 def render_literalinclude(renderer: Any, text: str, **attrs: Any) -> str:
     """
     Render literalinclude directive as code block.
-    
+
     Args:
         renderer: Mistune renderer
         text: Not used (content is in attrs['code'])
         **attrs: Directive attributes
-    
+
     Returns:
         HTML string
-        
+
     """
     error = attrs.get("error")
     if error:
@@ -426,7 +430,9 @@ def render_literalinclude(renderer: Any, text: str, **attrs: Any) -> str:
         # Note: Full emphasis support would require client-side JS or server-side processing
         # For now, we just add a data attribute that themes can use
         emphasize_str = (
-            emphasize_lines if isinstance(emphasize_lines, str) else str(emphasize_lines)
+            emphasize_lines
+            if isinstance(emphasize_lines, str)
+            else str(emphasize_lines)
         )
         html = f'<div class="highlight-wrapper emphasize-lines" data-emphasize="{emphasize_str}">\n{html}</div>\n'
 

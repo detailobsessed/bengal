@@ -38,16 +38,16 @@ from bengal.directives._icons import icon_exists, render_svg_icon
 from bengal.directives.base import BengalDirective
 from bengal.directives.options import DirectiveOptions
 from bengal.rendering.highlighting import highlight as highlight_code
-from bengal.utils.primitives.hashing import hash_str
 from bengal.utils.observability.logger import get_logger
+from bengal.utils.primitives.hashing import hash_str
 
 __all__ = [
+    "LANGUAGE_DISPLAY_NAMES",
     "CodeTabsDirective",
     "CodeTabsOptions",
-    "render_code_tab_item",
     "get_display_name",
     "parse_info_string",
-    "LANGUAGE_DISPLAY_NAMES",
+    "render_code_tab_item",
 ]
 
 logger = get_logger(__name__)
@@ -199,16 +199,16 @@ LANGUAGE_ICONS: dict[str, str] = {
 def get_language_icon(lang: str, size: int = 16) -> str:
     """
     Get icon HTML for a programming language.
-    
+
     Returns empty string if no icon available (graceful degradation).
-    
+
     Args:
         lang: Language name (e.g., "python", "bash")
         size: Icon size in pixels
-    
+
     Returns:
         Inline SVG HTML string, or empty string if not found
-        
+
     """
     normalized = lang.lower().strip()
     icon_name = LANGUAGE_ICONS.get(normalized, LANGUAGE_ICONS["_default"])
@@ -223,16 +223,16 @@ def get_language_icon(lang: str, size: int = 16) -> str:
 def get_display_name(lang: str) -> str:
     """
     Get human-readable display name for a programming language.
-    
+
     Uses LANGUAGE_DISPLAY_NAMES for special cases (JavaScript, C++, etc.),
     falls back to simple capitalization for unknown languages.
-    
+
     Args:
         lang: Language identifier (e.g., "python", "javascript", "cpp")
-    
+
     Returns:
         Display name (e.g., "Python", "JavaScript", "C++")
-    
+
     Examples:
             >>> get_display_name("javascript")
         "JavaScript"
@@ -240,7 +240,7 @@ def get_display_name(lang: str) -> str:
         "C++"
             >>> get_display_name("rust")
         "Rust"
-        
+
     """
     normalized = lang.lower().strip()
     if normalized in LANGUAGE_DISPLAY_NAMES:
@@ -257,19 +257,19 @@ def get_display_name(lang: str) -> str:
 def parse_hl_lines(hl_spec: str) -> list[int]:
     """
     Parse line highlight specification into list of line numbers.
-    
+
     Supports:
     - Single line: "5" -> [5]
     - Multiple lines: "1,3,5" -> [1, 3, 5]
     - Ranges: "1-3" -> [1, 2, 3]
     - Mixed: "1,3-5,7" -> [1, 3, 4, 5, 7]
-    
+
     Args:
         hl_spec: Line specification string (e.g., "1,3-5,7")
-    
+
     Returns:
         Sorted list of unique line numbers
-        
+
     """
     lines: set[int] = set()
     for part in hl_spec.split(","):
@@ -301,19 +301,19 @@ def render_code_with_highlighting(
 ) -> tuple[str, str]:
     """
     Render code with syntax highlighting using the configured backend.
-    
+
     Uses the highlighting backend registry (bengal.rendering.highlighting)
     which defaults to Rosettes. Custom backends can be registered.
-    
+
     Args:
         code: Source code to highlight
         language: Programming language
         hl_lines: Optional list of line numbers to highlight
         line_numbers: Force line numbers on/off (None = auto for 3+ lines)
-    
+
     Returns:
         Tuple of (highlighted_html, plain_code_for_copy)
-        
+
     """
     line_count = code.count("\n") + 1
 
@@ -344,17 +344,17 @@ render_code_with_pygments = render_code_with_highlighting
 class CodeTabsOptions(DirectiveOptions):
     """
     Options for code-tabs directive.
-    
+
     v2 simplified syntax requires minimal options - most behavior is automatic:
     - Sync: enabled by default (syncs by language across page)
     - Line numbers: auto for 3+ lines
     - Icons: always shown
-    
+
     Attributes:
         sync: Sync key for tab synchronization (default: "language").
               Use "none" to disable sync for this specific block.
         linenos: Force line numbers on/off (None = auto for 3+ lines)
-        
+
     """
 
     sync: str = "language"
@@ -374,16 +374,16 @@ class CodeTabsOptions(DirectiveOptions):
 def parse_info_string(info_string: str) -> tuple[str | None, str | None, list[int]]:
     """
     Parse code fence info string to extract filename, title, and highlights.
-    
+
     Strict ordering: filename → title → highlights
-    
+
     Args:
         info_string: Info string after language
             (e.g., "app.py", "{3-4}", 'app.py title="Flask" {5-7}')
-    
+
     Returns:
         Tuple of (filename or None, title or None, list of highlight line numbers)
-    
+
     Examples:
             >>> parse_info_string("")
         (None, None, [])
@@ -397,7 +397,7 @@ def parse_info_string(info_string: str) -> tuple[str | None, str | None, list[in
         (None, "Flask", [])
             >>> parse_info_string('app.py title="Flask" {5-7}')
         ("app.py", "Flask", [5, 6, 7])
-        
+
     """
     if not info_string:
         return None, None, []
@@ -430,15 +430,15 @@ def parse_info_string(info_string: str) -> tuple[str | None, str | None, list[in
 def parse_tab_marker(marker: str) -> tuple[str, str | None]:
     """
     Parse a legacy ### tab marker to extract language and optional filename.
-    
+
     DEPRECATED: Use parse_info_string() for v2 syntax.
-    
+
     Args:
         marker: Tab marker text (e.g., "Python", "Python (main.py)")
-    
+
     Returns:
         Tuple of (language, filename or None)
-        
+
     """
     # Strict filename pattern: must end with .ext (lowercase extension)
     filename_pattern = re.compile(r"^(.+?)\s+\((\w[\w.-]*\.[a-z]+)\)$")
@@ -456,24 +456,24 @@ def parse_tab_marker(marker: str) -> tuple[str, str | None]:
 class CodeTabsDirective(BengalDirective):
     """
     Code tabs for multi-language examples.
-    
+
     Enhanced with Pygments highlighting, auto-sync, and language icons.
-    
+
     v2 Simplified Syntax (preferred):
             ````{code-tabs}
-    
+
             ```python app.py {3-4}
         def greet(name):
             print(f"Hello, {name}!")
             ```
-    
+
             ```javascript index.js {2-3}
         function greet(name) {
             console.log(`Hello, ${name}!`);
         }
             ```
             ````
-    
+
     Legacy Syntax (still supported):
             ````{code-tabs}
             ### Python (main.py)
@@ -482,9 +482,9 @@ class CodeTabsDirective(BengalDirective):
             print(f"Hello, {name}!")
             ```
             ````
-    
+
     Aliases: code-tabs, code_tabs
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["code-tabs", "code_tabs"]
@@ -505,7 +505,7 @@ class CodeTabsDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: CodeTabsOptions,  # type: ignore[override]
+        options: CodeTabsOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -617,7 +617,11 @@ class CodeTabsDirective(BengalDirective):
                     else:
                         # Fallback to simple extraction
                         legacy_match = _LEGACY_CODE_BLOCK_PATTERN.search(code_content)
-                        code = legacy_match.group(1).strip() if legacy_match else code_content
+                        code = (
+                            legacy_match.group(1).strip()
+                            if legacy_match
+                            else code_content
+                        )
                         code_lang = lang.lower()
                         tab_hl_lines = []
 
@@ -664,7 +668,9 @@ class CodeTabsDirective(BengalDirective):
             legacy_matches = _LEGACY_CODE_TAB_ITEM_PATTERN.findall(text)
             if legacy_matches:
                 # Convert legacy format to enhanced format
-                matches = [(lang, code, "", "", lang.lower()) for lang, code in legacy_matches]
+                matches = [
+                    (lang, code, "", "", lang.lower()) for lang, code in legacy_matches
+                ]
 
         if not matches:
             return f'<div class="code-tabs" data-bengal="tabs">{text}</div>'
@@ -698,11 +704,15 @@ class CodeTabsDirective(BengalDirective):
             if show_icons:
                 icon_html = get_language_icon(code_lang or lang, size=16)
                 if icon_html:
-                    icon_html = f'<span class="tab-icon" aria-hidden="true">{icon_html}</span>'
+                    icon_html = (
+                        f'<span class="tab-icon" aria-hidden="true">{icon_html}</span>'
+                    )
 
             filename_html = ""
             if filename:
-                filename_html = f'<span class="tab-filename">{html_lib.escape(filename)}</span>'
+                filename_html = (
+                    f'<span class="tab-filename">{html_lib.escape(filename)}</span>'
+                )
 
             nav_html += (
                 f'    <li{active_class} role="presentation">\n'
@@ -733,7 +743,7 @@ class CodeTabsDirective(BengalDirective):
 
             # Render with Pygments
             try:
-                highlighted_html, plain_code = render_code_with_pygments(
+                highlighted_html, _plain_code = render_code_with_pygments(
                     code,
                     code_lang or lang.lower(),
                     hl_lines=hl_lines,
@@ -767,7 +777,9 @@ class CodeTabsDirective(BengalDirective):
             # Wrap highlighted code with ID for copy functionality
             # Inject id into the code element for copy targeting
             if "<code" in highlighted_html:
-                highlighted_html = highlighted_html.replace("<code", f'<code id="{code_id}"', 1)
+                highlighted_html = highlighted_html.replace(
+                    "<code", f'<code id="{code_id}"', 1
+                )
 
             content_html += (
                 f'    <div id="{tab_id}-{i}" class="tab-pane{active}" '
@@ -790,9 +802,9 @@ class CodeTabsDirective(BengalDirective):
 def render_code_tab_item(renderer: Any, **attrs: Any) -> str:
     """
     Render code tab item marker (used internally).
-    
+
     Enhanced to include filename, highlight lines, and code language.
-        
+
     """
     lang = attrs.get("lang", "text")
     code = attrs.get("code", "")

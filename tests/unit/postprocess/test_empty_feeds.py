@@ -4,8 +4,6 @@ Tests for empty RSS feed and sitemap handling.
 Verifies that empty sites don't produce invalid XML.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 

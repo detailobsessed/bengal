@@ -27,7 +27,9 @@ def temp_site(tmp_path):
     (content_dir / "docs").mkdir()
     (content_dir / "docs" / "_index.md").write_text("---\ntitle: Docs\n---\n")
     (content_dir / "docs" / "guides").mkdir()
-    (content_dir / "docs" / "guides" / "_index.md").write_text("---\ntitle: Guides\n---\n")
+    (content_dir / "docs" / "guides" / "_index.md").write_text(
+        "---\ntitle: Guides\n---\n"
+    )
 
     site = Site(root_path=tmp_path, config={"site": {"title": "Test Site"}})
     return site
@@ -81,7 +83,9 @@ def test_get_section_by_path_normalized(temp_site):
     # Test different path formats
     assert temp_site.get_section_by_path("blog") == blog
     assert temp_site.get_section_by_path(Path("blog")) == blog
-    assert temp_site.get_section_by_path(temp_site.root_path / "content" / "blog") == blog
+    assert (
+        temp_site.get_section_by_path(temp_site.root_path / "content" / "blog") == blog
+    )
 
 
 def test_get_section_by_path_case_insensitive(temp_site):

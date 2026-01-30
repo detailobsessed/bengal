@@ -7,8 +7,6 @@ These tests verify that incremental builds are stable and don't trigger
 false full rebuilds due to cache invalidation bugs.
 """
 
-from __future__ import annotations
-
 import time
 from pathlib import Path
 
@@ -18,12 +16,12 @@ import pytest
 class TestIncrementalBuildStability:
     """
     Tests for incremental build stability.
-    
+
     Verifies that:
     1. Consecutive incremental builds with no changes don't rebuild pages
     2. Touching templates without content changes doesn't trigger rebuilds
     3. Cache is consistent across builds
-        
+
     """
 
     @pytest.fixture
@@ -99,20 +97,22 @@ About content here.
         # Build 2: Load cache and verify no changes detected
         cache2 = BuildCache.load(paths.build_cache)
 
-        changed_files = []
-        for md_file in content_dir.glob("*.md"):
-            if cache2.is_changed(md_file):
-                changed_files.append(md_file)
+        changed_files = [
+            md_file
+            for md_file in content_dir.glob("*.md")
+            if cache2.is_changed(md_file)
+        ]
 
         assert len(changed_files) == 0, f"Build 2 detected changes: {changed_files}"
 
         # Build 3: Same check (should also be stable)
         cache3 = BuildCache.load(paths.build_cache)
 
-        changed_files = []
-        for md_file in content_dir.glob("*.md"):
-            if cache3.is_changed(md_file):
-                changed_files.append(md_file)
+        changed_files = [
+            md_file
+            for md_file in content_dir.glob("*.md")
+            if cache3.is_changed(md_file)
+        ]
 
         assert len(changed_files) == 0, f"Build 3 detected changes: {changed_files}"
 
@@ -175,8 +175,8 @@ About content here.
 
         Verifies Fix 3: Deferred fingerprint updates.
         """
-        from bengal.cache import BuildCache
         from bengal.build.tracking import DependencyTracker
+        from bengal.cache import BuildCache
         from bengal.cache.paths import BengalPaths
 
         paths = BengalPaths(minimal_site)
@@ -294,14 +294,14 @@ New content here.
 class TestCacheOutputMismatch:
     """
     Regression tests for cache/output mismatch scenarios.
-    
+
     Bug: When .bengal cache is restored but output directory is cleaned
     (e.g., CI with `rm -rf public/*`), Bengal incorrectly skipped rebuilding
     because cache said "nothing changed".
-    
+
     Fix: phase_incremental_filter now checks if output is missing BEFORE
     deciding to skip, forcing a full rebuild when output is empty.
-        
+
     """
 
     @pytest.fixture
@@ -475,20 +475,22 @@ title: Home
         # Should trigger rebuild (result not None)
         assert result is not None, "Should rebuild when assets directory is missing"
         # Pages should be rebuilt (the key indicator)
-        assert len(result.pages_to_build) > 0, "Pages should be rebuilt when output is incomplete"
+        assert len(result.pages_to_build) > 0, (
+            "Pages should be rebuilt when output is incomplete"
+        )
 
 
 class TestAutodocOutputMismatch:
     """
     Regression tests for autodoc output missing scenarios.
-    
+
     Bug: When .bengal cache is restored in CI but site/public/api/ (autodoc output)
     was not cached, Bengal incorrectly skipped rebuilding virtual pages because
     the cache said "source files unchanged".
-    
+
     Fix: _check_autodoc_output_missing() now checks if autodoc output directories
     exist and contain content before deciding to skip.
-        
+
     """
 
     @pytest.fixture
@@ -560,7 +562,9 @@ title: Home
 
         return tmp_path
 
-    def test_detects_missing_autodoc_output(self, site_with_autodoc_cache: Path) -> None:
+    def test_detects_missing_autodoc_output(
+        self, site_with_autodoc_cache: Path
+    ) -> None:
         """
         When cache has autodoc dependencies but api/ output is missing, should rebuild.
 
@@ -568,7 +572,9 @@ title: Home
         """
         from bengal.cache import BuildCache
         from bengal.cache.paths import BengalPaths
-        from bengal.orchestration.build.initialization import _check_autodoc_output_missing
+        from bengal.orchestration.build.initialization import (
+            _check_autodoc_output_missing,
+        )
 
         # Create a mock orchestrator-like object
         class MockOrchestrator:
@@ -589,13 +595,17 @@ title: Home
             "This means warm CI builds will 404 on virtual pages."
         )
 
-    def test_passes_when_autodoc_output_exists(self, site_with_autodoc_cache: Path) -> None:
+    def test_passes_when_autodoc_output_exists(
+        self, site_with_autodoc_cache: Path
+    ) -> None:
         """
         When autodoc output exists, should not trigger rebuild.
         """
         from bengal.cache import BuildCache
         from bengal.cache.paths import BengalPaths
-        from bengal.orchestration.build.initialization import _check_autodoc_output_missing
+        from bengal.orchestration.build.initialization import (
+            _check_autodoc_output_missing,
+        )
 
         # Create the api/ directory with content
         output_dir = site_with_autodoc_cache / "public"
@@ -630,7 +640,9 @@ title: Home
         Edge case: Prevents false positives on sites that don't use autodoc.
         """
         from bengal.cache import BuildCache
-        from bengal.orchestration.build.initialization import _check_autodoc_output_missing
+        from bengal.orchestration.build.initialization import (
+            _check_autodoc_output_missing,
+        )
 
         # Create config WITHOUT autodoc
         config = tmp_path / "bengal.toml"
@@ -678,7 +690,9 @@ output_dir = "public"
         """
         from bengal.cache import BuildCache
         from bengal.cache.paths import BengalPaths
-        from bengal.orchestration.build.initialization import _check_autodoc_output_missing
+        from bengal.orchestration.build.initialization import (
+            _check_autodoc_output_missing,
+        )
 
         # Create config with CLI autodoc enabled
         config = tmp_path / "bengal.toml"
@@ -735,7 +749,9 @@ output_prefix = "cli"
             "CLI autodoc output (cli/) missing should trigger rebuild"
         )
 
-    def test_empty_autodoc_dir_triggers_rebuild(self, site_with_autodoc_cache: Path) -> None:
+    def test_empty_autodoc_dir_triggers_rebuild(
+        self, site_with_autodoc_cache: Path
+    ) -> None:
         """
         Directory exists but has no index.html - should still trigger rebuild.
 
@@ -743,7 +759,9 @@ output_prefix = "cli"
         """
         from bengal.cache import BuildCache
         from bengal.cache.paths import BengalPaths
-        from bengal.orchestration.build.initialization import _check_autodoc_output_missing
+        from bengal.orchestration.build.initialization import (
+            _check_autodoc_output_missing,
+        )
 
         # Create api/ directory but leave it EMPTY (no index.html)
         output_dir = site_with_autodoc_cache / "public"
@@ -775,7 +793,9 @@ output_prefix = "cli"
         """
         from bengal.cache import BuildCache
         from bengal.cache.paths import BengalPaths
-        from bengal.orchestration.build.initialization import _check_autodoc_output_missing
+        from bengal.orchestration.build.initialization import (
+            _check_autodoc_output_missing,
+        )
 
         # Create config with autodoc but NO output_prefix (auto-derive)
         config = tmp_path / "bengal.toml"
@@ -807,7 +827,9 @@ source_dirs = ["src/mypackage"]
         paths.ensure_dirs()
 
         cache = BuildCache()
-        cache.autodoc_dependencies = {"src/mypackage/__init__.py": {"api/mypackage/index.md"}}
+        cache.autodoc_dependencies = {
+            "src/mypackage/__init__.py": {"api/mypackage/index.md"}
+        }
         cache.save(paths.build_cache)
 
         # Create output WITHOUT the auto-derived api/mypackage/ directory

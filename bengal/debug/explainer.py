@@ -76,28 +76,28 @@ DIRECTIVE_PATTERN = re.compile(
 class PageExplainer:
     """
     Generate explanations for how pages are built.
-    
+
     Provides complete traceability for any page including source info,
     template chain, dependencies, cache status, and diagnostics.
-    
+
     Creation:
         Direct instantiation: PageExplainer(site, cache=None, template_engine=None)
             - Created by CLI explain command
             - Requires Site instance with discovered content
-    
+
     Attributes:
         site: Site instance with pages and configuration
         cache: Optional BuildCache for cache status
         template_engine: Optional TemplateEngineProtocol for template resolution
-    
+
     Thread Safety:
         Thread-safe. Read-only operations only.
-    
+
     Examples:
         explainer = PageExplainer(site)
         explanation = explainer.explain("docs/guide.md")
         print(explanation.source.size_human)
-        
+
     """
 
     def __init__(
@@ -183,7 +183,9 @@ class PageExplainer:
         search_path = Path(page_path)
 
         for page_like in self.site.pages:
-            page = cast("Page", page_like)  # Explainer needs concrete Page for introspection
+            page = cast(
+                "Page", page_like
+            )  # Explainer needs concrete Page for introspection
             # Exact match
             if page.source_path == search_path:
                 return page
@@ -280,7 +282,11 @@ class PageExplainer:
             try:
                 return self._resolve_chain_from_engine(template_name)
             except Exception as e:
-                logger.debug("template_chain_resolution_failed", template=template_name, error=str(e))
+                logger.debug(
+                    "template_chain_resolution_failed",
+                    template=template_name,
+                    error=str(e),
+                )
 
         # Fallback: basic info without full chain
         chain.append(
@@ -491,7 +497,10 @@ class PageExplainer:
                     if dep.endswith((".html", ".jinja2", ".jinja")):
                         if dep not in deps.templates:
                             deps.templates.append(dep)
-                    elif dep.endswith((".yaml", ".yml", ".json", ".toml")) and dep not in deps.data:
+                    elif (
+                        dep.endswith((".yaml", ".yml", ".json", ".toml"))
+                        and dep not in deps.data
+                    ):
                         deps.data.append(dep)
 
         return deps
@@ -691,7 +700,9 @@ class PageExplainer:
                             "specified_in": "frontmatter"
                             if page.metadata.get("template")
                             else "default",
-                            "searched_dirs": [str(d) for d in self.template_engine.template_dirs],
+                            "searched_dirs": [
+                                str(d) for d in self.template_engine.template_dirs
+                            ],
                         },
                         suggestion=f"Create {template_name} or use an existing template",
                     )
@@ -706,7 +717,7 @@ class PageExplainer:
 
                 # Check if target page exists
                 target_exists = any(
-                    p._path == link_target or p._path == link_target.rstrip("/")
+                    p.href == link_target or p.href == link_target.rstrip("/")
                     for p in self.site.pages
                 )
                 if not target_exists and not link_target.startswith(("#", "http")):
@@ -731,10 +742,14 @@ class PageExplainer:
                 # Check if asset exists
                 asset_path = self.site.root_path / asset_ref.lstrip("/")
                 content_asset = (
-                    page.source_path.parent / asset_ref if not asset_ref.startswith("/") else None
+                    page.source_path.parent / asset_ref
+                    if not asset_ref.startswith("/")
+                    else None
                 )
 
-                if not asset_path.exists() and (not content_asset or not content_asset.exists()):
+                if not asset_path.exists() and (
+                    not content_asset or not content_asset.exists()
+                ):
                     issues.append(
                         Issue(
                             severity="warning",

@@ -8,8 +8,6 @@ These tests verify that Section.add_page correctly handles:
 - PageProxy lazy loading behavior when accessed via Section
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 
@@ -50,8 +48,10 @@ def make_proxy(
     """Helper to create a PageProxy for testing."""
     core = make_page_core(source_path, title, weight=weight)
     if loader is None:
+
         def loader(path: Path = source_path) -> Page:
             return make_page(path, title)
+
     return PageProxy(
         source_path=source_path,
         metadata=core,
@@ -102,7 +102,9 @@ class TestSectionAddPage:
         assert len(docs_section.pages) == 1
         assert docs_section.pages[0] is sample_page
 
-    def test_add_page_proxy(self, docs_section: Section, sample_proxy: PageProxy) -> None:
+    def test_add_page_proxy(
+        self, docs_section: Section, sample_proxy: PageProxy
+    ) -> None:
         """Section should accept PageProxy objects."""
         docs_section.add_page(sample_proxy)
 
@@ -135,9 +137,7 @@ class TestSectionQueriesWithProxy:
 
         assert len(all_pages) == 2
 
-    def test_find_page_by_title(
-        self, docs_section: Section, content_dir: Path
-    ) -> None:
+    def test_find_page_by_title(self, docs_section: Section, content_dir: Path) -> None:
         """Finding pages by attribute should work with proxies."""
         page1 = make_proxy(content_dir / "p1.md", "First")
         page2 = make_proxy(content_dir / "p2.md", "Second")
@@ -190,9 +190,7 @@ class TestPageProxyLazyLoading:
             full_page = proxy._full_page
             assert isinstance(full_page, Page)
 
-    def test_proxy_load_once(
-        self, docs_section: Section, content_dir: Path
-    ) -> None:
+    def test_proxy_load_once(self, docs_section: Section, content_dir: Path) -> None:
         """Loader should only be called once on repeated access."""
         call_count = [0]
 
@@ -273,9 +271,7 @@ class TestTypeAnnotationCompatibility:
 
         assert len(docs_section.pages) == 2
 
-    def test_section_builder_compatibility(
-        self, content_dir: Path
-    ) -> None:
+    def test_section_builder_compatibility(self, content_dir: Path) -> None:
         """SectionBuilder should work with PageProxy."""
         from bengal.content.discovery.section_builder import SectionBuilder
 

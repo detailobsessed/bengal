@@ -37,34 +37,34 @@ if TYPE_CHECKING:
 class SitemapGenerator:
     """
     Generates XML sitemap for SEO and search engine discovery.
-    
+
     Creates sitemap.xml files listing all pages with metadata for search engines.
     Supports sitemap index files for large sites and i18n alternate language links.
-    
+
     Creation:
         Direct instantiation: SitemapGenerator(site)
             - Created by PostprocessOrchestrator for sitemap generation
             - Requires Site instance with rendered pages
-    
+
     Attributes:
         site: Site instance with pages and configuration
         logger: Logger instance for sitemap generation events
-    
+
     Relationships:
         - Used by: PostprocessOrchestrator for sitemap generation
         - Uses: Site for page access and configuration
-    
+
     Features:
         - URL location with baseurl support
         - Last modified dates from page metadata
         - Change frequency and priority metadata
         - i18n alternate language links (hreflang)
         - Sitemap index support for large sites
-    
+
     Examples:
         generator = SitemapGenerator(site)
         generator.generate()  # Writes sitemap.xml to output directory
-        
+
     """
 
     def __init__(self, site: Any, collector: OutputCollector | None = None) -> None:
@@ -159,23 +159,32 @@ class SitemapGenerator:
                             except ValueError:
                                 # Skip pages not under output_dir
                                 continue
-                            lang = getattr(p, "lang", None) or self.site.config.get("i18n", {}).get(
-                                "default_language", "en"
-                            )
+                            lang = getattr(p, "lang", None) or self.site.config.get(
+                                "i18n", {}
+                            ).get("default_language", "en")
                             if (lang, href) in seen:
                                 continue
-                            link = ET.SubElement(url_elem, "{http://www.w3.org/1999/xhtml}link")
+                            link = ET.SubElement(
+                                url_elem, "{http://www.w3.org/1999/xhtml}link"
+                            )
                             link.set("rel", "alternate")
                             link.set("hreflang", lang)
                             link.set("href", href)
                             seen.add((lang, href))
                     # Add x-default if default language exists among alternates
-                    default_lang = self.site.config.get("i18n", {}).get("default_language", "en")
+                    default_lang = self.site.config.get("i18n", {}).get(
+                        "default_language", "en"
+                    )
                     for child in list(url_elem):
-                        if child.tag.endswith("link") and child.get("hreflang") == default_lang:
+                        if (
+                            child.tag.endswith("link")
+                            and child.get("hreflang") == default_lang
+                        ):
                             default_href: str | None = child.get("href")
                             if default_href is not None:
-                                link = ET.SubElement(url_elem, "{http://www.w3.org/1999/xhtml}link")
+                                link = ET.SubElement(
+                                    url_elem, "{http://www.w3.org/1999/xhtml}link"
+                                )
                                 link.set("rel", "alternate")
                                 link.set("hreflang", "x-default")
                                 link.set("href", default_href)
@@ -189,7 +198,6 @@ class SitemapGenerator:
                     error_type=type(e).__name__,
                     action="skipping_hreflang",
                 )
-                pass
             included_count += 1
 
             # Add lastmod if available
@@ -221,7 +229,9 @@ class SitemapGenerator:
             if self._collector:
                 from bengal.core.output import OutputType
 
-                self._collector.record(sitemap_path, OutputType.XML, phase="postprocess")
+                self._collector.record(
+                    sitemap_path, OutputType.XML, phase="postprocess"
+                )
 
             self.logger.info(
                 "sitemap_generation_complete",
@@ -313,7 +323,9 @@ class SitemapGenerator:
                 self._indent(child, level + 1)
                 last_child = child
             # Set tail on last child (last_child is guaranteed non-None when len(elem) > 0)
-            if last_child is not None and (not last_child.tail or not last_child.tail.strip()):
+            if last_child is not None and (
+                not last_child.tail or not last_child.tail.strip()
+            ):
                 last_child.tail = indent
         elif level and (not elem.tail or not elem.tail.strip()):
             elem.tail = indent

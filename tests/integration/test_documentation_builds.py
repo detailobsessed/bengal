@@ -40,7 +40,10 @@ class TestDocumentationBuild:
         # These should appear as HTML entities (which render as {{ }} in browser)
         # This prevents Jinja2 from trying to process them
         assert "&#123;&#123; page.title &#125;&#125;" in output_content
-        assert "&#123;&#123; post.content | truncatewords(50) &#125;&#125;" in output_content
+        assert (
+            "&#123;&#123; post.content | truncatewords(50) &#125;&#125;"
+            in output_content
+        )
         assert "&#123;&#123; page.date | format_date" in output_content
         assert "&#123;&#123; page.url | absolute_url &#125;&#125;" in output_content
 
@@ -116,7 +119,13 @@ Use {{/* content | meta_description(160) */}} for meta tags.
 
         # Verify all pages built
         for filename in pages_content:
-            output_file = site_dir / "public" / "docs" / filename.replace(".md", "") / "index.html"
+            output_file = (
+                site_dir
+                / "public"
+                / "docs"
+                / filename.replace(".md", "")
+                / "index.html"
+            )
             assert output_file.exists(), f"{filename} was not built"
 
     @pytest.mark.bengal(testroot="test-templates")

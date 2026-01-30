@@ -22,17 +22,17 @@ if TYPE_CHECKING:
 class PerformanceValidator(BaseValidator):
     """
     Validates build performance (basic checks only).
-    
+
     Checks:
     - Build time is reasonable for page count
     - No individual pages are very slow
     - Basic throughput metrics
-    
+
     Skips:
     - Memory profiling (complex)
     - Parallel efficiency analysis (advanced)
     - Build time regression detection (needs history)
-        
+
     """
 
     name = "Performance"
@@ -68,7 +68,9 @@ class PerformanceValidator(BaseValidator):
 
         return results
 
-    def _check_build_time(self, site: SiteLike, build_stats: dict[str, Any]) -> list[CheckResult]:
+    def _check_build_time(
+        self, site: SiteLike, build_stats: dict[str, Any]
+    ) -> list[CheckResult]:
         """Check if overall build time is reasonable."""
         results = []
 
@@ -86,7 +88,9 @@ class PerformanceValidator(BaseValidator):
         threshold = expected_time * 2
 
         if total_pages == 0:
-            results.append(CheckResult.info(f"Build time: {build_time_s:.2f}s (no pages)"))
+            results.append(
+                CheckResult.info(f"Build time: {build_time_s:.2f}s (no pages)")
+            )
         elif build_time_s > threshold:
             results.append(
                 CheckResult.warning(
@@ -97,16 +101,22 @@ class PerformanceValidator(BaseValidator):
             )
         elif build_time_s > 10:
             results.append(
-                CheckResult.info(f"Build time: {build_time_s:.2f}s ({total_pages} pages)")
+                CheckResult.info(
+                    f"Build time: {build_time_s:.2f}s ({total_pages} pages)"
+                )
             )
         else:
             results.append(
-                CheckResult.success(f"Build time: {build_time_s:.2f}s ({total_pages} pages) ⚡")
+                CheckResult.success(
+                    f"Build time: {build_time_s:.2f}s ({total_pages} pages) ⚡"
+                )
             )
 
         return results
 
-    def _check_throughput(self, site: SiteLike, build_stats: dict[str, Any]) -> list[CheckResult]:
+    def _check_throughput(
+        self, site: SiteLike, build_stats: dict[str, Any]
+    ) -> list[CheckResult]:
         """Check pages per second throughput."""
         results: list[CheckResult] = []
 
@@ -121,13 +131,19 @@ class PerformanceValidator(BaseValidator):
         # Thresholds
         if throughput > 100:
             results.append(
-                CheckResult.success(f"Throughput: {throughput:.1f} pages/second (excellent)")
+                CheckResult.success(
+                    f"Throughput: {throughput:.1f} pages/second (excellent)"
+                )
             )
         elif throughput > 50:
-            results.append(CheckResult.success(f"Throughput: {throughput:.1f} pages/second (good)"))
+            results.append(
+                CheckResult.success(f"Throughput: {throughput:.1f} pages/second (good)")
+            )
         elif throughput > 20:
             results.append(
-                CheckResult.info(f"Throughput: {throughput:.1f} pages/second (acceptable)")
+                CheckResult.info(
+                    f"Throughput: {throughput:.1f} pages/second (acceptable)"
+                )
             )
         else:
             results.append(
@@ -140,7 +156,9 @@ class PerformanceValidator(BaseValidator):
 
         return results
 
-    def _check_slow_pages(self, site: SiteLike, build_stats: dict[str, Any]) -> list[CheckResult]:
+    def _check_slow_pages(
+        self, site: SiteLike, build_stats: dict[str, Any]
+    ) -> list[CheckResult]:
         """Check for individual slow pages."""
         results: list[CheckResult] = []
 
@@ -176,7 +194,9 @@ class PerformanceValidator(BaseValidator):
             )
         else:
             results.append(
-                CheckResult.success(f"Average render time: {avg_render_ms:.0f}ms/page (good)")
+                CheckResult.success(
+                    f"Average render time: {avg_render_ms:.0f}ms/page (good)"
+                )
             )
 
         return results

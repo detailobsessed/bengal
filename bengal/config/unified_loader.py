@@ -28,7 +28,10 @@ import yaml
 from bengal.config.accessor import Config
 from bengal.config.defaults import DEFAULTS
 from bengal.config.directory_loader import ConfigDirectoryLoader, ConfigLoadError
-from bengal.config.environment import detect_environment, get_environment_file_candidates
+from bengal.config.environment import (
+    detect_environment,
+    get_environment_file_candidates,
+)
 from bengal.config.feature_mappings import expand_features
 from bengal.config.merge import batch_deep_merge, deep_merge
 from bengal.config.origin_tracker import ConfigWithOrigin
@@ -44,13 +47,13 @@ logger = get_logger(__name__)
 class UnifiedConfigLoader:
     """
     Single loader for all config modes.
-    
+
     Precedence (lowest to highest):
         1. DEFAULTS (nested structure)
         2. User config (single file or directory)
         3. Environment overrides (optional)
         4. Profile overrides (optional)
-        
+
     """
 
     def __init__(self, track_origins: bool = False) -> None:
@@ -128,7 +131,9 @@ class UnifiedConfigLoader:
         # Directory mode: delegate to ConfigDirectoryLoader for parity with legacy loader
         if config_dir:
             dir_loader = ConfigDirectoryLoader(track_origins=self.track_origins)
-            config_dict = dir_loader.load(config_dir, environment=environment, profile=profile)
+            config_dict = dir_loader.load(
+                config_dir, environment=environment, profile=profile
+            )
             if self.track_origins:
                 self.origin_tracker = dir_loader.get_origin_tracker()
             # Directory loader handles normalization/flattening; adopt any warnings if exposed
@@ -269,7 +274,9 @@ class UnifiedConfigLoader:
             )
             return {}
 
-        yaml_files = sorted(defaults_dir.glob("*.yaml")) + sorted(defaults_dir.glob("*.yml"))
+        yaml_files = sorted(defaults_dir.glob("*.yaml")) + sorted(
+            defaults_dir.glob("*.yml")
+        )
         configs: list[dict[str, Any]] = []
 
         for yaml_file in yaml_files:
@@ -289,7 +296,9 @@ class UnifiedConfigLoader:
 
         return batch_deep_merge(configs)
 
-    def _load_environment(self, config_dir: Path, environment: str) -> dict[str, Any] | None:
+    def _load_environment(
+        self, config_dir: Path, environment: str
+    ) -> dict[str, Any] | None:
         """Load environment-specific configuration overrides."""
         env_dir = config_dir / "environments"
         if not env_dir.exists():
@@ -333,7 +342,9 @@ class UnifiedConfigLoader:
         except yaml.YAMLError as e:
             line_number = getattr(e, "problem_mark", None)
             line_num = (
-                (line_number.line + 1) if line_number and hasattr(line_number, "line") else None
+                (line_number.line + 1)
+                if line_number and hasattr(line_number, "line")
+                else None
             )
 
             error = ConfigLoadError(
@@ -369,18 +380,18 @@ class UnifiedConfigLoader:
     ) -> ConfigSnapshot:
         """
         Load configuration and return a frozen ConfigSnapshot.
-        
+
         This is the preferred entry point for RFC: Snapshot-Enabled v2.
         Returns a frozen, typed configuration that is thread-safe by construction.
-        
+
         Args:
             site_root: Root directory of the site.
             environment: Environment name (auto-detected if None).
             profile: Profile name (optional).
-            
+
         Returns:
             Frozen ConfigSnapshot with typed sections.
-            
+
         Example:
             >>> loader = UnifiedConfigLoader()
             >>> snapshot = loader.load_snapshot(site_root)
@@ -436,7 +447,9 @@ class UnifiedConfigLoader:
             return
 
         site_wide = output_formats.get("site_wide", [])
-        has_index_json = "index_json" in site_wide if isinstance(site_wide, list) else False
+        has_index_json = (
+            "index_json" in site_wide if isinstance(site_wide, list) else False
+        )
 
         if has_index_json:
             return

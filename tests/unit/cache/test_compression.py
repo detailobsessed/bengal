@@ -5,8 +5,6 @@ Tests round-trip compression, format detection, and migration utilities.
 Requires Python 3.14+ (uses stdlib compression.zstd).
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 
@@ -64,7 +62,8 @@ class TestSaveLoadCompressed:
         # Create repetitive data (compresses well)
         data = {
             "entries": [
-                {"path": f"content/posts/post-{i}.md", "title": f"Post {i}"} for i in range(100)
+                {"path": f"content/posts/post-{i}.md", "title": f"Post {i}"}
+                for i in range(100)
             ]
         }
         cache_path = tmp_path / "large.json.zst"
@@ -138,7 +137,9 @@ class TestFormatDetection:
     def test_get_compressed_path(self) -> None:
         """Test getting compressed path from JSON path."""
         assert get_compressed_path(Path("cache.json")) == Path("cache.json.zst")
-        assert get_compressed_path(Path(".bengal/tags.json")) == Path(".bengal/tags.json.zst")
+        assert get_compressed_path(Path(".bengal/tags.json")) == Path(
+            ".bengal/tags.json.zst"
+        )
         # Already compressed - return as-is
         assert get_compressed_path(Path("cache.json.zst")) == Path("cache.json.zst")
 

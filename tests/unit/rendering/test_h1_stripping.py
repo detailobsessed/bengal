@@ -1,7 +1,5 @@
 """Tests for automatic H1 stripping in rendered content."""
 
-from __future__ import annotations
-
 from unittest.mock import Mock
 
 from bengal.rendering.renderer import Renderer

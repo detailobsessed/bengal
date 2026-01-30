@@ -7,8 +7,6 @@ from the centralized get_engine_globals() function.
 Related RFC: plan/drafted/rfc-engine-agnostic-context-layer.md
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -122,7 +120,9 @@ class TestEngineParity:
         kida_engine = KidaTemplateEngine(mock_site)
 
         assert kida_engine._env.globals["versioning_enabled"] is True
-        assert kida_engine._env.globals["versions"] == [{"name": "v1.0", "latest": True}]
+        assert kida_engine._env.globals["versions"] == [
+            {"name": "v1.0", "latest": True}
+        ]
 
     def test_bengal_metadata_is_dict(self, mock_site, tmp_path):
         """Bengal metadata is a dict with engine info."""

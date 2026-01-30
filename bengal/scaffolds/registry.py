@@ -45,13 +45,13 @@ logger = get_logger(__name__)
 class TemplateRegistry:
     """
     Registry for discovering and managing site templates.
-    
+
     Automatically discovers templates from sibling directories on init.
     Prefers skeleton.yaml manifests over Python template modules.
-    
+
     Attributes:
         _templates: Internal cache of template ID -> SiteTemplate mappings
-        
+
     """
 
     def __init__(self) -> None:
@@ -77,7 +77,9 @@ class TemplateRegistry:
             skeleton_manifest = item / "skeleton.yaml"
             if skeleton_manifest.exists():
                 try:
-                    template = self._load_skeleton_template(skeleton_manifest, item.name)
+                    template = self._load_skeleton_template(
+                        skeleton_manifest, item.name
+                    )
                     if template:
                         self._templates[template.id] = template
                         continue
@@ -90,7 +92,6 @@ class TemplateRegistry:
                         error_type=type(e).__name__,
                         action="falling_back_to_python_template",
                     )
-                    pass
 
             # Fall back to Python template
             try:
@@ -104,7 +105,9 @@ class TemplateRegistry:
                 # Skip directories that don't contain templates
                 continue
 
-    def _load_skeleton_template(self, skeleton_path: Path, template_id: str) -> SiteTemplate | None:
+    def _load_skeleton_template(
+        self, skeleton_path: Path, template_id: str
+    ) -> SiteTemplate | None:
         """Load a template from a skeleton manifest.
 
         Args:
@@ -129,7 +132,9 @@ class TemplateRegistry:
         # Convert Skeleton to SiteTemplate
         return self._skeleton_to_site_template(skeleton, template_id)
 
-    def _skeleton_to_site_template(self, skeleton: Skeleton, template_id: str) -> SiteTemplate:
+    def _skeleton_to_site_template(
+        self, skeleton: Skeleton, template_id: str
+    ) -> SiteTemplate:
         """Convert a Skeleton manifest to a SiteTemplate.
 
         Args:
@@ -162,18 +167,22 @@ class TemplateRegistry:
             # Generate file content using hydrator's logic
             import yaml
 
-            yaml_str = yaml.dump(frontmatter, sort_keys=False, default_flow_style=False).strip()
+            yaml_str = yaml.dump(
+                frontmatter, sort_keys=False, default_flow_style=False
+            ).strip()
             body = comp.content or ""
 
             content = f"---\n{yaml_str}\n---\n\n{body}\n"
 
             # Determine target_dir (content for markdown files)
             target_dir: str = "content"
-            if full_path.endswith(".yaml") or full_path.endswith(".yml"):
+            if full_path.endswith((".yaml", ".yml")):
                 target_dir = "data"
 
             files.append(
-                TemplateFile(relative_path=full_path, content=content, target_dir=target_dir)
+                TemplateFile(
+                    relative_path=full_path, content=content, target_dir=target_dir
+                )
             )
 
             # Track parent directories
@@ -188,7 +197,9 @@ class TemplateRegistry:
                 section_name = path_parts[0]
                 # Remove file extension if present
                 section_name = (
-                    section_name.rsplit(".", 1)[0] if "." in section_name else section_name
+                    section_name.rsplit(".", 1)[0]
+                    if "." in section_name
+                    else section_name
                 )
                 # Skip common index files
                 if (
@@ -206,7 +217,8 @@ class TemplateRegistry:
             # Process child pages
             for child in comp.pages:
                 process_component(
-                    child, base_path=full_path.rsplit("/", 1)[0] if "/" in full_path else ""
+                    child,
+                    base_path=full_path.rsplit("/", 1)[0] if "/" in full_path else "",
                 )
 
         # Process all top-level components
@@ -263,13 +275,13 @@ _registry_lock = threading.Lock()
 def _get_registry() -> TemplateRegistry:
     """
     Get or create the global registry instance.
-    
+
     Thread-safe: Uses double-checked locking pattern for safe concurrent
     initialization under free-threading (PEP 703).
-    
+
     Returns:
         Singleton TemplateRegistry instance
-        
+
     """
     global _registry
     # Fast path: registry already exists (no lock needed)
@@ -285,13 +297,13 @@ def _get_registry() -> TemplateRegistry:
 def get_template(template_id: str) -> SiteTemplate | None:
     """
     Get a template by its identifier.
-    
+
     Args:
         template_id: Template ID (e.g., "blog", "docs")
-    
+
     Returns:
         SiteTemplate if found, None otherwise
-        
+
     """
     return _get_registry().get(template_id)
 
@@ -299,10 +311,10 @@ def get_template(template_id: str) -> SiteTemplate | None:
 def list_templates() -> list[tuple[str, str]]:
     """
     List all available templates.
-    
+
     Returns:
         List of (template_id, description) tuples
-        
+
     """
     return _get_registry().list()
 
@@ -310,16 +322,16 @@ def list_templates() -> list[tuple[str, str]]:
 def register_template(template: SiteTemplate) -> None:
     """
     Register a custom template with the global registry.
-    
+
     Use this to add templates programmatically at runtime, such as
     from plugins or application-specific code.
-    
+
     Thread-safe: Uses lock to protect concurrent modifications under
     free-threading (PEP 703).
-    
+
     Args:
         template: SiteTemplate instance to register
-        
+
     """
     # Get registry first (may initialize under its own lock)
     registry = _get_registry()

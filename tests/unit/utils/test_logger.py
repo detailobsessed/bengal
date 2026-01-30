@@ -29,7 +29,9 @@ def logger(tmp_path):
 def verbose_logger(tmp_path):
     """Create a verbose test logger."""
     log_file = tmp_path / "test.log"
-    logger = BengalLogger(name="test_logger", level=LogLevel.DEBUG, log_file=log_file, verbose=True)
+    logger = BengalLogger(
+        name="test_logger", level=LogLevel.DEBUG, log_file=log_file, verbose=True
+    )
     yield logger
     logger.close()
 
@@ -299,7 +301,10 @@ def test_print_summary(logger, capsys):
 
     captured = capsys.readouterr()
     # Check for summary content (heading changed to "Performance" to include memory)
-    assert "Build Phase Timings" in captured.out or "Build Phase Performance" in captured.out
+    assert (
+        "Build Phase Timings" in captured.out
+        or "Build Phase Performance" in captured.out
+    )
     assert "phase1" in captured.out
     assert "phase2" in captured.out
     assert "TOTAL" in captured.out

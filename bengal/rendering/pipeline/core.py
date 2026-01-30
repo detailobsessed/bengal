@@ -35,8 +35,8 @@ from bengal.core.page import Page
 if TYPE_CHECKING:
     from bengal.build.tracking import DependencyTracker
     from bengal.core.site import Site
-    from bengal.orchestration.stats import BuildStats
     from bengal.orchestration.build_context import BuildContext
+    from bengal.orchestration.stats import BuildStats
 from bengal.errors import ErrorCode
 from bengal.rendering.engines import create_engine
 from bengal.rendering.pipeline.autodoc_renderer import AutodocRenderer
@@ -66,45 +66,45 @@ logger = get_logger(__name__)
 class RenderingPipeline:
     """
     Coordinates the entire rendering process for content pages.
-    
+
     Orchestrates the complete rendering pipeline from markdown parsing through
     template rendering to final HTML output. Manages thread-local parser instances
     for performance and integrates with dependency tracking for incremental builds.
-    
+
     Creation:
         Direct instantiation: RenderingPipeline(site, dependency_tracker=None, ...)
             - Created by RenderOrchestrator for page rendering
             - One instance per worker thread (thread-local)
             - Requires Site instance with config
-    
+
     Attributes:
         site: Site instance with config and xref_index
         parser: Thread-local markdown parser (cached per thread)
         dependency_tracker: Optional DependencyTracker for incremental builds
         quiet: Whether to suppress per-page output
         build_stats: Optional BuildStats for error collection
-    
+
     Pipeline Stages:
         1. Parse source content (Markdown, etc.)
         2. Build Abstract Syntax Tree (AST)
         3. Apply templates (Kida by default)
         4. Render output (HTML)
         5. Write to output directory
-    
+
     Relationships:
         - Uses: TemplateEngine for template rendering
         - Uses: Renderer for individual page rendering
         - Uses: DependencyTracker for dependency tracking
         - Used by: RenderOrchestrator for page rendering
-    
+
     Thread Safety:
         Thread-safe. Uses thread-local parser instances. Each thread should
         have its own RenderingPipeline instance.
-    
+
     Examples:
         pipeline = RenderingPipeline(site, dependency_tracker=tracker)
         pipeline.render_page(page)
-        
+
     """
 
     def __init__(
@@ -153,7 +153,9 @@ class RenderingPipeline:
             markdown_engine = markdown_config.get("parser", "patitas")
 
         # Allow injection of parser via BuildContext for tests/experiments
-        injected_parser = getattr(build_context, "markdown_parser", None) if build_context else None
+        injected_parser = (
+            getattr(build_context, "markdown_parser", None) if build_context else None
+        )
 
         # Use thread-local parser to avoid re-initialization overhead
         self.parser = injected_parser or get_thread_parser(markdown_engine)
@@ -161,13 +163,17 @@ class RenderingPipeline:
         self.dependency_tracker = dependency_tracker
 
         # Enable cross-references if xref_index is available
-        if hasattr(site, "xref_index") and hasattr(self.parser, "enable_cross_references"):
+        if hasattr(site, "xref_index") and hasattr(
+            self.parser, "enable_cross_references"
+        ):
             # Pass version_config for cross-version linking support [[v2:path]]
             version_config = getattr(site, "version_config", None)
 
             # Pass cross-version tracker for dependency tracking during incremental builds
             cross_version_tracker = None
-            if dependency_tracker and hasattr(dependency_tracker, "track_cross_version_link"):
+            if dependency_tracker and hasattr(
+                dependency_tracker, "track_cross_version_link"
+            ):
                 cross_version_tracker = dependency_tracker.track_cross_version_link
 
             # Create external reference resolver for [[ext:project:target]] syntax
@@ -179,21 +185,29 @@ class RenderingPipeline:
 
                 external_ref_resolver = ExternalRefResolver(site.config)
                 # Expose resolver for health checks (unresolved external refs)
-                setattr(site, "external_ref_resolver", external_ref_resolver)
+                # Use setattr for dynamic attribute that's not in Site class
+                object.__setattr__(site, "external_ref_resolver", external_ref_resolver)
 
             self.parser.enable_cross_references(  # type: ignore[union-attr]
-                site.xref_index, version_config, cross_version_tracker, external_ref_resolver
+                site.xref_index,
+                version_config,
+                cross_version_tracker,
+                external_ref_resolver,
             )
         self.quiet = quiet
         self.build_stats = build_stats
 
         # Allow injection of TemplateEngine via BuildContext
-        injected_engine = getattr(build_context, "template_engine", None) if build_context else None
+        injected_engine = (
+            getattr(build_context, "template_engine", None) if build_context else None
+        )
         if injected_engine:
             self.template_engine = injected_engine
         else:
             profile_templates = (
-                getattr(build_context, "profile_templates", False) if build_context else False
+                getattr(build_context, "profile_templates", False)
+                if build_context
+                else False
             )
             self.template_engine = create_engine(site, profile=profile_templates)
 
@@ -242,7 +256,9 @@ class RenderingPipeline:
         )
 
         # PERF: Unified HTML transformer - single instance reused across all pages, ~27% faster than separate transforms
-        self._html_transformer = HybridHTMLTransformer(baseurl=getattr(site, "baseurl", "") or "")
+        self._html_transformer = HybridHTMLTransformer(
+            baseurl=getattr(site, "baseurl", "") or ""
+        )
 
         # Cache per-pipeline helpers (one pipeline per worker thread).
         # These are safe to reuse and avoid per-page import/initialization overhead.
@@ -250,7 +266,11 @@ class RenderingPipeline:
 
         # Prefer injected enhancer (tests/experiments), fall back to singleton enhancer.
         try:
-            injected_enhancer = getattr(build_context, "api_doc_enhancer", None) if build_context else None
+            injected_enhancer = (
+                getattr(build_context, "api_doc_enhancer", None)
+                if build_context
+                else None
+            )
             if injected_enhancer:
                 self._api_doc_enhancer = injected_enhancer
             else:
@@ -275,7 +295,7 @@ class RenderingPipeline:
             Sets the dependency tracker in ContextVar so that template access
             to site.data.X is automatically tracked. This enables incremental
             builds to rebuild pages when data files change.
-            
+
             RFC: rfc-incremental-build-dependency-gaps (Phase 1)
 
         Args:
@@ -287,7 +307,7 @@ class RenderingPipeline:
         from bengal.rendering.template_functions.get_page import clear_get_page_cache
 
         clear_get_page_cache()
-        
+
         # Set tracker context for data file dependency tracking
         # This enables site.data.X access to be tracked automatically
         # RFC: rfc-incremental-build-dependency-gaps (Phase 1)
@@ -295,9 +315,9 @@ class RenderingPipeline:
             reset_current_tracker,
             set_current_tracker,
         )
-        
+
         tracker_token = set_current_tracker(self.dependency_tracker)
-        
+
         try:
             self._process_page_impl(page)
         finally:
@@ -314,23 +334,28 @@ class RenderingPipeline:
         if getattr(page, "_virtual", False) and (prerendered is not None or is_autodoc):
             if is_autodoc:
                 # Optimized autodoc path: try rendered cache first
-                template = page.metadata.get("_autodoc_template", "autodoc/python/module")
-                if not self._cache_checker.should_bypass_cache(page, self.changed_sources):
-                    if self._cache_checker.try_rendered_cache(page, template):
-                        # Cache hit - skip extraction and rendering
-                        self._json_accumulator.accumulate_unified_page_data(page)
-                        self._accumulate_asset_deps(page)
-                        return
+                template = page.metadata.get(
+                    "_autodoc_template", "autodoc/python/module"
+                )
+                if not self._cache_checker.should_bypass_cache(
+                    page, self.changed_sources
+                ) and self._cache_checker.try_rendered_cache(page, template):
+                    # Cache hit - skip extraction and rendering
+                    self._json_accumulator.accumulate_unified_page_data(page)
+                    self._accumulate_asset_deps(page)
+                    return
 
             self._autodoc_renderer.process_virtual_page(page)
             # Accumulate unified page data for virtual pages (JSON + search index)
             self._json_accumulator.accumulate_unified_page_data(page)
             # Inline asset extraction for virtual pages
             self._accumulate_asset_deps(page)
-            
+
             # Cache the rendered output for next time
             if is_autodoc:
-                template = page.metadata.get("_autodoc_template", "autodoc/python/module")
+                template = page.metadata.get(
+                    "_autodoc_template", "autodoc/python/module"
+                )
                 self._cache_checker.cache_rendered_output(page, template)
             return
 
@@ -358,7 +383,9 @@ class RenderingPipeline:
             self._accumulate_asset_deps(page)
             return
 
-        if not skip_cache and self._cache_checker.try_parsed_cache(page, template, parser_version):
+        if not skip_cache and self._cache_checker.try_parsed_cache(
+            page, template, parser_version
+        ):
             # Inline asset extraction for parsed cache hits
             self._accumulate_asset_deps(page)
             return
@@ -452,11 +479,15 @@ class RenderingPipeline:
             return False
 
         content_text = page._source or ""
-        likely_has_atx = re.search(r"^(?:\s{0,3})(?:##|###|####)\s+.+", content_text, re.MULTILINE)
+        likely_has_atx = re.search(
+            r"^(?:\s{0,3})(?:##|###|####)\s+.+", content_text, re.MULTILINE
+        )
         if likely_has_atx:
             return True
 
-        likely_has_setext = re.search(r"^.+\n\s{0,3}(?:===+|---+)\s*$", content_text, re.MULTILINE)
+        likely_has_setext = re.search(
+            r"^.+\n\s{0,3}(?:===+|---+)\s*$", content_text, re.MULTILINE
+        )
         return bool(likely_has_setext)
 
     def _parse_with_context_aware_parser(self, page: Page, need_toc: bool) -> None:
@@ -468,7 +499,9 @@ class RenderingPipeline:
             metadata_with_source["_source_path"] = page.source_path
 
             if need_toc:
-                parsed_content, toc = self.parser.parse_with_toc(page._source, metadata_with_source)
+                parsed_content, toc = self.parser.parse_with_toc(
+                    page._source, metadata_with_source
+                )
                 parsed_content = escape_template_syntax_in_html(parsed_content)
             else:
                 parsed_content = self.parser.parse(page._source, metadata_with_source)
@@ -496,7 +529,9 @@ class RenderingPipeline:
             else:
                 # Fallback for parsers without context support (e.g., PythonMarkdownParser)
                 if need_toc:
-                    parsed_content, toc = self.parser.parse_with_toc(page._source, page.metadata)
+                    parsed_content, toc = self.parser.parse_with_toc(
+                        page._source, page.metadata
+                    )
                     parsed_content = escape_template_syntax_in_html(parsed_content)
                 else:
                     parsed_content = self.parser.parse(page._source, page.metadata)
@@ -547,30 +582,29 @@ class RenderingPipeline:
 
     def _render_and_write(self, page: Page, template: str) -> None:
         """Render template and write output.
-        
+
         RFC: rfc-build-performance-optimizations Phase 2
         Uses render-time asset tracking to avoid post-render HTML parsing.
-        
+
         RFC: Snapshot-Enabled v2 Opportunities (Effect-Traced Builds)
         Optionally records effects for unified dependency tracking.
         """
-        # Allow empty parsed_ast - pages like home pages, section indexes, and 
+        # Allow empty parsed_ast - pages like home pages, section indexes, and
         # taxonomy pages may have no markdown body but should still render
         # (they're driven by template logic and frontmatter, not content)
         if page.parsed_ast is None:
             page.parsed_ast = ""  # Ensure it's a string, not None
-        
+
         # RFC: rfc-build-performance-optimizations Phase 2
         # Track assets during rendering (render-time tracking)
-        from bengal.rendering.asset_tracking import AssetTracker
-        
         # RFC: Snapshot-Enabled v2 Opportunities (Effect-Traced Builds)
         # Record render effects if effect tracing is enabled
         from bengal.effects import BuildEffectTracer
-        
+        from bengal.rendering.asset_tracking import AssetTracker
+
         effect_tracer = BuildEffectTracer.get_instance()
         effect_recorder = effect_tracer.record_page_render(page, template)
-        
+
         tracker = AssetTracker()
         with tracker:
             # Use effect recorder context if enabled
@@ -578,12 +612,14 @@ class RenderingPipeline:
                 with effect_recorder:
                     html_content = self.renderer.render_content(page.parsed_ast or "")
                     page.rendered_html = self.renderer.render_page(page, html_content)
-                    page.rendered_html = format_html(page.rendered_html, page, self.site)
+                    page.rendered_html = format_html(
+                        page.rendered_html, page, self.site
+                    )
             else:
                 html_content = self.renderer.render_content(page.parsed_ast or "")
                 page.rendered_html = self.renderer.render_page(page, html_content)
                 page.rendered_html = format_html(page.rendered_html, page, self.site)
-        
+
         # Get tracked assets from render-time tracking
         tracked_assets = tracker.get_assets()
 
@@ -601,12 +637,14 @@ class RenderingPipeline:
 
         # Accumulate unified page data during rendering (JSON + search index)
         self._json_accumulator.accumulate_unified_page_data(page)
-        
+
         # RFC: rfc-build-performance-optimizations Phase 2
         # Use render-time tracked assets, fall back to HTML parsing if needed
         self._accumulate_asset_deps(page, tracked_assets=tracked_assets)
 
-    def _accumulate_asset_deps(self, page: Page, tracked_assets: set[str] | None = None) -> None:
+    def _accumulate_asset_deps(
+        self, page: Page, tracked_assets: set[str] | None = None
+    ) -> None:
         """
         Accumulate asset dependencies during rendering.
 
@@ -621,7 +659,7 @@ class RenderingPipeline:
             return
 
         assets: set[str] = set()
-        
+
         # RFC: rfc-build-performance-optimizations Phase 2
         # Use render-time tracked assets if available (fast path)
         if tracked_assets:
@@ -630,6 +668,7 @@ class RenderingPipeline:
             # Fallback: parse HTML (slow, but catches assets not using filters)
             try:
                 from bengal.rendering.asset_extractor import extract_assets_from_html
+
                 assets = extract_assets_from_html(page.rendered_html)
             except Exception as e:
                 # Extraction failure should not break render
@@ -639,7 +678,7 @@ class RenderingPipeline:
                     page=str(page.source_path),
                     error=str(e)[:100],
                 )
-        
+
         if assets:
             self.build_context.accumulate_page_assets(page.source_path, assets)
 
@@ -664,10 +703,9 @@ class RenderingPipeline:
         if snapshot and section:
             # Find section snapshot
             for sec_snap in snapshot.sections:
-                if (
-                    sec_snap.path == getattr(section, "path", None)
-                    or sec_snap.name == getattr(section, "name", "")
-                ):
+                if sec_snap.path == getattr(
+                    section, "path", None
+                ) or sec_snap.name == getattr(section, "name", ""):
                     section_for_context = sec_snap
                     break
 
@@ -720,7 +758,9 @@ class RenderingPipeline:
 
     def _write_output(self, page: Page) -> None:
         """Write rendered page to output directory (backward compatibility wrapper)."""
-        write_output(page, self.site, self.dependency_tracker, collector=self._output_collector)
+        write_output(
+            page, self.site, self.dependency_tracker, collector=self._output_collector
+        )
 
     def _preprocess_content(self, page: Page) -> str:
         """Pre-process page content through configured template engine (legacy parser only)."""
@@ -742,7 +782,9 @@ class RenderingPipeline:
                 # Map error to correct category for stats display
                 # Use engine name for categorization (defaults to kida)
                 engine_name = getattr(self.template_engine, "NAME", "template")
-                error_type = engine_name if "syntax" in str(e).lower() else "preprocessing"
+                error_type = (
+                    engine_name if "syntax" in str(e).lower() else "preprocessing"
+                )
                 self.build_stats.add_warning(str(page.source_path), str(e), error_type)
             else:
                 logger.warning(

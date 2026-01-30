@@ -8,8 +8,6 @@ Tests the speculation rules generation including:
 - Configuration options
 """
 
-from __future__ import annotations
-
 import json
 from unittest.mock import MagicMock
 
@@ -241,4 +239,9 @@ class TestSpeculationRulesJSONSchema:
                 assert isinstance(rule, dict)
                 assert "where" in rule
                 assert "eagerness" in rule
-                assert rule["eagerness"] in ["immediate", "eager", "moderate", "conservative"]
+                assert rule["eagerness"] in [
+                    "immediate",
+                    "eager",
+                    "moderate",
+                    "conservative",
+                ]

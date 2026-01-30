@@ -1,7 +1,5 @@
 """Tests for list-table directive."""
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.parsing import create_markdown_parser

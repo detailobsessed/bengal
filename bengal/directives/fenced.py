@@ -60,31 +60,31 @@ _NAMED_CLOSER_PATTERN = re.compile(
 class FencedDirective(BaseFencedDirective):
     """
     FencedDirective that allows indentation, skips code blocks, and supports named closers.
-    
+
     This is crucial for:
     1. Nesting directives inside lists or other blocks where indentation
        is required/present
     2. Showing directive syntax examples inside code blocks without the
        ::: sequences being consumed by the directive parser
     3. Using named closers (:::{/name}) for complex nested structures
-    
+
     Example with fence-depth counting (traditional):
         ::::{tab-set}
         :::{tab-item} Example
         Content here
         :::
         ::::
-    
+
     Example with named closers (new):
         :::{tab-set}
         :::{tab-item} Example
         Content here
         :::{/tab-item}
         :::{/tab-set}
-    
+
     Both syntaxes work and can be mixed. Named closers are optional but
     recommended for deeply nested structures where counting colons is error-prone.
-        
+
     """
 
     def __init__(self, plugins: list[Any], markers: str = ":") -> None:
@@ -106,10 +106,14 @@ class FencedDirective(BaseFencedDirective):
             r"\{[a-zA-Z0-9_-]+\}"
         )
 
-    def parse_directive(self, block: BlockParser, m: Match[str], state: BlockState) -> int | None:
+    def parse_directive(
+        self, block: BlockParser, m: Match[str], state: BlockState
+    ) -> int | None:
         marker = m.group("fenced_directive_mark")
         # Use the start of the marker group, not the whole match (which includes indent)
-        return self._process_directive(block, marker, m.start("fenced_directive_mark"), state)
+        return self._process_directive(
+            block, marker, m.start("fenced_directive_mark"), state
+        )
 
     def _process_directive(
         self, block: BlockParser, marker: str, start: int, state: BlockState
@@ -136,9 +140,10 @@ class FencedDirective(BaseFencedDirective):
 
         # Find all fenced code block regions in the remaining source
         # These regions should be skipped when searching for closing patterns
-        code_block_regions: list[tuple[int, int]] = []
-        for code_match in _CODE_BLOCK_PATTERN.finditer(remaining_src):
-            code_block_regions.append((code_match.start(), code_match.end()))
+        code_block_regions: list[tuple[int, int]] = [
+            (code_match.start(), code_match.end())
+            for code_match in _CODE_BLOCK_PATTERN.finditer(remaining_src)
+        ]
 
         def is_inside_code_block(pos: int) -> bool:
             """Check if position is inside a fenced code block."""
@@ -162,7 +167,9 @@ class FencedDirective(BaseFencedDirective):
 
         # Fall back to fence-depth counting if no named closer found
         if end_pos is None:
-            _end_pattern = r"^ {0,3}" + marker[0] + "{" + str(mlen) + r",}" + r"[ \t]*(?:\n|$)"
+            _end_pattern = (
+                r"^ {0,3}" + marker[0] + "{" + str(mlen) + r",}" + r"[ \t]*(?:\n|$)"
+            )
             _end_re = re.compile(_end_pattern, re.M)
 
             for _end_m in _end_re.finditer(remaining_src):
@@ -231,13 +238,16 @@ class FencedDirective(BaseFencedDirective):
         # Find all openers and closers, sorted by position
         events: list[tuple[int, str, Match[str]]] = []
 
-        for m in opener_pattern.finditer(text):
-            if not is_inside_code_block(m.start()):
-                events.append((m.start(), "open", m))
-
-        for m in closer_pattern.finditer(text):
-            if not is_inside_code_block(m.start()):
-                events.append((m.start(), "close", m))
+        events.extend(
+            (m.start(), "open", m)
+            for m in opener_pattern.finditer(text)
+            if not is_inside_code_block(m.start())
+        )
+        events.extend(
+            (m.start(), "close", m)
+            for m in closer_pattern.finditer(text)
+            if not is_inside_code_block(m.start())
+        )
 
         # Sort by position
         events.sort(key=lambda x: x[0])

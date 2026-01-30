@@ -27,10 +27,14 @@ def temp_site_dir():
 
     # Create test assets
     for i in range(10):
-        (temp_dir / "assets" / "css" / f"style{i}.css").write_text(f"body {{ color: red{i}; }}")
+        (temp_dir / "assets" / "css" / f"style{i}.css").write_text(
+            f"body {{ color: red{i}; }}"
+        )
 
     for i in range(5):
-        (temp_dir / "assets" / "js" / f"script{i}.js").write_text(f"console.log('test{i}');")
+        (temp_dir / "assets" / "js" / f"script{i}.js").write_text(
+            f"console.log('test{i}');"
+        )
 
     # Create config
     (temp_dir / "bengal.toml").write_text("""
@@ -57,7 +61,9 @@ class TestParallelAssetProcessing:
             js_file.unlink()
 
         # Create site with only 2 site assets (theme assets will also be discovered)
-        (temp_site_dir / "assets" / "css" / "main.css").write_text("body { color: blue; }")
+        (temp_site_dir / "assets" / "css" / "main.css").write_text(
+            "body { color: blue; }"
+        )
         (temp_site_dir / "assets" / "js" / "main.js").write_text("console.log('hi');")
 
         site = Site.from_config(temp_site_dir)
@@ -121,7 +127,9 @@ class TestParallelAssetProcessing:
 
         sequential_output = temp_site_dir / "public" / "assets"
         sequential_files = {
-            f.name: f.read_bytes() for f in sequential_output.rglob("*.*") if f.is_file()
+            f.name: f.read_bytes()
+            for f in sequential_output.rglob("*.*")
+            if f.is_file()
         }
 
         # Compare files
@@ -256,9 +264,9 @@ rss = false
 
 class TestParallelConfiguration:
     """Test configuration options for parallel processing.
-    
+
     Note: Config is now nested (build.parallel, build.max_workers).
-        
+
     """
 
     def test_parallel_enabled_by_default(self):
@@ -314,10 +322,10 @@ max_workers = 8
 @pytest.mark.parallel_unsafe
 class TestThreadSafety:
     """Test thread safety of parallel operations.
-    
+
     Marked parallel_unsafe: Uses ThreadPoolExecutor internally, which conflicts
     with pytest-xdist's parallel test execution (nested parallelism causes worker crashes).
-        
+
     """
 
     def test_concurrent_directory_creation(self):

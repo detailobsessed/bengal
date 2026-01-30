@@ -45,7 +45,7 @@ from .weighted import WeightedPage
 class SectionQueryMixin:
     """
     Page collection and retrieval.
-    
+
     This mixin handles:
     - Page listing (regular_pages, sorted_pages, regular_pages_recursive)
     - Section listing (sections alias)
@@ -53,7 +53,7 @@ class SectionQueryMixin:
     - Sorting (sort_children_by_weight)
     - Index page detection (has_index, needs_auto_index)
     - Recursive page retrieval (get_all_pages)
-        
+
     """
 
     # =========================================================================
@@ -150,7 +150,9 @@ class SectionQueryMixin:
             for p in self.pages
             if not is_index_page(p)
         ]
-        return [wp.page for wp in sorted(weighted, key=attrgetter("weight", "title_lower"))]
+        return [
+            wp.page for wp in sorted(weighted, key=attrgetter("weight", "title_lower"))
+        ]
 
     @cached_property
     def regular_pages_recursive(self) -> list[Page]:
@@ -193,7 +195,7 @@ class SectionQueryMixin:
 
         is_index = page.source_path.stem in ("index", "_index")
 
-        self.pages.append(page)
+        self.pages.append(page)  # type: ignore[arg-type]  # PageProxy is compatible
 
         # Invalidate cached properties that depend on pages list
         self.__dict__.pop("regular_pages", None)
@@ -225,10 +227,18 @@ class SectionQueryMixin:
 
                 # Prefer _index.md over index.md (section index convention)
                 if new_name == "_index":
-                    self.index_page = page
+                    # Ensure we're assigning a Page, not PageProxy
+                    from bengal.core.page import Page as PageClass
+
+                    if isinstance(page, PageClass):
+                        self.index_page = page
                 # else: keep existing _index.md
             else:
-                self.index_page = page
+                # Ensure we're assigning a Page, not PageProxy
+                from bengal.core.page import Page as PageClass
+
+                if isinstance(page, PageClass):
+                    self.index_page = page
 
             # Copy metadata from index page to section
             # This allows sections to have weight, description, and other metadata
@@ -247,7 +257,9 @@ class SectionQueryMixin:
         """
         # Sort pages by weight (ascending), then title (alphabetically)
         # Unweighted pages use float('inf') to sort last
-        self.pages.sort(key=lambda p: (p.metadata.get("weight", float("inf")), p.title.lower()))
+        self.pages.sort(
+            key=lambda p: (p.metadata.get("weight", float("inf")), p.title.lower())
+        )
 
         # Sort subsections by weight (ascending), then title (alphabetically)
         # Unweighted subsections use float('inf') to sort last

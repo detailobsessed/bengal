@@ -10,11 +10,8 @@ robustness.
 See: plan/rfc-warm-build-test-expansion.md
 """
 
-from __future__ import annotations
-
 import os
 import shutil
-import time
 from pathlib import Path
 
 import pytest
@@ -75,9 +72,7 @@ title: Empty Site
         # Build should succeed with minimal content
         assert stats2.total_pages >= 1
 
-    def test_batch_changes_100_files(
-        self, warm_build_site: WarmBuildTestSite
-    ) -> None:
+    def test_batch_changes_100_files(self, warm_build_site: WarmBuildTestSite) -> None:
         """
         Warm build handles 100+ simultaneous file changes.
 
@@ -123,9 +118,7 @@ Modified content for page {i} - BATCH UPDATE.
         # All pages should be processed
         assert stats2.total_pages >= 100
 
-    def test_deep_nesting_10_levels(
-        self, warm_build_site: WarmBuildTestSite
-    ) -> None:
+    def test_deep_nesting_10_levels(self, warm_build_site: WarmBuildTestSite) -> None:
         """
         Deep directory nesting handled correctly.
 
@@ -168,7 +161,9 @@ This page is 10 levels deep.
         assert stats1.total_pages >= 1
 
         # Verify deep page was created
-        warm_build_site.assert_output_exists("level1/level2/level3/level4/level5/level6/level7/level8/level9/level10/deep-page/index.html")
+        warm_build_site.assert_output_exists(
+            "level1/level2/level3/level4/level5/level6/level7/level8/level9/level10/deep-page/index.html"
+        )
 
         # Modify intermediate level
         warm_build_site.modify_file(
@@ -242,15 +237,13 @@ FINAL modification content.
         warm_build_site.wait_for_fs()
 
         # Build 2: Incremental build
-        stats2 = warm_build_site.incremental_build()
+        warm_build_site.incremental_build()
 
         # Final content should be reflected
         html = warm_build_site.read_output("rapid/index.html")
         assert "FINAL" in html, "Final modification should be reflected"
 
-    def test_unicode_filenames(
-        self, warm_build_site: WarmBuildTestSite
-    ) -> None:
+    def test_unicode_filenames(self, warm_build_site: WarmBuildTestSite) -> None:
         """
         Unicode filenames in warm builds.
 
@@ -306,8 +299,7 @@ UPDATED Japanese content.
         assert stats2.total_pages >= 1
 
     @pytest.mark.skipif(
-        os.name == "nt",
-        reason="Symlinks require elevated privileges on Windows"
+        os.name == "nt", reason="Symlinks require elevated privileges on Windows"
     )
     def test_symlinked_content(self, tmp_path: Path) -> None:
         """
@@ -362,9 +354,7 @@ UPDATED shared content via symlink.
         # Build should succeed
         assert stats2.total_pages >= 1
 
-    def test_case_sensitivity(
-        self, warm_build_site: WarmBuildTestSite
-    ) -> None:
+    def test_case_sensitivity(self, warm_build_site: WarmBuildTestSite) -> None:
         """
         Case sensitivity handled correctly.
 
@@ -473,9 +463,7 @@ MODIFIED content with hash detection.
 class TestWarmBuildBoundaryConditions:
     """Test boundary conditions for warm builds."""
 
-    def test_very_large_file(
-        self, warm_build_site: WarmBuildTestSite
-    ) -> None:
+    def test_very_large_file(self, warm_build_site: WarmBuildTestSite) -> None:
         """
         Very large markdown file handled correctly.
 
@@ -511,9 +499,7 @@ title: Large File
         assert stats2.total_pages >= 1
         warm_build_site.assert_output_exists("large-file/index.html")
 
-    def test_empty_content_file(
-        self, warm_build_site: WarmBuildTestSite
-    ) -> None:
+    def test_empty_content_file(self, warm_build_site: WarmBuildTestSite) -> None:
         """
         Empty content file handled gracefully.
 
@@ -599,9 +585,7 @@ Modified content.
         # Build should succeed
         assert stats2.total_pages >= 1
 
-    def test_frontmatter_only_no_body(
-        self, warm_build_site: WarmBuildTestSite
-    ) -> None:
+    def test_frontmatter_only_no_body(self, warm_build_site: WarmBuildTestSite) -> None:
         """
         Files with frontmatter but no body content handled.
 

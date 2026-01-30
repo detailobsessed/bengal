@@ -7,9 +7,6 @@ Tests health/linkcheck/internal_checker.py:
 This test file includes operator precedence tests that would have caught Bug #5.
 """
 
-from __future__ import annotations
-
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -138,9 +135,10 @@ class TestInternalLinkCheckerSourceFileFiltering:
         # Should NOT be filtered - it's a real page, not a source file
         result = checker._check_internal_link("/bengal/", ["test.html"])
         # Could be OK or BROKEN depending on index, but NOT IGNORED
-        assert result.status != LinkStatus.IGNORED or "source" not in (
-            result.ignore_reason or ""
-        ).lower()
+        assert (
+            result.status != LinkStatus.IGNORED
+            or "source" not in (result.ignore_reason or "").lower()
+        )
 
     def test_filters_relative_py_paths(self, mock_site):
         """Filters relative paths to .py files (../ prefix)."""
@@ -149,7 +147,9 @@ class TestInternalLinkCheckerSourceFileFiltering:
         result = checker._check_internal_link("../module.py", ["test.html"])
         assert result.status == LinkStatus.IGNORED
 
-        result = checker._check_internal_link("../../package/module.py#L1", ["test.html"])
+        result = checker._check_internal_link(
+            "../../package/module.py#L1", ["test.html"]
+        )
         assert result.status == LinkStatus.IGNORED
 
 

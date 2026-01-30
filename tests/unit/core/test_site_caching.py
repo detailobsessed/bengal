@@ -14,8 +14,12 @@ def test_regular_pages_caching(tmp_path):
     site = Site(root_path=tmp_path)
 
     # Add some pages
-    regular_page_1 = Page(source_path=tmp_path / "page1.md", metadata={"title": "Page 1"})
-    regular_page_2 = Page(source_path=tmp_path / "page2.md", metadata={"title": "Page 2"})
+    regular_page_1 = Page(
+        source_path=tmp_path / "page1.md", metadata={"title": "Page 1"}
+    )
+    regular_page_2 = Page(
+        source_path=tmp_path / "page2.md", metadata={"title": "Page 2"}
+    )
     generated_page = Page(
         source_path=tmp_path / "tags" / "python.md",
         metadata={"title": "Python Tag", "_generated": True},
@@ -138,7 +142,9 @@ def test_regular_pages_cache_across_multiple_accesses(tmp_path):
 
     # Add pages
     for i in range(100):
-        page = Page(source_path=tmp_path / f"page{i}.md", metadata={"title": f"Page {i}"})
+        page = Page(
+            source_path=tmp_path / f"page{i}.md", metadata={"title": f"Page {i}"}
+        )
         site.pages.append(page)
 
     # Access multiple times
@@ -192,7 +198,10 @@ class TestSiteRuntimeCaches:
         # Set some caches
         site._bengal_theme_chain_cache = {"key": "test", "chain": ["default"]}
         site._bengal_template_dirs_cache = {"key": "test", "template_dirs": ["/tmp"]}
-        site._bengal_template_metadata_cache = {"key": "test", "metadata": {"engine": "test"}}
+        site._bengal_template_metadata_cache = {
+            "key": "test",
+            "metadata": {"engine": "test"},
+        }
         site._discovery_breakdown_ms = {"pages": 100.0, "total": 150.0}
         site._asset_manifest_fallbacks_global.add("test.css")
 

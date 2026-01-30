@@ -30,36 +30,51 @@ from bengal.cli.helpers import (
 )
 @handle_cli_errors(show_art=False)
 @click.option("--force", "-f", is_flag=True, help="Skip confirmation prompt")
-@click.option("--cache", is_flag=True, help="Also remove build cache (.bengal/ directory)")
-@click.option("--all", "clean_all", is_flag=True, help="Remove everything (output + cache)")
-@click.option("--stale-server", is_flag=True, help="Clean up stale 'bengal serve' processes")
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--cache", is_flag=True, help="Also remove build cache (.bengal/ directory)"
+)
+@click.option(
+    "--all", "clean_all", is_flag=True, help="Remove everything (output + cache)"
+)
+@click.option(
+    "--stale-server", is_flag=True, help="Clean up stale 'bengal serve' processes"
+)
+@click.option(
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
 def clean(
-    force: bool, cache: bool, clean_all: bool, stale_server: bool, config: str, source: str
+    force: bool,
+    cache: bool,
+    clean_all: bool,
+    stale_server: bool,
+    config: str,
+    source: str,
 ) -> None:
     """
     Clean generated files and stale processes.
-    
+
     By default, removes only the output directory (public/).
-    
+
     Options:
       --cache         Also remove build cache
       --all           Remove both output and cache
       --stale-server  Clean up stale 'bengal serve' processes
-    
+
     Examples:
       bengal clean                  # Clean output only
       bengal clean --cache          # Clean output and cache
       bengal clean --stale-server   # Clean up stale server processes
-        
+
     """
     cli = get_cli_output()
 
     # Load site using helper
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     # Determine what to clean
     clean_cache = cache or clean_all
@@ -78,7 +93,7 @@ def clean(
     cli.blank()
 
     if stale_server:
-        cleanup(force, None, source)
+        cleanup(force, 0, source)  # 0 means check all ports
         return
 
     # Confirm before cleaning unless --force
@@ -131,8 +146,12 @@ def cleanup(force: bool, port: int, source: str) -> None:
                     cli.blank()
                     cli.warning(f"However, port {port} is in use by PID {port_pid}")
                     if PIDManager.is_bengal_process(port_pid):
-                        cli.info("   This appears to be a Bengal process not tracked by PID file")
-                        if not force and not click.confirm(f"  Kill process {port_pid}?"):
+                        cli.info(
+                            "   This appears to be a Bengal process not tracked by PID file"
+                        )
+                        if not force and not click.confirm(
+                            f"  Kill process {port_pid}?"
+                        ):
                             cli.info("Cancelled")
                             return
                         if PIDManager.kill_stale_process(port_pid):
@@ -160,11 +179,16 @@ def cleanup(force: bool, port: int, source: str) -> None:
             try:
                 from rich.prompt import Confirm
 
-                from bengal.utils.observability.rich_console import get_console, should_use_rich
+                from bengal.utils.observability.rich_console import (
+                    get_console,
+                    should_use_rich,
+                )
 
                 if should_use_rich():
                     console = get_console()
-                    if not Confirm.ask("  Kill this process", console=console, default=False):
+                    if not Confirm.ask(
+                        "  Kill this process", console=console, default=False
+                    ):
                         cli.info("Cancelled")
                         return
                 elif not click.confirm("  Kill this process?"):

@@ -8,8 +8,6 @@ Tests sites that combine multiple content types:
 Each section uses cascade to set the content type for child pages.
 """
 
-from __future__ import annotations
-
 import pytest
 
 
@@ -21,7 +19,9 @@ class TestMixedContentDiscovery:
         """All pages from all sections should be discovered."""
         # Should have: landing + 3 section indexes + 6 content pages = 10 pages
         # Actual count may vary based on implementation
-        assert len(site.pages) >= 7, f"Expected at least 7 pages, found {len(site.pages)}"
+        assert len(site.pages) >= 7, (
+            f"Expected at least 7 pages, found {len(site.pages)}"
+        )
 
     def test_docs_section_exists(self, site) -> None:
         """Docs section should be discovered."""
@@ -36,7 +36,9 @@ class TestMixedContentDiscovery:
     def test_projects_section_exists(self, site) -> None:
         """Projects section should be discovered."""
         projects = [p for p in site.pages if "/projects/" in str(p.source_path)]
-        assert len(projects) >= 2, f"Expected at least 2 project pages, found {len(projects)}"
+        assert len(projects) >= 2, (
+            f"Expected at least 2 project pages, found {len(projects)}"
+        )
 
 
 @pytest.mark.bengal(testroot="test-mixed-content")
@@ -55,23 +57,31 @@ class TestMixedContentTypes:
             # Content type may be accessed via type attribute or metadata
             doc_type = getattr(doc, "type", None) or getattr(doc, "content_type", None)
             if doc_type:
-                assert doc_type == "doc", f"Doc page should have 'doc' type, got {doc_type}"
+                assert doc_type == "doc", (
+                    f"Doc page should have 'doc' type, got {doc_type}"
+                )
 
     def test_blog_pages_have_blog_type(self, site) -> None:
         """Blog pages should have 'blog' content type from cascade."""
         posts = [p for p in site.pages if "/blog/post" in str(p.source_path)]
 
         for post in posts:
-            post_type = getattr(post, "type", None) or getattr(post, "content_type", None)
+            post_type = getattr(post, "type", None) or getattr(
+                post, "content_type", None
+            )
             if post_type:
-                assert post_type == "blog", f"Blog post should have 'blog' type, got {post_type}"
+                assert post_type == "blog", (
+                    f"Blog post should have 'blog' type, got {post_type}"
+                )
 
     def test_project_pages_have_portfolio_type(self, site) -> None:
         """Project pages should have 'portfolio' content type from cascade."""
         projects = [p for p in site.pages if "/projects/project" in str(p.source_path)]
 
         for project in projects:
-            proj_type = getattr(project, "type", None) or getattr(project, "content_type", None)
+            proj_type = getattr(project, "type", None) or getattr(
+                project, "content_type", None
+            )
             if proj_type:
                 assert proj_type == "portfolio", (
                     f"Project should have 'portfolio' type, got {proj_type}"
@@ -104,10 +114,14 @@ class TestMixedContentBuild:
 
         # Check blog section
         assert (output / "blog" / "index.html").exists(), "Blog index should exist"
-        assert (output / "blog" / "post-1" / "index.html").exists(), "Blog post should exist"
+        assert (output / "blog" / "post-1" / "index.html").exists(), (
+            "Blog post should exist"
+        )
 
         # Check projects section
-        assert (output / "projects" / "index.html").exists(), "Projects index should exist"
+        assert (output / "projects" / "index.html").exists(), (
+            "Projects index should exist"
+        )
         assert (output / "projects" / "project-alpha" / "index.html").exists(), (
             "Project page should exist"
         )

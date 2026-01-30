@@ -56,9 +56,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
 from bengal.utils.observability.logger import get_logger
 from bengal.utils.paths.url_strategy import URLStrategy
-from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
 
 logger = get_logger(__name__)
 
@@ -79,14 +79,14 @@ if TYPE_CHECKING:
 class TaxonomyOrchestrator:
     """
     Handles taxonomies and dynamic page generation.
-    
+
     Responsibilities:
         - Collect tags, categories, and other taxonomies
         - Generate tag index pages
         - Generate individual tag pages (with pagination)
-    
+
     Note: Section archive pages are now handled by SectionOrchestrator
-        
+
     """
 
     def __init__(self, site: Site, threshold: int = 20, parallel: bool = True):
@@ -191,7 +191,9 @@ class TaxonomyOrchestrator:
         Returns:
             Set of affected tag slugs (for regenerating tag pages)
         """
-        logger.info("taxonomy_collection_incremental_start", changed_pages=len(changed_pages))
+        logger.info(
+            "taxonomy_collection_incremental_start", changed_pages=len(changed_pages)
+        )
 
         # STEP 1: Determine which tags are affected
         # This is the O(changed) optimization - only look at changed pages
@@ -211,7 +213,9 @@ class TaxonomyOrchestrator:
         # This ensures taxonomy listing pages use current Page objects with
         # up-to-date metadata (title, date, summary) even if tags didn't change.
         # The rebuild is O(tags * pages_per_tag) but typically fast (<50ms).
-        pages_with_tags = [p for p in changed_pages if p.tags and not p.metadata.get("_generated")]
+        pages_with_tags = [
+            p for p in changed_pages if p.tags and not p.metadata.get("_generated")
+        ]
         if affected_tags or not changed_pages or pages_with_tags:
             # Rebuild if: (1) tags changed OR (2) no pages changed OR (3) pages with tags changed
             self._rebuild_taxonomy_structure_from_cache(cache)
@@ -242,7 +246,9 @@ class TaxonomyOrchestrator:
         if not changed_pages and self.site.taxonomies.get("tags"):
             # No content changed, but we need to regenerate all taxonomy pages
             all_tags = set(self.site.taxonomies["tags"].keys())
-            self.generate_dynamic_pages_for_tags_with_cache(all_tags, taxonomy_index=taxonomy_index)
+            self.generate_dynamic_pages_for_tags_with_cache(
+                all_tags, taxonomy_index=taxonomy_index
+            )
             affected_tags = all_tags
         elif affected_tags:
             # Normal case: Only regenerate affected tag pages
@@ -257,7 +263,9 @@ class TaxonomyOrchestrator:
             try:
                 for tag_slug, tag_data in self.site.taxonomies.get("tags", {}).items():
                     page_paths = [str(p.source_path) for p in tag_data.get("pages", [])]
-                    taxonomy_index.update_tag(tag_slug, tag_data.get("name", tag_slug), page_paths)
+                    taxonomy_index.update_tag(
+                        tag_slug, tag_data.get("name", tag_slug), page_paths
+                    )
 
                 taxonomy_index.save_to_disk()
                 logger.debug(
@@ -374,7 +382,9 @@ class TaxonomyOrchestrator:
 
         # Build lookup map: path → current Page object
         # Filter out generated pages and autodoc pages
-        eligible_pages = [p for p in self.site.regular_pages if self._is_eligible_for_taxonomy(p)]
+        eligible_pages = [
+            p for p in self.site.regular_pages if self._is_eligible_for_taxonomy(p)
+        ]
         current_page_map = {p.source_path: p for p in eligible_pages}
 
         # For each tag in cache, map paths to current Page objects
@@ -413,7 +423,9 @@ class TaxonomyOrchestrator:
                 "name": original_tag,
                 "slug": tag_slug,
                 "pages": sorted(
-                    current_pages, key=lambda p: p.date if p.date else datetime.min, reverse=True
+                    current_pages,
+                    key=lambda p: p.date if p.date else datetime.min,
+                    reverse=True,
                 ),
             }
 
@@ -428,7 +440,9 @@ class TaxonomyOrchestrator:
         Args:
             affected_tags: Set of tag slugs that need page regeneration
         """
-        self.generate_dynamic_pages_for_tags_with_cache(affected_tags, taxonomy_index=None)
+        self.generate_dynamic_pages_for_tags_with_cache(
+            affected_tags, taxonomy_index=None
+        )
 
     def generate_dynamic_pages_for_tags_with_cache(
         self, affected_tags: set[str], taxonomy_index: TaxonomyIndex | None = None
@@ -477,7 +491,11 @@ class TaxonomyOrchestrator:
                 pages_for_lang = (
                     tag_data["pages"]
                     if (strategy == "none" or share_taxonomies)
-                    else [p for p in tag_data["pages"] if getattr(p, "lang", default_lang) == lang]
+                    else [
+                        p
+                        for p in tag_data["pages"]
+                        if getattr(p, "lang", default_lang) == lang
+                    ]
                 )
                 if not pages_for_lang:
                     continue
@@ -521,7 +539,8 @@ class TaxonomyOrchestrator:
 
                         # Route through _create_tag_pages so tests that patch it can count calls
                         pages = self._create_tag_pages(
-                            tag_slug, {"name": tag_data["name"], "pages": tag_data["pages"]}
+                            tag_slug,
+                            {"name": tag_data["name"], "pages": tag_data["pages"]},
                         )
                         for page in pages:
                             page.lang = lang
@@ -581,7 +600,9 @@ class TaxonomyOrchestrator:
                         tag_data["pages"]
                         if (strategy == "none" or share_taxonomies)
                         else [
-                            p for p in tag_data["pages"] if getattr(p, "lang", default_lang) == lang
+                            p
+                            for p in tag_data["pages"]
+                            if getattr(p, "lang", default_lang) == lang
                         ]
                     )
                     if not pages_for_lang:
@@ -608,9 +629,13 @@ class TaxonomyOrchestrator:
                     # Individual tag pages for this language
                     # Use parallel generation if we have many tags
                     if parallel and len(locale_tags) >= MIN_TAGS_FOR_PARALLEL:
-                        tag_pages_count = self._generate_tag_pages_parallel(locale_tags, lang)
+                        tag_pages_count = self._generate_tag_pages_parallel(
+                            locale_tags, lang
+                        )
                     else:
-                        tag_pages_count = self._generate_tag_pages_sequential(locale_tags, lang)
+                        tag_pages_count = self._generate_tag_pages_sequential(
+                            locale_tags, lang
+                        )
 
                     generated_count += tag_pages_count
                 finally:
@@ -623,7 +648,9 @@ class TaxonomyOrchestrator:
         tag_count = sum(
             1
             for p in self.site.pages
-            if p.metadata.get("_generated") and p.output_path and "tag" in p.output_path.parts
+            if p.metadata.get("_generated")
+            and p.output_path
+            and "tag" in p.output_path.parts
         )
         pagination_count = sum(
             1
@@ -639,7 +666,9 @@ class TaxonomyOrchestrator:
                 total=generated_count,
             )
 
-    def _generate_tag_pages_sequential(self, locale_tags: dict[str, Any], lang: str) -> int:
+    def _generate_tag_pages_sequential(
+        self, locale_tags: dict[str, Any], lang: str
+    ) -> int:
         """
         Generate tag pages sequentially (original implementation).
 
@@ -662,7 +691,9 @@ class TaxonomyOrchestrator:
                 count += 1
         return count
 
-    def _generate_tag_pages_parallel(self, locale_tags: dict[str, Any], lang: str) -> int:
+    def _generate_tag_pages_parallel(
+        self, locale_tags: dict[str, Any], lang: str
+    ) -> int:
         """
         Generate tag pages in parallel using ThreadPoolExecutor.
 
@@ -686,8 +717,9 @@ class TaxonomyOrchestrator:
         # Get optimal workers for CPU-bound page generation
         # Access max_workers from build section (supports both Config and dict)
         config = self.site.config
-        if hasattr(config, "build"):
-            max_workers_override = config.build.max_workers
+        build_obj = getattr(config, "build", None)
+        if build_obj is not None:
+            max_workers_override = getattr(build_obj, "max_workers", None)
         else:
             build_section = config.get("build", {})
             max_workers_override = (
@@ -708,7 +740,9 @@ class TaxonomyOrchestrator:
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all tasks
             future_to_tag = {
-                executor.submit(self._create_tag_pages_for_lang, tag_slug, tag_data, lang): tag_slug
+                executor.submit(
+                    self._create_tag_pages_for_lang, tag_slug, tag_data, lang
+                ): tag_slug
                 for tag_slug, tag_data in locale_tags.items()
             }
 
@@ -778,7 +812,9 @@ class TaxonomyOrchestrator:
         tag_index._site = self.site
 
         # Compute output path using centralized logic (i18n-aware via site.current_language)
-        tag_index.output_path = self.url_strategy.compute_tag_index_output_path(self.site)
+        tag_index.output_path = self.url_strategy.compute_tag_index_output_path(
+            self.site
+        )
 
         return tag_index
 
@@ -801,13 +837,17 @@ class TaxonomyOrchestrator:
 
         # Set site reference BEFORE output_path for correct URL computation
         tag_index._site = self.site
-        tag_index.output_path = self.url_strategy.compute_tag_index_output_path(self.site)
+        tag_index.output_path = self.url_strategy.compute_tag_index_output_path(
+            self.site
+        )
 
         # Claim URL in registry for ownership enforcement
         # Priority 40 = taxonomy (auto-generated)
         if hasattr(self.site, "url_registry") and self.site.url_registry:
             try:
-                url = self.url_strategy.url_from_output_path(tag_index.output_path, self.site)
+                url = self.url_strategy.url_from_output_path(
+                    tag_index.output_path, self.site
+                )
                 source = str(tag_index.source_path)
                 self.site.url_registry.claim(
                     url=url,
@@ -839,7 +879,9 @@ class TaxonomyOrchestrator:
         per_page = self.site.config.get("pagination", {}).get("per_page", 10)
 
         # Filter out any ineligible pages (defensive check)
-        eligible_pages = [p for p in tag_data["pages"] if self._is_eligible_for_taxonomy(p)]
+        eligible_pages = [
+            p for p in tag_data["pages"] if self._is_eligible_for_taxonomy(p)
+        ]
 
         # Create paginator
         paginator = Paginator(eligible_pages, per_page=per_page)
@@ -880,7 +922,9 @@ class TaxonomyOrchestrator:
             # Priority 40 = taxonomy (auto-generated)
             if hasattr(self.site, "url_registry") and self.site.url_registry:
                 try:
-                    url = self.url_strategy.url_from_output_path(tag_page.output_path, self.site)
+                    url = self.url_strategy.url_from_output_path(
+                        tag_page.output_path, self.site
+                    )
                     source = str(tag_page.source_path)
                     self.site.url_registry.claim(
                         url=url,
@@ -906,7 +950,9 @@ class TaxonomyOrchestrator:
         per_page = self.site.config.get("pagination", {}).get("per_page", 10)
 
         # Filter out any ineligible pages (defensive check)
-        eligible_pages = [p for p in tag_data["pages"] if self._is_eligible_for_taxonomy(p)]
+        eligible_pages = [
+            p for p in tag_data["pages"] if self._is_eligible_for_taxonomy(p)
+        ]
         paginator = Paginator(eligible_pages, per_page=per_page)
         for page_num in range(1, paginator.num_pages + 1):
             virtual_path = self.url_strategy.make_virtual_path(
@@ -938,7 +984,10 @@ class TaxonomyOrchestrator:
         return pages_to_create
 
     def generate_tag_pages(
-        self, tags: list[str], selective: bool = False, context: BuildContext | None = None
+        self,
+        tags: list[str],
+        selective: bool = False,
+        context: BuildContext | None = None,
     ) -> list[Page]:
         """
         Generate pages for a list of tags.

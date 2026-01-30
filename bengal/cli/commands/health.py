@@ -40,7 +40,9 @@ def health_cli(ctx: click.Context, dashboard: bool) -> None:
         # Launch interactive dashboard
         from bengal.cli.helpers import load_site_from_cli
 
-        site = load_site_from_cli(source=".", config=None, environment=None, profile=None)
+        site = load_site_from_cli(
+            source=".", config=None, environment=None, profile=None
+        )
         site.discover_content()
         site.discover_assets()
 
@@ -156,23 +158,23 @@ def linkcheck(
 ) -> None:
     """
     Check internal and external links in the site.
-    
+
     Validates that all links in your site work correctly:
     - Internal links point to existing pages and anchors
     - External links return successful HTTP status codes
-    
+
     The site must be built before checking internal links. Use --format json
     with --output to generate a report file for CI/CD integration.
-    
+
     Examples:
         bengal health linkcheck
         bengal health linkcheck --external-only
         bengal health linkcheck --format json --output report.json
         bengal health linkcheck --exclude "^/api/preview/" --ignore-status "500-599"
-    
+
     See also:
         bengal site build - Build the site before checking internal links
-        
+
     """
     cli = get_cli_output()
 
@@ -183,7 +185,9 @@ def linkcheck(
     cli.header("🔗 Link Checker")
     cli.info("Loading site...")
 
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
 
     # Apply file-based traceback config after site is loaded
     configure_traceback(debug=False, traceback=traceback, site=site)
@@ -207,8 +211,14 @@ def linkcheck(
             raise click.Abort() from e
 
     # Build config from CLI flags and site config
+    # Get raw config dict if using Config accessor, otherwise use as-is
+    config_dict = (
+        getattr(site.config, "raw", site.config)
+        if hasattr(site.config, "raw")
+        else site.config
+    )
     linkcheck_config = _build_config(
-        site.config,
+        config_dict,  # type: ignore[arg-type]
         max_concurrency,
         per_host_limit,
         timeout,
@@ -261,14 +271,14 @@ def linkcheck(
 def _ensure_site_built(site: Site, cli: CLIOutput) -> None:
     """
     Ensure the site is built before checking links.
-    
+
     Checks if output directory exists and contains recent files.
     If not, automatically builds the site.
-    
+
     Args:
         site: Site instance
         cli: CLI output helper
-        
+
     """
     from bengal.orchestration.build import BuildOrchestrator
 
@@ -292,7 +302,7 @@ def _ensure_site_built(site: Site, cli: CLIOutput) -> None:
 
         # Purge cache for clean build (link checking requires fresh output)
         from bengal.cache import clear_build_cache
-        from bengal.orchestration.build import BuildOrchestrator, BuildOptions
+        from bengal.orchestration.build import BuildOptions, BuildOrchestrator
 
         if clear_build_cache(site.root_path):
             cli.info("Purged build cache for clean build")

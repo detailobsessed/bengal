@@ -223,7 +223,8 @@ def test_missing_section_counter_gated_warnings(temp_site, caplog):
     warning_count = sum(
         1
         for record in caplog.records
-        if "section" in record.getMessage().lower() and "not found" in record.getMessage().lower()
+        if "section" in record.getMessage().lower()
+        and "not found" in record.getMessage().lower()
     )
 
     # Should have limited warnings (not 10)
@@ -375,13 +376,13 @@ def test_page_ancestors_uses_section(temp_site):
 
 def test_virtual_section_reference(temp_site):
     """Test that virtual pages have correct _section reference.
-    
+
     Virtual sections have path=None and must use URL-based lookups.
     This test verifies the fix for the critical bug where virtual pages
     had flat navigation because _section was always None.
-    
+
     See: plan/active/rfc-page-section-reference-contract.md
-        
+
     """
     # Create virtual section (path=None like autodoc API sections)
     api_section = Section.create_virtual(
@@ -411,11 +412,11 @@ def test_virtual_section_reference(temp_site):
 
 def test_virtual_section_hierarchical_navigation(temp_site):
     """Test that virtual pages have hierarchical navigation, not flat.
-    
+
     This is the key test for the RFC - virtual autodoc pages should
     show hierarchical navigation (api > core > module) instead of
     flat navigation (all modules at same level).
-        
+
     """
     # Create nested virtual section hierarchy (like autodoc generates)
     core_section = Section.create_virtual(

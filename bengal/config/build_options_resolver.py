@@ -34,7 +34,7 @@ True  # Forces sequential, bypasses should_parallelize()
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from bengal.config.defaults import DEFAULTS
 from bengal.orchestration.build.options import BuildOptions
@@ -56,17 +56,17 @@ BOOLEAN_BUILD_OPTIONS = {
 class CLIFlags:
     """
     Flags explicitly passed via CLI (None = not passed).
-    
+
     All fields default to None, meaning "not explicitly set by user".
     The resolver will fall back to config or DEFAULTS for None values.
-    
+
     Example:
             >>> # User passed --no-parallel
             >>> cli = CLIFlags(force_sequential=True)
             >>>
             >>> # User didn't pass --no-parallel flag
             >>> cli = CLIFlags(force_sequential=None)
-        
+
     """
 
     force_sequential: bool | None = None
@@ -82,27 +82,33 @@ class CLIFlags:
 def _get_config_value(config: dict[str, Any] | Any, key: str) -> Any:
     """
     Get config value with defensive path handling.
-    
+
     Checks both flattened (parallel) and nested (build.parallel) paths.
     Handles string boolean coercion for boolean options.
-    
+
     Args:
         config: Configuration dictionary or Config object (may be flattened or nested)
         key: Config key to retrieve
-    
+
     Returns:
         Config value, or None if not found or invalid
-        
+
     """
     # Use .raw for dict operations (Config always has .raw)
-    config = config.raw if hasattr(config, "raw") else config
+    raw_value = config.raw if hasattr(config, "raw") else config
+
+    # Ensure we have a dict for type safety
+    if not isinstance(raw_value, dict):
+        return None
+
+    raw = cast(dict[str, Any], raw_value)
 
     # Check flattened path first (most common after config loading)
-    if key in config:
-        value = config[key]
+    if key in raw:
+        value = raw[key]
     # Fall back to nested path (build.parallel, site.title, etc.)
-    elif "build" in config and isinstance(config["build"], dict) and key in config["build"]:
-        value = config["build"][key]
+    elif "build" in raw and isinstance(raw["build"], dict) and key in raw["build"]:
+        value = raw["build"][key]
     else:
         return None
 
@@ -131,20 +137,20 @@ def resolve_build_options(
 ) -> BuildOptions:
     """
     Resolve build options with clear precedence.
-    
+
     Precedence (highest to lowest):
         1. Special Modes (e.g., --fast overrides quiet/parallel)
         2. CLI flags (explicitly passed)
         3. Config file values (flattened or nested)
         4. DEFAULTS (single source of truth)
-    
+
     Args:
         config: Site config dictionary (may be flattened or nested)
         cli_flags: CLI flags (None values = not passed)
-    
+
     Returns:
         Fully resolved BuildOptions
-    
+
     Example:
             >>> # Config only
             >>> config = {"quiet": True}
@@ -169,7 +175,7 @@ def resolve_build_options(
         False  # Fast mode doesn't force sequential (still auto-detect)
             >>> options.quiet
         True  # Fast mode forces quiet
-        
+
     """
     cli = cli_flags or CLIFlags()
     build_defaults = DEFAULTS.get("build", {})
@@ -204,13 +210,19 @@ def resolve_build_options(
     # Resolve all options
     # Note: parallel is no longer a config option - always auto-detected via should_parallelize()
     # unless force_sequential=True (set via --no-parallel CLI flag)
-    force_sequential = cli.force_sequential if cli.force_sequential is not None else False
+    force_sequential = (
+        cli.force_sequential if cli.force_sequential is not None else False
+    )
 
     quiet_resolved = resolve("quiet", cli.quiet)
     quiet = (
         True
         if fast_mode
-        else (quiet_resolved if quiet_resolved is not None else DEFAULTS.get("quiet", False))
+        else (
+            quiet_resolved
+            if quiet_resolved is not None
+            else DEFAULTS.get("quiet", False)
+        )
     )
 
     # Map strict_mode config key to strict option

@@ -85,7 +85,9 @@ class TestActionableRecommendations:
         # Should have recommendations (may include orphans if they exist)
         assert len(recommendations) > 0
         # Check that recommendations contain actionable content
-        assert any("🔗" in r or "🌉" in r or "🏆" in r or "⚡" in r for r in recommendations)
+        assert any(
+            "🔗" in r or "🌉" in r or "🏆" in r or "⚡" in r for r in recommendations
+        )
 
     def test_recommendations_include_hubs(self, site_with_structure):
         """Test that hub recommendations are included."""
@@ -126,7 +128,9 @@ class TestSEOInsights:
 
         insights = graph.get_seo_insights()
 
-        density_insights = [i for i in insights if "link density" in i.lower() or "📊" in i]
+        density_insights = [
+            i for i in insights if "link density" in i.lower() or "📊" in i
+        ]
         # May or may not have density insight depending on connectivity
         assert isinstance(density_insights, list)
 

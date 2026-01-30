@@ -10,14 +10,12 @@ These tests verify that _read_file_safe handles:
 - Diff continues even when some files can't be read
 """
 
-from __future__ import annotations
-
 import os
 from pathlib import Path
 
 import pytest
 
-from bengal.content.discovery.version_diff import VersionDiffer, VersionDiff
+from bengal.content.discovery.version_diff import VersionDiff, VersionDiffer
 
 
 @pytest.fixture
@@ -49,7 +47,9 @@ class TestReadFileSafe:
 
         assert result == "Hello world"
 
-    def test_read_utf8_with_special_chars(self, differ: VersionDiffer, tmp_path: Path) -> None:
+    def test_read_utf8_with_special_chars(
+        self, differ: VersionDiffer, tmp_path: Path
+    ) -> None:
         """UTF-8 file with special characters."""
         test_file = tmp_path / "special.md"
         test_file.write_text("Héllo wörld 你好 🎉", encoding="utf-8")
@@ -74,8 +74,12 @@ class TestReadFileSafe:
 
         assert result is None
 
-    @pytest.mark.skipif(os.name == "nt", reason="Permission tests unreliable on Windows")
-    def test_read_permission_denied(self, differ: VersionDiffer, tmp_path: Path) -> None:
+    @pytest.mark.skipif(
+        os.name == "nt", reason="Permission tests unreliable on Windows"
+    )
+    def test_read_permission_denied(
+        self, differ: VersionDiffer, tmp_path: Path
+    ) -> None:
         """Permission denied should return None."""
         test_file = tmp_path / "restricted.md"
         test_file.write_text("secret content")
@@ -100,7 +104,9 @@ class TestReadFileSafe:
 class TestDiffContinuesOnErrors:
     """Test that diff continues even when some files can't be read."""
 
-    def test_diff_with_unreadable_added_file(self, differ_paths: tuple[Path, Path]) -> None:
+    def test_diff_with_unreadable_added_file(
+        self, differ_paths: tuple[Path, Path]
+    ) -> None:
         """Diff should handle unreadable files in 'added' category."""
         old, new = differ_paths
 
@@ -120,7 +126,9 @@ class TestDiffContinuesOnErrors:
         # Should have compared the good file
         assert len(result.modified_pages) >= 1 or len(result.unchanged_pages) >= 0
 
-    def test_diff_with_mixed_readable_unreadable(self, differ_paths: tuple[Path, Path]) -> None:
+    def test_diff_with_mixed_readable_unreadable(
+        self, differ_paths: tuple[Path, Path]
+    ) -> None:
         """Diff should process readable files even if some fail."""
         old, new = differ_paths
 
@@ -199,7 +207,9 @@ class TestDiffResults:
         assert len(result.unchanged_pages) == 1
         assert result.unchanged_pages[0].status == "unchanged"
 
-    def test_diff_lines_generated_for_modified(self, differ_paths: tuple[Path, Path]) -> None:
+    def test_diff_lines_generated_for_modified(
+        self, differ_paths: tuple[Path, Path]
+    ) -> None:
         """Modified pages should have diff lines."""
         old, new = differ_paths
 
@@ -212,7 +222,9 @@ class TestDiffResults:
         assert len(result.modified_pages) == 1
         assert len(result.modified_pages[0].diff_lines) > 0
 
-    def test_change_percentage_calculation(self, differ_paths: tuple[Path, Path]) -> None:
+    def test_change_percentage_calculation(
+        self, differ_paths: tuple[Path, Path]
+    ) -> None:
         """Change percentage should be calculated correctly."""
         old, new = differ_paths
 

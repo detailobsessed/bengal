@@ -43,13 +43,16 @@ from patitas.nodes import (
 )
 from patitas.stringbuilder import StringBuilder
 
-from bengal.parsing.backends.patitas.render_config import RenderConfig, get_render_config
+from bengal.parsing.backends.patitas.render_config import (
+    RenderConfig,
+    get_render_config,
+)
 
 # Import modular components
 from bengal.parsing.backends.patitas.renderers.blocks import BlockRendererMixin
 from bengal.parsing.backends.patitas.renderers.directives import (
-    DirectiveRendererMixin,
     PAGE_DEPENDENT_DIRECTIVES,
+    DirectiveRendererMixin,
 )
 from bengal.parsing.backends.patitas.renderers.inline import INLINE_DISPATCH
 from bengal.parsing.backends.patitas.renderers.utils import (
@@ -64,7 +67,7 @@ if TYPE_CHECKING:
 
 
 # Re-export HeadingInfo for backward compatibility
-__all__ = ["HtmlRenderer", "HeadingInfo"]
+__all__ = ["HeadingInfo", "HtmlRenderer"]
 
 
 class HtmlRenderer(BlockRendererMixin, DirectiveRendererMixin):
@@ -100,14 +103,14 @@ class HtmlRenderer(BlockRendererMixin, DirectiveRendererMixin):
     _PAGE_DEPENDENT_DIRECTIVES = PAGE_DEPENDENT_DIRECTIVES
 
     __slots__ = (
+        "_current_page",
+        "_delegate",
+        "_directive_cache",
+        "_headings",
+        "_page_context",
+        "_seen_slugs",
         # Per-render state only (7 slots)
         "_source",
-        "_delegate",
-        "_headings",
-        "_seen_slugs",
-        "_page_context",
-        "_current_page",
-        "_directive_cache",
     )
 
     def __init__(
@@ -239,11 +242,11 @@ class HtmlRenderer(BlockRendererMixin, DirectiveRendererMixin):
             if isinstance(node, FootnoteDef):
                 footnotes.append(node)
             else:
-                self._render_block(node, sb)
+                self._render_block(node, sb)  # type: ignore[arg-type]
 
         # Render footnote definitions section at the end
         if footnotes:
-            self._render_footnotes_section(footnotes, sb)
+            self._render_footnotes_section(footnotes, sb)  # type: ignore[arg-type]
 
         return sb.build()
 
@@ -251,7 +254,9 @@ class HtmlRenderer(BlockRendererMixin, DirectiveRendererMixin):
     # Inline rendering (uses dispatch table from inline.py)
     # =========================================================================
 
-    def _render_inline_children(self, children: Sequence[Inline], sb: StringBuilder) -> None:
+    def _render_inline_children(
+        self, children: Sequence[Inline], sb: StringBuilder
+    ) -> None:
         """Render inline children using dict dispatch for speed."""
         # Local references for tight loop
         dispatch = INLINE_DISPATCH
@@ -296,7 +301,7 @@ class HtmlRenderer(BlockRendererMixin, DirectiveRendererMixin):
 
         for node in nodes:
             sb = StringBuilder()
-            self._render_block(node, sb)
+            self._render_block(node, sb)  # type: ignore[arg-type]
             yield sb.build()
 
     # =========================================================================
@@ -374,7 +379,9 @@ class HtmlRenderer(BlockRendererMixin, DirectiveRendererMixin):
         Returns:
             List of {"level": int, "text": str, "slug": str} dicts
         """
-        return [{"level": h.level, "text": h.text, "slug": h.slug} for h in self._headings]
+        return [
+            {"level": h.level, "text": h.text, "slug": h.slug} for h in self._headings
+        ]
 
     def get_toc_html(self) -> str:
         """Build TOC HTML from collected headings.
@@ -396,19 +403,19 @@ class HtmlRenderer(BlockRendererMixin, DirectiveRendererMixin):
             # Handle nesting changes
             if level > prev_level:
                 # Deeper: open new nested list(s)
-                for _ in range(level - prev_level):
-                    result.append("<ul>")
+                result.extend("<ul>" for _ in range(level - prev_level))
             elif level < prev_level:
                 # Shallower: close nested list(s)
-                for _ in range(prev_level - level):
-                    result.append("</li></ul>")
+                result.extend("</li></ul>" for _ in range(prev_level - level))
                 result.append("</li>")
             elif result[-1] not in ("</ul>", '<ul class="toc">'):
                 # Same level, close previous item
                 result.append("</li>")
 
             # Add TOC item
-            result.append(f'<li><a href="#{heading.slug}">{escape_html(heading.text)}</a>')
+            result.append(
+                f'<li><a href="#{heading.slug}">{escape_html(heading.text)}</a>'
+            )
             prev_level = level
 
         # Close remaining tags

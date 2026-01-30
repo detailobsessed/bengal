@@ -61,7 +61,10 @@ from typing import Any
 import yaml
 
 from bengal.config.defaults import DEFAULTS
-from bengal.config.environment import detect_environment, get_environment_file_candidates
+from bengal.config.environment import (
+    detect_environment,
+    get_environment_file_candidates,
+)
 from bengal.config.feature_mappings import expand_features
 from bengal.config.merge import batch_deep_merge, deep_merge
 from bengal.config.origin_tracker import ConfigWithOrigin
@@ -74,12 +77,12 @@ logger = get_logger(__name__)
 class ConfigLoadError(BengalConfigError):
     """
     Raised when configuration loading fails.
-    
+
     This exception is raised for various configuration loading failures
     including missing directories, invalid YAML syntax, or file permission
     errors. Extends :class:`~bengal.errors.BengalConfigError` for consistent
     error handling throughout the configuration system.
-    
+
     Attributes:
         Inherited from BengalConfigError:
             message: Description of the error.
@@ -87,20 +90,18 @@ class ConfigLoadError(BengalConfigError):
             line_number: Line number where the error occurred (if applicable).
             suggestion: Helpful suggestion for fixing the error.
             original_error: The underlying exception, if any.
-        
-    """
 
-    pass
+    """
 
 
 class ConfigDirectoryLoader:
     """
     Load configuration from a directory structure with layered overrides.
-    
+
     This loader supports multi-file configurations organized in directories,
     with automatic environment detection and profile-based customization.
     It provides deterministic merging with clear precedence rules.
-    
+
     Features:
         - **Multi-file configs**: Split configuration across multiple YAML files
           in ``_default/`` for better organization.
@@ -111,32 +112,32 @@ class ConfigDirectoryLoader:
         - **Origin tracking**: Optional tracking of which file contributed each
           configuration key (for ``bengal config show --origin``).
         - **Feature expansion**: Simple feature toggles expanded to detailed config.
-    
+
     Attributes:
         track_origins: Whether origin tracking is enabled.
         origin_tracker: The :class:`ConfigWithOrigin` instance if tracking is enabled.
-    
+
     Example:
         Basic usage::
-    
+
             loader = ConfigDirectoryLoader()
             config = loader.load(Path("config"))
-    
+
         With origin tracking::
-    
+
             loader = ConfigDirectoryLoader(track_origins=True)
             config = loader.load(Path("config"), environment="production")
             tracker = loader.get_origin_tracker()
             print(tracker.show_with_origin())
-    
+
         With profile::
-    
+
             config = loader.load(
                 Path("config"),
                 environment="local",
                 profile="developer"
             )
-        
+
     """
 
     def __init__(self, track_origins: bool = False) -> None:
@@ -223,7 +224,9 @@ class ConfigDirectoryLoader:
         # Layer 1: User defaults from _default/ (overrides DEFAULTS)
         defaults_dir = config_dir / "_default"
         if defaults_dir.exists():
-            default_config = self._load_directory(defaults_dir, _origin_prefix="_default")
+            default_config = self._load_directory(
+                defaults_dir, _origin_prefix="_default"
+            )
             detected_baseurl = self._extract_baseurl(default_config)
             if detected_baseurl is not None:
                 explicit_baseurl = detected_baseurl
@@ -292,7 +295,9 @@ class ConfigDirectoryLoader:
 
         return config
 
-    def _load_directory(self, directory: Path, _origin_prefix: str = "") -> dict[str, Any]:
+    def _load_directory(
+        self, directory: Path, _origin_prefix: str = ""
+    ) -> dict[str, Any]:
         """
         Load and merge all YAML files in a directory.
 
@@ -361,7 +366,9 @@ class ConfigDirectoryLoader:
                 code=ErrorCode.C001,  # config_yaml_parse_error
                 file_path=first_file,
                 suggestion="Check YAML syntax and file encoding (must be UTF-8). Failed files were skipped.",
-                original_error=first_error if isinstance(first_error, Exception) else None,
+                original_error=first_error
+                if isinstance(first_error, Exception)
+                else None,
             )
 
         # Batch merge all configs in single pass - O(K×D) instead of O(F×K×D)
@@ -387,7 +394,9 @@ class ConfigDirectoryLoader:
 
         return config
 
-    def _load_environment(self, config_dir: Path, environment: str) -> dict[str, Any] | None:
+    def _load_environment(
+        self, config_dir: Path, environment: str
+    ) -> dict[str, Any] | None:
         """
         Load environment-specific configuration overrides.
 
@@ -580,7 +589,9 @@ class ConfigDirectoryLoader:
             return
 
         site_wide = output_formats.get("site_wide", [])
-        has_index_json = "index_json" in site_wide if isinstance(site_wide, list) else False
+        has_index_json = (
+            "index_json" in site_wide if isinstance(site_wide, list) else False
+        )
 
         if has_index_json:
             return
@@ -611,7 +622,7 @@ class ConfigDirectoryLoader:
             - ``build.*`` → top level (parallel, incremental, etc.)
             - ``features.*`` → top level (rss, sitemap, etc.)
             - ``assets.*`` → top level (minify, optimize, etc.)
-            
+
         Note: ``dev.*`` is NOT flattened to preserve environment-specific nesting.
 
         Args:

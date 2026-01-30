@@ -7,8 +7,6 @@ Tests the View Transitions API integration including:
 - Speculation rules generation
 """
 
-from __future__ import annotations
-
 
 class TestViewTransitionsMetaTag:
     """Tests for view transition meta tag generation."""

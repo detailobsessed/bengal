@@ -76,8 +76,8 @@ if TYPE_CHECKING:
     from bengal.core.page import Page
     from bengal.core.site import Site
     from bengal.orchestration.build.results import ConfigCheckResult, FilterResult
-    from bengal.output import CLIOutput
     from bengal.orchestration.build_context import BuildContext
+    from bengal.output import CLIOutput
     from bengal.utils.observability.performance_collector import PerformanceCollector
     from bengal.utils.observability.profile import BuildProfile
 
@@ -85,10 +85,10 @@ if TYPE_CHECKING:
 def __getattr__(name: str) -> Any:
     """
     Lazily expose optional orchestration types without creating import cycles.
-    
+
     Some tests and callers patch/inspect `bengal.orchestration.build.IncrementalOrchestrator`.
     We keep that surface stable while avoiding eager imports at module import time.
-        
+
     """
     if name == "IncrementalOrchestrator":
         from bengal.orchestration.incremental import IncrementalOrchestrator
@@ -100,7 +100,7 @@ def __getattr__(name: str) -> Any:
 class BuildOrchestrator:
     """
     Main build coordinator that orchestrates the entire build process.
-    
+
     Delegates to specialized orchestrators for each phase:
         - ContentOrchestrator: Discovery and setup
         - TaxonomyOrchestrator: Taxonomies and dynamic pages
@@ -109,7 +109,7 @@ class BuildOrchestrator:
         - AssetOrchestrator: Asset processing
         - PostprocessOrchestrator: Sitemap, RSS, validation
         - IncrementalOrchestrator: Change detection and caching
-        
+
     """
 
     def __init__(self, site: Site):
@@ -158,7 +158,7 @@ class BuildOrchestrator:
 
         # Store options for use in build phases (e.g., max_workers for WaveScheduler)
         self.options = options
-        
+
         # Extract values from options for use in build phases
         # Parallel is now auto-detected via should_parallelize() unless force_sequential=True
         # We'll compute it when we know the page count (in rendering phase)
@@ -174,7 +174,7 @@ class BuildOrchestrator:
         changed_sources = options.changed_sources or None
         nav_changed_sources = options.nav_changed_sources or None
         structural_changed = options.structural_changed
-        
+
         # Explain mode options (RFC: rfc-incremental-build-observability Phase 2)
         explain = options.explain
         dry_run = options.dry_run
@@ -192,7 +192,9 @@ class BuildOrchestrator:
                 except Exception as e:
                     logger.debug("phase_callback_error", phase=phase_name, error=str(e))
 
-        def notify_phase_complete(phase_name: str, duration_ms: float, details: str = "") -> None:
+        def notify_phase_complete(
+            phase_name: str, duration_ms: float, details: str = ""
+        ) -> None:
             """Notify dashboard that a phase completed."""
             if on_phase_complete is not None:
                 try:
@@ -224,11 +226,11 @@ class BuildOrchestrator:
         # Shows real-time progress during the rendering phase which can take 10+ seconds
         from bengal.utils.observability.cli_progress import LiveProgressManager
         from bengal.utils.observability.rich_console import should_use_rich
-        
+
         use_live_progress = should_use_rich() and not quiet
         progress_manager = None
         reporter = None
-        
+
         if use_live_progress:
             progress_manager = LiveProgressManager(profile=profile, enabled=True)
 
@@ -249,7 +251,9 @@ class BuildOrchestrator:
         # Initialize performance collection only if profile enables it
         collector = None
         if profile_config.get("collect_metrics", False):
-            from bengal.utils.observability.performance_collector import PerformanceCollector
+            from bengal.utils.observability.performance_collector import (
+                PerformanceCollector,
+            )
 
             # Only enable tracemalloc if profile explicitly requests memory tracking
             # tracemalloc has ~2-5x overhead alone, ~100x with cProfile
@@ -317,12 +321,17 @@ class BuildOrchestrator:
         # Initialize cache and tracker (ALWAYS, even for full builds)
         # We need cache for cleanup of deleted files and auto-mode decision
         with logger.phase("initialization"):
-            cache, tracker = self.incremental.initialize(enabled=True)  # Always load cache
-        
+            cache, tracker = self.incremental.initialize(
+                enabled=True
+            )  # Always load cache
+
         # RFC: Output Cache Architecture - Initialize GeneratedPageCache for tag page caching
         # This enables skipping unchanged tag pages based on member content hashes
         from bengal.cache.generated_page_cache import GeneratedPageCache
-        generated_page_cache = GeneratedPageCache(self.site.paths.state_dir / "generated_page_cache.json")
+
+        generated_page_cache = GeneratedPageCache(
+            self.site.paths.state_dir / "generated_page_cache.json"
+        )
         # Note: GeneratedPageCache loads automatically in __init__
 
         # Resolve incremental mode (auto when None)
@@ -349,7 +358,7 @@ class BuildOrchestrator:
 
         # Record resolved mode in stats
         self.stats.incremental = bool(incremental)
-        
+
         # Store options and cache for phase-level optimizations
         self.site._last_build_options = options
         self.site._cache = self.incremental.cache
@@ -410,6 +419,7 @@ class BuildOrchestrator:
         from bengal.orchestration.build.provenance_filter import (
             phase_incremental_filter_provenance,
         )
+
         filter_result = phase_incremental_filter_provenance(
             self,
             cli,
@@ -420,7 +430,7 @@ class BuildOrchestrator:
             changed_sources=changed_sources,
             nav_changed_sources=nav_changed_sources,
         )
-        
+
         if filter_result is None:
             # No changes detected - early exit
             return self.stats
@@ -452,7 +462,7 @@ class BuildOrchestrator:
         content.phase_taxonomy_index(self)
 
         # Phase 9: Menus
-        content.phase_menus(self, incremental, {str(p) for p in changed_page_paths})
+        content.phase_menus(self, incremental, changed_page_paths)
 
         # Phase 10: Related Posts Index
         # Pass force_sequential - phase will compute parallel based on should_parallelize()
@@ -464,7 +474,11 @@ class BuildOrchestrator:
         # Phase 12: Update Pages List (add generated taxonomy pages)
         # RFC: Output Cache Architecture - Pass GeneratedPageCache to skip unchanged tag pages
         pages_to_build = content.phase_update_pages_list(
-            self, cache, incremental, pages_to_build, affected_tags,
+            self,
+            cache,
+            incremental,
+            pages_to_build,
+            affected_tags,
             generated_page_cache=generated_page_cache,
         )
 
@@ -475,7 +489,9 @@ class BuildOrchestrator:
                 logger.warning(msg, event="url_collision_detected")
 
         content_duration_ms = (time.time() - content_start) * 1000
-        taxonomy_count = len(self.site.taxonomies) if hasattr(self.site, "taxonomies") else 0
+        taxonomy_count = (
+            len(self.site.taxonomies) if hasattr(self.site, "taxonomies") else 0
+        )
         notify_phase_complete(
             "content",
             content_duration_ms,
@@ -485,8 +501,6 @@ class BuildOrchestrator:
         # === PARSING PHASE (after all pages known, before snapshot) ===
         # Parse markdown content for ALL pages (including generated taxonomy pages)
         # RFC: rfc-bengal-snapshot-engine - pre-parse to avoid redundant work during rendering
-        from bengal.orchestration.build import parsing
-        
         parsing_start = time.time()
         with self.logger.phase("parsing"):
             parsing.phase_parse_content(
@@ -498,8 +512,12 @@ class BuildOrchestrator:
         parsing_duration_ms = (time.time() - parsing_start) * 1000
         if hasattr(self.stats, "parsing_time_ms"):
             self.stats.parsing_time_ms = parsing_duration_ms
-        
-        cli.phase("Parsing", duration_ms=parsing_duration_ms, details=f"{len(pages_to_build)} pages")
+
+        cli.phase(
+            "Parsing",
+            duration_ms=parsing_duration_ms,
+            details=f"{len(pages_to_build)} pages",
+        )
 
         # === SNAPSHOT CREATION (after parsing, before rendering) ===
         # Create immutable snapshot for lock-free parallel rendering
@@ -516,7 +534,7 @@ class BuildOrchestrator:
             # Store snapshot time in stats if available
             if hasattr(self.stats, "snapshot_time_ms"):
                 self.stats.snapshot_time_ms = snapshot_duration_ms
-            
+
             # Save snapshot for incremental builds (RFC: rfc-bengal-snapshot-engine)
             # This enables near-instant parsing on subsequent builds
             cache_dir = self.site.root_path / ".bengal" / "cache" / "snapshots"
@@ -531,10 +549,10 @@ class BuildOrchestrator:
             cli.info("  Dry-run mode: skipping rendering and output phases")
             self.stats.build_time_ms = (time.time() - build_start) * 1000
             self.stats.dry_run = True
-            
+
             # Clear build state (build complete)
             self.site.set_build_state(None)
-            
+
             return self.stats
 
         # === ASSETS PHASE GROUP (dashboard-integrated) ===
@@ -597,7 +615,9 @@ class BuildOrchestrator:
             # Stop progress display after rendering (success or failure)
             if progress_manager:
                 rendering_elapsed_ms = (time.time() - rendering_start) * 1000
-                progress_manager.complete_phase("rendering", elapsed_ms=rendering_elapsed_ms)
+                progress_manager.complete_phase(
+                    "rendering", elapsed_ms=rendering_elapsed_ms
+                )
                 progress_manager.stop()
 
         # Phase 15: Update Site Pages (replace proxies with rendered pages)
@@ -608,7 +628,10 @@ class BuildOrchestrator:
 
         # Record provenance for all built pages (if using provenance-based filtering)
         if hasattr(self, "_provenance_filter") and pages_to_build:
-            from bengal.orchestration.build.provenance_filter import record_all_page_builds
+            from bengal.orchestration.build.provenance_filter import (
+                record_all_page_builds,
+            )
+
             record_all_page_builds(self, pages_to_build)
 
         rendering_duration_ms = (time.time() - rendering_start) * 1000
@@ -627,26 +650,28 @@ class BuildOrchestrator:
         finalization.phase_postprocess(
             self, cli, False, ctx, incremental, collector=output_collector
         )
-        
+
         # RFC: Output Cache Architecture - Update GeneratedPageCache for tag pages that were rendered
         # This enables skipping them on future builds if member content hasn't changed
         # Note: Update on ALL builds (not just incremental) to populate cache for first build
         if generated_page_cache:
             # Build content hash lookup from parsed_content cache
             content_hash_lookup: dict[str, str] = {}
-            if cache and hasattr(cache, 'parsed_content'):
+            if cache and hasattr(cache, "parsed_content"):
                 for path_str, entry in cache.parsed_content.items():
                     if isinstance(entry, dict):
                         content_hash = entry.get("metadata_hash", "")
                         if content_hash:
                             content_hash_lookup[path_str] = content_hash
-            
+
             # Update cache for rendered tag pages
             updated_entries = 0
             tag_pages_found = 0
             tag_pages_with_posts = 0
             for page in pages_to_build:
-                if page.metadata.get("type") == "tag" and page.metadata.get("_generated"):
+                if page.metadata.get("type") == "tag" and page.metadata.get(
+                    "_generated"
+                ):
                     tag_pages_found += 1
                     tag_slug = page.metadata.get("_tag_slug", "")
                     member_pages = page.metadata.get("_posts", [])
@@ -663,7 +688,7 @@ class BuildOrchestrator:
                             generation_time_ms=0,  # Not tracked here
                         )
                         updated_entries += 1
-            
+
             logger.info(
                 "generated_page_cache_updated",
                 entries=updated_entries,
@@ -674,7 +699,7 @@ class BuildOrchestrator:
 
         # Phase 18: Save Cache
         finalization.phase_cache_save(self, pages_to_build, assets_to_process, cli=cli)
-        
+
         # RFC: Output Cache Architecture - Save GeneratedPageCache
         if generated_page_cache:
             generated_page_cache.save()
@@ -717,7 +742,10 @@ class BuildOrchestrator:
 
         # Save provenance cache if using provenance-based filtering
         if hasattr(self, "_provenance_filter"):
-            from bengal.orchestration.build.provenance_filter import save_provenance_cache
+            from bengal.orchestration.build.provenance_filter import (
+                save_provenance_cache,
+            )
+
             save_provenance_cache(self)
 
         # Clear build state (build complete)
@@ -743,7 +771,8 @@ class BuildOrchestrator:
         archive_pages = sum(
             1
             for p in self.site.pages
-            if p.metadata.get("_generated") and p.metadata.get("template") == "archive.html"
+            if p.metadata.get("_generated")
+            and p.metadata.get("template") == "archive.html"
         )
         pagination_pages = sum(
             1
@@ -794,7 +823,7 @@ class BuildOrchestrator:
         incremental: bool,
         verbose: bool,
         build_start: float,
-    ) -> FilterResult:
+    ) -> FilterResult | None:
         """Phase 5: Incremental Filtering."""
         from bengal.orchestration.build.provenance_filter import (
             phase_incremental_filter_provenance,
@@ -824,7 +853,9 @@ class BuildOrchestrator:
         pages_to_build: list[Page],
     ) -> set[str]:
         """Phase 7: Taxonomies & Dynamic Pages."""
-        return content.phase_taxonomies(self, cache, incremental, force_sequential, pages_to_build)
+        return content.phase_taxonomies(
+            self, cache, incremental, force_sequential, pages_to_build
+        )
 
     def _phase_taxonomy_index(self) -> None:
         """Phase 8: Save Taxonomy Index."""
@@ -832,7 +863,7 @@ class BuildOrchestrator:
 
     def _phase_menus(self, incremental: bool, changed_page_paths: set[Path]) -> None:
         """Phase 9: Menu Building."""
-        content.phase_menus(self, incremental, {str(p) for p in changed_page_paths})
+        content.phase_menus(self, incremental, changed_page_paths)
 
     def _phase_related_posts(
         self, incremental: bool, force_sequential: bool, pages_to_build: list[Page]
@@ -847,10 +878,16 @@ class BuildOrchestrator:
         content.phase_query_indexes(self, cache, incremental, pages_to_build)
 
     def _phase_update_pages_list(
-        self, cache: BuildCache, incremental: bool, pages_to_build: list[Page], affected_tags: set[str]
+        self,
+        cache: BuildCache,
+        incremental: bool,
+        pages_to_build: list[Page],
+        affected_tags: set[str],
     ) -> list[Page]:
         """Phase 12: Update Pages List."""
-        return content.phase_update_pages_list(self, cache, incremental, pages_to_build, affected_tags)
+        return content.phase_update_pages_list(
+            self, cache, incremental, pages_to_build, affected_tags
+        )
 
     def _phase_assets(
         self,
@@ -860,7 +897,9 @@ class BuildOrchestrator:
         assets_to_process: list[Any],
     ) -> list[Any]:
         """Phase 13: Process Assets."""
-        return rendering.phase_assets(self, cli, incremental, parallel, assets_to_process)
+        return rendering.phase_assets(
+            self, cli, incremental, parallel, assets_to_process
+        )
 
     def _phase_render(
         self,
@@ -892,7 +931,9 @@ class BuildOrchestrator:
             reporter,
         )
 
-    def _phase_update_site_pages(self, incremental: bool, pages_to_build: list[Page]) -> None:
+    def _phase_update_site_pages(
+        self, incremental: bool, pages_to_build: list[Page]
+    ) -> None:
         """Phase 15: Update Site Pages."""
         rendering.phase_update_site_pages(self, incremental, pages_to_build)
 
@@ -913,7 +954,9 @@ class BuildOrchestrator:
         # Post-processing doesn't use parallel processing, so pass False
         finalization.phase_postprocess(self, cli, False, ctx, incremental)
 
-    def _phase_cache_save(self, pages_to_build: list[Page], assets_to_process: list[Any]) -> None:
+    def _phase_cache_save(
+        self, pages_to_build: list[Page], assets_to_process: list[Any]
+    ) -> None:
         """Phase 18: Save Cache."""
         finalization.phase_cache_save(self, pages_to_build, assets_to_process)
 
@@ -932,7 +975,9 @@ class BuildOrchestrator:
             self, profile=profile, incremental=incremental, build_context=build_context
         )
 
-    def _phase_finalize(self, verbose: bool, collector: PerformanceCollector | None) -> None:
+    def _phase_finalize(
+        self, verbose: bool, collector: PerformanceCollector | None
+    ) -> None:
         """Phase 21: Finalize Build."""
         finalization.phase_finalize(self, verbose, collector)
 
@@ -951,16 +996,17 @@ class BuildOrchestrator:
             session = get_session()
 
             # Record any errors collected during build phases
-            if hasattr(self.stats, "errors") and self.stats.errors:
-                for error in self.stats.errors:
-                    if hasattr(error, "phase"):
-                        record_error(
-                            error,
-                            file_path=f"build:{error.phase}",
-                            build_phase=error.phase,
-                        )
-                    else:
-                        record_error(error, file_path="build:unknown")
+            if self.stats.has_errors:
+                for category in self.stats.errors_by_category.values():
+                    for error in category.errors:
+                        if hasattr(error, "phase"):
+                            record_error(
+                                error,
+                                file_path=f"build:{error.phase}",
+                                build_phase=error.phase,
+                            )
+                        else:
+                            record_error(error, file_path="build:unknown")
 
             # Log session summary if errors occurred
             summary = session.get_summary()

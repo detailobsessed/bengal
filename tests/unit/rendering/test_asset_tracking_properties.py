@@ -5,16 +5,18 @@ These tests verify that asset tracking behaves correctly for a wide range
 of inputs, catching edge cases that might be missed by example-based tests.
 """
 
-from __future__ import annotations
-
 import pytest
 
 # Skip if hypothesis not available
 hypothesis = pytest.importorskip("hypothesis")
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings  # noqa: E402
+from hypothesis import strategies as st  # noqa: E402
 
-from bengal.rendering.asset_tracking import AssetTracker, get_current_tracker
+from bengal.rendering.asset_tracking import (  # noqa: E402
+    AssetTracker,
+    get_current_tracker,
+)
 
 
 class TestAssetTrackerProperties:
@@ -45,7 +47,11 @@ class TestAssetTrackerProperties:
         # Should not track empty/whitespace paths
         assert len(tracker.get_assets()) == 0
 
-    @given(st.lists(st.text(min_size=1).filter(lambda x: x.strip()), min_size=0, max_size=100))
+    @given(
+        st.lists(
+            st.text(min_size=1).filter(lambda x: x.strip()), min_size=0, max_size=100
+        )
+    )
     def test_all_valid_paths_tracked(self, paths: list[str]) -> None:
         """All valid (non-empty, non-whitespace) paths should be tracked."""
         tracker = AssetTracker()
@@ -117,7 +123,9 @@ class TestAssetTrackerContextManagerProperties:
         assert path in tracker.get_assets()
 
     @given(
-        st.lists(st.text(min_size=1).filter(lambda x: x.strip()), min_size=1, max_size=10)
+        st.lists(
+            st.text(min_size=1).filter(lambda x: x.strip()), min_size=1, max_size=10
+        )
     )
     def test_nested_context_managers(self, paths: list[str]) -> None:
         """Nested context managers should properly stack and unstack."""

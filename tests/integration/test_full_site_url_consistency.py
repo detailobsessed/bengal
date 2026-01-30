@@ -17,7 +17,7 @@ class TestFullSiteUrlConsistency:
     """
     Integration tests ensuring URL consistency across full site builds.
     Marked slow due to full site construction.
-        
+
     """
 
     @pytest.mark.parametrize(
@@ -30,7 +30,9 @@ class TestFullSiteUrlConsistency:
             ("content/page_4.md", "/page_4/"),
         ],
     )
-    def test_url_generation_consistency(self, shared_site_class, page_path, expected_url):
+    def test_url_generation_consistency(
+        self, shared_site_class, page_path, expected_url
+    ):
         """
         Test URL generation consistency across different page types and hierarchies.
 
@@ -86,10 +88,9 @@ class TestFullSiteUrlConsistency:
             site.discover_assets()
             site.build(BuildOptions(force_sequential=True))
 
-        missing_output_path = []
-        for page in site.pages:
-            if page.output_path is None:
-                missing_output_path.append(str(page.source_path))
+        missing_output_path = [
+            str(page.source_path) for page in site.pages if page.output_path is None
+        ]
 
         assert not missing_output_path, "Pages missing output_path:\n" + "\n".join(
             missing_output_path

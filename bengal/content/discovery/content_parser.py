@@ -15,7 +15,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import frontmatter  # type: ignore[import-untyped]
+import frontmatter
 
 from bengal.utils.observability.logger import get_logger
 
@@ -29,24 +29,24 @@ logger = get_logger(__name__)
 class ContentParser:
     """
     Parses content files with frontmatter and optional validation.
-    
+
     Handles:
     - Valid frontmatter
     - Invalid YAML in frontmatter (graceful degradation)
     - Missing frontmatter
     - File encoding issues
     - Collection schema validation (when collections defined)
-    
+
     Attributes:
         content_dir: Root content directory
         collections: Optional dict of collection configs for validation
         strict_validation: Whether to raise on validation failure
         build_context: Optional BuildContext for content caching
-    
+
     Example:
             >>> parser = ContentParser(Path("content"), collections=collections)
             >>> content, metadata = parser.parse_file(Path("content/post.md"))
-        
+
     """
 
     def __init__(
@@ -98,7 +98,10 @@ class ContentParser:
         from bengal.utils.io.file_io import read_text_file
 
         file_content = read_text_file(
-            file_path, fallback_encoding="latin-1", on_error="raise", caller="content_discovery"
+            file_path,
+            fallback_encoding="latin-1",
+            on_error="raise",
+            caller="content_discovery",
         )
 
         # Cache raw content for validators (build-integrated validation)
@@ -107,7 +110,7 @@ class ContentParser:
 
         # Parse frontmatter
         try:
-            post = frontmatter.loads(file_content)
+            post = frontmatter.loads(file_content or "")
             content = post.content
             metadata = dict(post.metadata)
             return content, metadata
@@ -168,10 +171,10 @@ class ContentParser:
         )
         enriched_error = enrich_error(error, context, BengalDiscoveryError)
 
-        if self._build_context and hasattr(self._build_context, "build_stats"):
-            build_stats = self._build_context.build_stats
-            if build_stats:
-                build_stats.add_error(enriched_error, category="discovery")
+        if self._build_context:
+            stats = self._build_context.stats
+            if stats:
+                stats.add_error(enriched_error, category="discovery")
 
         logger.warning(
             "content_parse_unexpected_error",
@@ -257,7 +260,9 @@ class ContentParser:
             from bengal.errors import ErrorCode, record_error
 
             error_summary = result.error_summary
-            self._validation_errors.append((file_path, collection_name or "", result.errors))
+            self._validation_errors.append(
+                (file_path, collection_name or "", result.errors)
+            )
 
             error = ContentValidationError(
                 message=f"Validation failed for {file_path}",

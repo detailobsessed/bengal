@@ -110,10 +110,13 @@ class TestContentOrchestratorOutputPathSetting:
         reference_pages = [
             p
             for p in test_site.pages
-            if "reference" in str(p.source_path) and p.source_path.stem not in ("_index", "index")
+            if "reference" in str(p.source_path)
+            and p.source_path.stem not in ("_index", "index")
         ]
 
-        assert len(reference_pages) >= 2, "Should have at least 2 child pages in reference section"
+        assert len(reference_pages) >= 2, (
+            "Should have at least 2 child pages in reference section"
+        )
 
         # Verify URLs include section prefix
         for page in reference_pages:
@@ -155,13 +158,17 @@ class TestContentOrchestratorOutputPathSetting:
         orchestrator.discover()
 
         # Find _index.md pages
-        index_pages = [p for p in test_site.pages if p.source_path.stem in ("_index", "index")]
+        index_pages = [
+            p for p in test_site.pages if p.source_path.stem in ("_index", "index")
+        ]
 
         assert len(index_pages) >= 2, "Should have at least 2 index pages"
 
         for page in index_pages:
             # Index pages should have section URL (ending with /)
-            assert page.href.endswith("/"), f"Index page URL should end with /: {page.href}"
+            assert page.href.endswith("/"), (
+                f"Index page URL should end with /: {page.href}"
+            )
 
             # Should not be just "/" unless it's the root index
             if "reference" in str(page.source_path):
@@ -192,15 +199,13 @@ class TestContentOrchestratorOutputPathSetting:
         assert reference_section is not None, "Should find reference section"
 
         # Simulate template loop: {% for page in section.pages %}
-        nav_links = []
-        for page in reference_section.pages:
-            # This is what templates do - access url directly
-            nav_links.append(
-                {
-                    "title": page.title,
-                    "url": page.href,  # This should work correctly now!
-                }
-            )
+        nav_links = [
+            {
+                "title": page.title,
+                "url": page.href,  # This should work correctly now!
+            }
+            for page in reference_section.pages
+        ]
 
         # Verify all nav links have correct section prefix
         for link in nav_links:
@@ -241,7 +246,9 @@ class TestContentOrchestratorOutputPathSetting:
         orchestrator.discover()
 
         # Save original output paths
-        original_paths = {page.source_path: page.output_path for page in test_site.pages}
+        original_paths = {
+            page.source_path: page.output_path for page in test_site.pages
+        }
 
         # Call _set_output_paths again via site (shouldn't change anything)
         test_site._set_output_paths()
@@ -296,7 +303,9 @@ class TestRegressionScenarios:
 
             # Find child pages
             child_pages = [
-                p for p in site.pages if p.source_path.stem in ("installation", "quickstart")
+                p
+                for p in site.pages
+                if p.source_path.stem in ("installation", "quickstart")
             ]
 
             # The bug: these would have URLs /installation/ and /quickstart/

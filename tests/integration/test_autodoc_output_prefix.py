@@ -5,8 +5,6 @@ Tests that Python and OpenAPI autodocs create distinct section trees when
 configured with different output prefixes.
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -97,7 +95,7 @@ paths:
             ),
         ):
             orchestrator = VirtualAutodocOrchestrator(mock_site)
-            pages, sections, result = orchestrator.generate()
+            _pages, sections, _result = orchestrator.generate()
 
         # Root sections prefer an aggregating parent when multiple autodoc types share a prefix.
         # With /api/python/ and /api/rest/, we should return a single /api/ root section that
@@ -155,7 +153,7 @@ paths:
             return_value=cli_elements,
         ):
             orchestrator = VirtualAutodocOrchestrator(mock_site)
-            pages, sections, result = orchestrator.generate()
+            pages, sections, _result = orchestrator.generate()
 
         # Check page URLs
         page_urls = {p.href for p in pages}
@@ -163,7 +161,9 @@ paths:
         # Root command group is NOT a separate page - the section index represents it
         # (see page_builders.py: "Skip root command-groups - the section index page represents them")
         # So we verify that root URL is NOT in pages (it's the section index instead)
-        assert "/cli/" not in page_urls, "Root command group should be section index, not a page"
+        assert "/cli/" not in page_urls, (
+            "Root command group should be section index, not a page"
+        )
 
         # Subcommands should drop 'bengal'
         # bengal.build -> /cli/build/
@@ -230,7 +230,7 @@ class TestBackwardsCompatibility:
             return_value=[python_element],
         ):
             orchestrator = VirtualAutodocOrchestrator(mock_site)
-            pages, sections, result = orchestrator.generate()
+            _pages, sections, _result = orchestrator.generate()
 
         # Should have root section at /api/
         assert any(s._path == "/api/" for s in sections)
@@ -277,7 +277,7 @@ paths: {}
             return_value=[openapi_element],
         ):
             orchestrator = VirtualAutodocOrchestrator(mock_site)
-            pages, sections, result = orchestrator.generate()
+            _pages, sections, _result = orchestrator.generate()
 
         # Should have root section at /api/
         assert any(s._path == "/api/" for s in sections)

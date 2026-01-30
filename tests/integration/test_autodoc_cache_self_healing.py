@@ -6,8 +6,6 @@ is corrupted, invalidating the cache key and falling back to re-extraction
 instead of crashing discovery with S003 errors.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -108,7 +106,10 @@ def test_function(x: int, y: str = "default") -> bool:
 
         # Update the cache with corrupted payload
         corrupted_payload = cached_payload.copy()
-        corrupted_payload["elements"]["python"] = [corrupted_element] + python_elements[1:]
+        corrupted_payload["elements"]["python"] = [
+            corrupted_element,
+            *python_elements[1:],
+        ]
         cache.set_page_cache(cache_key, corrupted_payload)
         cache.save(cache_path, use_lock=False)
 
@@ -119,23 +120,31 @@ def test_function(x: int, y: str = "default") -> bool:
         stats2 = site2.build(BuildOptions(force_sequential=True, incremental=True))
 
         # Verify build succeeded (no S003 error)
-        assert stats2.pages_built > 0, "Incremental build should succeed after cache corruption"
+        assert stats2.pages_built > 0, (
+            "Incremental build should succeed after cache corruption"
+        )
 
         # Verify cache was invalidated and payload was regenerated
         cache2 = BuildCache.load(cache_path, use_lock=False)
         regenerated_payload = cache2.get_page_cache(cache_key)
-        assert regenerated_payload is not None, "Cache should be regenerated after invalidation"
+        assert regenerated_payload is not None, (
+            "Cache should be regenerated after invalidation"
+        )
 
         # Verify regenerated payload is valid (can be deserialized)
         from bengal.autodoc.orchestration import VirtualAutodocOrchestrator
 
         orchestrator = VirtualAutodocOrchestrator(site2)
         try:
-            pages, sections, _run = orchestrator.generate_from_cache_payload(regenerated_payload)
+            pages, _sections, _run = orchestrator.generate_from_cache_payload(
+                regenerated_payload
+            )
             # If we get here, deserialization succeeded
             assert len(pages) > 0, "Regenerated payload should produce pages"
         except (TypeError, KeyError, ValueError) as e:
-            pytest.fail(f"Regenerated payload should be valid, but deserialization failed: {e}")
+            pytest.fail(
+                f"Regenerated payload should be valid, but deserialization failed: {e}"
+            )
 
     def test_missing_cache_key_falls_back_to_extraction(self, tmp_path: Path) -> None:
         """
@@ -224,7 +233,10 @@ source_dirs = ["src"]
                     typed_meta["data"] = {}  # Empty dict missing required fields
 
             corrupted_payload = cached_payload.copy()
-            corrupted_payload["elements"]["python"] = [corrupted_element] + python_elements[1:]
+            corrupted_payload["elements"]["python"] = [
+                corrupted_element,
+                *python_elements[1:],
+            ]
             cache.set_page_cache(cache_key, corrupted_payload)
             cache.save(cache_path, use_lock=False)
 
@@ -233,4 +245,6 @@ source_dirs = ["src"]
         stats = site2.build(BuildOptions(force_sequential=True, incremental=True))
 
         # Should succeed
-        assert stats.pages_built > 0, "Build should recover from KeyError in cache payload"
+        assert stats.pages_built > 0, (
+            "Build should recover from KeyError in cache payload"
+        )

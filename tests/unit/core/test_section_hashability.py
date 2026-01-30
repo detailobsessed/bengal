@@ -221,7 +221,9 @@ class TestSectionHashStability:
             Page(source_path=tmp_path / "blog/post1.md"),
             Page(source_path=tmp_path / "blog/post2.md"),
         ]
-        section.subsections = [Section(name="tutorials", path=tmp_path / "blog/tutorials")]
+        section.subsections = [
+            Section(name="tutorials", path=tmp_path / "blog/tutorials")
+        ]
         section.metadata = {"title": "Blog", "description": "My blog"}
         section.index_page = section.pages[0]
         section.parent = Section(name="root", path=tmp_path)

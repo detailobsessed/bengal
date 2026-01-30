@@ -4,11 +4,11 @@
 class Site:
     """
     Represents a site.
-    
+
     Attributes:
         title: Site title
         url: Site URL
-        
+
     """
 
     def __init__(self, title: str, url: str):
@@ -18,4 +18,3 @@ class Site:
 
     def build(self) -> None:
         """Build the site."""
-        pass

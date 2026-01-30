@@ -34,11 +34,11 @@ def validate_mutually_exclusive(
 ) -> Callable[[F], F]:
     """
     Decorator to validate mutually exclusive flags.
-    
+
     Args:
         flag_pairs: Pairs of flag names that cannot be used together
         error_message: Custom error message (default: "{flag1} and {flag2} cannot be used together")
-    
+
     Example:
         @click.command()
         @click.option("--quiet", is_flag=True)
@@ -47,7 +47,7 @@ def validate_mutually_exclusive(
         def my_command(quiet: bool, verbose: bool):
             # ...
             pass
-        
+
     """
 
     def decorator(func: F) -> F:
@@ -73,11 +73,11 @@ def validate_flag_conflicts(
 ) -> Callable[[F], F]:
     """
     Decorator to validate flag conflicts (one flag conflicts with multiple others).
-    
+
     Args:
         conflicts: Dict mapping flag name to list of conflicting flag names
         error_message: Custom error message template (default: "{flag} cannot be used with {others}")
-    
+
     Example:
         @click.command()
         @click.option("--fast", is_flag=True)
@@ -87,7 +87,7 @@ def validate_flag_conflicts(
         def my_command(fast: bool, dev: bool, theme_dev: bool):
             # ...
             pass
-        
+
     """
 
     def decorator(func: F) -> F:
@@ -105,10 +105,9 @@ def validate_flag_conflicts(
                     user_flag = flag_name_map.get(flag, flag)
 
                     # Check which conflicting flags are actually active
-                    active_conflicts = []
-                    for cf in conflicting_flags:
-                        if kwargs.get(cf):
-                            active_conflicts.append(cf)
+                    active_conflicts = [
+                        cf for cf in conflicting_flags if kwargs.get(cf)
+                    ]
 
                     if active_conflicts:
                         # Map all conflicting flags to user-facing names (list all possible conflicts)
@@ -124,10 +123,14 @@ def validate_flag_conflicts(
                                 all_conflicts_str = f"--{user_conflicting_flags[0]} or --{user_conflicting_flags[1]}"
                             else:
                                 all_conflicts_str = (
-                                    ", ".join(f"--{cf}" for cf in user_conflicting_flags[:-1])
+                                    ", ".join(
+                                        f"--{cf}" for cf in user_conflicting_flags[:-1]
+                                    )
                                     + f", or --{user_conflicting_flags[-1]}"
                                 )
-                            msg = error_message.format(flag=user_flag, others=all_conflicts_str)
+                            msg = error_message.format(
+                                flag=user_flag, others=all_conflicts_str
+                            )
                         else:
                             # Build error message listing all possible conflicts
                             if len(user_conflicting_flags) == 1:
@@ -136,7 +139,9 @@ def validate_flag_conflicts(
                                 others_str = f"--{user_conflicting_flags[0]} or --{user_conflicting_flags[1]}"
                             else:
                                 others_str = (
-                                    ", ".join(f"--{cf}" for cf in user_conflicting_flags[:-1])
+                                    ", ".join(
+                                        f"--{cf}" for cf in user_conflicting_flags[:-1]
+                                    )
                                     + f", or --{user_conflicting_flags[-1]}"
                                 )
                             msg = f"--{user_flag} cannot be used with {others_str}"

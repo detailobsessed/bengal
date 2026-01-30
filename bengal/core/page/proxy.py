@@ -37,37 +37,45 @@ from .page_core import PageCore
 # =============================================================================
 
 
-def _lazy_property(attr_name: str, default: Any = None, doc: str | None = None) -> property:
+def _lazy_property(
+    attr_name: str, default: Any = None, doc: str | None = None
+) -> property:
     """Create a lazy property that delegates to _full_page.
-    
+
     Args:
         attr_name: Attribute name on the full Page object
         default: Default value if _full_page is None
         doc: Optional docstring for the property
-        
+
     """
 
     def getter(self: PageProxy) -> Any:
         self._ensure_loaded()
-        return getattr(self._full_page, attr_name, default) if self._full_page else default
+        return (
+            getattr(self._full_page, attr_name, default) if self._full_page else default
+        )
 
     getter.__doc__ = doc or f"Get {attr_name} (lazy-loaded from full page)."
     return property(getter)
 
 
-def _lazy_property_with_setter(attr_name: str, default: Any = None, getter_doc: str | None = None) -> property:
+def _lazy_property_with_setter(
+    attr_name: str, default: Any = None, getter_doc: str | None = None
+) -> property:
     """Create a lazy property with getter and setter that delegates to _full_page.
-    
+
     Args:
         attr_name: Attribute name on the full Page object
         default: Default value if _full_page is None
         getter_doc: Optional docstring for the getter
-        
+
     """
 
     def getter(self: PageProxy) -> Any:
         self._ensure_loaded()
-        return getattr(self._full_page, attr_name, default) if self._full_page else default
+        return (
+            getattr(self._full_page, attr_name, default) if self._full_page else default
+        )
 
     def setter(self: PageProxy, value: Any) -> None:
         self._ensure_loaded()
@@ -82,46 +90,46 @@ def _lazy_property_with_setter(attr_name: str, default: Any = None, getter_doc: 
 class PageProxy:
     """
     Lazy-loaded page placeholder.
-    
+
     Holds page metadata from cache and defers loading full content until
     accessed. Transparent to callers - implements Page-like interface.
-    
+
     LIFECYCLE IN INCREMENTAL BUILDS:
     ---------------------------------
     1. **Discovery** (content_discovery.py):
        - Created from cached metadata for unchanged pages
        - Has: title, date, tags, slug, _section, _site, output_path
        - Does NOT have: content, rendered_html (lazy-loaded on demand)
-    
+
     2. **Filtering** (incremental.py):
        - PageProxy objects pass through find_work_early() unchanged
        - Only modified pages become full Page objects for rendering
-    
+
     3. **Rendering** (render.py):
        - Modified pages rendered as full Page objects
        - PageProxy objects skipped (already have cached output)
-    
+
     4. **Update** (build/rendering.py Phase 15):
        - Freshly rendered Page objects REPLACE their PageProxy counterparts
        - site.pages becomes: mix of fresh Page (rebuilt) + PageProxy (cached)
-    
+
     5. **Postprocessing** (postprocess.py):
        - Iterates over site.pages (now updated with fresh Pages)
        - ⚠️ CRITICAL: PageProxy must implement ALL properties/methods used:
          * output_path (for finding where to write .txt/.json)
          * href, _path, permalink (for generating index.json)
          * title, date, tags (for content in output files)
-    
+
     TRANSPARENCY CONTRACT:
     ----------------------
     PageProxy must be transparent to:
     - **Templates**: Implements .href, ._path, .title, etc.
     - **Postprocessing**: Implements .output_path, metadata access
     - **Navigation**: Implements .prev, .next (via lazy load)
-    
+
     ⚠️ When adding new Page properties used by templates/postprocessing,
     MUST also add to PageProxy or handle in _ensure_loaded().
-    
+
     Usage:
         # Create from cached metadata
         page = PageProxy(
@@ -129,17 +137,17 @@ class PageProxy:
             metadata=cached_metadata,
             loader=load_page_from_disk,  # Callable that loads full page
         )
-    
+
         # Access metadata (instant, from cache)
         print(page.title)  # "My Post"
         print(page.tags)   # ["python", "web"]
-    
+
         # Access full content (triggers lazy load)
         print(page.content)  # Loads from disk and parses
-    
+
         # After first access, it's fully loaded
         assert page._lazy_loaded  # True
-        
+
     """
 
     # Site reference - set externally during content discovery
@@ -169,7 +177,9 @@ class PageProxy:
 
         # Path-based section reference (stable across rebuilds)
         # Initialized from core.section if available
-        self._section_path: Path | None = Path(self.core.section) if self.core.section else None
+        self._section_path: Path | None = (
+            Path(self.core.section) if self.core.section else None
+        )
 
         # Output path will be set during rendering or computed on demand
         # Stored in _pending_output_path to avoid forcing lazy load
@@ -315,7 +325,9 @@ class PageProxy:
             if hasattr(self, "_pending_output_path") and self._full_page:
                 self._full_page.output_path = self._pending_output_path
 
-            emit_diagnostic(self, "debug", "page_proxy_loaded", source_path=str(self.source_path))
+            emit_diagnostic(
+                self, "debug", "page_proxy_loaded", source_path=str(self.source_path)
+            )
         except Exception as e:
             emit_diagnostic(
                 self,
@@ -331,8 +343,12 @@ class PageProxy:
     # ============================================================================
     # Properties using _lazy_property helper for reduced boilerplate
 
-    content = _lazy_property("content", default="", doc="Rendered HTML content (lazy-loaded).")
-    _source = _lazy_property("_source", default="", doc="Raw markdown source (lazy-loaded).")
+    content = _lazy_property(
+        "content", default="", doc="Rendered HTML content (lazy-loaded)."
+    )
+    _source = _lazy_property(
+        "_source", default="", doc="Raw markdown source (lazy-loaded)."
+    )
 
     @property
     def metadata(self) -> dict[str, Any]:
@@ -350,7 +366,9 @@ class PageProxy:
         # Build metadata dict from cached PageCore fields
         # Always include weight with sortable default (None → infinity for sort-last)
         cached_metadata: dict[str, Any] = {
-            "weight": self.core.weight if self.core.weight is not None else float("inf"),
+            "weight": self.core.weight
+            if self.core.weight is not None
+            else float("inf"),
         }
         if self.core.type:
             cached_metadata["type"] = self.core.type
@@ -433,7 +451,6 @@ class PageProxy:
         (they were loaded from the cache which stores relative paths).
         """
         # PageProxy paths are already relative from cache - no normalization needed
-        pass
 
     @property
     def related_posts(self) -> list[Page]:
@@ -458,11 +475,19 @@ class PageProxy:
         if self._full_page:
             self._full_page.related_posts = value
 
-    translation_key = _lazy_property("translation_key", default=None, doc="Translation key.")
-    href = _lazy_property("href", default="/", doc="URL path with baseurl (lazy-loaded).")
-    _path = _lazy_property("_path", default="/", doc="Site-relative path without baseurl.")
+    translation_key = _lazy_property(
+        "translation_key", default=None, doc="Translation key."
+    )
+    href = _lazy_property(
+        "href", default="/", doc="URL path with baseurl (lazy-loaded)."
+    )
+    _path = _lazy_property(
+        "_path", default="/", doc="Site-relative path without baseurl."
+    )
     absolute_href = _lazy_property(
-        "absolute_href", default="/", doc="Fully-qualified URL for meta tags and sitemaps."
+        "absolute_href",
+        default="/",
+        doc="Fully-qualified URL for meta tags and sitemaps.",
     )
 
     # ============================================================================
@@ -472,7 +497,9 @@ class PageProxy:
     meta_description = _lazy_property(
         "meta_description", default="", doc="Meta description (lazy-loaded)."
     )
-    excerpt = _lazy_property("excerpt", default="", doc="Content excerpt (lazy-loaded).")
+    excerpt = _lazy_property(
+        "excerpt", default="", doc="Content excerpt (lazy-loaded)."
+    )
     keywords = _lazy_property("keywords", default=[], doc="Keywords (lazy-loaded).")
 
     @property
@@ -518,15 +545,21 @@ class PageProxy:
     # Type/Kind Properties - Metadata-based type checking
     # ============================================================================
 
-    is_home = _lazy_property("is_home", default=False, doc="Check if this page is the home page.")
+    is_home = _lazy_property(
+        "is_home", default=False, doc="Check if this page is the home page."
+    )
     is_section = _lazy_property(
         "is_section", default=False, doc="Check if this page is a section page."
     )
     is_page = _lazy_property(
         "is_page", default=True, doc="Check if this is a regular page (not a section)."
     )
-    kind = _lazy_property("kind", default="page", doc="Kind of page: 'home', 'section', or 'page'.")
-    draft = _lazy_property("draft", default=False, doc="Check if page is marked as draft.")
+    kind = _lazy_property(
+        "kind", default="page", doc="Kind of page: 'home', 'section', or 'page'."
+    )
+    draft = _lazy_property(
+        "draft", default=False, doc="Check if page is marked as draft."
+    )
 
     @property
     def description(self) -> str:
@@ -545,9 +578,13 @@ class PageProxy:
     # Visibility Properties - Page visibility controls
     # ============================================================================
 
-    hidden = _lazy_property("hidden", default=False, doc="Check if page is hidden (unlisted).")
+    hidden = _lazy_property(
+        "hidden", default=False, doc="Check if page is hidden (unlisted)."
+    )
     in_listings = _lazy_property(
-        "in_listings", default=True, doc="Check if page should appear in listings/queries."
+        "in_listings",
+        default=True,
+        doc="Check if page should appear in listings/queries.",
     )
     in_sitemap = _lazy_property(
         "in_sitemap", default=True, doc="Check if page should appear in sitemap."

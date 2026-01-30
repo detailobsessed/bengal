@@ -10,7 +10,11 @@ from unittest.mock import Mock
 
 import pytest
 
-from bengal.content_types.registry import CONTENT_TYPE_REGISTRY, detect_content_type, get_strategy
+from bengal.content_types.registry import (
+    CONTENT_TYPE_REGISTRY,
+    detect_content_type,
+    get_strategy,
+)
 from bengal.content_types.strategies import (
     ApiReferenceStrategy,
     BlogStrategy,
@@ -268,7 +272,9 @@ class TestContentTypeRegistry:
         ],
         ids=["blog", "doc", "autodoc-python", "autodoc-cli", "tutorial", "list"],
     )
-    def test_get_strategy_returns_correct_instance(self, content_type, expected_strategy_class):
+    def test_get_strategy_returns_correct_instance(
+        self, content_type, expected_strategy_class
+    ):
         """
         get_strategy should return the correct strategy class for each content type.
 
@@ -531,14 +537,25 @@ class TestSingletonBehavior:
 
         assert s1 is s2, "Should return same singleton for different unknown types"
         assert s2 is s3, "Should return same singleton consistently"
-        assert s1 is CONTENT_TYPE_REGISTRY["page"], "Should use registered page singleton"
+        assert s1 is CONTENT_TYPE_REGISTRY["page"], (
+            "Should use registered page singleton"
+        )
 
     def test_get_strategy_returns_registry_singletons(self):
         """get_strategy should return the exact same instances as in registry."""
-        for content_type in ["blog", "doc", "autodoc-python", "autodoc-cli", "tutorial", "changelog"]:
+        for content_type in [
+            "blog",
+            "doc",
+            "autodoc-python",
+            "autodoc-cli",
+            "tutorial",
+            "changelog",
+        ]:
             retrieved = get_strategy(content_type)
             registered = CONTENT_TYPE_REGISTRY[content_type]
-            assert retrieved is registered, f"{content_type} should return exact registry singleton"
+            assert retrieved is registered, (
+                f"{content_type} should return exact registry singleton"
+            )
 
     def test_registry_list_and_page_are_both_page_strategy(self):
         """'list' and 'page' content types should both be PageStrategy instances."""
@@ -564,7 +581,10 @@ class TestTemplateCascadeFallback:
 
         # Mock engine where blog/list.html doesn't exist but list.html does
         template_engine = Mock()
-        template_engine.template_exists = lambda name: name in ["list.html", "index.html"]
+        template_engine.template_exists = lambda name: name in [
+            "list.html",
+            "index.html",
+        ]
 
         result = strategy.get_template(page, template_engine)
         assert result == "list.html", "Should fall back to generic list.html"
@@ -581,7 +601,10 @@ class TestTemplateCascadeFallback:
 
         # Mock engine where only generic templates exist
         template_engine = Mock()
-        template_engine.template_exists = lambda name: name in ["single.html", "page.html"]
+        template_engine.template_exists = lambda name: name in [
+            "single.html",
+            "page.html",
+        ]
 
         result = strategy.get_template(page, template_engine)
         assert result == "single.html", "Should fall back to generic single.html"
@@ -601,7 +624,9 @@ class TestTemplateCascadeFallback:
         template_engine.template_exists = lambda name: False
 
         result = strategy.get_template(page, template_engine)
-        assert result == strategy.default_template, "Should fall back to default_template"
+        assert result == strategy.default_template, (
+            "Should fall back to default_template"
+        )
 
     def test_fallback_without_template_engine(self):
         """Should return fallback when template_engine is None."""
@@ -614,7 +639,9 @@ class TestTemplateCascadeFallback:
         page.source_path = Path("/content/api/_index.md")
 
         result = strategy.get_template(page, None)
-        assert result == strategy.default_template, "Should return default when engine is None"
+        assert result == strategy.default_template, (
+            "Should return default when engine is None"
+        )
 
     def test_autodoc_cascade_includes_generic_autodoc(self):
         """Autodoc strategies should try autodoc/* before generic templates."""
@@ -640,7 +667,9 @@ class TestDetectionPriority:
     def test_autodoc_python_wins_over_doc_for_reference(self):
         """'reference' section should detect as autodoc-python, not doc."""
         section = Mock()
-        section.name = "reference"  # Matches both ApiReferenceStrategy and DocsStrategy patterns
+        section.name = (
+            "reference"  # Matches both ApiReferenceStrategy and DocsStrategy patterns
+        )
         section.metadata = {}
         section.parent = None
         section.pages = []
@@ -660,7 +689,9 @@ class TestDetectionPriority:
         section.pages = []
 
         result = detect_content_type(section)
-        assert result == "doc", "Explicit content_type should override name-based detection"
+        assert result == "doc", (
+            "Explicit content_type should override name-based detection"
+        )
 
     def test_parent_cascade_overrides_name_detection(self):
         """Parent cascade should override section name detection."""
@@ -673,4 +704,6 @@ class TestDetectionPriority:
         section.parent = parent
 
         result = detect_content_type(section)
-        assert result == "tutorial", "Parent cascade should override name-based detection"
+        assert result == "tutorial", (
+            "Parent cascade should override name-based detection"
+        )

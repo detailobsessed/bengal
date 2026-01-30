@@ -10,8 +10,6 @@ Tests the dashboard modules for:
 For snapshot testing, see test_snapshots.py.
 """
 
-from __future__ import annotations
-
 
 class TestDashboardImports:
     """Test that all dashboard modules can be imported."""

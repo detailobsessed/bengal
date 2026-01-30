@@ -25,8 +25,6 @@ Usage:
     pytest tests/performance/test_incremental_efficiency.py -v -s
 """
 
-from __future__ import annotations
-
 import json
 import time
 from dataclasses import dataclass, field
@@ -69,7 +67,9 @@ class EfficiencyMetrics:
     timestamp: str = ""
 
     @classmethod
-    def from_build_stats(cls, stats: "BuildStats", scenario: str = "") -> "EfficiencyMetrics":
+    def from_build_stats(
+        cls, stats: BuildStats, scenario: str = ""
+    ) -> EfficiencyMetrics:
         """Extract efficiency metrics from BuildStats."""
         metrics = cls(
             scenario=scenario,
@@ -108,7 +108,9 @@ class EfficiencyMetrics:
         # Calculate cache hit rate
         if metrics.total_pages > 0:
             metrics.cache_hit_rate = (
-                (metrics.total_pages - metrics.rebuild_count) / metrics.total_pages * 100
+                (metrics.total_pages - metrics.rebuild_count)
+                / metrics.total_pages
+                * 100
             )
 
         return metrics
@@ -154,8 +156,7 @@ class EfficiencyMetrics:
 
         if min_cache_hit_rate is not None and self.cache_hit_rate < min_cache_hit_rate:
             errors.append(
-                f"Cache hit rate too low: {self.cache_hit_rate:.1f}% "
-                f"(min: {min_cache_hit_rate}%)"
+                f"Cache hit rate too low: {self.cache_hit_rate:.1f}% (min: {min_cache_hit_rate}%)"
             )
 
         if expected_reasons:
@@ -176,19 +177,19 @@ class EfficiencyMetrics:
 
 def _print_efficiency_report(metrics: EfficiencyMetrics) -> None:
     """Print a human-readable efficiency report."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"EFFICIENCY REPORT: {metrics.scenario}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  Total pages:    {metrics.total_pages}")
     print(f"  Rebuilt:        {metrics.rebuild_count}")
     print(f"  Skipped:        {metrics.skip_count}")
     print(f"  Cache hit rate: {metrics.cache_hit_rate:.1f}%")
     print(f"  Build time:     {metrics.build_time_ms:.1f}ms")
     if metrics.rebuild_by_reason:
-        print(f"\n  Rebuild reasons:")
+        print("\n  Rebuild reasons:")
         for reason, count in sorted(metrics.rebuild_by_reason.items()):
             print(f"    {reason}: {count}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
 
 # =============================================================================
@@ -210,7 +211,7 @@ def efficiency_site(tmp_path: Path):
         *,
         with_tags: bool = False,
         with_sections: bool = False,
-    ) -> tuple[Path, "Site"]:
+    ) -> tuple[Path, Site]:
         site_dir = tmp_path / "site"
         site_dir.mkdir(exist_ok=True)
 
@@ -224,7 +225,7 @@ baseURL = "/"
 output_dir = "public"
 """
         if with_tags:
-            config += "\n[taxonomies]\ntags = \"tags\"\n"
+            config += '\n[taxonomies]\ntags = "tags"\n'
 
         (site_dir / "bengal.toml").write_text(config)
 
@@ -233,9 +234,7 @@ output_dir = "public"
         content_dir.mkdir(exist_ok=True)
 
         # Home page
-        (content_dir / "_index.md").write_text(
-            "---\ntitle: Home\n---\n# Home"
-        )
+        (content_dir / "_index.md").write_text("---\ntitle: Home\n---\n# Home")
 
         # Create pages
         for i in range(page_count):
@@ -518,7 +517,6 @@ class TestEfficiencyRegression:
         Fix: Proper fingerprinting of autodoc source files.
         """
         # TODO: Add test when autodoc efficiency is fixed
-        pass
 
 
 # =============================================================================

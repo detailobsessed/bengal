@@ -768,7 +768,9 @@ class TestRenderedOutputCache:
         assert loaded_cache.rendered_output[str(test_file)]["html"] == (
             "<html><body>Rendered content for cold build test</body></html>"
         )
-        assert loaded_cache.rendered_output[str(test_file)]["template"] == "default.html"
+        assert (
+            loaded_cache.rendered_output[str(test_file)]["template"] == "default.html"
+        )
 
     def test_rendered_output_tolerates_missing_in_old_cache(self, tmp_path):
         """Loading old cache without rendered_output field works correctly."""
@@ -1039,7 +1041,10 @@ class TestAutodocContentCacheSaveLoad:
             "autodoc_dependencies": {},
             "autodoc_source_metadata": {},
             "autodoc_content_cache": {
-                "valid.py": {"source_hash": "abc", "module_element_dict": {"name": "valid"}},
+                "valid.py": {
+                    "source_hash": "abc",
+                    "module_element_dict": {"name": "valid"},
+                },
                 "malformed.py": "not a dict",  # Malformed - should be skipped
                 "incomplete.py": {"source_hash": "xyz"},  # Missing module_element_dict
             },
@@ -1072,4 +1077,7 @@ class TestAutodocContentCacheSaveLoad:
         assert "incomplete.py" in loaded_cache.autodoc_content_cache
         assert loaded_cache.autodoc_content_cache["incomplete.py"].source_hash == "xyz"
         # module_element_dict defaults to empty dict for incomplete entries
-        assert loaded_cache.autodoc_content_cache["incomplete.py"].module_element_dict == {}
+        assert (
+            loaded_cache.autodoc_content_cache["incomplete.py"].module_element_dict
+            == {}
+        )

@@ -171,7 +171,9 @@ class TestPhaseDiscovery:
         build_context = MagicMock()
         build_context.has_cached_content = False
 
-        phase_discovery(orchestrator, cli, incremental=False, build_context=build_context)
+        phase_discovery(
+            orchestrator, cli, incremental=False, build_context=build_context
+        )
 
         orchestrator.content.discover_content.assert_called_once_with(
             incremental=False, cache=None, build_context=build_context, build_cache=None
@@ -186,7 +188,9 @@ class TestPhaseDiscovery:
         build_context.has_cached_content = True
         build_context.content_cache_size = 100
 
-        phase_discovery(orchestrator, cli, incremental=False, build_context=build_context)
+        phase_discovery(
+            orchestrator, cli, incremental=False, build_context=build_context
+        )
 
         orchestrator.logger.debug.assert_called()
 
@@ -337,14 +341,19 @@ class TestPhaseIncrementalFilter:
         cache = MagicMock()
 
         result = phase_incremental_filter(
-            orchestrator, cli, cache, incremental=False, verbose=False, build_start=time.time()
+            orchestrator,
+            cli,
+            cache,
+            incremental=False,
+            verbose=False,
+            build_start=time.time(),
         )
 
         assert isinstance(result, FilterResult)
         assert result.pages_to_build == mock_pages
         assert result.assets_to_process == mock_assets
         # Test tuple unpacking backward compatibility
-        pages, assets, tags, paths, sections = result
+        pages, assets, _tags, _paths, _sections = result
         assert pages == mock_pages
         assert assets == mock_assets
 
@@ -388,14 +397,19 @@ class TestPhaseIncrementalFilter:
         )
 
         result = phase_incremental_filter(
-            orchestrator, cli, cache, incremental=True, verbose=False, build_start=time.time()
+            orchestrator,
+            cli,
+            cache,
+            incremental=True,
+            verbose=False,
+            build_start=time.time(),
         )
 
         assert isinstance(result, FilterResult)
         assert len(result.pages_to_build) == 1
         assert result.pages_to_build[0] is changed_page
         # Test tuple unpacking backward compatibility
-        pages, assets, tags, paths, sections = result
+        pages, _assets, _tags, _paths, _sections = result
         assert len(pages) == 1
         assert pages[0] is changed_page
 
@@ -424,10 +438,19 @@ class TestPhaseIncrementalFilter:
         cache = MagicMock()
         cache.get_all_tags.return_value = {}
 
-        orchestrator.incremental.find_work_early.return_value = ([], [], ChangeSummary())
+        orchestrator.incremental.find_work_early.return_value = (
+            [],
+            [],
+            ChangeSummary(),
+        )
 
         result = phase_incremental_filter(
-            orchestrator, cli, cache, incremental=True, verbose=False, build_start=time.time()
+            orchestrator,
+            cli,
+            cache,
+            incremental=True,
+            verbose=False,
+            build_start=time.time(),
         )
 
         assert result is None
@@ -454,7 +477,12 @@ class TestPhaseIncrementalFilter:
         )
 
         result = phase_incremental_filter(
-            orchestrator, cli, cache, incremental=True, verbose=False, build_start=time.time()
+            orchestrator,
+            cli,
+            cache,
+            incremental=True,
+            verbose=False,
+            build_start=time.time(),
         )
 
         assert isinstance(result, FilterResult)
@@ -487,7 +515,12 @@ class TestPhaseIncrementalFilter:
         )
 
         result = phase_incremental_filter(
-            orchestrator, cli, cache, incremental=True, verbose=False, build_start=time.time()
+            orchestrator,
+            cli,
+            cache,
+            incremental=True,
+            verbose=False,
+            build_start=time.time(),
         )
 
         assert isinstance(result, FilterResult)
@@ -518,7 +551,12 @@ class TestPhaseIncrementalFilter:
         )
 
         phase_incremental_filter(
-            orchestrator, cli, cache, incremental=True, verbose=False, build_start=time.time()
+            orchestrator,
+            cli,
+            cache,
+            incremental=True,
+            verbose=False,
+            build_start=time.time(),
         )
 
         # 3 total pages, 1 rebuilt, 2 cached

@@ -2,8 +2,6 @@
 Tests for StepsDirective behavior, including nesting.
 """
 
-from __future__ import annotations
-
 import sys
 
 import pytest

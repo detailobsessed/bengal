@@ -42,18 +42,17 @@ bengal.orchestration.build: Build coordinator that calls this orchestrator
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
     from bengal.autodoc.orchestration.result import AutodocRunResult
     from bengal.cache.build_cache import BuildCache
-    from bengal.core.asset import Asset
+    from bengal.cache.page_discovery_cache import PageDiscoveryCache
     from bengal.core.page import Page
     from bengal.core.section import Section
     from bengal.core.site import Site
-    from bengal.cache.page_discovery_cache import PageDiscoveryCache
     from bengal.orchestration.build_context import BuildContext
 
 logger = get_logger(__name__)
@@ -62,13 +61,13 @@ logger = get_logger(__name__)
 class ContentOrchestrator:
     """
     Handles content and asset discovery.
-    
+
     Responsibilities:
         - Discover content (pages and sections)
         - Discover assets (site and theme)
         - Set up page/section references for navigation
         - Apply cascading frontmatter from sections to pages
-        
+
     """
 
     def __init__(self, site: Site):
@@ -180,7 +179,9 @@ class ContentOrchestrator:
 
         # Check if strict validation is enabled
         build_config = (
-            self.site.config.get("build", {}) if isinstance(self.site.config, dict) else {}
+            self.site.config.get("build", {})
+            if isinstance(self.site.config, dict)
+            else {}
         )
         strict_validation = build_config.get("strict_collections", False)
 
@@ -197,7 +198,9 @@ class ContentOrchestrator:
         # Use lazy loading if incremental build with cache
         use_cache = incremental and cache is not None
         t0 = time.perf_counter()
-        self.site.sections, self.site.pages = discovery.discover(use_cache=use_cache, cache=cache)
+        sections, pages = discovery.discover(use_cache=use_cache, cache=cache)
+        self.site.sections = sections
+        self.site.pages = cast(list["Page"], pages)
         breakdown_ms["content_discovery"] = (time.perf_counter() - t0) * 1000
 
         # Note: Autodoc synthetic pages disabled - using traditional Markdown generation
@@ -278,7 +281,9 @@ class ContentOrchestrator:
         t0 = time.perf_counter()
         self._build_xref_index()
         breakdown_ms["xref_index"] = (time.perf_counter() - t0) * 1000
-        logger.debug("xref_index_built", index_size=len(self.site.xref_index.get("by_path", {})))
+        logger.debug(
+            "xref_index_built", index_size=len(self.site.xref_index.get("by_path", {}))
+        )
 
         breakdown_ms["total"] = (time.perf_counter() - overall_start) * 1000
         # Store on Site for consumption by phase_discovery (CLI details) and debug logs.
@@ -321,7 +326,9 @@ class ContentOrchestrator:
                 return [], []
 
             cache_key = "__autodoc_elements_v1"
-            current_cfg_hash = hash_dict(autodoc_cfg) if isinstance(autodoc_cfg, dict) else ""
+            current_cfg_hash = (
+                hash_dict(autodoc_cfg) if isinstance(autodoc_cfg, dict) else ""
+            )
 
             def _is_external_autodoc_source(path: Path) -> bool:
                 # We intentionally ignore dependencies that live in virtualenv / site-packages.
@@ -349,25 +356,30 @@ class ContentOrchestrator:
 
             # Incremental fast path: if autodoc sources are unchanged and we have a cached
             # extraction payload, rebuild virtual pages without re-extracting.
+            get_page_cache_fn = getattr(cache, "get_page_cache", None)
+            is_changed_fn = getattr(cache, "is_changed", None)
             if (
                 cache is not None
-                and hasattr(cache, "get_page_cache")
-                and hasattr(cache, "is_changed")
+                and get_page_cache_fn is not None
+                and is_changed_fn is not None
             ):
-                cached_payload = cache.get_page_cache(cache_key)
+                cached_payload = get_page_cache_fn(cache_key)
                 if (
                     isinstance(cached_payload, dict)
                     and cached_payload.get("version") == __version__
                     and cached_payload.get("autodoc_config_hash") == current_cfg_hash
                 ):
                     changed = False
-                    if hasattr(cache, "get_autodoc_source_files"):
+                    get_autodoc_source_files_fn = getattr(
+                        cache, "get_autodoc_source_files", None
+                    )
+                    if get_autodoc_source_files_fn is not None:
                         try:
-                            for source in cache.get_autodoc_source_files():
+                            for source in get_autodoc_source_files_fn():
                                 src_path = _resolve_autodoc_source(Path(source))
                                 if _is_external_autodoc_source(src_path):
                                     continue
-                                if cache.is_changed(src_path):
+                                if is_changed_fn(src_path):
                                     changed = True
                                     break
                         except Exception:
@@ -377,15 +389,22 @@ class ContentOrchestrator:
 
                     if not changed:
                         try:
-                            pages, sections, run_result = orchestrator.generate_from_cache_payload(
-                                cached_payload
+                            pages, sections, run_result = (
+                                orchestrator.generate_from_cache_payload(cached_payload)
                             )
                             # Register autodoc dependencies with build_cache so has_autodoc_tracking is True
-                            if build_cache is not None and hasattr(build_cache, "add_autodoc_dependency"):
+                            if build_cache is not None and hasattr(
+                                build_cache, "add_autodoc_dependency"
+                            ):
                                 from bengal.utils.primitives.hashing import hash_file
 
-                                for source_file, page_hashes in run_result.autodoc_dependencies.items():
-                                    src_path = _resolve_autodoc_source(Path(source_file))
+                                for (
+                                    source_file,
+                                    page_hashes,
+                                ) in run_result.autodoc_dependencies.items():
+                                    src_path = _resolve_autodoc_source(
+                                        Path(source_file)
+                                    )
                                     if _is_external_autodoc_source(src_path):
                                         continue
                                     if not src_path.exists():
@@ -421,8 +440,11 @@ class ContentOrchestrator:
                                 error_type=type(e).__name__,
                                 action="invalidating_cache_and_re_extracting",
                             )
-                            if hasattr(cache, "invalidate_page_cache"):
-                                cache.invalidate_page_cache(cache_key)
+                            invalidate_fn = getattr(
+                                cache, "invalidate_page_cache", None
+                            )
+                            if invalidate_fn is not None:
+                                invalidate_fn(cache_key)
                             # Fall through to re-extraction below
 
             pages, sections, run_result = orchestrator.generate()
@@ -432,7 +454,9 @@ class ContentOrchestrator:
 
             # Register autodoc dependencies with build_cache for selective rebuilds
             # CRITICAL: Pass source_hash and source_mtime for incremental detection.
-            if build_cache is not None and hasattr(build_cache, "add_autodoc_dependency"):
+            if build_cache is not None and hasattr(
+                build_cache, "add_autodoc_dependency"
+            ):
                 from bengal.utils.primitives.hashing import hash_file
 
                 for source_file, page_hashes in run_result.autodoc_dependencies.items():
@@ -479,14 +503,17 @@ class ContentOrchestrator:
                 # The incremental cache saver only sees rendered pages, and autodoc "source_file"
                 # in metadata is display-oriented (may be repo-relative), so we update the cache
                 # using the dependency tracker keys (absolute paths) here.
-                if cache is not None and hasattr(cache, "update_file"):
+                update_file_fn = (
+                    getattr(cache, "update_file", None) if cache is not None else None
+                )
+                if update_file_fn is not None:
                     try:
                         for source_file in run_result.autodoc_dependencies:
                             src_path = Path(source_file)
                             if _is_external_autodoc_source(src_path):
                                 continue
                             if src_path.exists():
-                                cache.update_file(src_path)
+                                update_file_fn(src_path)
                     except Exception as e:
                         logger.debug(
                             "autodoc_source_fingerprints_update_failed",
@@ -495,7 +522,12 @@ class ContentOrchestrator:
                         )
 
                 # Persist extraction payload for incremental cache hits.
-                if cache is not None and hasattr(cache, "set_page_cache"):
+                set_page_cache_fn = (
+                    getattr(cache, "set_page_cache", None)
+                    if cache is not None
+                    else None
+                )
+                if set_page_cache_fn is not None:
                     try:
                         payload = orchestrator.get_cache_payload()
                         if (
@@ -503,7 +535,7 @@ class ContentOrchestrator:
                             and payload.get("version") == __version__
                             and payload.get("autodoc_config_hash") == current_cfg_hash
                         ):
-                            cache.set_page_cache(cache_key, payload)
+                            set_page_cache_fn(cache_key, payload)
                             logger.debug(
                                 "autodoc_cache_saved",
                                 types=list((payload.get("elements") or {}).keys()),
@@ -579,23 +611,41 @@ class ContentOrchestrator:
         # Optimization: Skip asset discovery if only content files changed
         options = getattr(self.site, "_last_build_options", None)
         cache = getattr(self.site, "_cache", None)
-        
-        if options and options.incremental and options.changed_sources and not options.structural_changed:
+
+        if (
+            options
+            and options.incremental
+            and options.changed_sources
+            and not options.structural_changed
+        ):
             content_extensions = {".md", ".markdown", ".html", ".txt", ".ipynb"}
             non_content_changes = [
-                s for s in options.changed_sources 
+                s
+                for s in options.changed_sources
                 if s.suffix.lower() not in content_extensions
             ]
-            
-            if not non_content_changes and cache and hasattr(cache, "discovered_assets") and cache.discovered_assets:
+
+            if (
+                not non_content_changes
+                and cache
+                and hasattr(cache, "discovered_assets")
+                and cache.discovered_assets
+            ):
                 from bengal.core.asset import Asset
+
                 self.site.assets = []
                 for src_rel, out_rel in cache.discovered_assets.items():
-                    self.site.assets.append(Asset(
-                        source_path=self.site.root_path / src_rel,
-                        output_path=Path(out_rel)
-                    ))
-                logger.debug("asset_discovery_skipped", reason="only_content_changed", count=len(self.site.assets))
+                    self.site.assets.append(
+                        Asset(
+                            source_path=self.site.root_path / src_rel,
+                            output_path=Path(out_rel),
+                        )
+                    )
+                logger.debug(
+                    "asset_discovery_skipped",
+                    reason="only_content_changed",
+                    count=len(self.site.assets),
+                )
                 return
 
         from bengal.content.discovery.asset_discovery import AssetDiscovery
@@ -609,7 +659,9 @@ class ContentOrchestrator:
             theme_assets_dir = self._get_theme_assets_dir()
             if theme_assets_dir and theme_assets_dir.exists():
                 logger.debug(
-                    "discovering_theme_assets", theme=self.site.theme, path=str(theme_assets_dir)
+                    "discovering_theme_assets",
+                    theme=self.site.theme,
+                    path=str(theme_assets_dir),
                 )
                 theme_discovery = AssetDiscovery(theme_assets_dir)
                 theme_assets = theme_discovery.discover()
@@ -791,9 +843,9 @@ class ContentOrchestrator:
                     heading_text = toc_item.get("title", "").lower()
                     anchor_id = toc_item.get("id", "")
                     if heading_text and anchor_id:
-                        self.site.xref_index["by_heading"].setdefault(heading_text, []).append(
-                            (page, anchor_id)
-                        )
+                        self.site.xref_index["by_heading"].setdefault(
+                            heading_text, []
+                        ).append((page, anchor_id))
                         # Also index by anchor ID for direct [[#anchor]] resolution
                         # This enables explicit {#custom-id} heading anchors to be found
                         anchor_key = anchor_id.lower()
@@ -804,7 +856,11 @@ class ContentOrchestrator:
                         # Check for collisions within the same version only
                         existing_entries = self.site.xref_index["by_anchor"][anchor_key]
                         same_version_entry = (
-                            next((p, a, v) for p, a, v in existing_entries if v == page_version)
+                            next(
+                                (p, a, v)
+                                for p, a, v in existing_entries
+                                if v == page_version
+                            )
                             if any(v == page_version for _, _, v in existing_entries)
                             else None
                         )
@@ -814,8 +870,12 @@ class ContentOrchestrator:
                             logger.warning(
                                 "anchor_collision",
                                 anchor_id=anchor_id,
-                                target_page=str(getattr(page, "source_path", "unknown")),
-                                existing_page=str(getattr(existing_page, "source_path", "unknown")),
+                                target_page=str(
+                                    getattr(page, "source_path", "unknown")
+                                ),
+                                existing_page=str(
+                                    getattr(existing_page, "source_path", "unknown")
+                                ),
                                 existing_anchor=existing_anchor,
                                 version=page_version or "unversioned",
                                 details=(
@@ -853,16 +913,22 @@ class ContentOrchestrator:
                         # Collision within same version - target directives take precedence
                         # Remove existing same-version entries and add target directive
                         self.site.xref_index["by_anchor"][anchor_key] = [
-                            (p, a, v) for p, a, v in existing_entries if v != page_version
+                            (p, a, v)
+                            for p, a, v in existing_entries
+                            if v != page_version
                         ]
                         existing_page, existing_anchor, _ = next(
-                            (p, a, v) for p, a, v in existing_entries if v == page_version
+                            (p, a, v)
+                            for p, a, v in existing_entries
+                            if v == page_version
                         )
                         logger.warning(
                             "anchor_collision",
                             anchor_id=anchor_id,
                             target_page=str(getattr(page, "source_path", "unknown")),
-                            existing_page=str(getattr(existing_page, "source_path", "unknown")),
+                            existing_page=str(
+                                getattr(existing_page, "source_path", "unknown")
+                            ),
                             existing_anchor=existing_anchor,
                             version=page_version or "unversioned",
                             details=(
@@ -962,5 +1028,5 @@ class ContentOrchestrator:
             Path to theme assets or None if not found
         """
         from bengal.services.theme import get_theme_assets_dir
-        
+
         return get_theme_assets_dir(self.site.root_path, self.site.theme)

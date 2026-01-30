@@ -55,25 +55,25 @@ if TYPE_CHECKING:
 class SiteContent:
     """
     Mutable content container populated during discovery.
-    
+
     Lifecycle:
         1. Created empty at Site initialization
         2. Populated during discovery phase (pages, sections, assets)
         3. Extended during taxonomy/menu phases
         4. Frozen before rendering (optional, for safety)
         5. Cleared on rebuild via clear()
-    
+
     Separation from Site:
         - Contains ONLY content data (pages, sections, assets)
         - No caches (those go in BuildState or derived properties)
         - No registries (those go in ContentRegistry)
         - No config (that goes in SiteData)
-    
+
     Thread Safety:
         - Mutations during discovery are single-threaded
         - After freeze(), reads are safe for parallel rendering
         - Dev server calls clear() before re-discovery
-    
+
     Attributes:
         pages: All pages in the site
         sections: All sections in the site
@@ -84,7 +84,7 @@ class SiteContent:
         menu_localized: Localized menus by language/name
         menu_builders_localized: Localized menu builders
         data: Data from data/ directory
-        
+
     """
 
     # Core content
@@ -99,7 +99,9 @@ class SiteContent:
     menu: dict[str, list[MenuItem]] = field(default_factory=dict)
     menu_builders: dict[str, MenuBuilder] = field(default_factory=dict)
     menu_localized: dict[str, dict[str, list[MenuItem]]] = field(default_factory=dict)
-    menu_builders_localized: dict[str, dict[str, MenuBuilder]] = field(default_factory=dict)
+    menu_builders_localized: dict[str, dict[str, MenuBuilder]] = field(
+        default_factory=dict
+    )
 
     # Data directory content
     data: dict[str, Any] = field(default_factory=dict)
@@ -176,7 +178,9 @@ class SiteContent:
                 print(page.title)
         """
         if self._regular_pages_cache is None:
-            self._regular_pages_cache = [p for p in self.pages if not p.metadata.get("_generated")]
+            self._regular_pages_cache = [
+                p for p in self.pages if not p.metadata.get("_generated")
+            ]
         return self._regular_pages_cache
 
     @property
@@ -188,7 +192,9 @@ class SiteContent:
             List of pages with _generated flag (taxonomy, archive, etc.)
         """
         if self._generated_pages_cache is None:
-            self._generated_pages_cache = [p for p in self.pages if p.metadata.get("_generated")]
+            self._generated_pages_cache = [
+                p for p in self.pages if p.metadata.get("_generated")
+            ]
         return self._generated_pages_cache
 
     @property

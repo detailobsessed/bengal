@@ -5,14 +5,10 @@ These tests verify correct URL construction for edge cases like
 empty section names, pagination without sections, etc.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 
 def make_mock_page(
@@ -138,7 +134,7 @@ class TestPaginationURLConstruction:
 
         # base_url should be "/" not "//"
         base_url = context.get("base_url", "")
-        assert base_url == "/" or base_url.startswith("/") and "//" not in base_url
+        assert base_url == "/" or (base_url.startswith("/") and "//" not in base_url)
 
     def test_pagination_url_with_valid_section(self) -> None:
         """Verify normal section name produces correct URL."""
@@ -235,7 +231,9 @@ class TestTagPageURLConstruction:
         # Should handle gracefully (empty base_url or /)
         base_url = context.get("base_url", "")
         # No double slashes
-        assert "//" not in base_url or base_url == "/tags//"  # Edge case: /tags// is expected
+        assert (
+            "//" not in base_url or base_url == "/tags//"
+        )  # Edge case: /tags// is expected
 
     def test_tag_page_url_with_special_characters(self) -> None:
         """Verify tag page handles slugs with special characters."""
@@ -311,7 +309,11 @@ class TestTagIndexURLConstruction:
                 "_tags": {
                     "zebra": {"name": "Zebra", "slug": "zebra", "pages": [1, 2]},
                     "alpha": {"name": "Alpha", "slug": "alpha", "pages": [1, 2]},
-                    "popular": {"name": "Popular", "slug": "popular", "pages": [1, 2, 3, 4, 5]},
+                    "popular": {
+                        "name": "Popular",
+                        "slug": "popular",
+                        "pages": [1, 2, 3, 4, 5],
+                    },
                 },
             },
         )

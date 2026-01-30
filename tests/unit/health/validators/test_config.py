@@ -4,8 +4,6 @@ Tests health/validators/config.py:
 - ConfigValidatorWrapper: config validation in health check system
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -101,7 +99,9 @@ class TestConfigValidatorWrapperCommonIssues:
         mock_site.config["max_workers"] = 8
         results = validator.validate(mock_site)
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        max_workers_warnings = [r for r in warning_results if "max_workers" in r.message]
+        max_workers_warnings = [
+            r for r in warning_results if "max_workers" in r.message
+        ]
         assert len(max_workers_warnings) == 0
 
     def test_info_when_incremental_without_parallel(self, validator, mock_site):
@@ -157,7 +157,9 @@ class TestConfigValidatorWrapperRecommendations:
         mock_site.config["max_workers"] = 50
         results = validator.validate(mock_site)
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        workers_warning = next((r for r in warning_results if "max_workers" in r.message), None)
+        workers_warning = next(
+            (r for r in warning_results if "max_workers" in r.message), None
+        )
         assert workers_warning is not None
         assert workers_warning.recommendation is not None
 
@@ -178,7 +180,9 @@ class TestConfigValidatorWrapperEdgeCases:
         mock_site.config["baseurl"] = ""
         results = validator.validate(mock_site)
         info_results = [r for r in results if r.status == CheckStatus.INFO]
-        slash_results = [r for r in info_results if "trailing slash" in r.message.lower()]
+        slash_results = [
+            r for r in info_results if "trailing slash" in r.message.lower()
+        ]
         assert len(slash_results) == 0
 
     def test_max_workers_none_uses_default(self, validator, mock_site):
@@ -192,10 +196,10 @@ class TestConfigValidatorWrapperEdgeCases:
 
 class TestBaseurlValidation:
     """Tests for GitHub Pages baseurl configuration checks.
-    
+
     Common misconfiguration: GitHub Pages project sites need baseurl = "/repo-name"
     but users often forget this, causing all assets and links to 404.
-        
+
     """
 
     def test_github_pages_project_site_missing_baseurl(self, validator, mock_site):
@@ -225,7 +229,9 @@ class TestBaseurlValidation:
             for r in warning_results
             if "github" in r.message.lower() and "baseurl" in r.message.lower()
         ]
-        assert len(baseurl_warnings) == 0, f"Correct baseurl should not warn: {baseurl_warnings}"
+        assert len(baseurl_warnings) == 0, (
+            f"Correct baseurl should not warn: {baseurl_warnings}"
+        )
 
     def test_github_pages_user_site_no_baseurl_needed(self, validator, mock_site):
         """No warning for GitHub Pages user site (no repo path)."""
@@ -241,7 +247,9 @@ class TestBaseurlValidation:
             for r in warning_results
             if "baseurl" in r.message.lower() and "github" in r.message.lower()
         ]
-        assert len(baseurl_warnings) == 0, f"User sites should not need baseurl: {baseurl_warnings}"
+        assert len(baseurl_warnings) == 0, (
+            f"User sites should not need baseurl: {baseurl_warnings}"
+        )
 
     def test_baseurl_without_leading_slash(self, validator, mock_site):
         """Warns when baseurl doesn't start with /."""
@@ -251,7 +259,8 @@ class TestBaseurlValidation:
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
 
         assert any(
-            "start with" in r.message.lower() and "/" in r.message for r in warning_results
+            "start with" in r.message.lower() and "/" in r.message
+            for r in warning_results
         ), f"Should warn about missing leading slash: {warning_results}"
 
     def test_baseurl_with_leading_slash_ok(self, validator, mock_site):
@@ -262,8 +271,12 @@ class TestBaseurlValidation:
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
 
         # Should NOT warn about leading slash
-        slash_warnings = [r for r in warning_results if "start with" in r.message.lower()]
-        assert len(slash_warnings) == 0, f"Correct baseurl should not warn: {slash_warnings}"
+        slash_warnings = [
+            r for r in warning_results if "start with" in r.message.lower()
+        ]
+        assert len(slash_warnings) == 0, (
+            f"Correct baseurl should not warn: {slash_warnings}"
+        )
 
     def test_non_github_site_no_baseurl_warning(self, validator, mock_site):
         """No GitHub Pages warning for non-GitHub sites."""

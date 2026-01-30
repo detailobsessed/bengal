@@ -34,7 +34,10 @@ class TestLinkSuggestion:
         target = MockAnalysisPage(source_path=Path("target.md"), title="Target Page")
 
         suggestion = LinkSuggestion(
-            source=source, target=target, score=0.75, reasons=["Shared tags: python, testing"]
+            source=source,
+            target=target,
+            score=0.75,
+            reasons=["Shared tags: python, testing"],
         )
 
         assert suggestion.source == source
@@ -156,8 +159,12 @@ class TestLinkSuggestionEngine:
 
     def test_shared_tags_scoring(self):
         """Test that pages with shared tags get higher scores."""
-        page1 = MockAnalysisPage(source_path=Path("page1.md"), tags=["python", "testing"])
-        page2 = MockAnalysisPage(source_path=Path("page2.md"), tags=["python", "coding"])
+        page1 = MockAnalysisPage(
+            source_path=Path("page1.md"), tags=["python", "testing"]
+        )
+        page2 = MockAnalysisPage(
+            source_path=Path("page2.md"), tags=["python", "coding"]
+        )
         page3 = MockAnalysisPage(source_path=Path("page3.md"), tags=["javascript"])
 
         graph = _create_mock_graph([page1, page2, page3])
@@ -171,7 +178,9 @@ class TestLinkSuggestionEngine:
         if len(page1_suggestions) > 0:
             # Should suggest page2 over page3
             assert page1_suggestions[0].target == page2
-            assert any("Shared tags" in reason for reason in page1_suggestions[0].reasons)
+            assert any(
+                "Shared tags" in reason for reason in page1_suggestions[0].reasons
+            )
 
     def test_category_scoring(self):
         """Test that pages in same category get scored."""
@@ -189,7 +198,9 @@ class TestLinkSuggestionEngine:
         if len(page1_suggestions) > 0:
             # Should prefer same category
             assert page1_suggestions[0].target == page2
-            assert any("Shared categories" in reason for reason in page1_suggestions[0].reasons)
+            assert any(
+                "Shared categories" in reason for reason in page1_suggestions[0].reasons
+            )
 
     def test_excludes_existing_links(self):
         """Test that existing links are excluded."""
@@ -245,10 +256,11 @@ class TestLinkSuggestionEngine:
 
         # Create 20 potential targets
         targets = [
-            MockAnalysisPage(source_path=Path(f"target{i}.md"), tags=["python"]) for i in range(20)
+            MockAnalysisPage(source_path=Path(f"target{i}.md"), tags=["python"])
+            for i in range(20)
         ]
 
-        graph = _create_mock_graph([source] + targets)
+        graph = _create_mock_graph([source, *targets])
 
         max_suggestions = 5
         engine = LinkSuggestionEngine(
@@ -287,7 +299,8 @@ class TestSuggestLinksFunction:
     def test_suggest_links(self):
         """Test the convenience function."""
         pages = [
-            MockAnalysisPage(source_path=Path(f"page{i}.md"), tags=["python"]) for i in range(3)
+            MockAnalysisPage(source_path=Path(f"page{i}.md"), tags=["python"])
+            for i in range(3)
         ]
 
         graph = _create_mock_graph(pages)

@@ -87,7 +87,10 @@ class TestTaxonomyValidator:
         results = validator.validate(mock_site)
 
         # Should have success results for tag pages
-        assert any(r.status == CheckStatus.SUCCESS and "tag" in r.message.lower() for r in results)
+        assert any(
+            r.status == CheckStatus.SUCCESS and "tag" in r.message.lower()
+            for r in results
+        )
 
     def test_missing_tag_page(self, validator, mock_site):
         """Test detection of missing tag page."""
@@ -99,14 +102,19 @@ class TestTaxonomyValidator:
         # Should detect missing tag page
         errors = [r for r in results if r.status == CheckStatus.ERROR]
         assert any(
-            "tag" in r.message.lower() and "no generated pages" in r.message.lower() for r in errors
+            "tag" in r.message.lower() and "no generated pages" in r.message.lower()
+            for r in errors
         )
 
     def test_orphaned_tag_page(self, validator, mock_site):
         """Test detection of orphaned tag page."""
         # Create tag page for non-existent tag
         orphan_page = Mock(spec=Page)
-        orphan_page.metadata = {"_generated": True, "type": "tag", "_tag_slug": "orphan-tag"}
+        orphan_page.metadata = {
+            "_generated": True,
+            "type": "tag",
+            "_tag_slug": "orphan-tag",
+        }
         mock_site.pages.append(orphan_page)
 
         results = validator.validate(mock_site)
@@ -125,7 +133,10 @@ class TestTaxonomyValidator:
         results = validator.validate(site)
 
         # Should return info message about no tags
-        assert any(r.status == CheckStatus.INFO and "no tags" in r.message.lower() for r in results)
+        assert any(
+            r.status == CheckStatus.INFO and "no tags" in r.message.lower()
+            for r in results
+        )
 
     def test_archive_pages_exist(self, validator, mock_site, tmp_path):
         """Test validation of archive pages for sections."""
@@ -141,10 +152,16 @@ class TestTaxonomyValidator:
         # Create archive page for section
         archive_page = Mock(spec=Page)
         archive_page.source_path = tmp_path / "blog/archive.md"
-        archive_page.output_path = tmp_path / "public" / "blog" / "archive" / "index.html"
+        archive_page.output_path = (
+            tmp_path / "public" / "blog" / "archive" / "index.html"
+        )
         archive_page.output_path.parent.mkdir(parents=True, exist_ok=True)
         archive_page.output_path.touch()
-        archive_page.metadata = {"_generated": True, "type": "archive", "_section_url": "/blog/"}
+        archive_page.metadata = {
+            "_generated": True,
+            "type": "archive",
+            "_section_url": "/blog/",
+        }
 
         mock_site.sections = [section]
         mock_site.pages.append(archive_page)
@@ -165,14 +182,28 @@ class TestTaxonomyValidator:
         """Test pagination page integrity checking."""
         # Create paginated tag pages
         page1 = Mock(spec=Page)
-        page1.metadata = {"_generated": True, "type": "tag", "_tag_slug": "python", "_page_num": 1}
-        page1.output_path = tmp_path / "public" / "tags" / "python" / "page" / "1" / "index.html"
+        page1.metadata = {
+            "_generated": True,
+            "type": "tag",
+            "_tag_slug": "python",
+            "_page_num": 1,
+        }
+        page1.output_path = (
+            tmp_path / "public" / "tags" / "python" / "page" / "1" / "index.html"
+        )
         page1.output_path.parent.mkdir(parents=True, exist_ok=True)
         page1.output_path.touch()
 
         page2 = Mock(spec=Page)
-        page2.metadata = {"_generated": True, "type": "tag", "_tag_slug": "python", "_page_num": 2}
-        page2.output_path = tmp_path / "public" / "tags" / "python" / "page" / "2" / "index.html"
+        page2.metadata = {
+            "_generated": True,
+            "type": "tag",
+            "_tag_slug": "python",
+            "_page_num": 2,
+        }
+        page2.output_path = (
+            tmp_path / "public" / "tags" / "python" / "page" / "2" / "index.html"
+        )
         page2.output_path.parent.mkdir(parents=True, exist_ok=True)
         page2.output_path.touch()
 
@@ -209,7 +240,8 @@ class TestTaxonomyValidator:
 
         # All tag pages should have output
         assert not any(
-            r.status == CheckStatus.ERROR and "output" in r.message.lower() for r in results
+            r.status == CheckStatus.ERROR and "output" in r.message.lower()
+            for r in results
         )
 
     def test_category_pages(self, validator, mock_site, tmp_path):
@@ -217,8 +249,14 @@ class TestTaxonomyValidator:
         # Create category pages
         for cat_slug in ["tutorials", "guides"]:
             page = Mock(spec=Page)
-            page.metadata = {"_generated": True, "type": "category", "_category_slug": cat_slug}
-            page.output_path = tmp_path / "public" / "categories" / cat_slug / "index.html"
+            page.metadata = {
+                "_generated": True,
+                "type": "category",
+                "_category_slug": cat_slug,
+            }
+            page.output_path = (
+                tmp_path / "public" / "categories" / cat_slug / "index.html"
+            )
             page.output_path.parent.mkdir(parents=True, exist_ok=True)
             page.output_path.touch()
             mock_site.pages.append(page)

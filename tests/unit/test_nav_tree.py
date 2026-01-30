@@ -9,8 +9,6 @@ Tests cover:
 - Version URL fallback cascade
 """
 
-from __future__ import annotations
-
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from unittest.mock import Mock
 
@@ -180,7 +178,9 @@ class TestNavTree:
         # No need to mock it
 
         # Create v1 section
-        section_v1 = Section(name="docs", path=tmp_path / "content" / "_versions" / "v1" / "docs")
+        section_v1 = Section(
+            name="docs", path=tmp_path / "content" / "_versions" / "v1" / "docs"
+        )
         section_v1._site = site
         page_v1 = Page(
             source_path=tmp_path / "content" / "_versions" / "v1" / "docs" / "guide.md",
@@ -192,7 +192,9 @@ class TestNavTree:
         section_v1.pages = [page_v1]
 
         # Create v2 section
-        section_v2 = Section(name="docs", path=tmp_path / "content" / "_versions" / "v2" / "docs")
+        section_v2 = Section(
+            name="docs", path=tmp_path / "content" / "_versions" / "v2" / "docs"
+        )
         section_v2._site = site
         page_v2 = Page(
             source_path=tmp_path / "content" / "_versions" / "v2" / "docs" / "guide.md",
@@ -258,11 +260,18 @@ class TestNavTree:
         )
 
         # Create a section with only an index page for v1
-        section = Section(name="docs", path=tmp_path / "content" / "_versions" / "v1" / "docs")
+        section = Section(
+            name="docs", path=tmp_path / "content" / "_versions" / "v1" / "docs"
+        )
         section._site = site
 
         index_page = Page(
-            source_path=tmp_path / "content" / "_versions" / "v1" / "docs" / "_index.md",
+            source_path=tmp_path
+            / "content"
+            / "_versions"
+            / "v1"
+            / "docs"
+            / "_index.md",
             _raw_content="# Docs",
             metadata={"title": "Docs"},
         )
@@ -302,7 +311,9 @@ class TestNavTree:
         # Section should be included even though it only has an index page
         assert len(tree_v1.root.children) > 0
         docs_node = tree_v1.find("/docs/")
-        assert docs_node is not None, "Section with only index page should be in nav tree"
+        assert docs_node is not None, (
+            "Section with only index page should be in nav tree"
+        )
 
     def test_nav_tree_filters_empty_sections(self, tmp_path):
         """Test that sections with no content for a version are excluded."""
@@ -358,7 +369,9 @@ class TestNavTree:
 
         # Build nav tree for v2 - should exclude section (no content)
         tree_v2 = NavTree.build(site, version_id="v2")
-        assert len(tree_v2.root.children) == 0, "Section with no v2 content should be excluded"
+        assert len(tree_v2.root.children) == 0, (
+            "Section with no v2 content should be excluded"
+        )
 
     def test_nav_tree_includes_sections_with_subsections_only(self, tmp_path):
         """Test that sections with only subsections (no direct pages) are included."""
@@ -381,7 +394,8 @@ class TestNavTree:
 
         # Create subsection with a page
         subsection = Section(
-            name="guide", path=tmp_path / "content" / "_versions" / "v1" / "docs" / "guide"
+            name="guide",
+            path=tmp_path / "content" / "_versions" / "v1" / "docs" / "guide",
         )
         subsection._site = site
         subsection.parent = parent_section
@@ -389,7 +403,13 @@ class TestNavTree:
         subsection.__dict__["_path"] = "/docs/guide/"
 
         page = Page(
-            source_path=tmp_path / "content" / "_versions" / "v1" / "docs" / "guide" / "page.md",
+            source_path=tmp_path
+            / "content"
+            / "_versions"
+            / "v1"
+            / "docs"
+            / "guide"
+            / "page.md",
             _raw_content="# Page",
             metadata={"title": "Page"},
         )
@@ -548,7 +568,9 @@ class TestNavTreeContext:
 
         # Current page should be active (NavTree uses _path)
         current_node = tree.find(current_page._path)
-        assert current_node is not None, f"Page {current_page._path} should be in nav tree"
+        assert current_node is not None, (
+            f"Page {current_page._path} should be in nav tree"
+        )
         assert context.is_active(current_node) is True
 
         # Parent section should be active
@@ -563,7 +585,9 @@ class TestNavTreeContext:
 
         # Current page should be current (NavTree uses _path)
         current_node = tree.find(current_page._path)
-        assert current_node is not None, f"Page {current_page._path} should be in nav tree"
+        assert current_node is not None, (
+            f"Page {current_page._path} should be in nav tree"
+        )
         assert context.is_current(current_node) is True
 
         # Parent should not be current
@@ -586,10 +610,10 @@ class TestNavTreeContext:
 
 class TestNavNodeProxy:
     """Test NavNodeProxy URL handling with baseurl.
-    
+
     Critical for GitHub Pages and subdirectory deployments.
     NavNodeProxy.href should apply baseurl, while _path should not.
-        
+
     """
 
     @pytest.fixture
@@ -619,7 +643,9 @@ class TestNavNodeProxy:
         page._section = section
         page.metadata = {"title": "Getting Started"}
         # Simulate output path being set
-        page.output_path = tmp_path / "public" / "docs" / "getting-started" / "index.html"
+        page.output_path = (
+            tmp_path / "public" / "docs" / "getting-started" / "index.html"
+        )
         site.output_dir = tmp_path / "public"
         # Set _path directly for test
         page.__dict__["_path"] = "/docs/getting-started/"
@@ -632,7 +658,7 @@ class TestNavNodeProxy:
 
     def test_proxy_url_includes_baseurl(self, tree_with_baseurl):
         """Test that NavNodeProxy.url includes baseurl for templates."""
-        tree, current_page, site = tree_with_baseurl
+        tree, current_page, _site = tree_with_baseurl
         context = NavTreeContext(tree, current_page)
 
         # Get the wrapped root node (NavNodeProxy)
@@ -647,7 +673,7 @@ class TestNavNodeProxy:
 
     def test_proxy_path_excludes_baseurl(self, tree_with_baseurl):
         """Test that NavNodeProxy._path does NOT include baseurl."""
-        tree, current_page, site = tree_with_baseurl
+        tree, current_page, _site = tree_with_baseurl
         context = NavTreeContext(tree, current_page)
 
         # Get the wrapped root node (NavNodeProxy)
@@ -692,11 +718,13 @@ class TestNavNodeProxy:
         root_proxy = context._wrap_node(tree.root)
 
         # Without baseurl, href and _path should be the same
-        assert root_proxy.href == root_proxy._path, "Without baseurl, href should equal _path"
+        assert root_proxy.href == root_proxy._path, (
+            "Without baseurl, href should equal _path"
+        )
 
     def test_proxy_dict_access_href_includes_baseurl(self, tree_with_baseurl):
         """Test that dict-style access ['href'] also includes baseurl."""
-        tree, current_page, site = tree_with_baseurl
+        tree, current_page, _site = tree_with_baseurl
         context = NavTreeContext(tree, current_page)
         root_proxy = context._wrap_node(tree.root)
 
@@ -707,7 +735,7 @@ class TestNavNodeProxy:
 
     def test_proxy_children_also_have_baseurl(self, tree_with_baseurl):
         """Test that child proxies also have baseurl applied."""
-        tree, current_page, site = tree_with_baseurl
+        tree, current_page, _site = tree_with_baseurl
         context = NavTreeContext(tree, current_page)
         root_proxy = context._wrap_node(tree.root)
 

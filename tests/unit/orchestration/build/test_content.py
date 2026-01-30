@@ -127,7 +127,9 @@ class TestPhaseSections:
 
     def test_warns_in_non_strict_mode_with_errors(self, tmp_path):
         """Warns but continues in non-strict mode with validation errors."""
-        orchestrator = MockPhaseContext.create_orchestrator(tmp_path, config={"strict_mode": False})
+        orchestrator = MockPhaseContext.create_orchestrator(
+            tmp_path, config={"strict_mode": False}
+        )
         cli = MockPhaseContext.create_cli()
         orchestrator.sections.validate_sections.return_value = ["Error 1"]
 
@@ -155,7 +157,13 @@ class TestPhaseTaxonomies:
         orchestrator = MockPhaseContext.create_orchestrator(tmp_path)
         cache = MagicMock()
 
-        phase_taxonomies(orchestrator, cache, incremental=False, force_sequential=False, pages_to_build=[])
+        phase_taxonomies(
+            orchestrator,
+            cache,
+            incremental=False,
+            force_sequential=False,
+            pages_to_build=[],
+        )
 
         # parallel is computed from force_sequential and page count
         orchestrator.taxonomy.collect_and_generate.assert_called_once()
@@ -171,7 +179,11 @@ class TestPhaseTaxonomies:
         orchestrator.taxonomy.collect_and_generate_incremental.return_value = {"python"}
 
         result = phase_taxonomies(
-            orchestrator, cache, incremental=True, force_sequential=False, pages_to_build=mock_pages
+            orchestrator,
+            cache,
+            incremental=True,
+            force_sequential=False,
+            pages_to_build=mock_pages,
         )
 
         orchestrator.taxonomy.collect_and_generate_incremental.assert_called_once_with(
@@ -186,7 +198,11 @@ class TestPhaseTaxonomies:
         cache = MagicMock()
 
         result = phase_taxonomies(
-            orchestrator, cache, incremental=False, force_sequential=True, pages_to_build=[]
+            orchestrator,
+            cache,
+            incremental=False,
+            force_sequential=True,
+            pages_to_build=[],
         )
 
         # Full build marks all tags as affected
@@ -198,7 +214,13 @@ class TestPhaseTaxonomies:
         orchestrator = MockPhaseContext.create_orchestrator(tmp_path)
         cache = MagicMock()
 
-        phase_taxonomies(orchestrator, cache, incremental=False, force_sequential=True, pages_to_build=[])
+        phase_taxonomies(
+            orchestrator,
+            cache,
+            incremental=False,
+            force_sequential=True,
+            pages_to_build=[],
+        )
 
         assert orchestrator.stats.taxonomy_time_ms >= 0
 
@@ -207,7 +229,13 @@ class TestPhaseTaxonomies:
         orchestrator = MockPhaseContext.create_orchestrator(tmp_path)
         cache = MagicMock()
 
-        phase_taxonomies(orchestrator, cache, incremental=False, force_sequential=True, pages_to_build=[])
+        phase_taxonomies(
+            orchestrator,
+            cache,
+            incremental=False,
+            force_sequential=True,
+            pages_to_build=[],
+        )
 
         orchestrator.site.invalidate_regular_pages_cache.assert_called_once()
 
@@ -232,7 +260,11 @@ class TestPhaseTaxonomies:
         orchestrator.taxonomy.collect_and_generate_incremental.return_value = {"python"}
 
         phase_taxonomies(
-            orchestrator, cache, incremental=True, force_sequential=True, pages_to_build=[mock_page]
+            orchestrator,
+            cache,
+            incremental=True,
+            force_sequential=True,
+            pages_to_build=[mock_page],
         )
 
         # Should only call generate_dynamic_pages_for_tags_with_cache with NEW tags
@@ -264,10 +296,17 @@ class TestPhaseTaxonomies:
         mock_page.source_path.name = "test.md"
 
         # collect_and_generate_incremental already handled both tags
-        orchestrator.taxonomy.collect_and_generate_incremental.return_value = {"python", "rust"}
+        orchestrator.taxonomy.collect_and_generate_incremental.return_value = {
+            "python",
+            "rust",
+        }
 
         phase_taxonomies(
-            orchestrator, cache, incremental=True, force_sequential=True, pages_to_build=[mock_page]
+            orchestrator,
+            cache,
+            incremental=True,
+            force_sequential=True,
+            pages_to_build=[mock_page],
         )
 
         # Should NOT call generate_dynamic_pages_for_tags_with_cache
@@ -397,11 +436,15 @@ class TestPhaseRelatedPosts:
         orchestrator.site.taxonomies = {"tags": {"python": {}}}
         orchestrator.site.pages = [MagicMock() for _ in range(10)]
 
-        with patch("bengal.orchestration.related_posts.RelatedPostsOrchestrator") as MockRelated:
+        with patch(
+            "bengal.orchestration.related_posts.RelatedPostsOrchestrator"
+        ) as MockRelated:
             mock_related = MagicMock()
             MockRelated.return_value = mock_related
 
-            phase_related_posts(orchestrator, incremental=False, parallel=True, pages_to_build=[])
+            phase_related_posts(
+                orchestrator, incremental=False, parallel=True, pages_to_build=[]
+            )
 
         MockRelated.assert_called_once()
         mock_related.build_index.assert_called_once()
@@ -412,7 +455,9 @@ class TestPhaseRelatedPosts:
         orchestrator.site.taxonomies = {"tags": {"python": {}}}
         orchestrator.site.pages = [MagicMock() for _ in range(5001)]
 
-        phase_related_posts(orchestrator, incremental=False, parallel=True, pages_to_build=[])
+        phase_related_posts(
+            orchestrator, incremental=False, parallel=True, pages_to_build=[]
+        )
 
         # Should set empty related_posts, not build index
         for page in orchestrator.site.pages:
@@ -424,7 +469,9 @@ class TestPhaseRelatedPosts:
         orchestrator.site.taxonomies = {}  # No tags
         orchestrator.site.pages = [MagicMock() for _ in range(10)]
 
-        phase_related_posts(orchestrator, incremental=False, parallel=True, pages_to_build=[])
+        phase_related_posts(
+            orchestrator, incremental=False, parallel=True, pages_to_build=[]
+        )
 
         # Should set empty related_posts
         for page in orchestrator.site.pages:
@@ -438,7 +485,9 @@ class TestPhaseRelatedPosts:
         orchestrator.site.regular_pages = orchestrator.site.pages
         affected_pages = [MagicMock()]
 
-        with patch("bengal.orchestration.related_posts.RelatedPostsOrchestrator") as MockRelated:
+        with patch(
+            "bengal.orchestration.related_posts.RelatedPostsOrchestrator"
+        ) as MockRelated:
             mock_related = MagicMock()
             MockRelated.return_value = mock_related
 
@@ -466,7 +515,9 @@ class TestPhaseQueryIndexes:
 
         phase_query_indexes(orchestrator, cache, incremental=False, pages_to_build=[])
 
-        orchestrator.site.indexes.build_all.assert_called_once_with(orchestrator.site.pages, cache)
+        orchestrator.site.indexes.build_all.assert_called_once_with(
+            orchestrator.site.pages, cache
+        )
 
     def test_incremental_updates_affected(self, tmp_path):
         """Incremental build updates only affected indexes."""
@@ -479,9 +530,13 @@ class TestPhaseQueryIndexes:
             "by_section": {"docs"},
         }
 
-        phase_query_indexes(orchestrator, cache, incremental=True, pages_to_build=pages_to_build)
+        phase_query_indexes(
+            orchestrator, cache, incremental=True, pages_to_build=pages_to_build
+        )
 
-        orchestrator.site.indexes.update_incremental.assert_called_once_with(pages_to_build, cache)
+        orchestrator.site.indexes.update_incremental.assert_called_once_with(
+            pages_to_build, cache
+        )
 
 
 class TestPhaseUpdatePagesList:

@@ -73,4 +73,6 @@ class TestInspect:
 
     def test_filters_private_attrs(self):
         result = inspect({"a": 1})
-        assert "_" not in result or "Properties" in result  # No private attributes shown
+        assert (
+            "_" not in result or "Properties" in result
+        )  # No private attributes shown

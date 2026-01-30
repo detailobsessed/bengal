@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from jinja2.utils import pass_context
+from jinja2.utils import pass_context  # type: ignore[attr-defined]
 
 if TYPE_CHECKING:
     from jinja2 import Environment
@@ -31,13 +31,13 @@ if TYPE_CHECKING:
 
 def register_context_functions(env: Environment, site: SiteLike) -> None:
     """Register context-dependent template functions for Jinja2.
-    
+
     These functions use @pass_context to extract page from the template context.
-    
+
     Args:
         env: Jinja2 Environment instance
         site: Site instance
-        
+
     """
     # Import pure function implementations
     from bengal.rendering.template_functions.i18n import (
@@ -67,7 +67,7 @@ def register_context_functions(env: Environment, site: SiteLike) -> None:
         """
         page = ctx.get("page") if hasattr(ctx, "get") else None
         use_lang = lang or getattr(page, "lang", None)
-        return base_translate(key, params=params, lang=use_lang, default=default)
+        return base_translate(key, params, use_lang, default)
 
     @pass_context
     def current_lang(ctx: Any) -> str | None:

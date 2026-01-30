@@ -40,7 +40,9 @@ def test_asset_orchestrator_runs_pipeline_when_enabled(monkeypatch, tmp_path: Pa
     site = DummySite(tmp_path, config)
 
     # Create a dummy pipeline returning one compiled file
-    compiled_file = tmp_path / ".bengal" / "pipeline_out" / "assets" / "css" / "style.css"
+    compiled_file = (
+        tmp_path / ".bengal" / "pipeline_out" / "assets" / "css" / "style.css"
+    )
     compiled_file.parent.mkdir(parents=True, exist_ok=True)
     compiled_file.write_text("body{color:black}", encoding="utf-8")
 
@@ -81,8 +83,12 @@ def test_cli_build_flag_overrides_pipeline(tmp_path: Path, monkeypatch):
 
     real_from_config = Site.from_config
 
-    def fake_from_config(root_path: Path, config_path=None, environment=None, profile=None):
-        site = real_from_config(root_path, config_path, environment=environment, profile=profile)
+    def fake_from_config(
+        root_path: Path, config_path=None, environment=None, profile=None
+    ):
+        site = real_from_config(
+            root_path, config_path, environment=environment, profile=profile
+        )
         site.config["assets"] = {"pipeline": False}
         return site
 

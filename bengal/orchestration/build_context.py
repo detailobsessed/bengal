@@ -31,37 +31,38 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
-    from bengal.cache.build_cache import BuildCache
     from bengal.build.tracking import DependencyTracker
-    from bengal.utils.observability.cli_progress import LiveProgressManager
+    from bengal.cache.build_cache import BuildCache
     from bengal.core.asset import Asset
     from bengal.core.output import OutputCollector
     from bengal.core.page import Page
     from bengal.core.site import Site
     from bengal.orchestration.stats import BuildStats
     from bengal.output import CLIOutput
-    from bengal.utils.observability.profile import BuildProfile
     from bengal.protocols import ProgressReporter
+    from bengal.protocols.core import SiteLike
+    from bengal.utils.observability.cli_progress import LiveProgressManager
+    from bengal.utils.observability.profile import BuildProfile
 
 
 @dataclass
 class AccumulatedPageData:
     """
     Unified per-page data accumulated during rendering.
-    
+
     Contains all fields needed by:
     - PageJSONGenerator (per-page JSON files)
     - SiteIndexGenerator (index.json for search)
-    
+
     Computed once during render phase, consumed by multiple post-processing
     generators. Eliminates redundant computation and double page iteration.
-    
+
     See: plan/drafted/rfc-unified-page-data-accumulation.md
-        
+
     """
 
     # =========================================================================
@@ -126,16 +127,16 @@ class AccumulatedPageData:
 class BuildContext:
     """
     Shared build context passed across build phases.
-    
+
     This context is created at the start of build() and passed to all _phase_* methods.
     It replaces local variables that were scattered throughout the 894-line build() method.
-    
+
     Lifecycle:
         1. Created in _setup_build_context() at build start
         2. Populated incrementally as phases execute
         3. Used by all _phase_* methods for shared state
         4. (Optional) Can be used as context manager for automatic cleanup
-    
+
     Categories:
         - Core: site, stats, profile (required)
         - Cache: cache, tracker (initialized in Phase 0)
@@ -144,25 +145,25 @@ class BuildContext:
         - Incremental state: affected_tags, affected_sections, changed_page_paths
         - Output: cli, progress_manager, reporter
         - Build-scoped: build_id, _build_scoped_cache (for cross-build isolation)
-    
+
     Build-Scoped Caching (RFC: Cache Lifecycle Hardening):
         Values cached via get_cached() are scoped to this build instance.
         When used as a context manager, BUILD_START is signaled on entry
         and BUILD_END + cache cleanup on exit. This prevents cross-build
         contamination when Site objects are reused.
-    
+
     Example:
         # As context manager (recommended for new code)
         with BuildContext(site=site) as ctx:
             contexts = ctx.get_cached("global_contexts", lambda: build_contexts(site))
             # ... build operations ...
         # Automatic cleanup on exit
-    
+
         # Traditional usage (backward compatible)
         ctx = BuildContext(site=site)
         # ... build operations ...
         ctx.clear_lazy_artifacts()  # Manual cleanup
-        
+
     """
 
     # Core (required)
@@ -182,7 +183,9 @@ class BuildContext:
     parallel: bool = True
     memory_optimized: bool = False
     full_output: bool = False
-    profile_templates: bool = False  # Enable template profiling for performance analysis
+    profile_templates: bool = (
+        False  # Enable template profiling for performance analysis
+    )
 
     # Work items (determined during incremental filtering)
     pages: list[Page] | None = None  # All discovered pages
@@ -250,14 +253,18 @@ class BuildContext:
     # Accumulated Asset Dependencies (Inline Asset Extraction)
     # Eliminates double iteration in phase_track_assets (saves ~5-6s on large sites)
     # See: changelog.md (Inline Asset Extraction)
-    _accumulated_assets: list[tuple[Path, set[str]]] = field(default_factory=list, repr=False)
+    _accumulated_assets: list[tuple[Path, set[str]]] = field(
+        default_factory=list, repr=False
+    )
     _accumulated_assets_lock: Lock = field(default_factory=Lock, repr=False)
 
     # Unified Page Data Accumulation (replaces _accumulated_page_json)
     # Populated during rendering, consumed by PageJSONGenerator and SiteIndexGenerator
     # Eliminates redundant computation and double page iteration (~350ms savings)
     # See: plan/drafted/rfc-unified-page-data-accumulation.md
-    _accumulated_page_data: list[AccumulatedPageData] = field(default_factory=list, repr=False)
+    _accumulated_page_data: list[AccumulatedPageData] = field(
+        default_factory=list, repr=False
+    )
     _accumulated_page_data_lock: Lock = field(default_factory=Lock, repr=False)
     # Index for O(1) lookup by source_path during hybrid mode (incremental builds)
     _accumulated_page_index: dict[Path, AccumulatedPageData] = field(
@@ -309,7 +316,7 @@ class BuildContext:
                 self._knowledge_graph_enabled = False
                 return None
 
-            graph = KnowledgeGraph(self.site)
+            graph = KnowledgeGraph(cast("SiteLike", self.site))
             graph.build()
             return graph
         except ImportError:
@@ -393,7 +400,10 @@ class BuildContext:
         Returns:
             Self for use in with statement
         """
-        from bengal.utils.cache_registry import InvalidationReason, invalidate_for_reason
+        from bengal.utils.cache_registry import (
+            InvalidationReason,
+            invalidate_for_reason,
+        )
 
         invalidate_for_reason(InvalidationReason.BUILD_START)
         return self
@@ -415,7 +425,10 @@ class BuildContext:
             exc_val: Exception value if an exception was raised
             exc_tb: Traceback if an exception was raised
         """
-        from bengal.utils.cache_registry import InvalidationReason, invalidate_for_reason
+        from bengal.utils.cache_registry import (
+            InvalidationReason,
+            invalidate_for_reason,
+        )
 
         invalidate_for_reason(InvalidationReason.BUILD_END)
         self.clear_build_scoped_cache()

@@ -1,7 +1,5 @@
 """Integration tests for track page rendering."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -69,8 +67,12 @@ content-mastery:
     # Guide pages
     guides_dir = content_dir / "docs" / "guides"
     guides_dir.mkdir(parents=True)
-    (guides_dir / "workflow.md").write_text("---\ntitle: Workflow\n---\n# Workflow Guide")
-    (guides_dir / "reuse.md").write_text("---\ntitle: Content Reuse\n---\n# Reuse Guide")
+    (guides_dir / "workflow.md").write_text(
+        "---\ntitle: Workflow\n---\n# Workflow Guide"
+    )
+    (guides_dir / "reuse.md").write_text(
+        "---\ntitle: Content Reuse\n---\n# Reuse Guide"
+    )
 
     # Create track landing page
     tracks_dir = content_dir / "tracks"
@@ -180,7 +182,10 @@ class TestTrackRendering:
         # site.data.tracks should be empty dict or None
         if hasattr(site_without_tracks.data, "tracks"):
             # If tracks exists, it should be empty
-            assert not site_without_tracks.data.tracks or len(site_without_tracks.data.tracks) == 0
+            assert (
+                not site_without_tracks.data.tracks
+                or len(site_without_tracks.data.tracks) == 0
+            )
 
     def test_track_with_missing_page_shows_warning(self, site_with_tracks: Site):
         """Test track with non-existent page handles gracefully."""

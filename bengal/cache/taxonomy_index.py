@@ -22,12 +22,12 @@ from __future__ import annotations
 import json
 import threading
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from bengal.protocols import Cacheable
 from bengal.cache.compression import load_auto, save_compressed
+from bengal.protocols import Cacheable
 from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -37,9 +37,9 @@ logger = get_logger(__name__)
 class TagEntry(Cacheable):
     """
     Entry for a single tag in the index.
-    
+
     Implements the Cacheable protocol for type-safe serialization.
-        
+
     """
 
     tag_slug: str  # Normalized tag identifier
@@ -83,13 +83,13 @@ class TagEntry(Cacheable):
 class TaxonomyIndex:
     """
     Persistent index of tag-to-pages mappings for incremental taxonomy updates.
-    
+
     Purpose:
     - Track which pages have which tags
     - Enable incremental tag updates (only changed tags)
     - Avoid full taxonomy rebuild on every page change
     - Support incremental tag page generation
-    
+
     Cache Format (JSON):
     {
         "version": 2,
@@ -107,16 +107,16 @@ class TaxonomyIndex:
             "content/post2.md": ["python"]
         }
     }
-    
+
     Performance Optimization (RFC: Cache Algorithm Optimization):
     - Added reverse index (_page_to_tags) for O(1) page-to-tags lookup
     - get_tags_for_page(): O(t×p) → O(1)
     - remove_page_from_all_tags(): O(t×p) → O(t') where t' = tags for page
-    
+
     Thread Safety:
     - All mutating operations are protected by an RLock
     - Safe for concurrent access during parallel builds
-        
+
     """
 
     VERSION = 2  # Bumped: added page_to_tags reverse index
@@ -232,9 +232,14 @@ class TaxonomyIndex:
 
                 data = {
                     "version": self.VERSION,
-                    "tags": {tag_slug: entry.to_cache_dict() for tag_slug, entry in self.tags.items()},
+                    "tags": {
+                        tag_slug: entry.to_cache_dict()
+                        for tag_slug, entry in self.tags.items()
+                    },
                     # Persist reverse index (convert sets to lists for JSON)
-                    "page_to_tags": {page: list(tags) for page, tags in self._page_to_tags.items()},
+                    "page_to_tags": {
+                        page: list(tags) for page, tags in self._page_to_tags.items()
+                    },
                 }
 
                 # Save as compressed .json.zst format
@@ -332,7 +337,7 @@ class TaxonomyIndex:
                 tag_slug=tag_slug,
                 tag_name=tag_name,
                 page_paths=page_paths,
-                updated_at=datetime.now(timezone.utc).isoformat(),
+                updated_at=datetime.now(UTC).isoformat(),
                 is_valid=True,
             )
             self.tags[tag_slug] = entry
@@ -415,7 +420,11 @@ class TaxonomyIndex:
             Dictionary mapping tag_slug to TagEntry for valid tags
         """
         with self._lock:
-            return {tag_slug: entry for tag_slug, entry in self.tags.items() if entry.is_valid}
+            return {
+                tag_slug: entry
+                for tag_slug, entry in self.tags.items()
+                if entry.is_valid
+            }
 
     def invalidate_tag(self, tag_slug: str) -> None:
         """
@@ -483,7 +492,9 @@ class TaxonomyIndex:
         Returns:
             Dictionary mapping tag_slug to TagEntry for valid entries
         """
-        return {tag_slug: entry for tag_slug, entry in self.tags.items() if entry.is_valid}
+        return {
+            tag_slug: entry for tag_slug, entry in self.tags.items() if entry.is_valid
+        }
 
     def get_invalid_entries(self) -> dict[str, TagEntry]:
         """
@@ -492,7 +503,11 @@ class TaxonomyIndex:
         Returns:
             Dictionary mapping tag_slug to TagEntry for invalid entries
         """
-        return {tag_slug: entry for tag_slug, entry in self.tags.items() if not entry.is_valid}
+        return {
+            tag_slug: entry
+            for tag_slug, entry in self.tags.items()
+            if not entry.is_valid
+        }
 
     def pages_changed(self, tag_slug: str, new_page_paths: list[str]) -> bool:
         """
@@ -564,5 +579,7 @@ class TaxonomyIndex:
             "total_unique_pages": len(unique_pages),
             "total_page_tag_pairs": total_page_tag_pairs,
             "avg_tags_per_page": avg_tags_per_page,
-            "cache_size_bytes": len(json.dumps([e.to_cache_dict() for e in self.tags.values()])),
+            "cache_size_bytes": len(
+                json.dumps([e.to_cache_dict() for e in self.tags.values()])
+            ),
         }

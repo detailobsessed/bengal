@@ -5,8 +5,6 @@ Verifies that changes to parent templates in the theme chain are properly
 detected and cause re-rendering rather than serving stale cached output.
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock, patch
 
 
@@ -34,7 +32,9 @@ class TestThemeChainResolution:
         # Child theme extends parent
         child_theme = themes_dir / "child"
         child_theme.mkdir(parents=True)
-        (child_theme / "theme.toml").write_text('[theme]\nname = "child"\nextends = "parent"\n')
+        (child_theme / "theme.toml").write_text(
+            '[theme]\nname = "child"\nextends = "parent"\n'
+        )
 
         # Patch the theme package lookup to return None (no installed themes)
         with patch(
@@ -148,7 +148,9 @@ class TestIncludeAndMacroChanges:
 
         # Create template using macro
         main = templates_dir / "page.html"
-        main.write_text('{% from "_macros.html" import greeting %}<div>{{ greeting() }}</div>')
+        main.write_text(
+            '{% from "_macros.html" import greeting %}<div>{{ greeting() }}</div>'
+        )
 
         env = Environment(
             loader=FileSystemLoader(str(templates_dir)),
@@ -183,7 +185,9 @@ class TestDevModeEnsuresAutoReload:
         """
         from unittest.mock import MagicMock, patch
 
-        from bengal.rendering.template_engine.environment import create_jinja_environment
+        from bengal.rendering.template_engine.environment import (
+            create_jinja_environment,
+        )
 
         site = MagicMock()
         site.root_path = tmp_path
@@ -200,7 +204,9 @@ class TestDevModeEnsuresAutoReload:
         mock_engine = MagicMock()
 
         with patch("bengal.rendering.template_engine.environment.register_all"):
-            env, _ = create_jinja_environment(site, mock_engine, profile_templates=False)
+            env, _ = create_jinja_environment(
+                site, mock_engine, profile_templates=False
+            )
 
         assert env.auto_reload is True, "auto_reload should be True in dev server mode"
 
@@ -210,13 +216,18 @@ class TestDevModeEnsuresAutoReload:
         """
         from unittest.mock import MagicMock, patch
 
-        from bengal.rendering.template_engine.environment import create_jinja_environment
+        from bengal.rendering.template_engine.environment import (
+            create_jinja_environment,
+        )
 
         site = MagicMock()
         site.root_path = tmp_path
         site.output_dir = tmp_path / "public"
         site.output_dir.mkdir(parents=True, exist_ok=True)
-        site.config = {"dev_server": False, "cache_templates": False}  # No bytecode cache needed
+        site.config = {
+            "dev_server": False,
+            "cache_templates": False,
+        }  # No bytecode cache needed
         site.theme = None
         site.theme_config = {}
         # Required Site attributes for template engine
@@ -227,6 +238,10 @@ class TestDevModeEnsuresAutoReload:
         mock_engine = MagicMock()
 
         with patch("bengal.rendering.template_engine.environment.register_all"):
-            env, _ = create_jinja_environment(site, mock_engine, profile_templates=False)
+            env, _ = create_jinja_environment(
+                site, mock_engine, profile_templates=False
+            )
 
-        assert env.auto_reload is False, "auto_reload should be False in production mode"
+        assert env.auto_reload is False, (
+            "auto_reload should be False in production mode"
+        )

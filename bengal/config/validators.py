@@ -38,7 +38,7 @@ See Also:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from bengal.errors import BengalConfigError, ErrorCode, record_error
 from bengal.utils.observability.logger import get_logger
@@ -49,50 +49,48 @@ logger = get_logger(__name__)
 class ConfigValidationError(BengalConfigError, ValueError):
     """
     Raised when configuration validation fails.
-    
+
     This exception is raised when one or more configuration values fail
     validation. It extends both :class:`~bengal.errors.BengalConfigError`
     for consistent error handling and :class:`ValueError` for backward
     compatibility with code that catches standard value errors.
-    
+
     The error message includes the count of validation errors found.
     Detailed error messages are printed to the console before the
     exception is raised.
-        
-    """
 
-    pass
+    """
 
 
 class ConfigValidator:
     """
     Validate configuration with helpful error messages.
-    
+
     This validator checks configuration values for type correctness, valid
     ranges, and logical consistency. It performs sensible type coercion
     where appropriate (e.g., string ``"true"`` → boolean ``True``).
-    
+
     Validation Checks:
         - **Type correctness**: Boolean, integer, and string fields.
         - **Range validation**: Numeric bounds (min/max workers, port numbers).
         - **Dependency validation**: Related field consistency (future).
-    
+
     Class Attributes:
         BOOLEAN_FIELDS: Set of field names expected to be boolean.
         INTEGER_FIELDS: Set of field names expected to be integers.
         STRING_FIELDS: Set of field names expected to be strings.
-    
+
     Example:
             >>> validator = ConfigValidator()
             >>> config = {"parallel": "yes", "max_workers": 8}
             >>> validated = validator.validate(config)
             >>> validated["parallel"]
         True
-        
+
     """
 
     # Define expected types for known fields
-    BOOLEAN_FIELDS = {
+    BOOLEAN_FIELDS: ClassVar[set[str]] = {
         # Build settings
         "parallel",
         "incremental",
@@ -107,27 +105,24 @@ class ConfigValidator:
         "fast_writes",
         "fast_mode",
         "stable_section_references",
-        
         # Assets (after flattening from assets.*)
         "minify_assets",
         "optimize_assets",
         "fingerprint_assets",
         "pipeline_assets",
-        
         # Features (after flattening from features.*)
         "rss",
         "sitemap",
         "search",
         "json",
         "llm_txt",
-        
         # Other
         "expose_metadata_json",
     }
 
-    INTEGER_FIELDS = {"max_workers", "min_page_size", "port"}
+    INTEGER_FIELDS: ClassVar[set[str]] = {"max_workers", "min_page_size", "port"}
 
-    STRING_FIELDS = {
+    STRING_FIELDS: ClassVar[set[str]] = {
         "title",
         "baseurl",
         "description",
@@ -144,7 +139,9 @@ class ConfigValidator:
         "default_palette",  # palette key or empty string
     }
 
-    def validate(self, config: dict[str, Any], source_file: Path | None = None) -> dict[str, Any]:
+    def validate(
+        self, config: dict[str, Any], source_file: Path | None = None
+    ) -> dict[str, Any]:
         """
         Validate configuration and return a normalized version.
 
@@ -178,19 +175,22 @@ class ConfigValidator:
         if "features" in config and isinstance(config["features"], dict):
             features = config["features"]
             from bengal.config.defaults import BOOL_OR_DICT_KEYS
-            
+
             for key, value in features.items():
-                if key in BOOL_OR_DICT_KEYS:
-                    if isinstance(value, dict):
-                        errors.extend(self._validate_section(value, prefix=f"features.{key}"))
-            
+                if key in BOOL_OR_DICT_KEYS and isinstance(value, dict):
+                    errors.extend(
+                        self._validate_section(value, prefix=f"features.{key}")
+                    )
+
             errors.extend(self._validate_section(features, prefix="features"))
 
         # 4. Validate assets
         if "assets" in config and isinstance(config["assets"], dict):
             assets = config["assets"]
             # Map assets.minify -> minify_assets for type checking
-            asset_errors = self._validate_section(assets, prefix="assets", is_assets=True)
+            asset_errors = self._validate_section(
+                assets, prefix="assets", is_assets=True
+            )
             errors.extend(asset_errors)
 
         # 5. Range validation (uses a flattened view for simplicity)
@@ -212,10 +212,7 @@ class ConfigValidator:
         return config
 
     def _validate_section(
-        self, 
-        section_dict: dict[str, Any], 
-        prefix: str = "", 
-        is_assets: bool = False
+        self, section_dict: dict[str, Any], prefix: str = "", is_assets: bool = False
     ) -> list[str]:
         """Validate a single configuration section."""
         errors = []
@@ -225,7 +222,7 @@ class ConfigValidator:
         for key, value in section_dict.items():
             # Resolve the canonical field name for lookup
             field_name = f"{key}_assets" if is_assets else key
-            
+
             if field_name in self.BOOLEAN_FIELDS:
                 # Allow None for auto-detection
                 if value is None:
@@ -255,7 +252,9 @@ class ConfigValidator:
                         section_dict[key] = bool(value)
                     case _:
                         path = f"{prefix}.{key}" if prefix else key
-                        errors.append(f"'{path}': expected boolean, got {type(value).__name__}")
+                        errors.append(
+                            f"'{path}': expected boolean, got {type(value).__name__}"
+                        )
 
             elif field_name in self.INTEGER_FIELDS:
                 if value is None:
@@ -275,7 +274,9 @@ class ConfigValidator:
                             )
                     case _:
                         path = f"{prefix}.{key}" if prefix else key
-                        errors.append(f"'{path}': expected integer, got {type(value).__name__}")
+                        errors.append(
+                            f"'{path}': expected integer, got {type(value).__name__}"
+                        )
 
             elif field_name in self.STRING_FIELDS:
                 if value is None:
@@ -307,7 +308,9 @@ class ConfigValidator:
         flat = {}
 
         for key, value in config.items():
-            if key in ("site", "build", "assets", "features", "dev") and isinstance(value, dict):
+            if key in ("site", "build", "assets", "features", "dev") and isinstance(
+                value, dict
+            ):
                 # Nested section - merge to root
                 flat.update(value)
             else:
@@ -363,11 +366,17 @@ class ConfigValidator:
             if max_workers < 0:
                 errors.append("'max_workers': must be >= 0 (0 = auto-detect)")
             elif max_workers > 100:
-                errors.append("'max_workers': value > 100 seems excessive, is this intentional?")
+                errors.append(
+                    "'max_workers': value > 100 seems excessive, is this intentional?"
+                )
 
         # min_page_size: must be >= 0
         min_page_size = config.get("min_page_size")
-        if min_page_size is not None and isinstance(min_page_size, int) and min_page_size < 0:
+        if (
+            min_page_size is not None
+            and isinstance(min_page_size, int)
+            and min_page_size < 0
+        ):
             errors.append("'min_page_size': must be >= 0")
 
         # Pagination per_page

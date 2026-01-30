@@ -28,15 +28,16 @@ from __future__ import annotations
 
 import html as html_mod
 import re
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from bengal.rendering.highlighting import highlight, highlight_many
 from bengal.parsing.backends.mistune.patterns import (
     CODE_INFO_PATTERN,
     HL_LINES_PATTERN,
 )
+from bengal.rendering.highlighting import highlight, highlight_many
 from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -62,23 +63,23 @@ class PendingCodeBlock:
 @dataclass
 class CodeBlockCollector:
     """Collects code blocks for batch parallel highlighting.
-    
+
     On Python 3.14t free-threaded, this provides significant speedups
     when a page has many code blocks.
-    
+
     Usage:
         collector = CodeBlockCollector()
-    
+
         # During markdown parsing, register blocks
         placeholder = collector.add(code, language, ...)
-    
+
         # After parsing, batch highlight all blocks
         results = collector.flush()
-    
+
         # Replace placeholders with highlighted HTML
         for block_id, html in results.items():
             content = content.replace(f"<!--code:{block_id}-->", html)
-        
+
     """
 
     _pending: list[PendingCodeBlock] = field(default_factory=list)
@@ -165,7 +166,9 @@ class CodeBlockCollector:
                 )
                 results[block.placeholder_id] = _wrap_with_title(html, block.title)
             except Exception as e:
-                logger.warning("highlight_failed", language=block.language, error=str(e))
+                logger.warning(
+                    "highlight_failed", language=block.language, error=str(e)
+                )
                 results[block.placeholder_id] = _fallback_code_block(
                     block.code, block.language, block.title
                 )
@@ -197,9 +200,14 @@ def _wrap_with_title(html: str, title: str | None) -> str:
 def _fallback_code_block(code: str, language: str, title: str | None) -> str:
     """Create a plain code block when highlighting fails."""
     escaped_code = (
-        code.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+        code.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
     )
-    plain_block = f'<pre><code class="language-{language}">{escaped_code}</code></pre>\n'
+    plain_block = (
+        f'<pre><code class="language-{language}">{escaped_code}</code></pre>\n'
+    )
 
     return _wrap_with_title(plain_block, title)
 
@@ -209,17 +217,15 @@ def _fallback_code_block(code: str, language: str, title: str | None) -> str:
 # =============================================================================
 
 # Thread-local collector for parallel batch highlighting
-import threading
-
 _thread_local = threading.local()
 
 
 def enable_deferred_highlighting() -> None:
     """Enable deferred highlighting for the current thread.
-    
+
     When enabled, code blocks are collected instead of highlighted immediately.
     Call flush_deferred_highlighting() after parsing to batch process them.
-        
+
     """
     _thread_local.collector = CodeBlockCollector()
     _thread_local.deferred_enabled = True
@@ -243,13 +249,13 @@ def get_deferred_collector() -> CodeBlockCollector | None:
 
 def flush_deferred_highlighting(content: str) -> str:
     """Batch highlight all collected code blocks and replace placeholders.
-    
+
     Args:
         content: HTML content with code block placeholders
-    
+
     Returns:
         Content with placeholders replaced by highlighted code
-        
+
     """
     collector = get_deferred_collector()
     if not collector or len(collector) == 0:
@@ -274,19 +280,19 @@ EXAMPLE_FLAG_PATTERN = re.compile(r"\{example\}", re.IGNORECASE)
 def parse_hl_lines(hl_spec: str) -> list[int]:
     """
     Parse line highlight specification into list of line numbers.
-    
+
     Supports:
     - Single line: "5" -> [5]
     - Multiple lines: "1,3,5" -> [1, 3, 5]
     - Ranges: "1-3" -> [1, 2, 3]
     - Mixed: "1,3-5,7" -> [1, 3, 4, 5, 7]
-    
+
     Args:
         hl_spec: Line specification string (e.g., "1,3-5,7")
-    
+
     Returns:
         Sorted list of unique line numbers
-        
+
     """
     lines: set[int] = set()
     for part in hl_spec.split(","):
@@ -310,13 +316,13 @@ def parse_hl_lines(hl_spec: str) -> list[int]:
 def create_syntax_highlighting_plugin() -> Callable[[Any], None]:
     """
     Create a Mistune plugin that adds syntax highlighting to code blocks.
-    
+
     Uses the highlighting backend registry (bengal.rendering.highlighting)
     which defaults to Rosettes. Custom backends can be registered.
-    
+
     Returns:
         Plugin function that modifies the renderer to add syntax highlighting
-        
+
     """
 
     def plugin_syntax_highlighting(md: Any) -> None:
@@ -426,9 +432,7 @@ def create_syntax_highlighting_plugin() -> Callable[[Any], None]:
                     .replace(">", "&gt;")
                     .replace('"', "&quot;")
                 )
-                plain_block = (
-                    f'<pre><code class="language-{language}">{escaped_code}</code></pre>\n'
-                )
+                plain_block = f'<pre><code class="language-{language}">{escaped_code}</code></pre>\n'
 
                 # Wrap with title if present
                 if title:

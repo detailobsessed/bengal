@@ -58,7 +58,9 @@ class TestCLICommandOutput:
     def test_assets_status_shows_manifest_entries(self, site):
         """`bengal assets status` should report logical-to-fingerprint mappings."""
         # Ensure manifest exists
-        result = run_cli(["site", "build", "--clean-output"], cwd=str(site.root_path), timeout=40)
+        result = run_cli(
+            ["site", "build", "--clean-output"], cwd=str(site.root_path), timeout=40
+        )
         result.assert_ok()
 
         status = run_cli(["assets", "status"], cwd=str(site.root_path))

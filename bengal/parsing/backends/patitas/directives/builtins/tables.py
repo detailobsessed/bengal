@@ -35,9 +35,10 @@ from dataclasses import dataclass
 from html import escape as html_escape
 from typing import TYPE_CHECKING, ClassVar
 
-from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 from patitas.directives.options import DirectiveOptions
 from patitas.nodes import Directive
+
+from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
@@ -56,12 +57,12 @@ __all__ = ["ListTableDirective"]
 class ListTableOptions(DirectiveOptions):
     """
     Options for list-table directive.
-    
+
     Attributes:
         header_rows: Number of header rows (default: 0)
         widths: Column width percentages (space-separated string)
         css_class: Additional CSS classes
-        
+
     """
 
     header_rows: int = 0
@@ -77,12 +78,12 @@ class ListTableOptions(DirectiveOptions):
 class ListTableDirective:
     """
     MyST-style list-table for creating tables from nested lists.
-    
+
     Syntax:
         :::{list-table}
         :header-rows: 1
         :widths: 20 30 50
-    
+
         * - Header 1
           - Header 2
           - Header 3
@@ -90,18 +91,18 @@ class ListTableDirective:
           - Row 1, Col 2
           - Row 1, Col 3
         :::
-    
+
     Options:
         :header-rows: Number of header rows (default: 0)
         :widths: Space-separated column width percentages
         :class: Additional CSS classes
-    
+
     Row syntax: "* -" starts a new row
     Cell syntax: "  -" continues with next cell in row
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("list-table",)
@@ -153,11 +154,15 @@ class ListTableDirective:
         rows = self._parse_list_rows(node.raw_content or "")
 
         if not rows:
-            sb.append('<div class="bengal-list-table-error">List table has no rows</div>')
+            sb.append(
+                '<div class="bengal-list-table-error">List table has no rows</div>'
+            )
             return
 
         # Build class string
-        table_class = f"bengal-list-table {css_class}" if css_class else "bengal-list-table"
+        table_class = (
+            f"bengal-list-table {css_class}" if css_class else "bengal-list-table"
+        )
 
         sb.append(f'<table class="{table_class}">\n')
 
@@ -199,7 +204,9 @@ class ListTableDirective:
                     cell_html = self._render_cell(cell)
                     if header_labels and col_idx < len(header_labels):
                         data_label = html_escape(header_labels[col_idx])
-                        sb.append(f'      <td data-label="{data_label}">{cell_html}</td>\n')
+                        sb.append(
+                            f'      <td data-label="{data_label}">{cell_html}</td>\n'
+                        )
                     else:
                         sb.append(f"      <td>{cell_html}</td>\n")
                 sb.append("    </tr>\n")

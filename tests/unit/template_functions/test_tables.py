@@ -267,7 +267,8 @@ class TestDataTableInTemplate:
         )
 
         result = template.render(
-            yaml_path=f"data/{yaml_data_file.name}", csv_path=f"data/{csv_data_file.name}"
+            yaml_path=f"data/{yaml_data_file.name}",
+            csv_path=f"data/{csv_data_file.name}",
         )
 
         # Check that each table appears at least once

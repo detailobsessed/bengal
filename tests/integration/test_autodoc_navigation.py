@@ -8,8 +8,6 @@ Created after debugging session where CLI navigation was empty due to
 URL collision between section index and root command page.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -316,7 +314,9 @@ class TestURLCollisionValidation:
         # Validate
         collisions = site.validate_no_url_collisions()
         assert len(collisions) == 1, f"Expected 1 collision, got: {len(collisions)}"
-        assert "/same/" in collisions[0], f"Collision message should contain URL: {collisions[0]}"
+        assert "/same/" in collisions[0], (
+            f"Collision message should contain URL: {collisions[0]}"
+        )
         assert "page1.md" in collisions[0] or "page2.md" in collisions[0]
 
     def test_strict_mode_raises_error(self, tmp_path: Path) -> None:

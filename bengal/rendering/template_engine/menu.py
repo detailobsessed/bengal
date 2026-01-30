@@ -17,11 +17,11 @@ from typing import Any
 class MenuHelpersMixin:
     """
     Mixin providing menu helper methods for TemplateEngine.
-    
+
     Requires these attributes on the host class:
         - site: Site instance
         - _menu_dict_cache: dict[str, list[dict]]
-        
+
     """
 
     site: Any
@@ -57,7 +57,9 @@ class MenuHelpersMixin:
             if localized is not None:
                 cache_key = f"{menu_name}:{lang}"
                 if cache_key not in self._menu_dict_cache:
-                    self._menu_dict_cache[cache_key] = [item.to_dict() for item in localized]
+                    self._menu_dict_cache[cache_key] = [
+                        item.to_dict() for item in localized
+                    ]
                 return self._menu_dict_cache[cache_key]
 
         # Check cache for non-localized menu
@@ -66,7 +68,9 @@ class MenuHelpersMixin:
             self._menu_dict_cache[menu_name] = [item.to_dict() for item in menu]
         return self._menu_dict_cache[menu_name]
 
-    def _get_menu_lang(self, menu_name: str = "main", lang: str = "") -> list[dict[str, Any]]:
+    def _get_menu_lang(
+        self, menu_name: str = "main", lang: str = ""
+    ) -> list[dict[str, Any]]:
         """
         Get menu items for a specific language (cached).
 

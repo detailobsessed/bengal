@@ -26,14 +26,14 @@ if TYPE_CHECKING:
 class FontValidator(BaseValidator):
     """
     Validates font downloads and CSS generation.
-    
+
     Checks:
     - Font configuration is valid
     - Font files downloaded (if fonts configured)
     - CSS generated with correct @font-face rules
     - Font file sizes are reasonable
     - No broken font references in CSS
-        
+
     """
 
     name = "Fonts"
@@ -86,7 +86,9 @@ class FontValidator(BaseValidator):
 
         return results
 
-    def _check_font_files(self, fonts_dir: Path, font_config: dict[str, Any]) -> list[CheckResult]:
+    def _check_font_files(
+        self, fonts_dir: Path, font_config: dict[str, Any]
+    ) -> list[CheckResult]:
         """Check font files are downloaded."""
         results = []
 
@@ -130,7 +132,9 @@ class FontValidator(BaseValidator):
 
         return results
 
-    def _check_font_css(self, fonts_css_path: Path, fonts_dir: Path) -> list[CheckResult]:
+    def _check_font_css(
+        self, fonts_css_path: Path, fonts_dir: Path
+    ) -> list[CheckResult]:
         """Check font CSS structure and references."""
         results = []
 

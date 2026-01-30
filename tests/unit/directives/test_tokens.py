@@ -1,7 +1,5 @@
 """Tests for directive token types."""
 
-from __future__ import annotations
-
 from bengal.directives.tokens import DirectiveToken, DirectiveType
 
 

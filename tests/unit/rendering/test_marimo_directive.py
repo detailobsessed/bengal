@@ -1,7 +1,5 @@
 """Tests for Marimo directive."""
 
-from __future__ import annotations
-
 import pytest
 
 
@@ -34,7 +32,11 @@ class TestMarimoCellDirective:
 
         # This should return error HTML if marimo not installed
         html = directive._execute_cell(
-            code="print('hello')", show_code=True, page_id="test", use_cache=False, label=""
+            code="print('hello')",
+            show_code=True,
+            page_id="test",
+            use_cache=False,
+            label="",
         )
 
         # Check for error message
@@ -46,7 +48,9 @@ class TestMarimoCellDirective:
 
         directive = MarimoCellDirective()
 
-        error_html = directive._render_error("Test Error", "Something went wrong", "print('test')")
+        error_html = directive._render_error(
+            "Test Error", "Something went wrong", "print('test')"
+        )
 
         assert "marimo-error" in error_html
         assert "Test Error" in error_html

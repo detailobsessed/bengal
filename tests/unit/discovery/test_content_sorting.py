@@ -41,7 +41,7 @@ Content""")
 
         # Discover content
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        sections, _pages = discovery.discover()
 
         # Find the docs section
         docs_section = sections[0]
@@ -88,7 +88,7 @@ Content""")
 
         # Discover content
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        sections, _pages = discovery.discover()
 
         # Find the docs section
         docs_section = sections[0]
@@ -112,7 +112,9 @@ title: Zebra
 weight: 100
 ---
 Content""")
-        (section1_dir / "page.md").write_text("Content")  # Need content to be discovered
+        (section1_dir / "page.md").write_text(
+            "Content"
+        )  # Need content to be discovered
 
         section2_dir = content_dir / "alpha"
         section2_dir.mkdir()
@@ -134,7 +136,7 @@ Content""")
 
         # Discover content
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        sections, _pages = discovery.discover()
 
         # Top-level sections should be sorted by weight
         assert len(sections) == 3
@@ -198,7 +200,7 @@ Content""")
 
         # Discover content
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        sections, _pages = discovery.discover()
 
         # Find the docs section
         docs_section = sections[0]
@@ -207,8 +209,12 @@ Content""")
         assert len(docs_section.subsections) >= 2
 
         # Find beginner and advanced sections
-        beginner_section = next((s for s in docs_section.subsections if s.name == "beginner"), None)
-        advanced_section = next((s for s in docs_section.subsections if s.name == "advanced"), None)
+        beginner_section = next(
+            (s for s in docs_section.subsections if s.name == "beginner"), None
+        )
+        advanced_section = next(
+            (s for s in docs_section.subsections if s.name == "advanced"), None
+        )
 
         assert beginner_section is not None, "beginner section should exist"
         assert advanced_section is not None, "advanced section should exist"
@@ -252,7 +258,7 @@ Content""")
 
         # Discover content
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        sections, _pages = discovery.discover()
 
         docs_section = sections[0]
 
@@ -276,7 +282,7 @@ Empty section""")
 
         # Discover content (should not raise error)
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        sections, _pages = discovery.discover()
 
         # Should have the section even though it's empty
         assert len(sections) == 1
@@ -314,7 +320,7 @@ Content""")
 
         # Discover content
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        sections, _pages = discovery.discover()
 
         docs_section = sections[0]
 
@@ -380,7 +386,7 @@ Content""")
 
         # Discover content
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        sections, _pages = discovery.discover()
 
         docs_section = sections[0]
 

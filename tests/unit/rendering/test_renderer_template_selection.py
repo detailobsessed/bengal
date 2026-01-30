@@ -2,8 +2,6 @@
 Unit tests for Renderer template selection logic.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -118,7 +116,9 @@ class TestTemplateSelection:
         engine = MockTemplateEngine(available_templates=["docs.html"])
         renderer = Renderer(engine)
 
-        page = self._setup_page_with_section(Path("/content/docs/_index.md"), {}, "docs")
+        page = self._setup_page_with_section(
+            Path("/content/docs/_index.md"), {}, "docs"
+        )
 
         # Test
         template_name = renderer._get_template_name(page)
@@ -132,7 +132,9 @@ class TestTemplateSelection:
         engine = MockTemplateEngine(available_templates=["docs/list.html"])
         renderer = Renderer(engine)
 
-        page = self._setup_page_with_section(Path("/content/docs/_index.md"), {}, "docs")
+        page = self._setup_page_with_section(
+            Path("/content/docs/_index.md"), {}, "docs"
+        )
 
         # Test
         template_name = renderer._get_template_name(page)
@@ -146,7 +148,9 @@ class TestTemplateSelection:
         engine = MockTemplateEngine(available_templates=["docs/index.html"])
         renderer = Renderer(engine)
 
-        page = self._setup_page_with_section(Path("/content/docs/_index.md"), {}, "docs")
+        page = self._setup_page_with_section(
+            Path("/content/docs/_index.md"), {}, "docs"
+        )
 
         # Test
         template_name = renderer._get_template_name(page)
@@ -160,7 +164,9 @@ class TestTemplateSelection:
         engine = MockTemplateEngine(available_templates=["docs-list.html"])
         renderer = Renderer(engine)
 
-        page = self._setup_page_with_section(Path("/content/docs/_index.md"), {}, "docs")
+        page = self._setup_page_with_section(
+            Path("/content/docs/_index.md"), {}, "docs"
+        )
 
         # Test
         template_name = renderer._get_template_name(page)
@@ -207,7 +213,9 @@ class TestTemplateSelection:
         engine = MockTemplateEngine(available_templates=["index.html"])
         renderer = Renderer(engine)
 
-        page = self._setup_page_with_section(Path("/content/docs/_index.md"), {}, "docs")
+        page = self._setup_page_with_section(
+            Path("/content/docs/_index.md"), {}, "docs"
+        )
 
         # Test
         template_name = renderer._get_template_name(page)
@@ -233,7 +241,9 @@ class TestTemplateSelection:
     def test_type_metadata_used_for_template_selection(self):
         """Test that recognized 'type' metadata IS used for template selection."""
         # Setup
-        engine = MockTemplateEngine(available_templates=["blog/single.html", "page.html"])
+        engine = MockTemplateEngine(
+            available_templates=["blog/single.html", "page.html"]
+        )
         renderer = Renderer(engine)
 
         page = self._setup_page_with_section(
@@ -275,11 +285,15 @@ class TestTemplateSelection:
         renderer = Renderer(engine)
 
         # Test docs section
-        docs_page = self._setup_page_with_section(Path("/content/docs/page.md"), {}, "docs")
+        docs_page = self._setup_page_with_section(
+            Path("/content/docs/page.md"), {}, "docs"
+        )
         assert renderer._get_template_name(docs_page) == "docs.html"
 
         # Test blog section
-        blog_page = self._setup_page_with_section(Path("/content/blog/post.md"), {}, "blog")
+        blog_page = self._setup_page_with_section(
+            Path("/content/blog/post.md"), {}, "blog"
+        )
         assert renderer._get_template_name(blog_page) == "blog.html"
 
         # Test tutorials section
@@ -321,7 +335,12 @@ class TestTemplateSelection:
         """Test that track pages use type from cascade to select templates."""
         # Setup
         engine = MockTemplateEngine(
-            available_templates=["tracks/list.html", "tracks/single.html", "docs.html", "page.html"]
+            available_templates=[
+                "tracks/list.html",
+                "tracks/single.html",
+                "docs.html",
+                "page.html",
+            ]
         )
         renderer = Renderer(engine)
 
@@ -380,7 +399,9 @@ class TestTemplateExists:
         renderer = Renderer(engine)
 
         # Mock the env.get_template method to raise exception
-        renderer.template_engine.env.get_template = Mock(side_effect=Exception("Not found"))
+        renderer.template_engine.env.get_template = Mock(
+            side_effect=Exception("Not found")
+        )
 
         # Test
         result = renderer._template_exists("nonexistent.html")

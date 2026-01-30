@@ -1,7 +1,5 @@
 """Tests for bengal.core.author module."""
 
-from __future__ import annotations
-
 from bengal.core.author import Author
 
 

@@ -11,12 +11,9 @@ Motivation:
 - PIL enum vs int mismatches
 """
 
-from __future__ import annotations
-
 import ast
 import inspect
 from pathlib import Path
-from typing import Any, get_type_hints
 
 import pytest
 
@@ -24,7 +21,8 @@ import pytest
 def _pillow_available() -> bool:
     """Check if Pillow is installed."""
     try:
-        from PIL import Image
+        import PIL.Image  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -36,7 +34,7 @@ class TestLoggerAPIConsistency:
     def test_no_message_keyword_in_logger_calls(self) -> None:
         """
         Logger methods take message as first positional arg.
-        
+
         Passing message= as kwarg causes "gets multiple values" error.
         This test scans source files for this anti-pattern.
         """
@@ -45,32 +43,32 @@ class TestLoggerAPIConsistency:
 
         for py_file in core_dir.rglob("*.py"):
             content = py_file.read_text()
-            
+
             # Quick check before expensive parsing
             if "logger." not in content:
                 continue
-                
+
             try:
                 tree = ast.parse(content)
             except SyntaxError:
                 continue
 
             for node in ast.walk(tree):
-                if isinstance(node, ast.Call):
-                    # Check for logger.warning/error/info/debug calls
-                    if (
-                        isinstance(node.func, ast.Attribute)
-                        and node.func.attr in ("warning", "error", "info", "debug", "critical")
-                        and isinstance(node.func.value, ast.Name)
-                        and node.func.value.id == "logger"
-                    ):
-                        # Check for message= keyword
-                        for kw in node.keywords:
-                            if kw.arg == "message":
-                                violations.append(
-                                    f"{py_file.relative_to(core_dir.parent.parent)}:{node.lineno} - "
-                                    f"logger.{node.func.attr}() uses message= keyword"
-                                )
+                if (
+                    isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Attribute)
+                    and node.func.attr
+                    in ("warning", "error", "info", "debug", "critical")
+                    and isinstance(node.func.value, ast.Name)
+                    and node.func.value.id == "logger"
+                ):
+                    # Check for message= keyword
+                    violations.extend(
+                        f"{py_file.relative_to(core_dir.parent.parent)}:{node.lineno} - "
+                        f"logger.{node.func.attr}() uses message= keyword"
+                        for kw in node.keywords
+                        if kw.arg == "message"
+                    )
 
         assert not violations, (
             "Found logger calls using message= keyword (should be positional):\n"
@@ -84,7 +82,7 @@ class TestDiagnosticsAPIConsistency:
     def test_diagnostics_sink_not_called_directly_with_multiple_args(self) -> None:
         """
         DiagnosticsSink.emit() takes a single DiagnosticEvent.
-        
+
         The convenience emit() function should be used instead.
         This catches misuse like: sink.emit(self, "error", "code", **kwargs)
         """
@@ -93,8 +91,11 @@ class TestDiagnosticsAPIConsistency:
 
         for py_file in core_dir.rglob("*.py"):
             content = py_file.read_text()
-            
-            if "_diagnostics.emit(" not in content and "diagnostics.emit(" not in content:
+
+            if (
+                "_diagnostics.emit(" not in content
+                and "diagnostics.emit(" not in content
+            ):
                 continue
 
             try:
@@ -102,21 +103,20 @@ class TestDiagnosticsAPIConsistency:
             except SyntaxError:
                 continue
 
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Call):
-                    # Check for *.diagnostics.emit() or *._diagnostics.emit() calls
-                    if (
-                        isinstance(node.func, ast.Attribute)
-                        and node.func.attr == "emit"
-                        and isinstance(node.func.value, ast.Attribute)
-                        and node.func.value.attr in ("diagnostics", "_diagnostics")
-                    ):
-                        # If it has more than 1 positional arg, it's wrong
-                        if len(node.args) > 1:
-                            violations.append(
-                                f"{py_file.relative_to(core_dir.parent.parent)}:{node.lineno} - "
-                                f"Direct .emit() call with multiple args (use emit_diagnostic helper)"
-                            )
+            # If it has more than 1 positional arg, it's wrong
+            violations.extend(
+                f"{py_file.relative_to(core_dir.parent.parent)}:{node.lineno} - "
+                f"Direct .emit() call with multiple args (use emit_diagnostic helper)"
+                for node in ast.walk(tree)
+                if (
+                    isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "emit"
+                    and isinstance(node.func.value, ast.Attribute)
+                    and node.func.value.attr in ("diagnostics", "_diagnostics")
+                    and len(node.args) > 1
+                )
+            )
 
         assert not violations, (
             "Found diagnostics.emit() calls with multiple args:\n"
@@ -134,7 +134,7 @@ class TestMixinComposition:
         # These should be accessible (defined across multiple mixins)
         expected_attrs = [
             "sorted_pages",
-            "sorted_subsections", 
+            "sorted_subsections",
             "regular_pages_recursive",
             "hierarchy",
             "content_pages",
@@ -168,6 +168,7 @@ class TestMixinComposition:
     def test_section_can_be_used_in_list_operations(self) -> None:
         """Section instances work with list.index() and similar operations."""
         from pathlib import Path as PathLib
+
         from bengal.core.section import Section
 
         # Create minimal sections for testing
@@ -191,7 +192,7 @@ class TestMixinComposition:
         )
 
         sections = [s1, s2]
-        
+
         # These operations should work without type errors at runtime
         assert sections.index(s1) == 0
         assert sections.index(s2) == 1
@@ -202,30 +203,29 @@ class TestMixinComposition:
 class TestPILIntegration:
     """Verify PIL integration uses correct types."""
 
-    @pytest.mark.skipif(
-        not _pillow_available(),
-        reason="Pillow not installed"
-    )
+    @pytest.mark.skipif(not _pillow_available(), reason="Pillow not installed")
     def test_resampling_enum_used(self) -> None:
         """Image processing uses Resampling enum, not raw integers."""
         from bengal.core.resources.processor import ImageProcessor
-        import inspect
 
         # Get source of relevant methods
         methods_to_check = ["_fill", "_fit", "_resize", "_smart_crop"]
-        
+
         for method_name in methods_to_check:
             method = getattr(ImageProcessor, method_name)
             source = inspect.getsource(method)
-            
+
             # Should use Resampling.LANCZOS, not raw integer 3
-            assert "Resampling.LANCZOS" in source or "PILImage.Resampling.LANCZOS" in source, (
-                f"ImageProcessor.{method_name} should use Resampling.LANCZOS enum"
-            )
-            
+            assert (
+                "Resampling.LANCZOS" in source
+                or "PILImage.Resampling.LANCZOS" in source
+            ), f"ImageProcessor.{method_name} should use Resampling.LANCZOS enum"
+
             # Should NOT have bare ", 3)" which was the old pattern
             # (Excluding comments)
-            lines = [l for l in source.split("\n") if not l.strip().startswith("#")]
+            lines = [
+                line for line in source.split("\n") if not line.strip().startswith("#")
+            ]
             non_comment_source = "\n".join(lines)
             assert ", 3)" not in non_comment_source, (
                 f"ImageProcessor.{method_name} uses integer 3 instead of Resampling enum"
@@ -238,20 +238,24 @@ class TestASTTypeConsistency:
     def test_ast_cache_annotation_exists(self) -> None:
         """
         _ast_cache type annotation should exist on Page and mixin.
-        
+
         Note: We can't fully resolve forward references at runtime (ASTNode),
         so we just verify the annotation exists via __annotations__.
         """
         from bengal.core.page import Page
         from bengal.core.page.content import PageContentMixin
-        
+
         # Both should have _ast_cache in their annotations
-        assert "_ast_cache" in Page.__annotations__, "Page missing _ast_cache annotation"
-        assert "_ast_cache" in PageContentMixin.__annotations__, "PageContentMixin missing _ast_cache annotation"
-        
+        assert "_ast_cache" in Page.__annotations__, (
+            "Page missing _ast_cache annotation"
+        )
+        assert "_ast_cache" in PageContentMixin.__annotations__, (
+            "PageContentMixin missing _ast_cache annotation"
+        )
+
         # Both annotations should reference ASTNode
         page_annotation = str(Page.__annotations__["_ast_cache"])
         mixin_annotation = str(PageContentMixin.__annotations__["_ast_cache"])
-        
+
         assert "ASTNode" in page_annotation or "dict" in page_annotation.lower()
         assert "ASTNode" in mixin_annotation or "dict" in mixin_annotation.lower()

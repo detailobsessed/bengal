@@ -12,8 +12,6 @@ The fix: When CSS/JS assets change, force all pages to rebuild so they
 get the new fingerprinted URLs.
 """
 
-from __future__ import annotations
-
 import re
 import shutil
 from pathlib import Path
@@ -105,9 +103,9 @@ This is the home page.
         # Verify the CSS file exists with this fingerprint
         css_files_v1 = list((output_dir / "assets" / "css").glob("style.*.css"))
         assert len(css_files_v1) >= 1, "Should have fingerprinted CSS file"
-        assert any(
-            fingerprint_v1 == f.name for f in css_files_v1
-        ), f"CSS file {fingerprint_v1} should exist"
+        assert any(fingerprint_v1 == f.name for f in css_files_v1), (
+            f"CSS file {fingerprint_v1} should exist"
+        )
 
         # Modify CSS to trigger new fingerprint
         css_file.write_text(
@@ -125,7 +123,9 @@ This is the home page.
         stats2 = site2.build(BuildOptions(force_sequential=True, incremental=True))
 
         # CRITICAL: Page should be rebuilt even though content didn't change
-        assert stats2.pages_built >= 1, "Incremental build should rebuild pages when CSS changes"
+        assert stats2.pages_built >= 1, (
+            "Incremental build should rebuild pages when CSS changes"
+        )
 
         # Extract new CSS fingerprint
         html2 = home_index.read_text()
@@ -141,9 +141,9 @@ This is the home page.
 
         # Verify the NEW CSS file exists
         css_files_v2 = list((output_dir / "assets" / "css").glob("style.*.css"))
-        assert any(
-            fingerprint_v2 == f.name for f in css_files_v2
-        ), f"New CSS file {fingerprint_v2} should exist"
+        assert any(fingerprint_v2 == f.name for f in css_files_v2), (
+            f"New CSS file {fingerprint_v2} should exist"
+        )
 
     def test_js_change_triggers_page_rebuild(self, site_with_css: Path) -> None:
         """
@@ -215,7 +215,7 @@ This is the home page.
 
         # Build 2: Incremental
         site2 = Site.from_config(site_root)
-        stats2 = site2.build(BuildOptions(force_sequential=True, incremental=True))
+        site2.build(BuildOptions(force_sequential=True, incremental=True))
 
         # Pages should NOT be rebuilt (only SVG changed)
         # Note: This test may need adjustment if SVG is included in templates
@@ -227,8 +227,8 @@ This is the home page.
         if html_mtime_v2 != html_mtime_v1:
             # Check if CSS fingerprint actually changed
             html2 = (output_dir / "index.html").read_text()
-            css_match1 = re.search(r'(style\.[a-f0-9]+\.css)', html1)
-            css_match2 = re.search(r'(style\.[a-f0-9]+\.css)', html2)
+            css_match1 = re.search(r"(style\.[a-f0-9]+\.css)", html1)
+            css_match2 = re.search(r"(style\.[a-f0-9]+\.css)", html2)
             if css_match1 and css_match2 and css_match1.group(1) == css_match2.group(1):
                 # Page was rebuilt but CSS didn't change - might be other reasons
                 pass
@@ -294,7 +294,7 @@ title: Home
 
         output_dir = site1.output_dir
         html1 = (output_dir / "index.html").read_text()
-        css_match1 = re.search(r'(style\.[a-f0-9]+\.css)', html1)
+        css_match1 = re.search(r"(style\.[a-f0-9]+\.css)", html1)
         fingerprint_v1 = css_match1.group(1) if css_match1 else None
 
         # Modify CSS
@@ -318,10 +318,12 @@ title: Home
         site2.build(BuildOptions(force_sequential=True, incremental=True))
 
         # Page should be recreated
-        assert (output_dir / "index.html").exists(), "Warm build should recreate index.html"
+        assert (output_dir / "index.html").exists(), (
+            "Warm build should recreate index.html"
+        )
 
         html2 = (output_dir / "index.html").read_text()
-        css_match2 = re.search(r'(style\.[a-f0-9]+\.css)', html2)
+        css_match2 = re.search(r"(style\.[a-f0-9]+\.css)", html2)
         fingerprint_v2 = css_match2.group(1) if css_match2 else None
 
         # CRITICAL: Should have NEW fingerprint

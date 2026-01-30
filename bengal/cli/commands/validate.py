@@ -112,10 +112,10 @@ def validate(
 ) -> None:
     """
     Validate site health and content quality.
-    
+
     Runs health checks on your site to find errors, warnings, and issues.
     By default, shows only problems (errors and warnings).
-    
+
     Examples:
         bengal validate
         bengal validate --file content/page.md
@@ -126,11 +126,11 @@ def validate(
         bengal validate --templates
         bengal validate --templates --fix
         bengal validate --templates --templates-pattern "autodoc/**/*.html"
-    
+
     See also:
         bengal site build - Build the site
         bengal health linkcheck - Check links specifically
-        
+
     """
     cli = get_cli_output()
 
@@ -141,7 +141,9 @@ def validate(
     cli.header("Health Check Validation")
 
     # Determine profile (default to WRITER for fast validation)
-    build_profile = BuildProfile.from_string(profile) if profile else BuildProfile.WRITER
+    build_profile = (
+        BuildProfile.from_string(profile) if profile else BuildProfile.WRITER
+    )
 
     site = load_site_from_cli(
         source=source, config=None, environment=None, profile=build_profile, cli=cli
@@ -192,10 +194,10 @@ def validate(
 
     # Run health checks
     cli.blank()
-    health_check = HealthCheck(site)
+    health_check = HealthCheck(site)  # type: ignore[arg-type]
 
     # Convert ignore codes to set
-    ignore_codes = set(code.upper() for code in ignore) if ignore else None
+    ignore_codes = {code.upper() for code in ignore} if ignore else None
 
     report = health_check.run(
         profile=build_profile,
@@ -224,7 +226,9 @@ def validate(
     else:
         # Normal mode - exit with error code if there are errors
         if report.has_errors():
-            raise click.ClickException(f"Validation failed: {report.total_errors} error(s) found")
+            raise click.ClickException(
+                f"Validation failed: {report.total_errors} error(s) found"
+            )
         elif report.has_warnings():
             cli.warning(f"Validation completed with {report.total_warnings} warning(s)")
         else:
@@ -241,7 +245,7 @@ def _run_watch_mode(
 ) -> None:
     """
     Run validation in watch mode - continuously validate on file changes.
-    
+
     Args:
         site: Site instance
         build_profile: Build profile to use
@@ -249,7 +253,7 @@ def _run_watch_mode(
         suggestions: Whether to show suggestions
         incremental: Whether to use incremental validation
         cli: CLI output instance
-        
+
     """
     import watchfiles
 
@@ -266,7 +270,15 @@ def _run_watch_mode(
     def _should_validate(file_path: Path) -> bool:
         """Check if file should trigger validation."""
         # Only validate markdown/content files, config, templates
-        valid_extensions = {".md", ".toml", ".yaml", ".yml", ".html", ".jinja2", ".jinja"}
+        valid_extensions = {
+            ".md",
+            ".toml",
+            ".yaml",
+            ".yml",
+            ".html",
+            ".jinja2",
+            ".jinja",
+        }
         if file_path.suffix.lower() not in valid_extensions:
             return False
 
@@ -299,7 +311,7 @@ def _run_watch_mode(
             cache = BuildCache.load(site.paths.build_cache)
 
         # Run validation
-        health_check = HealthCheck(site)
+        health_check = HealthCheck(site)  # type: ignore[arg-type]
         report = health_check.run(
             profile=build_profile,
             verbose=verbose,
@@ -372,16 +384,16 @@ def _validate_templates(
     cli: CLIOutput,
 ) -> None:
     """Validate templates using existing engine.validate() method.
-    
+
     Args:
         site: Site instance with template engine
         pattern: Optional glob pattern to filter templates
         show_hints: Whether to show migration hints for errors
         cli: CLI output instance
-    
+
     Raises:
         click.ClickException: If template validation fails
-        
+
     """
     from bengal.rendering.engines import create_engine
 
@@ -428,11 +440,11 @@ def _validate_templates(
 
 def _show_migration_hint(error: Any, cli: CLIOutput) -> None:
     """Show migration hints for common Jinja2 → Kida issues.
-    
+
     Args:
         error: Template error object
         cli: CLI output instance
-        
+
     """
     message = error.message.lower() if error.message else ""
 
@@ -441,7 +453,9 @@ def _show_migration_hint(error: Any, cli: CLIOutput) -> None:
         cli.info("    💡 Hint: Kida uses {% let var=value %} before {% include %}")
         cli.info("             instead of Jinja2's 'include with var=value' syntax.")
     elif "items" in message or "keys" in message or "values" in message:
-        cli.info("    💡 Hint: Use {{ dict | get('items') }} instead of {{ dict.items }}")
+        cli.info(
+            "    💡 Hint: Use {{ dict | get('items') }} instead of {{ dict.items }}"
+        )
         cli.info("             to avoid conflicts with Python dict method names.")
     elif "undefined" in message:
         cli.info("    💡 Hint: Use {{ var ?? default }} or {{ var | default(value) }}")

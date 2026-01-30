@@ -7,8 +7,6 @@ Tests config/deprecation.py:
 - get_deprecation_summary: documentation generation
 """
 
-from __future__ import annotations
-
 from io import StringIO
 from unittest.mock import patch
 
@@ -42,7 +40,7 @@ class TestDeprecatedKeys:
 
     def test_deprecation_structure(self):
         """Each deprecation has (section, new_key, note) tuple."""
-        for _old_key, value in DEPRECATED_KEYS.items():
+        for value in DEPRECATED_KEYS.values():
             assert isinstance(value, tuple)
             assert len(value) == 3
             section, new_key, note = value
@@ -72,7 +70,11 @@ class TestCheckDeprecatedKeys:
 
     def test_detects_multiple_deprecated_keys(self):
         """Detects multiple deprecated keys."""
-        config = {"minify_assets": True, "optimize_assets": True, "generate_sitemap": True}
+        config = {
+            "minify_assets": True,
+            "optimize_assets": True,
+            "generate_sitemap": True,
+        }
         result = check_deprecated_keys(config, warn=False)
         assert len(result) == 3
 
@@ -112,7 +114,9 @@ class TestPrintDeprecationWarnings:
         """Prints warning header with source."""
         deprecated = [("minify_assets", "assets.minify", "Use assets.minify")]
         output = StringIO()
-        with patch("builtins.print", lambda *args, **kwargs: output.write(str(args[0]) + "\n")):
+        with patch(
+            "builtins.print", lambda *args, **kwargs: output.write(str(args[0]) + "\n")
+        ):
             print_deprecation_warnings(deprecated, source="bengal.toml")
         result = output.getvalue()
         assert "⚠️" in result
@@ -122,7 +126,9 @@ class TestPrintDeprecationWarnings:
         """Prints old key to new location mapping."""
         deprecated = [("minify_assets", "assets.minify", "Use assets.minify: true")]
         output = StringIO()
-        with patch("builtins.print", lambda *args, **kwargs: output.write(str(args[0]) + "\n")):
+        with patch(
+            "builtins.print", lambda *args, **kwargs: output.write(str(args[0]) + "\n")
+        ):
             print_deprecation_warnings(deprecated)
         result = output.getvalue()
         assert "minify_assets" in result
@@ -133,7 +139,9 @@ class TestPrintDeprecationWarnings:
         note = "Use assets.minify: true instead"
         deprecated = [("minify_assets", "assets.minify", note)]
         output = StringIO()
-        with patch("builtins.print", lambda *args, **kwargs: output.write(str(args[0]) + "\n")):
+        with patch(
+            "builtins.print", lambda *args, **kwargs: output.write(str(args[0]) + "\n")
+        ):
             print_deprecation_warnings(deprecated)
         result = output.getvalue()
         assert note in result
@@ -142,7 +150,9 @@ class TestPrintDeprecationWarnings:
         """Prints notice about future removal."""
         deprecated = [("minify_assets", "assets.minify", "Note")]
         output = StringIO()
-        with patch("builtins.print", lambda *args, **kwargs: output.write(str(args[0]) + "\n")):
+        with patch(
+            "builtins.print", lambda *args, **kwargs: output.write(str(args[0]) + "\n")
+        ):
             print_deprecation_warnings(deprecated)
         result = output.getvalue()
         assert "may be removed in a future version" in result
@@ -184,7 +194,11 @@ class TestMigrateDeprecatedKeys:
 
     def test_handles_multiple_deprecated_keys(self):
         """Handles multiple deprecated keys in same section."""
-        config = {"minify_assets": True, "optimize_assets": True, "fingerprint_assets": True}
+        config = {
+            "minify_assets": True,
+            "optimize_assets": True,
+            "fingerprint_assets": True,
+        }
         result = migrate_deprecated_keys(config)
         assert result["assets"]["minify"] is True
         assert result["assets"]["optimize"] is True
@@ -238,7 +252,7 @@ class TestGetDeprecationSummary:
     def test_includes_new_locations(self):
         """Includes new locations for deprecated keys."""
         result = get_deprecation_summary()
-        for _old_key, (section, new_key, _) in DEPRECATED_KEYS.items():
+        for section, new_key, _ in DEPRECATED_KEYS.values():
             assert f"`{section}.{new_key}`" in result
 
 
@@ -251,7 +265,7 @@ class TestRenamedKeys:
 
     def test_structure_if_populated(self):
         """If RENAMED_KEYS has entries, they have correct structure."""
-        for _old_key, value in RENAMED_KEYS.items():
+        for value in RENAMED_KEYS.values():
             assert isinstance(value, tuple)
             assert len(value) == 2
             new_key, note = value

@@ -197,7 +197,9 @@ Content two.
     # Note: Incremental builds detect deletions and fall back to full rebuild
     site2 = Site.for_testing(root_path=tmp_path, config=config)
     orch2 = BuildOrchestrator(site2)
-    orch2.build(BuildOptions(incremental=False))  # Force full rebuild to handle deletion
+    orch2.build(
+        BuildOptions(incremental=False)
+    )  # Force full rebuild to handle deletion
 
     # Verify index.json updated (only page1 remains)
     data2 = json.loads(index_path.read_text(encoding="utf-8"))
@@ -252,7 +254,9 @@ Content.
 
     # Verify page metadata preserved - get the actual page (not tag pages)
     actual_pages = [
-        p for p in data_incremental["pages"] if not p.get("uri", "").startswith("/tags/")
+        p
+        for p in data_incremental["pages"]
+        if not p.get("uri", "").startswith("/tags/")
     ]
     assert len(actual_pages) >= 1, "Should have at least one content page"
     page_data = actual_pages[0]
@@ -267,7 +271,9 @@ Content.
     assert "tutorial" in tag_names
 
 
-@pytest.mark.bengal(testroot="test-basic", confoverrides={"output_formats.enabled": False})
+@pytest.mark.bengal(
+    testroot="test-basic", confoverrides={"output_formats.enabled": False}
+)
 def test_disabled_output_formats_skips_index_json(site, build_site):
     """Test that disabling output_formats config skips index.json generation."""
     # Build
@@ -284,16 +290,16 @@ def test_disabled_output_formats_skips_index_json(site, build_site):
 def test_output_formats_succeed_with_mixed_page_types(site, build_site):
     """
     Contract test: Output formats must succeed with mixed Page/PageProxy objects.
-    
+
     This test ensures:
     1. Incremental builds generate correct output formats
     2. If PageProxy is present, it has required attributes (like plain_text)
-    
+
     Note: PageProxy creation depends on cache path matching. The unit tests
     verify plain_text property works on PageProxy directly.
-    
+
     See: plan/ready/rfc-pageproxy-transparency-contract.md
-        
+
     """
     # Full build first
     build_site(incremental=False)
@@ -333,15 +339,15 @@ def test_output_formats_succeed_with_mixed_page_types(site, build_site):
 def test_incremental_build_creates_proxies(tmp_path):
     """
     Contract test: Incremental builds MUST create PageProxy objects.
-    
+
     This test catches silent failures where incremental builds appear to work
     but proxies aren't being created due to:
     - Cache key mismatches (absolute vs relative paths)
     - Cache validation failures (slug, section, etc.)
     - Missing cache entries
-    
+
     If this test fails, incremental builds are silently doing full rebuilds.
-        
+
     """
     # Setup: Create site with multiple pages
     content_dir = tmp_path / "content"
@@ -393,10 +399,10 @@ generate_rss = false
 def test_incremental_build_proxy_has_required_properties(tmp_path):
     """
     Contract test: PageProxy objects must have all properties needed by build.
-    
+
     This test verifies that PageProxy implements the transparency contract -
     all properties accessed during build must be available without lazy loading.
-        
+
     """
     # Setup
     content_dir = tmp_path / "content"
@@ -446,14 +452,14 @@ generate_rss = false
 def test_modified_page_becomes_full_page_not_proxy(tmp_path):
     """
     Contract test: Modified pages should be full Pages, not proxies.
-    
+
     Verifies that the incremental build correctly detects frontmatter changes
     and rebuilds modified pages while keeping unchanged pages as proxies.
-    
+
     Note: Cache validation checks frontmatter fields (title, tags, date, slug).
     Body-only changes don't invalidate the cache since proxies are used to
     avoid re-rendering, not re-parsing.
-        
+
     """
     # Setup
     content_dir = tmp_path / "content"
@@ -613,7 +619,10 @@ Updated post content with new information.
 
             # RSS should be updated
             rss_content_v2 = rss_path.read_text()
-            assert "Updated Post Title" in rss_content_v2 or "Updated description" in rss_content_v2
+            assert (
+                "Updated Post Title" in rss_content_v2
+                or "Updated description" in rss_content_v2
+            )
 
     def test_rss_feed_new_post_appears(self, tmp_path):
         """

@@ -10,8 +10,6 @@ external patitas parser. This is critical because:
 RFC: rfc-patitas-external-migration.md
 """
 
-import pytest
-
 from bengal.parsing.backends.patitas import (
     Markdown,
     parse_to_ast,
@@ -43,7 +41,7 @@ class TestParseToAstPlugins:
 
     def test_math_enabled_via_plugins(self):
         """Math blocks should parse when enabled via plugins.
-        
+
         Note: parse_to_ast math support requires specific syntax.
         Block math needs blank line before, or use Markdown class instead.
         """
@@ -55,12 +53,13 @@ class TestParseToAstPlugins:
         # Should have a paragraph with inline math
         node_types = [n.__class__.__name__ for n in ast]
         assert "Paragraph" in node_types
-        
+
         # Check that the paragraph contains InlineMath
         para = ast[0]
         inline_types = [n.__class__.__name__ for n in para.children]
-        assert "InlineMath" in inline_types or "Math" in inline_types, \
+        assert "InlineMath" in inline_types or "Math" in inline_types, (
             f"Expected InlineMath in paragraph, got: {inline_types}"
+        )
 
     def test_strikethrough_enabled_via_plugins(self):
         """Strikethrough should parse when enabled via plugins."""
@@ -71,7 +70,9 @@ class TestParseToAstPlugins:
         # Check inline content for Strikethrough
         paragraph = ast[0]
         inline_types = [n.__class__.__name__ for n in paragraph.children]
-        assert "Strikethrough" in inline_types, f"Expected Strikethrough, got: {inline_types}"
+        assert "Strikethrough" in inline_types, (
+            f"Expected Strikethrough, got: {inline_types}"
+        )
 
     def test_task_lists_enabled_via_plugins(self):
         """Task lists should parse when enabled via plugins."""
@@ -82,10 +83,12 @@ class TestParseToAstPlugins:
         # Find list - task_lists plugin adds checkbox info to list items
         list_node = ast[0]
         assert list_node.__class__.__name__ == "List"
-        
+
         # Task list items have items with checkbox attribute
         first_item = list_node.items[0]
-        assert hasattr(first_item, "checked"), f"ListItem missing 'checked' attr: {dir(first_item)}"
+        assert hasattr(first_item, "checked"), (
+            f"ListItem missing 'checked' attr: {dir(first_item)}"
+        )
 
     def test_multiple_plugins(self):
         """Multiple plugins should work together."""
@@ -124,7 +127,9 @@ class TestMarkdownClass:
         """Markdown class should enable strikethrough via plugins."""
         source = "~~deleted text~~"
 
-        md = Markdown(plugins=["strikethrough"], highlight=False, highlight_style="monokai")
+        md = Markdown(
+            plugins=["strikethrough"], highlight=False, highlight_style="monokai"
+        )
         html = md(source)
 
         # Should have strikethrough element
@@ -132,7 +137,7 @@ class TestMarkdownClass:
 
     def test_markdown_with_autolinks(self):
         """Markdown class should enable autolinks via plugins.
-        
+
         Note: GFM autolinks work on bare URLs, not URLs embedded in sentences.
         The autolink extension detects URLs at word boundaries.
         """
@@ -157,8 +162,9 @@ class TestDirectiveIntegration:
         html = md(source)
 
         # Should have admonition/note output
-        assert "note" in html.lower() or "admonition" in html.lower(), \
+        assert "note" in html.lower() or "admonition" in html.lower(), (
             f"Note directive not rendered: {html}"
+        )
 
     def test_warning_directive_via_markdown(self):
         """Warning directive should work via Markdown class."""
@@ -167,8 +173,9 @@ class TestDirectiveIntegration:
         md = Markdown(plugins=[], highlight=False, highlight_style="monokai")
         html = md(source)
 
-        assert "warning" in html.lower() or "admonition" in html.lower(), \
+        assert "warning" in html.lower() or "admonition" in html.lower(), (
             f"Warning directive not rendered: {html}"
+        )
 
 
 class TestConfigConsistency:

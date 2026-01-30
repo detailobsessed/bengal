@@ -67,17 +67,17 @@ logger = get_logger(__name__)
 class ResourceManager:
     """
     Centralized resource lifecycle management for the dev server.
-    
+
     Coordinates cleanup of all server resources (HTTP server, file watcher,
     PID files, etc.) across all termination scenarios. Uses context manager
     protocol for automatic setup and teardown.
-    
+
     Attributes:
         _resources: List of (name, resource, cleanup_fn) tuples
         _cleanup_done: Flag preventing duplicate cleanup
         _lock: Thread lock for safe registration
         _original_signals: Original signal handlers for restoration
-    
+
     Features:
         - Context manager interface (with ResourceManager() as rm)
         - Idempotent cleanup (safe to call multiple times)
@@ -86,11 +86,11 @@ class ResourceManager:
         - Thread-safe resource registration
         - Signal handler registration/restoration
         - atexit registration for unexpected termination
-    
+
     Cleanup Order:
         Resources are cleaned up in reverse registration order (LIFO),
         mirroring the behavior of nested context managers.
-    
+
     Example:
             >>> with ResourceManager() as rm:
             ...     httpd = rm.register_server(create_server())
@@ -98,7 +98,7 @@ class ResourceManager:
             ...     pid_path = rm.register_pidfile(Path(".bengal/server.pid"))
             ...     # Server runs until Ctrl+C or error
             ... # All resources cleaned up automatically
-        
+
     """
 
     def __init__(self) -> None:
@@ -108,7 +108,9 @@ class ResourceManager:
         self._lock = threading.Lock()
         self._original_signals: dict[signal.Signals, Any] = {}
 
-    def register(self, name: str, resource: Any, cleanup_fn: Callable[[Any], None]) -> Any:
+    def register(
+        self, name: str, resource: Any, cleanup_fn: Callable[[Any], None]
+    ) -> Any:
         """
         Register a resource with its cleanup function.
 
@@ -231,7 +233,6 @@ class ResourceManager:
                     error_type=type(e).__name__,
                     action="skipping_cleanup",
                 )
-                pass
 
         self.register("PID File", pidfile_path, cleanup)
         return pidfile_path
@@ -301,7 +302,9 @@ class ResourceManager:
                 else str(signum)
             )
             if sig_name == "SIGINT":
-                print("\n  👋 Shutting down gracefully... (press Ctrl+C again to force quit)")
+                print(
+                    "\n  👋 Shutting down gracefully... (press Ctrl+C again to force quit)"
+                )
             else:
                 print(f"\n  👋 Received {sig_name}, shutting down...")
 

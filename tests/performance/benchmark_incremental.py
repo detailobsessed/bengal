@@ -90,13 +90,13 @@ parallel = true
 def benchmark_full_build(site_dir: Path) -> float:
     """
     Benchmark a full build (no cache).
-    
+
     Args:
         site_dir: Site directory
-    
+
     Returns:
         Time in seconds
-        
+
     """
     site = Site.from_config(site_dir)
 
@@ -114,14 +114,14 @@ def benchmark_full_build(site_dir: Path) -> float:
 def benchmark_incremental_build(site_dir: Path, change_type: str = "content") -> float:
     """
     Benchmark an incremental build after making a small change.
-    
+
     Args:
         site_dir: Site directory
         change_type: Type of change ('content', 'template', 'asset')
-    
+
     Returns:
         Time in seconds
-        
+
     """
     site = Site.from_config(site_dir)
 
@@ -130,7 +130,9 @@ def benchmark_incremental_build(site_dir: Path, change_type: str = "content") ->
         # Modify one content file
         post_file = site_dir / "content" / "posts" / "post-0.md"
         content = post_file.read_text()
-        modified_content = content.replace("This is test post 0", "This is MODIFIED test post 0")
+        modified_content = content.replace(
+            "This is test post 0", "This is MODIFIED test post 0"
+        )
         post_file.write_text(modified_content)
 
     elif change_type == "template":

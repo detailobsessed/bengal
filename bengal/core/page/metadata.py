@@ -53,14 +53,14 @@ if TYPE_CHECKING:
 class PageMetadataMixin:
     """
     Mixin providing metadata properties and type checking for pages.
-    
+
     This mixin handles:
     - Basic properties: title, date, slug, url
     - Type checking: is_home, is_section, is_page, kind
     - Simple metadata: description, draft, keywords
     - Component Model: type, variant, props
     - TOC access: toc_items (lazy evaluation)
-        
+
     """
 
     # Declare attributes that will be provided by the dataclass this mixin is mixed into
@@ -239,16 +239,21 @@ class PageMetadataMixin:
         # Best-effort baseurl lookup; remain robust if site/config is missing
         baseurl = ""
         try:
-            if getattr(self, "_site", None):
-                config = self._site.config
+            site = getattr(self, "_site", None)
+            if site is not None:
+                config = site.config
                 # Support both Config and dict access
                 if hasattr(config, "site"):
-                    baseurl = config.site.baseurl or ""
+                    baseurl = (
+                        getattr(getattr(config, "site", None), "baseurl", "") or ""
+                    )
                 else:
                     # Try nested structure first, then fall back to flat
                     site_section = config.get("site", {})
                     if isinstance(site_section, dict):
-                        baseurl = site_section.get("baseurl", "") or config.get("baseurl", "")
+                        baseurl = site_section.get("baseurl", "") or config.get(
+                            "baseurl", ""
+                        )
                     else:
                         baseurl = config.get("baseurl", "")
         except Exception as e:
@@ -551,7 +556,9 @@ class PageMetadataMixin:
             return [k.strip() for k in keywords.split(",") if k.strip()]
         if isinstance(keywords, list):
             # Sanitize: filter None, convert to strings, filter empty
-            return [str(k).strip() for k in keywords if k is not None and str(k).strip()]
+            return [
+                str(k).strip() for k in keywords if k is not None and str(k).strip()
+            ]
         return []
 
     # =========================================================================

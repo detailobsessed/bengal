@@ -5,8 +5,6 @@ Tests the BuildState class which provides per-build mutable state
 with thread-safe locks and render context management.
 """
 
-from __future__ import annotations
-
 import threading
 import time
 from datetime import datetime

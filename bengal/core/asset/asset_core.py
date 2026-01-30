@@ -55,7 +55,7 @@ from bengal.core.diagnostics import emit as emit_diagnostic
 class Asset:
     """
     Represents a static asset file (image, CSS, JS, etc.).
-    
+
     Attributes:
         source_path: Path to the source asset file
         output_path: Path where the asset will be copied
@@ -64,7 +64,7 @@ class Asset:
         minified: Whether the asset has been minified
         optimized: Whether the asset has been optimized
         bundled: Whether CSS @import statements have been inlined
-        
+
     """
 
     source_path: Path
@@ -79,7 +79,9 @@ class Asset:
     # Processing state (set during asset processing)
     _bundled_content: str | None = None  # CSS content after @import resolution
     _minified_content: str | None = None  # Content after minification
-    _optimized_image: Any = None  # Optimized PIL Image (type deferred to avoid PIL import)
+    _optimized_image: Any = (
+        None  # Optimized PIL Image (type deferred to avoid PIL import)
+    )
     _site: Any | None = field(default=None, repr=False)
     _diagnostics: Any | None = field(default=None, repr=False)
 
@@ -235,7 +237,9 @@ class Asset:
                     # Read and recursively process the imported file
                     imported_content = imported_file.read_text(encoding="utf-8")
                     # Recursively resolve nested imports
-                    bundled_content = bundle_imports(imported_content, imported_file.parent)
+                    bundled_content = bundle_imports(
+                        imported_content, imported_file.parent
+                    )
 
                     # Return bundled content so it can replace the @layer block body
                     return bundled_content
@@ -330,7 +334,9 @@ class Asset:
 
                     # Extract layer name
                     layer_name_match = re.match(r"@layer\s+(\w+)", layer_decl)
-                    layer_name: str = layer_name_match.group(1) if layer_name_match else ""
+                    layer_name: str = (
+                        layer_name_match.group(1) if layer_name_match else ""
+                    )
 
                     # Find the matching closing brace using brace counting
                     content_start = brace_pos + 1
@@ -347,7 +353,9 @@ class Asset:
                     # Process @import statements inside this layer
                     current_layer = layer_name  # Capture for closure
 
-                    def layer_resolver(m: re.Match[str], layer: str = current_layer) -> str:
+                    def layer_resolver(
+                        m: re.Match[str], layer: str = current_layer
+                    ) -> str:
                         return resolve_import_in_context(m, layer)
 
                     processed_content = re.sub(
@@ -370,7 +378,9 @@ class Asset:
             result = process_layer_blocks(css_content)
 
             # Then process standalone @import statements (not in @layer)
-            result = re.sub(import_pattern, lambda m: resolve_import_in_context(m), result)
+            result = re.sub(
+                import_pattern, lambda m: resolve_import_in_context(m), result
+            )
 
             return result
 
@@ -430,7 +440,7 @@ class Asset:
         if self.source_path.name.endswith(".min.js"):
             return
         try:
-            from jsmin import jsmin  # type: ignore[import-untyped]
+            from jsmin import jsmin
 
             with open(self.source_path, encoding="utf-8") as f:
                 js_content = f.read()
@@ -438,7 +448,9 @@ class Asset:
             minified_content = jsmin(js_content)
             self._minified_content = minified_content
         except ImportError:
-            emit_diagnostic(self, "warning", "jsmin_unavailable", source=str(self.source_path))
+            emit_diagnostic(
+                self, "warning", "jsmin_unavailable", source=str(self.source_path)
+            )
 
     def _hash_source_chunks(self) -> Iterator[bytes]:
         """
@@ -491,7 +503,9 @@ class Asset:
         """Optimize image assets."""
         if self.source_path.suffix.lower() == ".svg":
             # Skip SVG optimization - vector format, no raster compression needed
-            emit_diagnostic(self, "debug", "svg_optimization_skipped", source=str(self.source_path))
+            emit_diagnostic(
+                self, "debug", "svg_optimization_skipped", source=str(self.source_path)
+            )
             self.optimized = True
             return
 
@@ -512,7 +526,9 @@ class Asset:
             # Store optimized image (would be saved during copy_to_output)
             self._optimized_image = img
         except ImportError:
-            emit_diagnostic(self, "warning", "pillow_unavailable", source=str(self.source_path))
+            emit_diagnostic(
+                self, "warning", "pillow_unavailable", source=str(self.source_path)
+            )
         except Exception as e:
             emit_diagnostic(
                 self,
@@ -543,7 +559,9 @@ class Asset:
 
         # Determine output filename
         if use_fingerprint and self.fingerprint:
-            out_name = f"{self.source_path.stem}.{self.fingerprint}{self.source_path.suffix}"
+            out_name = (
+                f"{self.source_path.stem}.{self.fingerprint}{self.source_path.suffix}"
+            )
         else:
             out_name = self.source_path.name
 
@@ -578,7 +596,9 @@ class Asset:
             pid = os.getpid()
             tid = threading.get_ident()
             unique_id = uuid.uuid4().hex[:8]
-            tmp_path = output_path.parent / f".{output_path.name}.{pid}.{tid}.{unique_id}.tmp"
+            tmp_path = (
+                output_path.parent / f".{output_path.name}.{pid}.{tid}.{unique_id}.tmp"
+            )
             try:
                 # Determine image format from original file extension (not .tmp)
                 img_format = None
@@ -588,7 +608,9 @@ class Asset:
                 elif ext in ("PNG", "GIF", "WEBP"):
                     img_format = ext
 
-                self._optimized_image.save(tmp_path, format=img_format, optimize=True, quality=85)
+                self._optimized_image.save(
+                    tmp_path, format=img_format, optimize=True, quality=85
+                )
                 tmp_path.replace(output_path)
             except Exception as e:
                 emit_diagnostic(
@@ -610,7 +632,9 @@ class Asset:
             pid = os.getpid()
             tid = threading.get_ident()
             unique_id = uuid.uuid4().hex[:8]
-            tmp_path = output_path.parent / f".{output_path.name}.{pid}.{tid}.{unique_id}.tmp"
+            tmp_path = (
+                output_path.parent / f".{output_path.name}.{pid}.{tid}.{unique_id}.tmp"
+            )
             try:
                 shutil.copy2(self.source_path, tmp_path)
                 tmp_path.replace(output_path)
@@ -642,12 +666,18 @@ class Asset:
         """
         try:
             site = getattr(self, "_site", None)
-            if site is not None and bool(getattr(site, "config", {}).get("_clean_output_this_run")):
+            if site is not None and bool(
+                getattr(site, "config", {}).get("_clean_output_this_run")
+            ):
                 # Clean output implies no stale fingerprints can exist.
                 return
 
             # Determine where the file will be written
-            parent = (output_dir / self.output_path).parent if self.output_path else output_dir
+            parent = (
+                (output_dir / self.output_path).parent
+                if self.output_path
+                else output_dir
+            )
 
             if not parent.exists():
                 return  # Directory doesn't exist yet, nothing to clean
@@ -659,12 +689,16 @@ class Asset:
             # stale fingerprinted output path (if any) instead of scanning directories.
             if site is not None:
                 try:
-                    prev: AssetManifest | None = getattr(site, "_asset_manifest_previous", None)
+                    prev: AssetManifest | None = getattr(
+                        site, "_asset_manifest_previous", None
+                    )
                     if prev is not None and self.logical_path is not None:
                         logical_str = self.logical_path.as_posix()
                         prev_entry = prev.get(logical_str)
                         if prev_entry is not None and prev_entry.output_path:
-                            old_full = Path(site.output_dir) / Path(prev_entry.output_path)
+                            old_full = Path(site.output_dir) / Path(
+                                prev_entry.output_path
+                            )
                             if (
                                 old_full.exists()
                                 and self.fingerprint is not None
@@ -717,7 +751,9 @@ class Asset:
         """
         if not self._site:
             # Fallback if site not available
-            logical_str = str(self.logical_path) if self.logical_path else self.source_path.name
+            logical_str = (
+                str(self.logical_path) if self.logical_path else self.source_path.name
+            )
             return f"/assets/{logical_str}"
 
         # Try to use template engine's _asset_url if available
@@ -727,13 +763,19 @@ class Asset:
             if hasattr(self._site, "template_engine") and hasattr(
                 self._site.template_engine, "_asset_url"
             ):
-                logical_str = str(self.logical_path) if self.logical_path else self.source_path.name
+                logical_str = (
+                    str(self.logical_path)
+                    if self.logical_path
+                    else self.source_path.name
+                )
                 return self._site.template_engine._asset_url(logical_str)
         except Exception:
             pass
 
         # Fallback: simple baseurl application
-        logical_str = str(self.logical_path) if self.logical_path else self.source_path.name
+        logical_str = (
+            str(self.logical_path) if self.logical_path else self.source_path.name
+        )
         from bengal.rendering.template_engine.url_helpers import with_baseurl
 
         return with_baseurl(f"/assets/{logical_str}", self._site)

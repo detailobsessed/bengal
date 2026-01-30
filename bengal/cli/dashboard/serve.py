@@ -69,7 +69,7 @@ class ChangeEntry:
 class BengalServeDashboard(BengalDashboard):
     """
     Interactive serve dashboard with live file watching.
-    
+
     Shows:
     - Header with Bengal branding and server URL
     - Tabbed content area:
@@ -78,14 +78,14 @@ class BengalServeDashboard(BengalDashboard):
         - Errors: Any build errors or warnings
     - Sparkline showing build time history
     - Footer with keyboard shortcuts
-    
+
     Bindings:
         q: Quit (stops server)
         o: Open in browser
         r: Force rebuild
         c: Clear log
         ?: Help
-        
+
     """
 
     TITLE: ClassVar[str] = "Bengal Serve"
@@ -133,7 +133,7 @@ class BengalServeDashboard(BengalDashboard):
         self.site = site
         self.host = host
         self.port = port
-        self.watch = watch
+        self._watch_files = watch  # Renamed to avoid conflict with DOMNode.watch method
         self.auto_open_browser = open_browser
         self.server_kwargs = kwargs
 
@@ -232,7 +232,7 @@ class BengalServeDashboard(BengalDashboard):
                     self.site,
                     host=self.host,
                     port=self.port,
-                    watch=self.watch,
+                    watch=self._watch_files,
                     auto_port=True,
                     open_browser=self.auto_open_browser,
                 )
@@ -243,7 +243,9 @@ class BengalServeDashboard(BengalDashboard):
 
                 # Append site's baseurl if it's a path (not absolute URL)
                 site_baseurl = getattr(self.site, "baseurl", "") or ""
-                if site_baseurl and not site_baseurl.startswith(("http://", "https://")):
+                if site_baseurl and not site_baseurl.startswith(
+                    ("http://", "https://")
+                ):
                     # It's a path like "/blog" - append it
                     site_baseurl = site_baseurl.rstrip("/")
                     url = f"{base_url}{site_baseurl}"
@@ -264,7 +266,7 @@ class BengalServeDashboard(BengalDashboard):
     def _on_server_started(self, url: str) -> None:
         """Handle server started event."""
         self.server_url = url
-        self.is_watching = self.watch
+        self.is_watching = self._watch_files
         self.is_loading = False  # Task 4.1
 
         # Update status
@@ -277,7 +279,7 @@ class BengalServeDashboard(BengalDashboard):
 
         # Update stats
         self._update_stat("status", "Running")
-        self._update_stat("watching", "Yes" if self.watch else "No")
+        self._update_stat("watching", "Yes" if self._watch_files else "No")
 
         # Show notification
         notify_server_started(self, url)
@@ -285,7 +287,7 @@ class BengalServeDashboard(BengalDashboard):
         # Log
         changes_log = self.query_one("#changes-log", Log)
         changes_log.write_line(f"✓ Server started at {url}")
-        if self.watch:
+        if self._watch_files:
             changes_log.write_line("✓ Watching for file changes...")
 
     def _on_server_error(self, error: str) -> None:
@@ -341,7 +343,9 @@ class BengalServeDashboard(BengalDashboard):
             if self.site:
                 # Get counts from site
                 pages_count = len(self.site.pages) if hasattr(self.site, "pages") else 0
-                assets_count = len(self.site.assets) if hasattr(self.site, "assets") else 0
+                assets_count = (
+                    len(self.site.assets) if hasattr(self.site, "assets") else 0
+                )
                 total = pages_count + assets_count
 
                 # Task 4.2: Empty state for no files
@@ -424,7 +428,9 @@ class BengalServeDashboard(BengalDashboard):
         self.rebuild_count += 1
 
         changes_log = self.query_one("#changes-log", Log)
-        changes_log.write_line(f"→ Rebuilding ({len(message.changed_files)} files changed)...")
+        changes_log.write_line(
+            f"→ Rebuilding ({len(message.changed_files)} files changed)..."
+        )
 
         notify_rebuild_triggered(self, len(message.changed_files))
 
@@ -442,7 +448,9 @@ class BengalServeDashboard(BengalDashboard):
         # Log
         changes_log = self.query_one("#changes-log", Log)
         if message.success:
-            changes_log.write_line(f"✓ Rebuilt in {int(message.duration_ms)}ms ({pages} pages)")
+            changes_log.write_line(
+                f"✓ Rebuilt in {int(message.duration_ms)}ms ({pages} pages)"
+            )
         else:
             changes_log.write_line(f"✗ Build failed: {message.error}")
 
@@ -520,9 +528,9 @@ def run_serve_dashboard(
 ) -> None:
     """
     Run the serve dashboard for a site.
-    
+
     This is the entry point called by `bengal serve --dashboard`.
-    
+
     Args:
         site: Site instance to serve
         host: Server host
@@ -530,7 +538,7 @@ def run_serve_dashboard(
         watch: Enable file watching
         open_browser: Open browser on start
         **kwargs: Additional server options
-        
+
     """
     app = BengalServeDashboard(
         site=site,

@@ -165,7 +165,9 @@ def test_font_validator_oversized_fonts(site_with_fonts, tmp_path):
 
     fonts_css = tmp_path / "assets" / "fonts.css"
     fonts_css.parent.mkdir(parents=True, exist_ok=True)
-    fonts_css.write_text('@font-face { font-family: "Test"; src: url("/fonts/huge-font.woff2"); }')
+    fonts_css.write_text(
+        '@font-face { font-family: "Test"; src: url("/fonts/huge-font.woff2"); }'
+    )
 
     validator = FontValidator()
     results = validator.validate(site_with_fonts)
@@ -193,7 +195,9 @@ def test_font_validator_total_size_warning(site_with_fonts, tmp_path):
 
     assert any(r.status == CheckStatus.WARNING for r in results)
     # Should warn about total size
-    assert any("total" in r.message.lower() and "kb" in r.message.lower() for r in results)
+    assert any(
+        "total" in r.message.lower() and "kb" in r.message.lower() for r in results
+    )
 
 
 def test_font_validator_name_and_description():

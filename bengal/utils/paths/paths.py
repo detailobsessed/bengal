@@ -32,25 +32,25 @@ __all__ = ["BengalPaths", "LegacyBengalPaths"]
 class LegacyBengalPaths:
     """
     Legacy static method interface for Bengal path resolution.
-    
+
     This class provides backward-compatible static methods for accessing
     Bengal state directory paths. New code should use the instance-based
     ``BengalPaths`` class from ``bengal.cache.paths`` instead.
-    
+
     Example (legacy pattern)::
-    
+
         from bengal.utils.paths.paths import LegacyBengalPaths
         log_path = LegacyBengalPaths.get_build_log_path(source_dir)
-    
+
     Example (recommended pattern)::
-    
+
         from bengal.cache.paths import BengalPaths
         paths = BengalPaths(source_dir)
         log_path = paths.build_log
-    
+
     .. deprecated::
         Use ``bengal.cache.paths.BengalPaths`` instead.
-        
+
     """
 
     @staticmethod
@@ -85,7 +85,9 @@ class LegacyBengalPaths:
 
     @staticmethod
     def get_profile_path(
-        source_dir: Path, custom_path: Path | None = None, filename: str = "build_profile.stats"
+        source_dir: Path,
+        custom_path: Path | None = None,
+        filename: str = "build_profile.stats",
     ) -> Path:
         """Get the path for a performance profile file."""
         if custom_path:

@@ -132,7 +132,9 @@ def main():
         )
 
         # Find best level for this file
-        best_level = min(result["levels"].items(), key=lambda x: x[1]["compressed_size"])
+        best_level = min(
+            result["levels"].items(), key=lambda x: x[1]["compressed_size"]
+        )
         print(
             f"   Best: Level {best_level[0]} → {format_size(best_level[1]['compressed_size'])} ({best_level[1]['ratio']:.1f}x)"
         )
@@ -178,7 +180,9 @@ def main():
 
     level_3_size = total_compressed[3]
     level_3_ratio = total_compact / level_3_size if level_3_size > 0 else 0
-    level_3_savings = (1 - level_3_size / total_compact) * 100 if total_compact > 0 else 0
+    level_3_savings = (
+        (1 - level_3_size / total_compact) * 100 if total_compact > 0 else 0
+    )
 
     print(f"\n   Compressed size: {format_size(level_3_size)}")
     print(f"   Compression ratio: {level_3_ratio:.1f}x")

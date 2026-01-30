@@ -35,8 +35,12 @@ class CapturingReporter:
 
 def test_pipeline_writes_output_file(tmp_path):
     """Test that _write_output correctly writes the rendered HTML to disk."""
-    site = SimpleNamespace(config={}, root_path=tmp_path, output_dir=tmp_path / "public")
-    page = Page(source_path=tmp_path / "content" / "p.md", _raw_content="# Title", metadata={})
+    site = SimpleNamespace(
+        config={}, root_path=tmp_path, output_dir=tmp_path / "public"
+    )
+    page = Page(
+        source_path=tmp_path / "content" / "p.md", _raw_content="# Title", metadata={}
+    )
     page.output_path = site.output_dir / "p" / "index.html"
 
     # Inject a dummy template engine to avoid needing a full Site with theme
@@ -70,7 +74,9 @@ def test_pipeline_writes_output_file(tmp_path):
 
 def test_pipeline_accepts_build_context_with_reporter(tmp_path):
     """Test that pipeline accepts build_context with reporter (for future use)."""
-    site = SimpleNamespace(config={}, root_path=tmp_path, output_dir=tmp_path / "public")
+    site = SimpleNamespace(
+        config={}, root_path=tmp_path, output_dir=tmp_path / "public"
+    )
     reporter = CapturingReporter()
 
     class DummyTemplateEngine:

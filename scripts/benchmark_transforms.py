@@ -48,14 +48,18 @@ class HybridHTMLTransformer:
         self.should_transform_links = bool(self.baseurl)
 
         # Normalize baseurl for comparison
-        if self.baseurl and not self.baseurl.startswith(("http://", "https://", "file://", "/")):
+        if self.baseurl and not self.baseurl.startswith(
+            ("http://", "https://", "file://", "/")
+        ):
             self.baseurl = "/" + self.baseurl
 
         # Combined pattern for both .md and internal link transforms
         # Note: We use two separate patterns and run them sequentially
         # because combining them leads to complex backreference issues
         self._md_pattern = re.compile(r'(href)=(["\'])([^"\']*?\.md)\2')
-        self._internal_pattern = re.compile(r'(href|src)=(["\'])(/(?!/)[^"\'#][^"\']*)\2')
+        self._internal_pattern = re.compile(
+            r'(href|src)=(["\'])(/(?!/)[^"\'#][^"\']*)\2'
+        )
 
     def transform(self, html: str) -> str:
         """

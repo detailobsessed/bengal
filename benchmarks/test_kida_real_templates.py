@@ -10,8 +10,6 @@ Or with pytest:
     python -m pytest benchmarks/test_kida_real_templates.py -v
 """
 
-from __future__ import annotations
-
 import time
 from pathlib import Path
 from typing import Any
@@ -129,7 +127,7 @@ def create_mock_context() -> dict[str, Any]:
             {"title": "Blog", "href": "/blog/"},
             {"title": "About", "href": "/about/"},
         ],
-        "get_auto_nav": lambda: [],
+        "get_auto_nav": list,
         "canonical_url": lambda url: f"https://lbliii.github.io/bengal{url}",
         "og_image": lambda path, page=None: f"https://lbliii.github.io/bengal{path}"
         if path
@@ -195,7 +193,6 @@ def benchmark_single_template(
     """
     from jinja2 import BaseLoader
     from jinja2 import Environment as JinjaEnv
-
     from kida import DictLoader
     from kida import Environment as KidaEnv
 
@@ -236,12 +233,16 @@ def benchmark_single_template(
     mock_templates["_current"] = template_source
 
     # Setup Jinja2 (auto_reload=False for fair benchmark)
-    jinja_env = JinjaEnv(loader=MockLoader(mock_templates), autoescape=True, auto_reload=False)
+    jinja_env = JinjaEnv(
+        loader=MockLoader(mock_templates), autoescape=True, auto_reload=False
+    )
     # Add custom filters
     jinja_env.filters["safe"] = lambda x: x
     jinja_env.filters["date_iso"] = lambda x: x
     jinja_env.filters["time_ago"] = lambda x: "3 days ago"
-    jinja_env.filters["meta_keywords"] = lambda tags, n: ", ".join(tags[:n]) if tags else ""
+    jinja_env.filters["meta_keywords"] = (
+        lambda tags, n: ", ".join(tags[:n]) if tags else ""
+    )
     jinja_env.filters["where_not"] = lambda items, attr, val: [
         i for i in (items or []) if i.get(attr) != val
     ]
@@ -249,7 +250,9 @@ def benchmark_single_template(
     jinja_env.tests["sameas"] = lambda a, b: a is b
 
     # Setup Kida (auto_reload=False for fair benchmark)
-    kida_env = KidaEnv(loader=DictLoader(mock_templates), autoescape=True, auto_reload=False)
+    kida_env = KidaEnv(
+        loader=DictLoader(mock_templates), autoescape=True, auto_reload=False
+    )
 
     try:
         jinja_template = jinja_env.get_template("_current")
@@ -330,7 +333,9 @@ def run_real_template_benchmarks():
     print("-" * 90)
 
     for name, source in simple_patterns.items():
-        jinja_time, kida_time, _, _ = benchmark_single_template(source, context, iterations=10000)
+        jinja_time, kida_time, _, _ = benchmark_single_template(
+            source, context, iterations=10000
+        )
 
         if jinja_time > 0 and kida_time > 0:
             speedup = jinja_time / kida_time

@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.9.28,<0.10.0"]
+build-backend = "uv_build"
 
 [project]
 name = "bengal"
@@ -81,20 +81,10 @@ Documentation = "https://github.com/lbliii/bengal"
 Repository = "https://github.com/lbliii/bengal"
 "Bug Tracker" = "https://github.com/lbliii/bengal/issues"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["bengal*"]
-
-[tool.setuptools.package-data]
-bengal = [
-    "themes/**/*",
-    "autodoc/templates/**/*.jinja2",
-    "scaffolds/**/*",
-    "py.typed",
-]
+[tool.uv.build-backend]
+module-root = ""
 
 [tool.ruff]
-line-length = 100
 target-version = "py314"
 
 [tool.ruff.lint]
@@ -111,6 +101,12 @@ select = [
     "PERF", # perflint - performance anti-patterns
     "C4",   # unnecessary comprehensions/list()/dict() calls
     "RUF",  # Ruff-specific (unused noqa, mutable class defaults, etc.)
+]
+ignore = [
+    "E501",    # line too long - disabled
+    "RUF001",  # ambiguous unicode in string (intentional × symbols)
+    "RUF002",  # ambiguous unicode in docstring
+    "RUF003",  # ambiguous unicode in comment
 ]
 
 # Per-file ignore rules
@@ -152,4 +148,32 @@ dev = [
     "types-jinja2>=2.11.0",
     "pytest-benchmark>=5.2.3",
     "radon>=6.0.1",
+    "poethepoet>=0.35.0",
+    "pyupgrade>=3.21.2",
 ]
+
+[tool.poe.tasks]
+# Linting & Formatting
+lint = "ruff check ."
+lint-fix = "ruff check . --fix"
+format = "ruff format ."
+format-check = "ruff format . --check"
+check = ["lint", "format-check"]
+
+# Type Checking
+typecheck = "ty check"
+
+# Testing
+test = "pytest tests/ -x -q"
+test-cov = "pytest tests/ --cov=bengal --cov-report=term-missing"
+test-fast = "pytest tests/ -x -q --ignore=tests/e2e"
+
+# All checks (what CI runs)
+ci = ["check", "typecheck", "test"]
+
+# Development
+dev = "bengal serve"
+build = "bengal build"
+
+# Cleanup
+clean = "rm -rf dist build .pytest_cache .coverage htmlcov .ruff_cache"

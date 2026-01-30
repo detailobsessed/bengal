@@ -4,8 +4,6 @@ OpenAPI documentation extractor.
 Extracts documentation from OpenAPI 3.0/3.1 specifications.
 """
 
-from __future__ import annotations
-
 import json
 import logging
 from pathlib import Path
@@ -37,9 +35,9 @@ logger = logging.getLogger(__name__)
 class OpenAPIExtractor(Extractor):
     """
     Extracts documentation from OpenAPI specifications.
-    
+
     Supports OpenAPI 3.0 and 3.1 (YAML or JSON).
-        
+
     """
 
     def __init__(self) -> None:
@@ -171,7 +169,11 @@ class OpenAPIExtractor(Extractor):
                 # Fallback: GET /users -> get_users
                 method = get_openapi_method(element) or "op"
                 path = get_openapi_path(element).strip("/") or "path"
-                name = f"{method}_{path}".replace("/", "_").replace("{", "").replace("}", "")
+                name = (
+                    f"{method}_{path}".replace("/", "_")
+                    .replace("{", "")
+                    .replace("}", "")
+                )
 
             return Path(f"endpoints/{tag}/{name}.md")
 
@@ -205,7 +207,9 @@ class OpenAPIExtractor(Extractor):
             metadata={
                 "version": info.get("version"),
                 "servers": spec.get("servers", []),
-                "security_schemes": spec.get("components", {}).get("securitySchemes", {}),
+                "security_schemes": spec.get("components", {}).get(
+                    "securitySchemes", {}
+                ),
                 "tags": spec.get("tags", []),
             },
             typed_metadata=typed_meta,
@@ -218,7 +222,9 @@ class OpenAPIExtractor(Extractor):
 
         for path, path_item in paths.items():
             # Handle common parameters at path level (resolve $refs)
-            path_params = [self._resolve_ref(p) for p in path_item.get("parameters", [])]
+            path_params = [
+                self._resolve_ref(p) for p in path_item.get("parameters", [])
+            ]
 
             for method in ["get", "post", "put", "delete", "patch", "head", "options"]:
                 if method not in path_item:
@@ -227,7 +233,9 @@ class OpenAPIExtractor(Extractor):
                 operation = path_item[method]
 
                 # Merge path-level parameters with operation-level parameters (resolve $refs)
-                op_params = [self._resolve_ref(p) for p in operation.get("parameters", [])]
+                op_params = [
+                    self._resolve_ref(p) for p in operation.get("parameters", [])
+                ]
                 all_params = path_params + op_params
 
                 # Construct name like "GET /users"
@@ -252,7 +260,9 @@ class OpenAPIExtractor(Extractor):
                     req_body = self._resolve_ref(req_body)
                     content = req_body.get("content", {})
                     content_type = next(iter(content.keys()), "application/json")
-                    schema_ref = content.get(content_type, {}).get("schema", {}).get("$ref")
+                    schema_ref = (
+                        content.get(content_type, {}).get("schema", {}).get("$ref")
+                    )
                     typed_request_body = OpenAPIRequestBodyMetadata(
                         content_type=content_type,
                         schema_ref=schema_ref,
@@ -263,12 +273,15 @@ class OpenAPIExtractor(Extractor):
                 # Build typed responses (resolve $refs)
                 raw_responses = operation.get("responses") or {}
                 resolved_responses = {
-                    status: self._resolve_ref(resp) for status, resp in raw_responses.items()
+                    status: self._resolve_ref(resp)
+                    for status, resp in raw_responses.items()
                 }
                 typed_responses = tuple(
                     OpenAPIResponseMetadata(
                         status_code=str(status),
-                        description=resp.get("description", "") if isinstance(resp, dict) else "",
+                        description=resp.get("description", "")
+                        if isinstance(resp, dict)
+                        else "",
                         content_type=next(iter(resp.get("content", {}).keys()), None)
                         if isinstance(resp, dict)
                         else None,
@@ -295,7 +308,8 @@ class OpenAPIExtractor(Extractor):
                     request_body=typed_request_body,
                     responses=typed_responses,
                     security=tuple(
-                        next(iter(s.keys()), "") for s in (operation.get("security") or [])
+                        next(iter(s.keys()), "")
+                        for s in (operation.get("security") or [])
                     ),
                     deprecated=operation.get("deprecated", False),
                 )
@@ -303,7 +317,8 @@ class OpenAPIExtractor(Extractor):
                 element = DocElement(
                     name=name,
                     qualified_name=f"openapi.paths.{path}.{method}",
-                    description=operation.get("description") or operation.get("summary", ""),
+                    description=operation.get("description")
+                    or operation.get("summary", ""),
                     element_type="openapi_endpoint",
                     metadata={
                         "method": method,
@@ -312,14 +327,18 @@ class OpenAPIExtractor(Extractor):
                         "operation_id": operation.get("operationId"),
                         "tags": operation.get("tags", []),
                         "parameters": all_params,  # Already resolved above
-                        "request_body": req_body if req_body else None,  # Use resolved request body
+                        "request_body": req_body
+                        if req_body
+                        else None,  # Use resolved request body
                         "responses": resolved_responses,  # Use resolved responses
                         "security": operation.get("security"),
                         "deprecated": operation.get("deprecated", False),
                     },
                     typed_metadata=typed_meta,
                     examples=[],  # Could extract examples from openapi spec
-                    deprecated="Deprecated in API spec" if operation.get("deprecated") else None,
+                    deprecated="Deprecated in API spec"
+                    if operation.get("deprecated")
+                    else None,
                 )
                 elements.append(element)
 

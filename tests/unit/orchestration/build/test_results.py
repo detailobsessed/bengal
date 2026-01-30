@@ -231,10 +231,16 @@ class TestRebuildReasonCode:
         """Test that all reason codes have string values."""
         assert RebuildReasonCode.CONTENT_CHANGED.value == "content_changed"
         assert RebuildReasonCode.TEMPLATE_CHANGED.value == "template_changed"
-        assert RebuildReasonCode.ASSET_FINGERPRINT_CHANGED.value == "asset_fingerprint_changed"
+        assert (
+            RebuildReasonCode.ASSET_FINGERPRINT_CHANGED.value
+            == "asset_fingerprint_changed"
+        )
         assert RebuildReasonCode.CASCADE_DEPENDENCY.value == "cascade_dependency"
         assert RebuildReasonCode.NAV_CHANGED.value == "nav_changed"
-        assert RebuildReasonCode.CROSS_VERSION_DEPENDENCY.value == "cross_version_dependency"
+        assert (
+            RebuildReasonCode.CROSS_VERSION_DEPENDENCY.value
+            == "cross_version_dependency"
+        )
         assert RebuildReasonCode.ADJACENT_NAV_CHANGED.value == "adjacent_nav_changed"
         assert RebuildReasonCode.FORCED.value == "forced"
         assert RebuildReasonCode.FULL_REBUILD.value == "full_rebuild"
@@ -329,7 +335,11 @@ class TestIncrementalDecision:
         decision = IncrementalDecision(
             pages_to_build=[mock_page],
             pages_skipped_count=10,
-            rebuild_reasons={"content/index.md": RebuildReason(code=RebuildReasonCode.CONTENT_CHANGED)},
+            rebuild_reasons={
+                "content/index.md": RebuildReason(
+                    code=RebuildReasonCode.CONTENT_CHANGED
+                )
+            },
             skip_reasons={"content/about.md": SkipReasonCode.NO_CHANGES},
             asset_changes=["style.css"],
             fingerprint_changes=True,
@@ -355,7 +365,10 @@ class TestIncrementalDecision:
         )
 
         assert "content/index.md" in decision.rebuild_reasons
-        assert decision.rebuild_reasons["content/index.md"].code == RebuildReasonCode.CONTENT_CHANGED
+        assert (
+            decision.rebuild_reasons["content/index.md"].code
+            == RebuildReasonCode.CONTENT_CHANGED
+        )
 
     def test_add_rebuild_reason_with_details(self):
         """Test add_rebuild_reason method with details."""
@@ -370,7 +383,9 @@ class TestIncrementalDecision:
             {"assets": ["style.css"]},
         )
 
-        assert decision.rebuild_reasons["content/index.md"].details == {"assets": ["style.css"]}
+        assert decision.rebuild_reasons["content/index.md"].details == {
+            "assets": ["style.css"]
+        }
 
     def test_add_rebuild_reason_does_not_overwrite(self):
         """Test that add_rebuild_reason does not overwrite existing reasons."""
@@ -392,7 +407,10 @@ class TestIncrementalDecision:
         )
 
         # First reason should be preserved
-        assert decision.rebuild_reasons["content/index.md"].code == RebuildReasonCode.CONTENT_CHANGED
+        assert (
+            decision.rebuild_reasons["content/index.md"].code
+            == RebuildReasonCode.CONTENT_CHANGED
+        )
 
     def test_get_reason_summary(self):
         """Test get_reason_summary returns counts by reason code."""
@@ -400,9 +418,15 @@ class TestIncrementalDecision:
             pages_to_build=[],
             pages_skipped_count=0,
             rebuild_reasons={
-                "content/index.md": RebuildReason(code=RebuildReasonCode.CONTENT_CHANGED),
-                "content/about.md": RebuildReason(code=RebuildReasonCode.CONTENT_CHANGED),
-                "content/blog.md": RebuildReason(code=RebuildReasonCode.ASSET_FINGERPRINT_CHANGED),
+                "content/index.md": RebuildReason(
+                    code=RebuildReasonCode.CONTENT_CHANGED
+                ),
+                "content/about.md": RebuildReason(
+                    code=RebuildReasonCode.CONTENT_CHANGED
+                ),
+                "content/blog.md": RebuildReason(
+                    code=RebuildReasonCode.ASSET_FINGERPRINT_CHANGED
+                ),
             },
         )
 

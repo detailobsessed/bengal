@@ -13,7 +13,7 @@ class TestFrontmatterBOM:
         file.write_bytes(b"\xef\xbb\xbf---\ntitle: Test\n---\nContent")
 
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         assert len(pages) == 1
         assert pages[0].metadata.get("title") == "Test"
@@ -22,7 +22,7 @@ class TestFrontmatterBOM:
 class TestConfigFuzzing:
     # Determine hypothesis availability at import time
     try:
-        import hypothesis  # noqa: F401
+        import hypothesis
 
         _HYPOTHESIS_AVAILABLE = True
     except Exception:  # pragma: no cover - environment dependent

@@ -42,14 +42,14 @@ class InstallerInfo:
 def detect_installer() -> InstallerInfo:
     """
     Detect how Bengal was installed.
-    
+
     Attempts detection in priority order:
     1. uv (preferred for Bengal projects)
     2. pipx (isolated CLI tools)
     3. conda (Anaconda/Miniconda environments)
     4. pip in venv (standard virtual environments)
     5. pip --user (fallback for global installs)
-    
+
     Returns:
         InstallerInfo with name and appropriate upgrade command.
     """
@@ -88,7 +88,15 @@ def detect_installer() -> InstallerInfo:
     # Fallback to pip with --user
     return InstallerInfo(
         name="pip",
-        command=[sys.executable, "-m", "pip", "install", "--upgrade", "--user", "bengal"],
+        command=[
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--upgrade",
+            "--user",
+            "bengal",
+        ],
         display_command="pip install --upgrade --user bengal",
     )
 
@@ -96,11 +104,11 @@ def detect_installer() -> InstallerInfo:
 def _is_uv_project() -> bool:
     """
     Check if current directory is a uv-managed project.
-    
+
     Looks for:
     - uv.lock in current directory or parent directories
     - UV_* environment variables (UV_CACHE_DIR, UV_PYTHON)
-    
+
     Returns:
         True if uv project detected.
     """
@@ -119,10 +127,10 @@ def _is_uv_project() -> bool:
 def _is_pipx_install() -> bool:
     """
     Check if Bengal was installed via pipx.
-    
+
     Runs `pipx list --short` and checks if 'bengal' appears in output.
     Uses a 5s timeout to avoid hanging on slow systems.
-    
+
     Returns:
         True if Bengal appears in pipx list.
     """

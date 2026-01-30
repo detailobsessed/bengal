@@ -62,10 +62,10 @@ mp_context = multiprocessing.get_context("spawn")
 class BuildRequest:
     """
     Serializable build request for cross-process execution.
-    
+
     All fields must be picklable for use with ProcessPoolExecutor.
     Uses strings instead of Path objects for serialization.
-    
+
     Attributes:
         site_root: Path to site root directory (as string)
         changed_paths: Tuple of changed file paths (as strings)
@@ -77,7 +77,7 @@ class BuildRequest:
         version_scope: RFC: rfc-versioned-docs-pipeline-integration (Phase 3)
             Focus rebuilds on a single version (e.g., "v2", "latest").
             If None, all versions are rebuilt on changes.
-        
+
     """
 
     site_root: str
@@ -94,9 +94,9 @@ class BuildRequest:
 class BuildResult:
     """
     Serializable build result from subprocess.
-    
+
     All fields must be picklable for use with ProcessPoolExecutor.
-    
+
     Attributes:
         success: Whether the build completed successfully
         pages_built: Number of pages rendered
@@ -104,7 +104,7 @@ class BuildResult:
         error_message: Error message if build failed
         changed_outputs: Serialized output records as (path, type, phase) tuples
             for reload decision. Type is the OutputType.value string.
-        
+
     """
 
     success: bool
@@ -118,16 +118,16 @@ class BuildResult:
 def _execute_build(request: BuildRequest) -> BuildResult:
     """
     Execute build in subprocess (picklable function).
-    
+
     This function runs in a separate process and must be self-contained.
     It imports Bengal modules lazily to avoid import issues in the subprocess.
-    
+
     Args:
         request: Build request with site configuration
-    
+
     Returns:
         BuildResult with success status and statistics
-        
+
     """
     start_time = time.time()
 
@@ -160,7 +160,9 @@ def _execute_build(request: BuildRequest) -> BuildResult:
             {Path(p) for p in request.changed_paths} if request.changed_paths else None
         )
         nav_changed_sources = (
-            {Path(p) for p in request.nav_changed_paths} if request.nav_changed_paths else set()
+            {Path(p) for p in request.nav_changed_paths}
+            if request.nav_changed_paths
+            else set()
         )
 
         # Execute build
@@ -171,7 +173,7 @@ def _execute_build(request: BuildRequest) -> BuildResult:
             force_sequential=request.force_sequential,
             incremental=request.incremental,
             profile=profile,
-            changed_sources=changed_sources,
+            changed_sources=changed_sources or set(),
             nav_changed_sources=nav_changed_sources,
             structural_changed=request.structural_changed,
         )
@@ -208,14 +210,14 @@ def _execute_build(request: BuildRequest) -> BuildResult:
 def is_free_threaded() -> bool:
     """
     Check if running on free-threaded Python (GIL disabled).
-    
+
     Python 3.14+ with PEP 703 can disable the GIL, making threads
     truly parallel. In this mode, ThreadPoolExecutor is as good as
     ProcessPoolExecutor without the serialization overhead.
-    
+
     Returns:
         True if running on free-threaded Python, False otherwise
-        
+
     """
     if hasattr(sys, "_is_gil_enabled"):
         return not sys._is_gil_enabled()
@@ -225,14 +227,14 @@ def is_free_threaded() -> bool:
 def get_executor_type() -> str:
     """
     Determine which executor type to use.
-    
+
     Order of precedence:
     1. BENGAL_BUILD_EXECUTOR env var ("thread", "process", or "auto")
     2. Auto-detection based on GIL status
-    
+
     Returns:
         "thread" or "process"
-        
+
     """
     env_override = os.environ.get("BENGAL_BUILD_EXECUTOR", "auto").lower()
 
@@ -242,7 +244,9 @@ def get_executor_type() -> str:
         return "process"
     else:  # auto
         if is_free_threaded():
-            logger.debug("executor_auto_select", choice="thread", reason="free_threaded_python")
+            logger.debug(
+                "executor_auto_select", choice="thread", reason="free_threaded_python"
+            )
             return "thread"
         else:
             logger.debug("executor_auto_select", choice="process", reason="gil_enabled")
@@ -252,13 +256,13 @@ def get_executor_type() -> str:
 class BuildExecutor:
     """
     Manages process-isolated or thread-isolated build execution.
-    
+
     Features:
         - Automatic executor type selection based on GIL status
         - Graceful shutdown
         - Timeout support for hanging builds
         - Error capture and reporting
-    
+
     Example:
             >>> executor = BuildExecutor(max_workers=1)
             >>> request = BuildRequest(site_root="/path/to/site")
@@ -266,7 +270,7 @@ class BuildExecutor:
             >>> if result.success:
             ...     print(f"Built {result.pages_built} pages")
             >>> executor.shutdown()
-        
+
     """
 
     def __init__(self, max_workers: int = 1) -> None:
@@ -296,13 +300,17 @@ class BuildExecutor:
 
             if executor_type == "thread":
                 self._executor = ThreadPoolExecutor(max_workers=self.max_workers)
-                logger.info("build_executor_created", type="thread", workers=self.max_workers)
+                logger.info(
+                    "build_executor_created", type="thread", workers=self.max_workers
+                )
             else:
                 self._executor = ProcessPoolExecutor(
                     max_workers=self.max_workers,
                     mp_context=mp_context,
                 )
-                logger.info("build_executor_created", type="process", workers=self.max_workers)
+                logger.info(
+                    "build_executor_created", type="process", workers=self.max_workers
+                )
 
         return self._executor
 
@@ -389,14 +397,14 @@ class BuildExecutor:
 def create_build_executor(max_workers: int = 1) -> BuildExecutor:
     """
     Create a build executor with default settings.
-    
+
     Factory function for convenient executor creation.
-    
+
     Args:
         max_workers: Maximum concurrent builds
-    
+
     Returns:
         Configured BuildExecutor instance
-        
+
     """
     return BuildExecutor(max_workers=max_workers)

@@ -7,8 +7,6 @@ ensures consistent globals across all template engines (Jinja2, Kida).
 Related RFC: plan/drafted/rfc-engine-agnostic-context-layer.md
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 

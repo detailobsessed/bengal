@@ -8,8 +8,6 @@ Tests the native :target-based tabs including:
 - Mode switching between enhanced and css_state_machine
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 from bengal.directives.tabs import TabSetDirective
@@ -40,7 +38,9 @@ class TestTabSetNativeMode:
         text = """<div class="tab-item" data-title="Python" data-selected="false" data-icon="" data-badge="" data-disabled="false">Python content</div>
 <div class="tab-item" data-title="JavaScript" data-selected="false" data-icon="" data-badge="" data-disabled="false">JS content</div>"""
 
-        html = directive.render(renderer, text, id="test-tabs", sync="", mode="css_state_machine")
+        html = directive.render(
+            renderer, text, id="test-tabs", sync="", mode="css_state_machine"
+        )
 
         assert 'class="tabs tabs--native"' in html
         assert 'role="tablist"' in html
@@ -54,7 +54,9 @@ class TestTabSetNativeMode:
 
         text = """<div class="tab-item" data-title="Python" data-selected="false" data-icon="" data-badge="" data-disabled="false">Python content</div>"""
 
-        html = directive.render(renderer, text, id="code", sync="", mode="css_state_machine")
+        html = directive.render(
+            renderer, text, id="code", sync="", mode="css_state_machine"
+        )
 
         assert 'href="#code-python"' in html
         assert "data-tab-target" not in html
@@ -66,7 +68,9 @@ class TestTabSetNativeMode:
 
         text = """<div class="tab-item" data-title="C Sharp Code" data-selected="false" data-icon="" data-badge="" data-disabled="false">C# content</div>"""
 
-        html = directive.render(renderer, text, id="example", sync="", mode="css_state_machine")
+        html = directive.render(
+            renderer, text, id="example", sync="", mode="css_state_machine"
+        )
 
         assert 'href="#example-c-sharp-code"' in html
         assert 'id="example-c-sharp-code"' in html
@@ -78,7 +82,9 @@ class TestTabSetNativeMode:
 
         text = """<div class="tab-item" data-title="Python" data-selected="false" data-icon="" data-badge="" data-disabled="false">Content</div>"""
 
-        html = directive.render(renderer, text, id="test", sync="", mode="css_state_machine")
+        html = directive.render(
+            renderer, text, id="test", sync="", mode="css_state_machine"
+        )
 
         assert 'aria-controls="test-python"' in html
 
@@ -89,7 +95,9 @@ class TestTabSetNativeMode:
 
         text = """<div class="tab-item" data-title="Python" data-selected="false" data-icon="" data-badge="" data-disabled="false">Content</div>"""
 
-        html = directive.render(renderer, text, id="test", sync="", mode="css_state_machine")
+        html = directive.render(
+            renderer, text, id="test", sync="", mode="css_state_machine"
+        )
 
         assert '<section id="test-python"' in html
         assert 'role="tabpanel"' in html

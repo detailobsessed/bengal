@@ -239,7 +239,9 @@ def find_templates(root: Path) -> list[Path]:
 def analyze_opportunities(root: Path) -> dict[str, list[tuple[Path, int]]]:
     """Find conversion opportunities without applying them."""
     all_conversions = CONVERSIONS + MANUAL_REVIEW_PATTERNS
-    opportunities: dict[str, list[tuple[Path, int]]] = {c.name: [] for c in all_conversions}
+    opportunities: dict[str, list[tuple[Path, int]]] = {
+        c.name: [] for c in all_conversions
+    }
 
     for path in find_templates(root):
         content = path.read_text(encoding="utf-8")
@@ -331,7 +333,9 @@ def print_results(results: list[ConversionResult], dry_run: bool) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Convert Jinja2 templates to Kida-native syntax")
+    parser = argparse.ArgumentParser(
+        description="Convert Jinja2 templates to Kida-native syntax"
+    )
     parser.add_argument(
         "path",
         nargs="?",

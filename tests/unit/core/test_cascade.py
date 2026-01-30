@@ -17,7 +17,10 @@ class TestSectionCascadeExtraction:
         # Create index page with cascade
         index_page = Page(
             source_path=Path("/content/products/_index.md"),
-            metadata={"title": "Products", "cascade": {"type": "product", "version": "2.0"}},
+            metadata={
+                "title": "Products",
+                "cascade": {"type": "product", "version": "2.0"},
+            },
         )
 
         section.add_page(index_page)
@@ -32,7 +35,9 @@ class TestSectionCascadeExtraction:
         """Test that sections work fine without cascade."""
         section = Section(name="blog", path=Path("/content/blog"))
 
-        index_page = Page(source_path=Path("/content/blog/_index.md"), metadata={"title": "Blog"})
+        index_page = Page(
+            source_path=Path("/content/blog/_index.md"), metadata={"title": "Blog"}
+        )
 
         section.add_page(index_page)
 
@@ -70,8 +75,13 @@ class TestBasicCascade:
         section.metadata["cascade"] = {"type": "documentation", "version": "1.0"}
 
         # Create pages without these fields
-        page1 = Page(source_path=Path("/content/docs/intro.md"), metadata={"title": "Introduction"})
-        page2 = Page(source_path=Path("/content/docs/guide.md"), metadata={"title": "Guide"})
+        page1 = Page(
+            source_path=Path("/content/docs/intro.md"),
+            metadata={"title": "Introduction"},
+        )
+        page2 = Page(
+            source_path=Path("/content/docs/guide.md"), metadata={"title": "Guide"}
+        )
 
         section.add_page(page1)
         section.add_page(page2)
@@ -124,7 +134,9 @@ class TestBasicCascade:
         section = Section(name="pages", path=Path("/content/pages"))
         section.metadata["cascade"] = {}  # Empty cascade
 
-        page = Page(source_path=Path("/content/pages/about.md"), metadata={"title": "About"})
+        page = Page(
+            source_path=Path("/content/pages/about.md"), metadata={"title": "About"}
+        )
 
         section.add_page(page)
         site.sections = [section]
@@ -145,7 +157,10 @@ class TestNestedCascade:
 
         # Parent section
         parent = Section(name="api", path=Path("/content/api"))
-        parent.metadata["cascade"] = {"type": "api-doc", "api_base": "https://api.example.com"}
+        parent.metadata["cascade"] = {
+            "type": "api-doc",
+            "api_base": "https://api.example.com",
+        }
 
         # Child section with additional cascade
         child = Section(name="v2", path=Path("/content/api/v2"))
@@ -153,7 +168,8 @@ class TestNestedCascade:
 
         # Page in child section
         page = Page(
-            source_path=Path("/content/api/v2/auth.md"), metadata={"title": "Authentication"}
+            source_path=Path("/content/api/v2/auth.md"),
+            metadata={"title": "Authentication"},
         )
 
         parent.add_subsection(child)
@@ -183,7 +199,10 @@ class TestNestedCascade:
             "status": "stable",  # Override
         }
 
-        page = Page(source_path=Path("/content/docs/stable/guide.md"), metadata={"title": "Guide"})
+        page = Page(
+            source_path=Path("/content/docs/stable/guide.md"),
+            metadata={"title": "Guide"},
+        )
 
         parent.add_subsection(child)
         child.add_page(page)
@@ -211,7 +230,10 @@ class TestNestedCascade:
 
         # Level 3: Version section
         version = Section(name="v3", path=Path("/content/products/widgets/v3"))
-        version.metadata["cascade"] = {"version": "3.0", "warranty": "2-year"}  # Override warranty
+        version.metadata["cascade"] = {
+            "version": "3.0",
+            "warranty": "2-year",
+        }  # Override warranty
 
         # Page at deepest level
         page = Page(
@@ -232,7 +254,9 @@ class TestNestedCascade:
         assert page.metadata["product_line"] == "current"  # from root
         assert page.metadata["category"] == "widget"  # from category
         assert page.metadata["version"] == "3.0"  # from version
-        assert page.metadata["warranty"] == "2-year"  # from version (overrides category)
+        assert (
+            page.metadata["warranty"] == "2-year"
+        )  # from version (overrides category)
 
 
 class TestCascadeEdgeCases:
@@ -271,7 +295,9 @@ class TestCascadeEdgeCases:
             "count": 42,
         }
 
-        page = Page(source_path=Path("/content/complex/page.md"), metadata={"title": "Test"})
+        page = Page(
+            source_path=Path("/content/complex/page.md"), metadata={"title": "Test"}
+        )
 
         section.add_page(page)
         site.sections = [section]
@@ -293,10 +319,15 @@ class TestCascadeEdgeCases:
 
         index_page = Page(
             source_path=Path("/content/docs/_index.md"),
-            metadata={"title": "Documentation", "cascade": {"type": "doc", "version": "1.0"}},
+            metadata={
+                "title": "Documentation",
+                "cascade": {"type": "doc", "version": "1.0"},
+            },
         )
 
-        regular_page = Page(source_path=Path("/content/docs/guide.md"), metadata={"title": "Guide"})
+        regular_page = Page(
+            source_path=Path("/content/docs/guide.md"), metadata={"title": "Guide"}
+        )
 
         section.add_page(index_page)
         section.add_page(regular_page)
@@ -307,7 +338,10 @@ class TestCascadeEdgeCases:
         site._apply_cascades()
 
         # Index page should have its original metadata only
-        assert "type" not in index_page.metadata or index_page.metadata.get("type") == "doc"
+        assert (
+            "type" not in index_page.metadata
+            or index_page.metadata.get("type") == "doc"
+        )
 
         # Regular page should have cascade applied
         assert regular_page.metadata["type"] == "doc"
@@ -324,7 +358,10 @@ class TestRootLevelCascade:
         # Root-level page with cascade (like content/index.md)
         root_page = Page(
             source_path=Path("/content/index.md"),
-            metadata={"title": "Home", "cascade": {"type": "doc", "site_version": "1.0"}},
+            metadata={
+                "title": "Home",
+                "cascade": {"type": "doc", "site_version": "1.0"},
+            },
         )
 
         # Top-level section
@@ -332,7 +369,8 @@ class TestRootLevelCascade:
 
         # Page in section
         child_page = Page(
-            source_path=Path("/content/docs/intro.md"), metadata={"title": "Introduction"}
+            source_path=Path("/content/docs/intro.md"),
+            metadata={"title": "Introduction"},
         )
 
         section.add_page(child_page)
@@ -363,8 +401,12 @@ class TestRootLevelCascade:
         section2 = Section(name="docs", path=Path("/content/docs"))
 
         # Pages in different sections
-        page1 = Page(source_path=Path("/content/about/team.md"), metadata={"title": "Team"})
-        page2 = Page(source_path=Path("/content/docs/guide.md"), metadata={"title": "Guide"})
+        page1 = Page(
+            source_path=Path("/content/about/team.md"), metadata={"title": "Team"}
+        )
+        page2 = Page(
+            source_path=Path("/content/docs/guide.md"), metadata={"title": "Guide"}
+        )
 
         section1.add_page(page1)
         section2.add_page(page2)
@@ -397,7 +439,9 @@ class TestRootLevelCascade:
             "theme": "dark",  # Override
         }
 
-        page = Page(source_path=Path("/content/api/rest.md"), metadata={"title": "REST API"})
+        page = Page(
+            source_path=Path("/content/api/rest.md"), metadata={"title": "REST API"}
+        )
 
         section.add_page(page)
 
@@ -427,7 +471,10 @@ class TestRootLevelCascade:
         child = Section(name="guides", path=Path("/content/docs/guides"))
 
         # Page in deeply nested section
-        page = Page(source_path=Path("/content/docs/guides/intro.md"), metadata={"title": "Intro"})
+        page = Page(
+            source_path=Path("/content/docs/guides/intro.md"),
+            metadata={"title": "Intro"},
+        )
 
         parent.add_subsection(child)
         child.add_page(page)

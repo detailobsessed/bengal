@@ -4,8 +4,6 @@ Unit tests for URL ownership system.
 Tests URLRegistry, URLClaim, and URLCollisionError functionality.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.core.url_ownership import URLClaim, URLCollisionError, URLRegistry

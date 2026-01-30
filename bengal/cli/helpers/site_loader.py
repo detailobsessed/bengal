@@ -24,6 +24,7 @@ import click
 from bengal.core.site import Site
 from bengal.output import CLIOutput
 from bengal.utils.observability.logger import get_logger
+from bengal.utils.observability.profile import BuildProfile
 
 logger = get_logger(__name__)
 
@@ -31,15 +32,15 @@ logger = get_logger(__name__)
 def _check_parent_project_conflict(root_path: Path, cli: CLIOutput) -> None:
     """
     Check if parent directories contain another Bengal project.
-    
+
     This helps catch a common mistake: running bengal from a subdirectory
     of another Bengal project (e.g., running from project root when the
     actual site is in a 'site/' subdirectory, or vice versa).
-    
+
     Args:
         root_path: The resolved site root path
         cli: CLI output for warnings
-        
+
     """
     parent = root_path.parent
 
@@ -91,7 +92,8 @@ def _check_parent_project_conflict(root_path: Path, cli: CLIOutput) -> None:
                     icon="",
                 )
                 cli.warning(
-                    "   If this is wrong, cd to the correct directory and try again.", icon=""
+                    "   If this is wrong, cd to the correct directory and try again.",
+                    icon="",
                 )
                 cli.blank()
 
@@ -120,14 +122,14 @@ def _count_markdown_files(directory: Path) -> int:
 def _check_subdirectory_site(root_path: Path, cli: CLIOutput) -> Path | None:
     """
     Check if a subdirectory contains what looks like the actual site.
-    
+
     Common case: running from project root when site/ subdirectory
     contains the actual Bengal site with content.
-    
+
     Args:
         root_path: The resolved site root path
         cli: CLI output for warnings
-        
+
     """
     # Check common subdirectory names for site content
     common_site_dirs = ["site", "docs", "website", "web"]
@@ -156,7 +158,8 @@ def _check_subdirectory_site(root_path: Path, cli: CLIOutput) -> Path | None:
             # Warn if subdirectory has significantly more content
             # (at least 2x and at least 50 more files)
             significantly_more = (
-                subdir_md_count > current_md_count * 2 and subdir_md_count > current_md_count + 50
+                subdir_md_count > current_md_count * 2
+                and subdir_md_count > current_md_count + 50
             )
 
             if not current_content.exists():
@@ -164,7 +167,9 @@ def _check_subdirectory_site(root_path: Path, cli: CLIOutput) -> Path | None:
                 cli.warning(
                     f"Subdirectory '{subdir_name}/' appears to be a Bengal site with content."
                 )
-                cli.warning(f"   Did you mean to run: cd {subdir_name} && bengal serve", icon="")
+                cli.warning(
+                    f"   Did you mean to run: cd {subdir_name} && bengal serve", icon=""
+                )
                 cli.blank()
 
                 logger.warning(
@@ -181,7 +186,8 @@ def _check_subdirectory_site(root_path: Path, cli: CLIOutput) -> Path | None:
                     f"({subdir_md_count} vs {current_md_count} markdown files)."
                 )
                 cli.warning(
-                    f"   If you meant to build that site: cd {subdir_name} && bengal serve", icon=""
+                    f"   If you meant to build that site: cd {subdir_name} && bengal serve",
+                    icon="",
                 )
                 cli.blank()
 
@@ -208,30 +214,30 @@ def load_site_from_cli(
 ) -> Site:
     """
     Load a Site instance from CLI arguments with consistent error handling.
-    
+
     Args:
         source: Source directory path (default: current directory)
         config: Optional config file path
         environment: Optional environment name (local, preview, production)
         profile: Optional profile name or BuildProfile object
         cli: Optional CLIOutput instance (creates new if not provided)
-    
+
     Returns:
         Site instance
-    
+
     Raises:
         click.Abort: If site loading fails
-    
+
     Example:
         @click.command()
         def my_command(source: str, config: str | None):
             site = load_site_from_cli(source, config)
             # ... use site ...
-        
+
     """
     if cli is None:
         cli = CLIOutput()
-    
+
     from bengal.utils.observability.profile import BuildProfile
 
     # Normalize profile to string if it's an enum
@@ -262,7 +268,9 @@ def load_site_from_cli(
         raise click.Abort()
 
     try:
-        site = Site.from_config(root_path, config_path, environment=environment, profile=profile_name)
+        site = Site.from_config(
+            root_path, config_path, environment=environment, profile=profile_name
+        )
         return site
     except Exception as e:
         cli.error(f"Failed to load site from {root_path}: {e}")

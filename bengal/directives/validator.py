@@ -38,22 +38,22 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 
 class DirectiveSyntaxValidator:
     """Validate directive syntax before parsing.
-    
+
     Catches common errors early with helpful messages, avoiding expensive
     parsing and recursive markdown processing for malformed content.
-    
+
     Class Attributes:
         KNOWN_DIRECTIVES: Set of recognized directive type names.
         ADMONITION_TYPES: Subset of directives that are admonitions.
-    
+
     Example:
         Validate a specific directive::
-    
+
             errors = DirectiveSyntaxValidator.validate_directive(
                 directive_type="tabs",
                 content=directive_content,
@@ -63,10 +63,10 @@ class DirectiveSyntaxValidator:
             if errors:
                 for error in errors:
                     print(f"Validation error: {error}")
-        
+
     """
 
-    KNOWN_DIRECTIVES: set[str] = {
+    KNOWN_DIRECTIVES: ClassVar[set[str]] = {
         "tabs",
         "note",
         "tip",
@@ -84,7 +84,7 @@ class DirectiveSyntaxValidator:
     }
     """Set of recognized directive type names for validation."""
 
-    ADMONITION_TYPES: set[str] = {
+    ADMONITION_TYPES: ClassVar[set[str]] = {
         "note",
         "tip",
         "warning",
@@ -187,7 +187,10 @@ class DirectiveSyntaxValidator:
 
     @staticmethod
     def validate_dropdown_directive(
-        content: str, title: str = "", file_path: Path | None = None, line_number: int | None = None
+        content: str,
+        title: str = "",
+        file_path: Path | None = None,
+        line_number: int | None = None,
     ) -> list[str]:
         """Validate dropdown directive content.
 
@@ -216,7 +219,10 @@ class DirectiveSyntaxValidator:
 
     @staticmethod
     def validate_admonition_directive(
-        admon_type: str, content: str, file_path: Path | None = None, line_number: int | None = None
+        admon_type: str,
+        content: str,
+        file_path: Path | None = None,
+        line_number: int | None = None,
     ) -> list[str]:
         """Validate admonition directive content.
 
@@ -239,7 +245,9 @@ class DirectiveSyntaxValidator:
         return errors
 
     @staticmethod
-    def validate_nested_fences(content: str, file_path: Path | None = None) -> list[str]:
+    def validate_nested_fences(
+        content: str, file_path: Path | None = None
+    ) -> list[str]:
         """Validate nested colon fence structure in markdown content.
 
         Performs structural validation of directive nesting, checking for:
@@ -323,7 +331,9 @@ class DirectiveSyntaxValidator:
 
                 # Check nesting against parent (only warn if NOT using named closers)
                 if stack and not uses_named_closers:
-                    parent_line, parent_count, parent_type, parent_indented, _ = stack[-1]
+                    parent_line, parent_count, parent_type, _parent_indented, _ = stack[
+                        -1
+                    ]
 
                     # Warning: Nested with same length and no indentation
                     if count == parent_count and not is_indented:
@@ -350,7 +360,7 @@ class DirectiveSyntaxValidator:
                     continue
 
                 # Check against top of stack
-                top_line, top_count, top_type, _, _ = stack[-1]
+                _top_line, top_count, top_type, _, _ = stack[-1]
 
                 if count == top_count:
                     # Perfect match
@@ -392,7 +402,13 @@ class DirectiveSyntaxValidator:
 
         # End of file: check for unclosed blocks
         if stack:
-            for unclosed_line, unclosed_count, unclosed_dtype, _is_indented, _uses_named in stack:
+            for (
+                unclosed_line,
+                unclosed_count,
+                unclosed_dtype,
+                _is_indented,
+                _uses_named,
+            ) in stack:
                 if unclosed_count == 3:
                     errors.append(
                         f"Line {unclosed_line}: Directive '{unclosed_dtype}' opened with ::: but never closed. "
@@ -448,21 +464,30 @@ class DirectiveSyntaxValidator:
             errors.extend(cls.validate_tabs_directive(content, file_path, line_number))
 
         elif directive_type in ("code-tabs", "code_tabs"):
-            errors.extend(cls.validate_code_tabs_directive(content, file_path, line_number))
+            errors.extend(
+                cls.validate_code_tabs_directive(content, file_path, line_number)
+            )
 
         elif directive_type in ("dropdown", "details"):
-            errors.extend(cls.validate_dropdown_directive(content, title, file_path, line_number))
+            errors.extend(
+                cls.validate_dropdown_directive(content, title, file_path, line_number)
+            )
 
         elif directive_type in cls.ADMONITION_TYPES:
             errors.extend(
-                cls.validate_admonition_directive(directive_type, content, file_path, line_number)
+                cls.validate_admonition_directive(
+                    directive_type, content, file_path, line_number
+                )
             )
 
         return errors
 
     @classmethod
     def validate_directive_block(
-        cls, directive_block: str, file_path: Path | None = None, start_line: int | None = None
+        cls,
+        directive_block: str,
+        file_path: Path | None = None,
+        start_line: int | None = None,
     ) -> dict[str, Any]:
         """Validate a complete directive block extracted from markdown.
 
@@ -549,42 +574,42 @@ def validate_markdown_directives(
     markdown_content: str, file_path: Path | None = None
 ) -> list[dict[str, Any]]:
     """Validate all directive blocks in a markdown file.
-    
+
     Performs both structural validation (nesting, fence matching) and
     per-directive content validation.
-    
+
     Args:
         markdown_content: Full markdown content to validate.
         file_path: Optional file path for error reporting.
-    
+
     Returns:
         List of validation result dictionaries, one per directive block plus
         any structural issues. Each result has ``valid``, ``errors``,
         ``directive_type``, ``content``, ``title``, and ``options`` keys.
-    
+
     Example:
             >>> results = validate_markdown_directives(content, Path("guide.md"))
             >>> for r in results:
             ...     if not r["valid"]:
             ...         print(f"{r['directive_type']}: {r['errors']}")
-        
+
     """
     results = []
     validator = DirectiveSyntaxValidator()
 
     # 1. Check nesting structure (Global check)
     fence_errors = validator.validate_nested_fences(markdown_content, file_path)
-    for error in fence_errors:
-        results.append(
-            {
-                "valid": False,
-                "errors": [error],
-                "directive_type": "structure",
-                "content": "",
-                "title": "Nesting Structure",
-                "options": {},
-            }
-        )
+    results.extend(
+        {
+            "valid": False,
+            "errors": [error],
+            "directive_type": "structure",
+            "content": "",
+            "title": "Nesting Structure",
+            "options": {},
+        }
+        for error in fence_errors
+    )
 
     # 2. Find and validate individual directive blocks
     pattern = r"```\{(\w+(?:-\w+)?)\}[^\n]*\n.*?```"
@@ -606,18 +631,20 @@ def validate_markdown_directives(
     return results
 
 
-def get_directive_validation_summary(validation_results: list[dict[str, Any]]) -> dict[str, Any]:
+def get_directive_validation_summary(
+    validation_results: list[dict[str, Any]],
+) -> dict[str, Any]:
     """Summarize directive validation results.
-    
+
     Aggregates validation results into counts and a consolidated error list.
-    
+
     Args:
         validation_results: List of validation result dictionaries from
             ``validate_markdown_directives()``.
-    
+
     Returns:
         Summary dictionary::
-    
+
             {
                 "total_directives": int,
                 "valid": int,
@@ -625,23 +652,24 @@ def get_directive_validation_summary(validation_results: list[dict[str, Any]]) -
                 "errors": list[{"directive_type": str, "error": str}],
                 "has_errors": bool
             }
-    
+
     Example:
             >>> results = validate_markdown_directives(content)
             >>> summary = get_directive_validation_summary(results)
             >>> if summary["has_errors"]:
             ...     print(f"{summary['invalid']} directives have errors")
-        
+
     """
     total = len(validation_results)
     valid = sum(1 for r in validation_results if r["valid"])
     invalid = total - valid
 
-    all_errors = []
-    for result in validation_results:
-        if not result["valid"]:
-            for error in result["errors"]:
-                all_errors.append({"directive_type": result["directive_type"], "error": error})
+    all_errors = [
+        {"directive_type": result["directive_type"], "error": error}
+        for result in validation_results
+        if not result["valid"]
+        for error in result["errors"]
+    ]
 
     return {
         "total_directives": total,

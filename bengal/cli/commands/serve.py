@@ -32,9 +32,13 @@ from bengal.utils.observability.logger import LogLevel, configure_logging
     tags=["dev", "server", "quick"],
 )
 @click.option("--host", default=DEFAULT_DEV_HOST, help="Server host address")
-@click.option("--port", "-p", default=DEFAULT_DEV_PORT, type=int, help="Server port number")
 @click.option(
-    "--watch/--no-watch", default=True, help="Watch for file changes and rebuild (default: enabled)"
+    "--port", "-p", default=DEFAULT_DEV_PORT, type=int, help="Server port number"
+)
+@click.option(
+    "--watch/--no-watch",
+    default=True,
+    help="Watch for file changes and rebuild (default: enabled)",
 )
 @click.option(
     "--auto-port/--no-auto-port",
@@ -92,7 +96,9 @@ from bengal.utils.observability.logger import LogLevel, configure_logging
     help="Traceback verbosity: full | compact | minimal | off",
 )
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
 @handle_cli_errors(show_art=True)
@@ -115,14 +121,14 @@ def serve(
 ) -> None:
     """
     Start development server with hot reload.
-    
+
     Watches for changes in content, assets, and templates,
     automatically rebuilding the site when files are modified.
-    
+
     Version Scoping (RFC: rfc-versioned-docs-pipeline-integration):
         --version v2     Focus on single version, faster rebuilds
         --all-versions   Explicitly build all versions (default)
-        
+
     """
     # Validate conflicting flags
     if verbose and debug:

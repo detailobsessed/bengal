@@ -103,7 +103,12 @@ class TestBuildTemplateContext:
         """Context should include graph stats."""
         with patch.object(visualizer, "generate_graph_data") as mock_data:
             mock_data.return_value = {
-                "stats": {"total_pages": 10, "total_links": 20, "hubs": 2, "orphans": 3},
+                "stats": {
+                    "total_pages": 10,
+                    "total_links": 20,
+                    "hubs": 2,
+                    "orphans": 3,
+                },
                 "nodes": [],
                 "edges": [],
             }

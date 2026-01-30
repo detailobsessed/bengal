@@ -40,7 +40,7 @@ logger = get_logger(__name__)
 def _get_markdown_engine_and_version(config: dict[str, Any]) -> tuple[str, str | None]:
     """
     Determine configured markdown engine and resolve its library version.
-        
+
     """
     # Support legacy flat key and new nested config
     engine = config.get("markdown_engine")
@@ -91,7 +91,6 @@ def _get_theme_info(site: SiteLike) -> dict[str, Any]:
             error=str(e),
             error_type=type(e).__name__,
         )
-        pass
 
     return {"name": theme_name, "version": version}
 
@@ -108,14 +107,14 @@ def _get_i18n_info(config: dict[str, Any]) -> dict[str, Any]:
 def _get_capabilities() -> dict[str, bool]:
     """
     Detect runtime capabilities based on installed optional dependencies.
-    
+
     These are checked once at build time and cached. Templates can use these
     to conditionally enable features (e.g., only emit search-index.json meta
     tag when lunr is installed and will generate the pre-built index).
-    
+
     Returns:
         Dictionary of capability name → availability boolean
-        
+
     """
     capabilities: dict[str, bool] = {}
 
@@ -141,12 +140,12 @@ def _get_capabilities() -> dict[str, bool]:
 def build_template_metadata(site: SiteLike) -> dict[str, Any]:
     """
     Build a curated, privacy-aware metadata dictionary for templates/JS.
-    
+
     Exposure levels (via config['expose_metadata']):
       - minimal: engine only
       - standard: + theme, build timestamp, i18n basics
       - extended: + rendering details (markdown/highlighter versions)
-        
+
     """
     config = getattr(site, "config", {}) or {}
     exposure = (config.get("expose_metadata") or "minimal").strip().lower()
@@ -173,7 +172,7 @@ def build_template_metadata(site: SiteLike) -> dict[str, Any]:
                 i18n_info.get("defaultLanguage"),
                 tuple(i18n_info.get("languages") or []),
             )
-            cached = site._bengal_template_metadata_cache
+            cached = getattr(site, "_bengal_template_metadata_cache", None)
             if (
                 isinstance(cached, dict)
                 and cached.get("key") == cache_key
@@ -243,6 +242,14 @@ def build_template_metadata(site: SiteLike) -> dict[str, Any]:
 
     if not getattr(site, "dev_mode", False):
         with suppress(Exception):
-            site._bengal_template_metadata_cache = {"key": cache_key, "metadata": result}
+            # Use setattr for dynamic attribute not in SiteLike protocol
+            object.__setattr__(
+                site,
+                "_bengal_template_metadata_cache",
+                {
+                    "key": cache_key,
+                    "metadata": result,
+                },
+            )
 
     return result

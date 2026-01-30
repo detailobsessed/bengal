@@ -14,8 +14,6 @@ Expected output:
     - Speedup ratio and cache hit rate
 """
 
-from __future__ import annotations
-
 import statistics
 import time
 from typing import Any
@@ -25,7 +23,9 @@ from typing import Any
 # ============================================================================
 
 
-def generate_repeated_directives(num_directives: int = 50, unique_ratio: float = 0.2) -> str:
+def generate_repeated_directives(
+    num_directives: int = 50, unique_ratio: float = 0.2
+) -> str:
     """Generate markdown with repeated directive patterns.
 
     Args:
@@ -80,13 +80,12 @@ def generate_autodoc_style_content(num_items: int = 30) -> str:
     """
     content_parts = ["# API Reference\n\n"]
 
-    for i in range(num_items):
-        # Note: Using consistent content to enable cache hits
-        content_parts.append(
-            """
-## `function_%d`
+    # Note: Using consistent content to enable cache hits
+    content_parts.extend(
+        f"""
+## `function_{i}`
 
-:::{note}
+:::{{note}}
 This function is part of the core API.
 :::
 
@@ -97,7 +96,7 @@ This function is part of the core API.
 | `arg1` | `str` | First argument |
 | `arg2` | `int` | Second argument |
 
-:::{dropdown} Example
+:::{{dropdown}} Example
 ```python
 result = function("hello", 42)
 ```
@@ -108,8 +107,8 @@ result = function("hello", 42)
 ---
 
 """
-            % i
-        )
+        for i in range(num_items)
+    )
 
     return "".join(content_parts)
 
@@ -119,7 +118,9 @@ result = function("hello", 42)
 # ============================================================================
 
 
-def render_with_patitas(content: str, use_cache: bool = False) -> tuple[str, dict[str, Any]]:
+def render_with_patitas(
+    content: str, use_cache: bool = False
+) -> tuple[str, dict[str, Any]]:
     """Render content using Patitas parser.
 
     Args:
@@ -154,13 +155,16 @@ def render_with_simulated_cache(content: str) -> tuple[str, dict[str, Any]]:
     This simulates what would happen if we wired up DirectiveCache
     by manually caching at the render level.
     """
-    from bengal.directives.cache import DirectiveCache
-    from bengal.parsing.backends.patitas import create_markdown
-    from bengal.parsing.backends.patitas.directives.registry import create_default_registry
-    from bengal.parsing.backends.patitas.renderers.html import HtmlRenderer
-    from bengal.utils.primitives.hashing import hash_str
     from patitas.nodes import Directive
     from patitas.stringbuilder import StringBuilder
+
+    from bengal.directives.cache import DirectiveCache
+    from bengal.parsing.backends.patitas import create_markdown
+    from bengal.parsing.backends.patitas.directives.registry import (
+        create_default_registry,
+    )
+    from bengal.parsing.backends.patitas.renderers.html import HtmlRenderer
+    from bengal.utils.primitives.hashing import hash_str
 
     cache = DirectiveCache(max_size=500)
     registry = create_default_registry()
@@ -238,9 +242,7 @@ def render_with_simulated_cache(content: str) -> tuple[str, dict[str, Any]]:
             # Use location-independent content signature
             content_sig = _extract_content_signature(node)
 
-            cache_key = (
-                f"{node.name}:{node.title or ''}:{options_str}:{hash_str(content_sig, truncate=16)}"
-            )
+            cache_key = f"{node.name}:{node.title or ''}:{options_str}:{hash_str(content_sig, truncate=16)}"
 
             # Check cache
             cached = self._directive_cache.get("directive_html", cache_key)
@@ -437,7 +439,9 @@ def main():
     print(f"\n{'Benchmark':<45} {'Speedup':>10} {'Cache Hit Rate':>15}")
     print("-" * 70)
     for r in all_results:
-        print(f"{r['name']:<45} {r['speedup']:>9.2f}x {r['with_cache']['cache_hit_rate']:>14.1%}")
+        print(
+            f"{r['name']:<45} {r['speedup']:>9.2f}x {r['with_cache']['cache_hit_rate']:>14.1%}"
+        )
 
     # Recommendation
     avg_speedup = statistics.mean(r["speedup"] for r in all_results)
@@ -446,7 +450,9 @@ def main():
     if avg_speedup > 1.1:
         print("\n✅ Recommendation: Wiring up DirectiveCache is worth it!")
     else:
-        print("\n⚠️ Recommendation: Speedup is marginal, may not be worth the complexity.")
+        print(
+            "\n⚠️ Recommendation: Speedup is marginal, may not be worth the complexity."
+        )
 
 
 if __name__ == "__main__":

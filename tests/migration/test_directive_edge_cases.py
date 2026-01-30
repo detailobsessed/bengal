@@ -6,8 +6,6 @@ both backends handle edge cases identically.
 See RFC: plan/drafted/rfc-patitas-bengal-directive-migration.md
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 import pytest
@@ -435,14 +433,14 @@ def test_edge_case_parity(
     assert_html_equal: Callable[[str, str, str], None],
 ) -> None:
     """Verify edge cases produce identical results in both backends.
-    
+
     Args:
         name: Test case name
         source: Markdown source to render
         render_with_mistune: Fixture to render with mistune
         render_with_patitas: Fixture to render with patitas
         assert_html_equal: Fixture for HTML comparison
-        
+
     """
     mistune_html = render_with_mistune(source)
     patitas_html = render_with_patitas(source)
@@ -457,12 +455,12 @@ def test_edge_case_no_crash(
     render_with_patitas: Callable[[str], str],
 ) -> None:
     """Verify Patitas handles all edge cases without crashing.
-    
+
     Args:
         name: Test case name
         source: Markdown source to render
         render_with_patitas: Fixture to render with patitas
-        
+
     """
     # Should not raise any exception
     html = render_with_patitas(source)
@@ -478,7 +476,9 @@ def test_edge_case_no_crash(
 class TestErrorHandling:
     """Tests for graceful error handling."""
 
-    def test_unclosed_directive(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_unclosed_directive(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test handling of unclosed directive."""
         source = """\
 :::{note}
@@ -490,7 +490,9 @@ More content that isn't in the note.
         html = render_with_patitas(source)
         assert html is not None
 
-    def test_mismatched_fence_levels(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_mismatched_fence_levels(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test handling of mismatched fence levels."""
         source = """\
 ::::{dropdown} Title
@@ -516,7 +518,9 @@ Content for unknown type.
         html = render_with_patitas(source)
         assert html is not None
 
-    def test_invalid_option_value(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_invalid_option_value(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test handling of invalid option values."""
         source = """\
 :::{dropdown} Title
@@ -529,7 +533,9 @@ Content.
         html = render_with_patitas(source)
         assert html is not None
 
-    def test_malformed_option_syntax(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_malformed_option_syntax(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test handling of malformed option syntax."""
         source = """\
 :::{dropdown} Title
@@ -551,7 +557,9 @@ Content.
 class TestStressConditions:
     """Tests for stress conditions and limits."""
 
-    def test_deeply_nested_directives(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_deeply_nested_directives(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test handling of deeply nested directives."""
         source = """\
 :::::::{dropdown} Level 1
@@ -570,7 +578,9 @@ Deep note.
         html = render_with_patitas(source)
         assert html is not None
 
-    def test_many_consecutive_directives(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_many_consecutive_directives(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test handling of many consecutive directives."""
         # Create 20 consecutive notes
         source = "\n".join([f":::{{note}}\nNote {i}.\n:::\n" for i in range(20)])
@@ -582,7 +592,9 @@ Deep note.
 
     def test_many_tabs(self, render_with_patitas: Callable[[str], str]) -> None:
         """Test handling of tab-set with many tabs."""
-        tabs = "\n".join([f":::{{tab-item}} Tab {i}\nContent {i}.\n:::\n" for i in range(10)])
+        tabs = "\n".join(
+            [f":::{{tab-item}} Tab {i}\nContent {i}.\n:::\n" for i in range(10)]
+        )
         source = f"::::{{tab-set}}\n{tabs}::::\n"
 
         html = render_with_patitas(source)
@@ -597,7 +609,9 @@ Deep note.
 class TestRegressions:
     """Tests for specific regressions or known issues."""
 
-    def test_directive_after_code_block(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_directive_after_code_block(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test directive after fenced code block is parsed correctly."""
         source = """\
 ```python
@@ -611,7 +625,9 @@ Note after code.
         html = render_with_patitas(source)
         assert "note" in html.lower() or "admonition" in html.lower()
 
-    def test_directive_after_list(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_directive_after_list(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test directive after list is parsed correctly."""
         source = """\
 - Item 1
@@ -624,7 +640,9 @@ Note after list.
         html = render_with_patitas(source)
         assert "note" in html.lower() or "admonition" in html.lower()
 
-    def test_directive_in_blockquote(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_directive_in_blockquote(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Test directive inside blockquote."""
         source = """\
 > :::{note}

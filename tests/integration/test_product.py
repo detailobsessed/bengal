@@ -9,8 +9,6 @@ Tests product template functionality:
 Phase 2 of RFC: User Scenario Coverage - Extended Validation
 """
 
-from __future__ import annotations
-
 import pytest
 
 
@@ -41,7 +39,8 @@ class TestProductTemplate:
         product_pages = [
             p
             for p in site.pages
-            if getattr(p, "type", None) == "product" or "product" in str(p.source_path).lower()
+            if getattr(p, "type", None) == "product"
+            or "product" in str(p.source_path).lower()
         ]
 
         assert len(product_pages) >= 1, "Should have at least 1 product page"
@@ -52,7 +51,9 @@ class TestProductTemplate:
 
         output = site.output_dir
         assert (output / "index.html").exists(), "Home page should be generated"
-        assert (output / "products" / "index.html").exists(), "Products index should be generated"
+        assert (output / "products" / "index.html").exists(), (
+            "Products index should be generated"
+        )
 
     def test_product_page_rendered(self, site, build_site) -> None:
         """Individual product pages should be rendered."""
@@ -70,10 +71,9 @@ class TestProductJSONLD:
 
     def test_product_page_has_structured_data_frontmatter(self, site) -> None:
         """Product pages with structured_data: true should be identified."""
-        pages_with_structured_data = []
-        for page in site.pages:
-            if page.metadata.get("structured_data") is True:
-                pages_with_structured_data.append(page)
+        pages_with_structured_data = [
+            page for page in site.pages if page.metadata.get("structured_data") is True
+        ]
 
         assert len(pages_with_structured_data) >= 1, (
             "At least 1 page should have structured_data: true"
@@ -93,25 +93,35 @@ class TestProductJSONLD:
         """JSON-LD partial should exist in theme."""
         from pathlib import Path
 
-        themes_dir = Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        themes_dir = (
+            Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        )
         partial_path = themes_dir / "templates" / "partials" / "product-jsonld.html"
 
-        assert partial_path.exists(), f"Product JSON-LD partial should exist at {partial_path}"
+        assert partial_path.exists(), (
+            f"Product JSON-LD partial should exist at {partial_path}"
+        )
 
     def test_jsonld_partial_content(self) -> None:
         """JSON-LD partial should contain schema.org Product markup."""
         from pathlib import Path
 
-        themes_dir = Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        themes_dir = (
+            Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        )
         partial_path = themes_dir / "templates" / "partials" / "product-jsonld.html"
 
         content = partial_path.read_text()
 
         # Check for key schema.org Product elements
-        assert "application/ld+json" in content, "Should have application/ld+json script type"
+        assert "application/ld+json" in content, (
+            "Should have application/ld+json script type"
+        )
         assert "@context" in content, "Should have @context"
         assert "schema.org" in content, "Should reference schema.org"
-        assert '"@type": "Product"' in content or "@type" in content, "Should have Product @type"
+        assert '"@type": "Product"' in content or "@type" in content, (
+            "Should have Product @type"
+        )
         assert "offers" in content.lower(), "Should have Offer"
 
 
@@ -165,7 +175,11 @@ class TestProductData:
         from pathlib import Path
 
         template_dir = (
-            Path(__file__).parent.parent.parent / "bengal" / "cli" / "templates" / "product"
+            Path(__file__).parent.parent.parent
+            / "bengal"
+            / "cli"
+            / "templates"
+            / "product"
         )
         data_file = template_dir / "data" / "products.yaml"
 
@@ -178,7 +192,11 @@ class TestProductData:
         import yaml
 
         template_dir = (
-            Path(__file__).parent.parent.parent / "bengal" / "cli" / "templates" / "product"
+            Path(__file__).parent.parent.parent
+            / "bengal"
+            / "cli"
+            / "templates"
+            / "product"
         )
         data_file = template_dir / "data" / "products.yaml"
 

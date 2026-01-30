@@ -5,8 +5,6 @@ Tests that DocElement.from_dict() gracefully handles malformed cache data
 without crashing builds, allowing cache self-healing.
 """
 
-from __future__ import annotations
-
 from bengal.autodoc.base import DocElement
 
 
@@ -220,6 +218,8 @@ class TestMalformedCacheData:
         assert data["name"] == "parent"
         # Metadata should contain the child as a dict, not a string
         nested = data["metadata"].get("nested_element")
-        assert isinstance(nested, dict), "DocElement in metadata should be converted to dict"
+        assert isinstance(nested, dict), (
+            "DocElement in metadata should be converted to dict"
+        )
         assert nested["name"] == "child"
         assert nested["qualified_name"] == "module.parent.child"

@@ -2,10 +2,7 @@
 Serialization round-trip tests for DocElement typed_metadata.
 """
 
-from __future__ import annotations
-
 from bengal.autodoc.base import DocElement
-from bengal.errors import BengalCacheError
 from bengal.autodoc.models import (
     CLICommandMetadata,
     CLIGroupMetadata,
@@ -20,6 +17,7 @@ from bengal.autodoc.models.openapi import (
     OpenAPIResponseMetadata,
 )
 from bengal.autodoc.models.python import ParameterInfo
+from bengal.errors import BengalCacheError
 
 
 class TestDocElementSerialization:
@@ -305,7 +303,9 @@ class TestRoundTrip:
         assert restored.typed_metadata.file_path == original.typed_metadata.file_path
         assert restored.typed_metadata.is_package == original.typed_metadata.is_package
         assert restored.typed_metadata.has_all == original.typed_metadata.has_all
-        assert restored.typed_metadata.all_exports == original.typed_metadata.all_exports
+        assert (
+            restored.typed_metadata.all_exports == original.typed_metadata.all_exports
+        )
 
     def test_round_trip_python_class(self) -> None:
         """Test round-trip for PythonClassMetadata."""
@@ -331,8 +331,12 @@ class TestRoundTrip:
         assert isinstance(restored.typed_metadata, PythonClassMetadata)
         assert restored.typed_metadata.bases == original.typed_metadata.bases
         assert restored.typed_metadata.decorators == original.typed_metadata.decorators
-        assert restored.typed_metadata.is_dataclass == original.typed_metadata.is_dataclass
-        assert restored.typed_metadata.is_abstract == original.typed_metadata.is_abstract
+        assert (
+            restored.typed_metadata.is_dataclass == original.typed_metadata.is_dataclass
+        )
+        assert (
+            restored.typed_metadata.is_abstract == original.typed_metadata.is_abstract
+        )
 
     def test_round_trip_python_function_with_params(self) -> None:
         """Test round-trip for PythonFunctionMetadata with parameters."""
@@ -360,7 +364,9 @@ class TestRoundTrip:
         assert restored.typed_metadata is not None
         assert isinstance(restored.typed_metadata, PythonFunctionMetadata)
         assert restored.typed_metadata.signature == original.typed_metadata.signature
-        assert restored.typed_metadata.return_type == original.typed_metadata.return_type
+        assert (
+            restored.typed_metadata.return_type == original.typed_metadata.return_type
+        )
         assert restored.typed_metadata.is_async == original.typed_metadata.is_async
         assert len(restored.typed_metadata.parameters) == 2
         assert restored.typed_metadata.parameters[0].name == "x"
@@ -387,7 +393,10 @@ class TestRoundTrip:
         assert restored.typed_metadata is not None
         assert isinstance(restored.typed_metadata, CLIGroupMetadata)
         assert restored.typed_metadata.callback == original.typed_metadata.callback
-        assert restored.typed_metadata.command_count == original.typed_metadata.command_count
+        assert (
+            restored.typed_metadata.command_count
+            == original.typed_metadata.command_count
+        )
 
     def test_round_trip_openapi_with_nested_metadata(self) -> None:
         """Test round-trip for OpenAPIEndpointMetadata with nested parameters/request_body/responses.
@@ -474,9 +483,14 @@ class TestRoundTrip:
 
         # Verify nested request_body
         assert restored.typed_metadata.request_body is not None
-        assert isinstance(restored.typed_metadata.request_body, OpenAPIRequestBodyMetadata)
+        assert isinstance(
+            restored.typed_metadata.request_body, OpenAPIRequestBodyMetadata
+        )
         assert restored.typed_metadata.request_body.content_type == "application/json"
-        assert restored.typed_metadata.request_body.schema_ref == "#/components/schemas/UserCreate"
+        assert (
+            restored.typed_metadata.request_body.schema_ref
+            == "#/components/schemas/UserCreate"
+        )
 
         # Verify nested responses
         assert len(restored.typed_metadata.responses) == 2

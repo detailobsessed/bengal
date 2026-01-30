@@ -7,8 +7,6 @@ Tests health/validators/url_collisions.py:
 This test file would have caught Bug #3: _check_section_page_conflicts never being called.
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -263,4 +261,7 @@ class TestURLCollisionValidatorRecommendations:
         assert len(error_results) >= 1
         assert error_results[0].recommendation is not None
         # Should mention common causes
-        assert "slug" in error_results[0].recommendation.lower() or "rename" in error_results[0].recommendation.lower()
+        assert (
+            "slug" in error_results[0].recommendation.lower()
+            or "rename" in error_results[0].recommendation.lower()
+        )

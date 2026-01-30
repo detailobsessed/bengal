@@ -5,11 +5,7 @@ RFC: Output Cache Architecture - Tests OutputType enum and classify_output()
 function for categorizing outputs.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
-
-import pytest
 
 from bengal.orchestration.build.output_types import (
     OutputType,

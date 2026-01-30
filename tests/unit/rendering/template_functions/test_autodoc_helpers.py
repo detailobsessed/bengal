@@ -4,8 +4,6 @@ Tests for autodoc ergonomic helper functions (Tier 3).
 These helpers simplify common template patterns for filtering autodoc elements.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Any
 

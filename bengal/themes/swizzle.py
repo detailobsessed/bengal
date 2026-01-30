@@ -60,8 +60,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from bengal.utils.io.atomic_write import atomic_write_text
-from bengal.utils.primitives.hashing import hash_file, hash_str
 from bengal.utils.observability.logger import get_logger
+from bengal.utils.primitives.hashing import hash_file, hash_str
 
 if TYPE_CHECKING:
     from bengal.core.site import Site
@@ -71,12 +71,12 @@ logger = get_logger(__name__)
 
 class ModificationStatus(Enum):
     """Status of a swizzled template's local modifications.
-    
+
     Provides clear semantics for `is_modified()` results, distinguishing
     between templates that were never swizzled, have been deleted, are
     unchanged, or have local modifications.
     """
-    
+
     NOT_SWIZZLED = "not_swizzled"  # Template was never swizzled
     FILE_MISSING = "file_missing"  # Swizzled but local file was deleted
     UNCHANGED = "unchanged"  # Swizzled and unchanged from original
@@ -88,10 +88,10 @@ class ModificationStatus(Enum):
 class SwizzleRecord:
     """
     Immutable record of a swizzled template's provenance.
-    
+
     Tracks the origin of a swizzled file and checksums for detecting
     local modifications. Stored in `.bengal/themes/sources.json`.
-    
+
     Attributes:
         target: Relative path within project templates/ (e.g., "partials/toc.html").
         source: Absolute path to original theme file at swizzle time.
@@ -99,7 +99,7 @@ class SwizzleRecord:
         upstream_checksum: SHA-256 checksum (truncated) of original theme file.
         local_checksum: SHA-256 checksum (truncated) of copied file at swizzle time.
         timestamp: Unix epoch seconds when swizzle occurred.
-        
+
     """
 
     target: str  # templates-relative path (e.g., "partials/toc.html")
@@ -113,16 +113,16 @@ class SwizzleRecord:
 class SwizzleManager:
     """
     Manages safe template overrides with provenance tracking.
-    
+
     The SwizzleManager enables users to customize theme templates while
     maintaining a record of where they came from. This allows for safe
     theme updates - unchanged swizzled files can be auto-updated.
-    
+
     Attributes:
         site: Site instance for theme and path resolution.
         root: Site root path.
         registry_path: Path to `.bengal/themes/sources.json`.
-    
+
     Example:
             >>> manager = SwizzleManager(site)
             >>>
@@ -137,7 +137,7 @@ class SwizzleManager:
             >>> # Update unchanged swizzles after theme update
             >>> results = manager.update()
             >>> print(f"Updated: {results['updated']}")
-        
+
     """
 
     def __init__(self, site: Site) -> None:
@@ -189,14 +189,20 @@ class SwizzleManager:
                 theme=self.site.theme,
                 resolved_source=str(source) if source else None,
             )
-            raise FileNotFoundError(f"Template not found in theme chain: {template_rel_path}")
+            raise FileNotFoundError(
+                f"Template not found in theme chain: {template_rel_path}"
+            )
 
         dest = self.root / "templates" / template_rel_path
 
         # Check if re-swizzling (overwriting existing)
         is_reswizzle = dest.exists()
         if is_reswizzle:
-            logger.info("swizzle_overwriting_existing", template=template_rel_path, dest=str(dest))
+            logger.info(
+                "swizzle_overwriting_existing",
+                template=template_rel_path,
+                dest=str(dest),
+            )
 
         dest.parent.mkdir(parents=True, exist_ok=True)
 
@@ -251,7 +257,10 @@ class SwizzleManager:
             except Exception as e:
                 invalid_count += 1
                 logger.warning(
-                    "swizzle_invalid_record", record=rec, error=str(e), error_type=type(e).__name__
+                    "swizzle_invalid_record",
+                    record=rec,
+                    error=str(e),
+                    error_type=type(e).__name__,
                 )
                 continue
 
@@ -324,13 +333,15 @@ class SwizzleManager:
             if not target_path.exists():
                 skipped_changed += 1
                 logger.warning(
-                    "swizzle_update_local_missing", target=rec.get("target"), path=str(target_path)
+                    "swizzle_update_local_missing",
+                    target=rec.get("target"),
+                    path=str(target_path),
                 )
                 continue
 
             current_checksum = _checksum_file(target_path)
             expected_checksum = rec.get("local_checksum")
-            
+
             # Handle checksum errors explicitly - don't update if we can't verify
             if current_checksum is None:
                 skipped_error += 1
@@ -340,7 +351,7 @@ class SwizzleManager:
                     reason="could_not_compute_local_checksum",
                 )
                 continue
-            
+
             if current_checksum != expected_checksum:
                 skipped_changed += 1
                 logger.info(
@@ -359,7 +370,11 @@ class SwizzleManager:
             rec["local_checksum"] = new_checksum
             rec["timestamp"] = time.time()
             updated += 1
-            logger.info("swizzle_update_success", target=rec.get("target"), source=str(source_path))
+            logger.info(
+                "swizzle_update_success",
+                target=rec.get("target"),
+                source=str(source_path),
+            )
 
         # Persist registry updates
         data["records"] = records
@@ -419,11 +434,11 @@ class SwizzleManager:
         current_checksum = _checksum_file(target_path)
         if current_checksum is None:
             return ModificationStatus.CHECKSUM_ERROR
-            
+
         expected_checksum = record.get("local_checksum")
         if current_checksum != expected_checksum:
             return ModificationStatus.MODIFIED
-            
+
         return ModificationStatus.UNCHANGED
 
     def is_modified(self, template_rel_path: str) -> bool:
@@ -450,7 +465,9 @@ class SwizzleManager:
             engine = create_engine(self.site)
             return engine.get_template_path(template_rel_path)
         except Exception as e:
-            logger.warning("swizzle_resolve_failed", template=template_rel_path, error=str(e))
+            logger.warning(
+                "swizzle_resolve_failed", template=template_rel_path, error=str(e)
+            )
             return None
 
     def _save_record(self, record: SwizzleRecord) -> None:
@@ -517,10 +534,10 @@ class SwizzleManager:
 
 def _checksum_file(path: Path) -> str | None:
     """Compute truncated checksum of file content.
-    
+
     Args:
         path: Path to file to checksum
-        
+
     Returns:
         16-character truncated SHA-256 hash, or None if checksumming fails
         (file not found, permission denied, etc.)
@@ -539,10 +556,10 @@ def _checksum_file(path: Path) -> str | None:
 
 def _checksum_str(content: str) -> str:
     """Compute truncated checksum of string content.
-    
+
     Args:
         content: String content to hash
-        
+
     Returns:
         16-character truncated SHA-256 hash
     """

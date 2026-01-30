@@ -28,12 +28,11 @@ Features:
 
 from __future__ import annotations
 
-from typing import Any, override
+from typing import Any, cast, override
 
 from mistune.renderers.html import HTMLRenderer
 
 from bengal.errors import ErrorCode, format_suggestion, record_error
-from bengal.parsing.base import BaseMarkdownParser
 from bengal.parsing.backends.mistune.ast import (
     create_ast_parser,
     parse_to_ast,
@@ -43,6 +42,7 @@ from bengal.parsing.backends.mistune.highlighting import (
     create_syntax_highlighting_plugin,
 )
 from bengal.parsing.backends.mistune.toc import extract_toc, inject_heading_anchors
+from bengal.parsing.base import BaseMarkdownParser
 from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -54,7 +54,7 @@ class MistuneParser(BaseMarkdownParser):
     """
     Parser using mistune library.
     Faster with full documentation features.
-    
+
     Supported features:
     - Tables (GFM)
     - Fenced code blocks
@@ -66,7 +66,7 @@ class MistuneParser(BaseMarkdownParser):
     - Footnotes (custom plugin)
     - Definition lists (custom plugin)
     - Variable substitution (custom plugin)
-        
+
     """
 
     def __init__(self, enable_highlighting: bool = True) -> None:
@@ -203,7 +203,7 @@ class MistuneParser(BaseMarkdownParser):
             return ""
 
         try:
-            html = self.md(content)
+            html = cast(str, self.md(content) or "")
             # Post-process for badges and inline icons
             html = self._badge_plugin._substitute_badges(html)
             html = self._inline_icon_plugin._substitute_icons(html)
@@ -212,7 +212,9 @@ class MistuneParser(BaseMarkdownParser):
                 # Set current page version for version-aware anchor resolution
                 # Try to get version from metadata (page object may not be available)
                 page_version = (
-                    metadata.get("version") or metadata.get("_version") if metadata else None
+                    metadata.get("version") or metadata.get("_version")
+                    if metadata
+                    else None
                 )
                 self._xref_plugin.current_version = page_version
 
@@ -224,7 +226,9 @@ class MistuneParser(BaseMarkdownParser):
                     from pathlib import Path
 
                     self._xref_plugin.current_source_page = (
-                        Path(source_path) if isinstance(source_path, str) else source_path
+                        Path(source_path)
+                        if isinstance(source_path, str)
+                        else source_path
                     )
                 else:
                     self._xref_plugin.current_source_page = None
@@ -263,7 +267,7 @@ class MistuneParser(BaseMarkdownParser):
             Tuple of (HTML with anchored headings, TOC HTML)
         """
         # Stage 1: Parse markdown
-        html = self.md(content)
+        html = cast(str, self.md(content) or "")
 
         # Stage 1.5: Post-process badges and inline icons
         html = self._badge_plugin._substitute_badges(html)
@@ -273,7 +277,11 @@ class MistuneParser(BaseMarkdownParser):
         if self._xref_enabled and self._xref_plugin:
             # Set current page version for version-aware anchor resolution
             # Try to get version from metadata (page object may not be available)
-            page_version = metadata.get("version") or metadata.get("_version") if metadata else None
+            page_version = (
+                metadata.get("version") or metadata.get("_version")
+                if metadata
+                else None
+            )
             self._xref_plugin.current_version = page_version
 
             # RFC: rfc-versioned-docs-pipeline-integration (Phase 2)
@@ -394,7 +402,7 @@ class MistuneParser(BaseMarkdownParser):
             # IMPORTANT: Only process escape syntax BEFORE Mistune parses markdown
             content = self._var_plugin.preprocess(content)
 
-            html = self._md_with_vars(content)
+            html = cast(str, self._md_with_vars(content) or "")
 
             # Post-process: Restore __BENGAL_ESCAPED_*__ placeholders to literal {{ }}
             html = self._var_plugin.restore_placeholders(html)
@@ -414,7 +422,9 @@ class MistuneParser(BaseMarkdownParser):
                 else:
                     # Fall back to metadata if page object not available
                     page_version = (
-                        metadata.get("version") or metadata.get("_version") if metadata else None
+                        metadata.get("version") or metadata.get("_version")
+                        if metadata
+                        else None
                     )
                     self._xref_plugin.current_version = page_version
 
@@ -554,7 +564,9 @@ class MistuneParser(BaseMarkdownParser):
         """
         return True
 
-    def parse_to_ast(self, content: str, metadata: dict[str, Any]) -> list[dict[str, Any]]:
+    def parse_to_ast(
+        self, content: str, metadata: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """
         Parse Markdown content to AST tokens.
 
@@ -620,7 +632,9 @@ class MistuneParser(BaseMarkdownParser):
                 # Set current page version for version-aware anchor resolution
                 # Try to get version from metadata (page object may not be available)
                 page_version = (
-                    metadata.get("version") or metadata.get("_version") if metadata else None
+                    metadata.get("version") or metadata.get("_version")
+                    if metadata
+                    else None
                 )
                 self._xref_plugin.current_version = page_version
 
@@ -631,7 +645,9 @@ class MistuneParser(BaseMarkdownParser):
                     from pathlib import Path
 
                     self._xref_plugin.current_source_page = (
-                        Path(source_path) if isinstance(source_path, str) else source_path
+                        Path(source_path)
+                        if isinstance(source_path, str)
+                        else source_path
                     )
                 else:
                     self._xref_plugin.current_source_page = None

@@ -6,8 +6,6 @@ Tests the [[ext:project:target]] syntax and related functionality.
 See: plan/rfc-external-references.md
 """
 
-from __future__ import annotations
-
 import json
 import os
 import time
@@ -134,7 +132,9 @@ class TestCrossReferencePluginExternal:
         config = {"external_refs": DEFAULTS.get("external_refs", {})}
         return ExternalRefResolver(config)
 
-    def test_external_ref_parsing(self, xref_index: dict, resolver: ExternalRefResolver) -> None:
+    def test_external_ref_parsing(
+        self, xref_index: dict, resolver: ExternalRefResolver
+    ) -> None:
         """Test that [[ext:project:target]] is parsed correctly."""
         plugin = CrossReferencePlugin(xref_index, external_ref_resolver=resolver)
 
@@ -296,7 +296,9 @@ class TestIndexCache:
         assert captured.get("Authorization") == "Token 123"
         assert (tmp_path / "proj.json").exists()
 
-    def test_stale_cache_triggers_background_refresh(self, monkeypatch, tmp_path) -> None:
+    def test_stale_cache_triggers_background_refresh(
+        self, monkeypatch, tmp_path
+    ) -> None:
         """Stale cache returns cached data and triggers refresh."""
         cache = IndexCache(cache_dir=tmp_path)
         cache_file = tmp_path / "proj.json"
@@ -318,7 +320,9 @@ class TestIndexCache:
             def start(self) -> None:
                 self._target(*self._args)
 
-        monkeypatch.setattr("bengal.rendering.external_refs.resolver.Thread", DummyThread)
+        monkeypatch.setattr(
+            "bengal.rendering.external_refs.resolver.Thread", DummyThread
+        )
         monkeypatch.setattr(cache, "_refresh_cache", fake_refresh)
 
         result = cache.get("proj", "https://example.com/xref.json", max_age_days=0)

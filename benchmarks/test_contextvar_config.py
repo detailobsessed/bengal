@@ -6,18 +6,17 @@ Tests instantiation speed with current vs reduced slot counts.
 
 Run:
     python benchmarks/test_contextvar_config.py
-    
+
 Or with pytest-benchmark:
     pytest benchmarks/test_contextvar_config.py -v
 """
 
-from __future__ import annotations
-
 import sys
 import time
+from collections.abc import Callable
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 # =============================================================================
 # CURRENT IMPLEMENTATION (18 slots)
@@ -28,24 +27,24 @@ class ParserCurrent:
     """Current Parser with 18 slots (config duplicated per instance)."""
 
     __slots__ = (
-        "_source",
-        "_tokens",
-        "_pos",
-        "_current",
-        "_source_file",
-        "_text_transformer",
-        "_tables_enabled",
-        "_strikethrough_enabled",
-        "_task_lists_enabled",
-        "_footnotes_enabled",
-        "_math_enabled",
+        "_allow_setext_headings",
         "_autolinks_enabled",
+        "_containers",
+        "_current",
         "_directive_registry",
         "_directive_stack",
-        "_strict_contracts",
+        "_footnotes_enabled",
         "_link_refs",
-        "_containers",
-        "_allow_setext_headings",
+        "_math_enabled",
+        "_pos",
+        "_source",
+        "_source_file",
+        "_strict_contracts",
+        "_strikethrough_enabled",
+        "_tables_enabled",
+        "_task_lists_enabled",
+        "_text_transformer",
+        "_tokens",
     )
 
     def __init__(
@@ -111,15 +110,15 @@ class ParserContextVar:
     """Proposed Parser with 9 slots (config via ContextVar)."""
 
     __slots__ = (
-        "_source",
-        "_tokens",
-        "_pos",
+        "_allow_setext_headings",
+        "_containers",
         "_current",
-        "_source_file",
         "_directive_stack",
         "_link_refs",
-        "_containers",
-        "_allow_setext_headings",
+        "_pos",
+        "_source",
+        "_source_file",
+        "_tokens",
     )
 
     def __init__(
@@ -157,20 +156,20 @@ class RendererCurrent:
     """Current HTMLRenderer with 14 slots."""
 
     __slots__ = (
-        "_source",
+        "_current_page",
+        "_delegate",
+        "_directive_cache",
+        "_directive_registry",
+        "_headings",
         "_highlight",
         "_highlight_style",
-        "_rosettes_available",
-        "_directive_registry",
-        "_directive_cache",
-        "_role_registry",
-        "_text_transformer",
-        "_delegate",
-        "_headings",
-        "_slugify",
-        "_seen_slugs",
         "_page_context",
-        "_current_page",
+        "_role_registry",
+        "_rosettes_available",
+        "_seen_slugs",
+        "_slugify",
+        "_source",
+        "_text_transformer",
     )
 
     def __init__(
@@ -225,14 +224,14 @@ class RendererContextVar:
     """Proposed HTMLRenderer with 8 slots (config via ContextVar)."""
 
     __slots__ = (
-        "_source",
-        "_delegate",
-        "_headings",
-        "_seen_slugs",
-        "_page_context",
         "_current_page",
+        "_delegate",
         "_directive_cache",
+        "_headings",
+        "_page_context",
         "_rosettes_available",
+        "_seen_slugs",
+        "_source",
     )
 
     def __init__(
@@ -347,7 +346,9 @@ def run_benchmarks():
 
     pages = 1000
     current_total = (parser_current_ms + renderer_current_ms) * pages / iterations
-    contextvar_total = (parser_contextvar_ms + renderer_contextvar_ms) * pages / iterations
+    contextvar_total = (
+        (parser_contextvar_ms + renderer_contextvar_ms) * pages / iterations
+    )
     saved = current_total - contextvar_total
 
     print(f"  Current:                {current_total:>8.2f}ms")
@@ -366,16 +367,22 @@ def run_benchmarks():
     ops_per_sec = iterations / (lookup_ms / 1000)
 
     print(f"  {iterations:,} lookups:        {lookup_ms:>8.2f}ms")
-    print(f"  Throughput:             {ops_per_sec/1_000_000:>8.2f}M ops/sec")
+    print(f"  Throughput:             {ops_per_sec / 1_000_000:>8.2f}M ops/sec")
     print()
 
     # Summary
     print("=" * 70)
     print("SUMMARY")
     print("=" * 70)
-    print(f"  Parser:   {parser_speedup:.2f}x faster ({18} → {9} slots, {parser_reduction:.0f}% reduction)")
-    print(f"  Renderer: {renderer_speedup:.2f}x faster ({14} → {8} slots, {renderer_reduction:.0f}% reduction)")
-    print(f"  ContextVar lookup: {ops_per_sec/1_000_000:.1f}M ops/sec (negligible overhead)")
+    print(
+        f"  Parser:   {parser_speedup:.2f}x faster ({18} → {9} slots, {parser_reduction:.0f}% reduction)"
+    )
+    print(
+        f"  Renderer: {renderer_speedup:.2f}x faster ({14} → {8} slots, {renderer_reduction:.0f}% reduction)"
+    )
+    print(
+        f"  ContextVar lookup: {ops_per_sec / 1_000_000:.1f}M ops/sec (negligible overhead)"
+    )
     print()
 
     if parser_speedup > 1.5 and renderer_speedup > 1.3:

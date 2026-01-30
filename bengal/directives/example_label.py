@@ -41,25 +41,25 @@ __all__ = ["ExampleLabelDirective", "ExampleLabelOptions"]
 class ExampleLabelOptions(DirectiveOptions):
     """
     Options for example-label directive.
-    
+
     Attributes:
         css_class: Additional CSS classes
         prefix: Custom prefix text (default: "Example")
         no_prefix: If true, don't show the prefix
-    
+
     Example:
         :::{example-label} Basic Usage
         :class: featured
         :::
-    
+
         :::{example-label} API Call
         :prefix: Demo
         :::
-    
+
         :::{example-label} Simple
         :no-prefix:
         :::
-        
+
     """
 
     css_class: str = ""
@@ -75,22 +75,22 @@ class ExampleLabelOptions(DirectiveOptions):
 class ExampleLabelDirective(BengalDirective):
     """
     Example label directive for lightweight example section headers.
-    
+
     Syntax:
         :::{example-label} Title Text
         :::
-    
+
     With options:
         :::{example-label} API Usage
         :prefix: Demo
         :class: featured
         :::
-    
+
     Creates a semantic label that looks like a soft header but doesn't appear
     in TOC. Lighter weight than admonition callouts, perfect for example sections.
-    
+
     Renders immediately with no content inside - any content is ignored.
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["example-label"]
@@ -103,7 +103,7 @@ class ExampleLabelDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: ExampleLabelOptions,  # type: ignore[override]
+        options: ExampleLabelOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -151,4 +151,6 @@ class ExampleLabelDirective(BengalDirective):
                 f"{self.escape_html(title)}"
             )
 
-        return f'<p class="{class_str}" role="heading" aria-level="6">{title_html}</p>\n'
+        return (
+            f'<p class="{class_str}" role="heading" aria-level="6">{title_html}</p>\n'
+        )

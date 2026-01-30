@@ -88,7 +88,9 @@ class MemoryProfiler:
         finally:
             tracemalloc.stop()
 
-    def profile_and_save(self, output_file: Path, page_count: int | None = None) -> MemoryStats:
+    def profile_and_save(
+        self, output_file: Path, page_count: int | None = None
+    ) -> MemoryStats:
         """
         Profile build and save results to JSON file.
 
@@ -130,6 +132,8 @@ def compare_memory_stats(stats_list: list[MemoryStats]) -> dict:
         "avg_peak_mb": round(sum(s.peak_mb for s in stats_list) / len(stats_list), 2),
         "min_per_page": min(s.memory_per_page for s in stats_list),
         "max_per_page": max(s.memory_per_page for s in stats_list),
-        "avg_per_page": round(sum(s.memory_per_page for s in stats_list) / len(stats_list), 4),
+        "avg_per_page": round(
+            sum(s.memory_per_page for s in stats_list) / len(stats_list), 4
+        ),
         "details": [s.to_dict() for s in stats_list],
     }

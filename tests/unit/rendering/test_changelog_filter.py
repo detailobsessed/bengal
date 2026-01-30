@@ -10,8 +10,6 @@ Tests the `releases` filter with smart version detection and sorting:
 from datetime import date, datetime
 from pathlib import Path
 
-import pytest
-
 from bengal.rendering.template_functions.changelog import (
     ReleaseView,
     _extract_version,
@@ -103,9 +101,57 @@ class TestSortReleases:
     def test_sorts_by_version(self):
         """Releases are sorted by version (highest first)."""
         releases = [
-            ReleaseView("0.1.0", "", datetime(2025, 10, 13), "", "", "", (), (), (), (), (), (), (), False, ()),
-            ReleaseView("0.1.2", "", datetime(2026, 1, 12), "", "", "", (), (), (), (), (), (), (), False, ()),
-            ReleaseView("0.1.1", "", datetime(2025, 12, 1), "", "", "", (), (), (), (), (), (), (), False, ()),
+            ReleaseView(
+                "0.1.0",
+                "",
+                datetime(2025, 10, 13),
+                "",
+                "",
+                "",
+                (),
+                (),
+                (),
+                (),
+                (),
+                (),
+                (),
+                False,
+                (),
+            ),
+            ReleaseView(
+                "0.1.2",
+                "",
+                datetime(2026, 1, 12),
+                "",
+                "",
+                "",
+                (),
+                (),
+                (),
+                (),
+                (),
+                (),
+                (),
+                False,
+                (),
+            ),
+            ReleaseView(
+                "0.1.1",
+                "",
+                datetime(2025, 12, 1),
+                "",
+                "",
+                "",
+                (),
+                (),
+                (),
+                (),
+                (),
+                (),
+                (),
+                False,
+                (),
+            ),
         ]
         sorted_releases = _sort_releases(releases)
         assert [r.version for r in sorted_releases] == ["0.1.2", "0.1.1", "0.1.0"]
@@ -113,9 +159,15 @@ class TestSortReleases:
     def test_semantic_version_order(self):
         """Versions 0.1.10 > 0.1.9 (numeric, not string comparison)."""
         releases = [
-            ReleaseView("0.1.9", "", None, "", "", "", (), (), (), (), (), (), (), False, ()),
-            ReleaseView("0.1.10", "", None, "", "", "", (), (), (), (), (), (), (), False, ()),
-            ReleaseView("0.1.2", "", None, "", "", "", (), (), (), (), (), (), (), False, ()),
+            ReleaseView(
+                "0.1.9", "", None, "", "", "", (), (), (), (), (), (), (), False, ()
+            ),
+            ReleaseView(
+                "0.1.10", "", None, "", "", "", (), (), (), (), (), (), (), False, ()
+            ),
+            ReleaseView(
+                "0.1.2", "", None, "", "", "", (), (), (), (), (), (), (), False, ()
+            ),
         ]
         sorted_releases = _sort_releases(releases)
         assert [r.version for r in sorted_releases] == ["0.1.10", "0.1.9", "0.1.2"]
@@ -124,7 +176,12 @@ class TestSortReleases:
 class MockPage:
     """Mock page object for testing page-driven mode."""
 
-    def __init__(self, title: str, date_val: datetime | None = None, source_path: str | None = None):
+    def __init__(
+        self,
+        title: str,
+        date_val: datetime | None = None,
+        source_path: str | None = None,
+    ):
         self.title = title
         self.date = date_val
         self.metadata = {}

@@ -5,12 +5,7 @@ These tests verify that errors are properly logged and tracked in build stats
 rather than being silently swallowed.
 """
 
-from __future__ import annotations
-
 import logging
-from pathlib import Path
-from typing import Any
-from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 
@@ -74,9 +69,11 @@ class TestErrorCodeUsage:
 class TestErrorLogging:
     """Test that errors are logged at appropriate levels."""
 
-    def test_warning_level_used_for_non_fatal_errors(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_warning_level_used_for_non_fatal_errors(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Verify non-fatal errors log at warning level, not debug.
-        
+
         This test verifies the standard logging pattern used in Bengal's
         error handling. The actual logger (structlog wrapper) may use
         different semantics but the intent is to log at WARNING level

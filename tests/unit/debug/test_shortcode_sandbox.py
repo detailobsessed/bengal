@@ -5,8 +5,6 @@ Tests the shortcode/directive sandbox functionality including validation,
 rendering in isolation, typo detection, and batch testing.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -274,7 +272,9 @@ class TestShortcodeSandbox:
 
         report = sandbox.run()
 
-        warning_findings = [f for f in report.findings if f.severity == Severity.WARNING]
+        warning_findings = [
+            f for f in report.findings if f.severity == Severity.WARNING
+        ]
         assert len(warning_findings) > 0
 
     def test_batch_test(self, sandbox):

@@ -107,9 +107,13 @@ from bengal.utils.observability.logger import (
     is_flag=True,
     help="Show detailed build output (phase timing, build stats). Does NOT change profile.",
 )
-@click.option("--strict", is_flag=True, help="Fail on template errors (recommended for CI/CD)")
 @click.option(
-    "--debug", is_flag=True, help="Show debug output and full tracebacks (maps to dev profile)"
+    "--strict", is_flag=True, help="Fail on template errors (recommended for CI/CD)"
+)
+@click.option(
+    "--debug",
+    is_flag=True,
+    help="Show debug output and full tracebacks (maps to dev profile)",
 )
 @click.option(
     "--traceback",
@@ -117,7 +121,9 @@ from bengal.utils.observability.logger import (
     help="Traceback verbosity: full | compact | minimal | off",
 )
 @click.option(
-    "--validate", is_flag=True, help="Validate templates before building (catch errors early)"
+    "--validate",
+    is_flag=True,
+    help="Validate templates before building (catch errors early)",
 )
 @click.option(
     "--assets-pipeline/--no-assets-pipeline",
@@ -125,9 +131,13 @@ from bengal.utils.observability.logger import (
     help="Enable/disable Node-based assets pipeline (overrides config)",
 )
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
-@click.option("--quiet", "-q", is_flag=True, help="Minimal output - only show errors and summary")
+@click.option(
+    "--quiet", "-q", is_flag=True, help="Minimal output - only show errors and summary"
+)
 @click.option(
     "--fast/--no-fast",
     default=None,
@@ -207,10 +217,10 @@ def build(
 ) -> None:
     """
     Build the static site.
-    
+
     Generates HTML files from your content, applies templates,
     processes assets, and outputs a production-ready site.
-        
+
     """
 
     # Import profile system
@@ -357,7 +367,9 @@ def build(
         if build_version or all_versions:
             # Check if versioning is enabled in git mode
             if not getattr(site, "versioning_enabled", False):
-                cli.error("Versioning is not enabled (add versioning config to bengal.yaml)")
+                cli.error(
+                    "Versioning is not enabled (add versioning config to bengal.yaml)"
+                )
                 raise click.Abort()
 
             version_config = getattr(site, "version_config", None)
@@ -419,7 +431,9 @@ def build(
                         # Update nested config structure - use raw dict for mutations
                         if "build" not in worktree_site.config:
                             worktree_site.config["build"] = {}
-                        worktree_site.config["build"]["output_dir"] = str(Path(site.output_dir) / version.id)
+                        worktree_site.config["build"]["output_dir"] = str(
+                            Path(site.output_dir) / version.id
+                        )
 
                     # Build this version
                     from bengal.orchestration.build.options import BuildOptions
@@ -485,7 +499,9 @@ def build(
 
             if error_count > 0:
                 cli.blank()
-                cli.error(f"Validation failed with {error_count} error(s) - fix errors above")
+                cli.error(
+                    f"Validation failed with {error_count} error(s) - fix errors above"
+                )
                 raise click.Abort()
 
             cli.blank()  # Blank line before build
@@ -517,7 +533,9 @@ def build(
             profiler.enable()
 
             # Pass profile to build using BuildOptions
-            from bengal.orchestration.build.options import BuildOptions as PerfBuildOptions
+            from bengal.orchestration.build.options import (
+                BuildOptions as PerfBuildOptions,
+            )
 
             perf_build_opts = PerfBuildOptions(
                 force_sequential=build_options.force_sequential,
@@ -576,7 +594,9 @@ def build(
             build_opts = BuildOptions(
                 force_sequential=build_options.force_sequential,
                 incremental=incremental,
-                verbose=profile_config.get("verbose_console_logs", False) or full_output or explain,
+                verbose=profile_config.get("verbose_console_logs", False)
+                or full_output
+                or explain,
                 quiet=quiet,
                 profile=build_profile,
                 memory_optimized=memory_optimized,
@@ -636,7 +656,9 @@ def build(
                 display_build_summary(stats, environment=console_env)
             else:
                 # Theme-dev: Use existing detailed display
-                display_build_stats(stats, show_art=True, output_dir=str(site.output_dir))
+                display_build_stats(
+                    stats, show_art=True, output_dir=str(site.output_dir)
+                )
         else:
             cli.console.print(f"{cli.icons.success} [success]Build complete![/success]")
             cli.path(str(site.output_dir), label="")
@@ -660,12 +682,12 @@ def build(
 def _print_explain_output(stats, cli, *, dry_run: bool = False) -> None:
     """
     Print detailed incremental build decision breakdown.
-    
+
     RFC: rfc-incremental-build-observability Phase 2
-    
+
     Displays a human-readable breakdown of why pages were rebuilt or skipped,
     grouped by rebuild reason. Useful for debugging cache issues.
-    
+
     Args:
         stats: BuildStats object containing incremental_decision
         cli: CLIOutput instance for formatted output
@@ -675,7 +697,9 @@ def _print_explain_output(stats, cli, *, dry_run: bool = False) -> None:
 
     decision: IncrementalDecision | None = getattr(stats, "incremental_decision", None)
     if decision is None:
-        cli.warning("No incremental decision data available (try running with --incremental)")
+        cli.warning(
+            "No incremental decision data available (try running with --incremental)"
+        )
         return
 
     # Header
@@ -687,8 +711,10 @@ def _print_explain_output(stats, cli, *, dry_run: bool = False) -> None:
         cli.header("📊 Incremental Build Decision")
         verb = "Rebuilt"
 
-    total_pages = len(decision.pages_to_build) + decision.pages_skipped_count
-    cli.info(f"  {verb} {len(decision.pages_to_build)} pages ({decision.pages_skipped_count} skipped)")
+    len(decision.pages_to_build) + decision.pages_skipped_count
+    cli.info(
+        f"  {verb} {len(decision.pages_to_build)} pages ({decision.pages_skipped_count} skipped)"
+    )
     cli.blank()
 
     # Group pages by rebuild reason
@@ -702,11 +728,19 @@ def _print_explain_output(stats, cli, *, dry_run: bool = False) -> None:
     # Display rebuild reasons table
     if reason_groups:
         cli.info("  REBUILD:")
-        cli.info("  ┌───────────────────────────────────┬───────┬─────────────────────────────────┐")
-        cli.info("  │ Reason                            │ Count │ Pages                           │")
-        cli.info("  ├───────────────────────────────────┼───────┼─────────────────────────────────┤")
+        cli.info(
+            "  ┌───────────────────────────────────┬───────┬─────────────────────────────────┐"
+        )
+        cli.info(
+            "  │ Reason                            │ Count │ Pages                           │"
+        )
+        cli.info(
+            "  ├───────────────────────────────────┼───────┼─────────────────────────────────┤"
+        )
 
-        for reason_code, pages in sorted(reason_groups.items(), key=lambda x: -len(x[1])):
+        for reason_code, pages in sorted(
+            reason_groups.items(), key=lambda x: -len(x[1])
+        ):
             # Format pages list (show first 2, truncate if more)
             if len(pages) <= 2:
                 pages_str = ", ".join(_truncate_path(p) for p in pages)
@@ -724,7 +758,9 @@ def _print_explain_output(stats, cli, *, dry_run: bool = False) -> None:
 
             cli.info(f"  │ {reason_display:<33} │ {len(pages):>5} │ {pages_str:<31} │")
 
-        cli.info("  └───────────────────────────────────┴───────┴─────────────────────────────────┘")
+        cli.info(
+            "  └───────────────────────────────────┴───────┴─────────────────────────────────┘"
+        )
         cli.blank()
 
     # Asset changes section
@@ -733,7 +769,10 @@ def _print_explain_output(stats, cli, *, dry_run: bool = False) -> None:
         for asset in decision.asset_changes:
             cli.info(f"    • {asset} → CHANGED")
         if decision.fingerprint_changes:
-            cli.detail("    (fingerprint changed, all pages using these assets were rebuilt)", indent=0)
+            cli.detail(
+                "    (fingerprint changed, all pages using these assets were rebuilt)",
+                indent=0,
+            )
         cli.blank()
 
     # Skip summary
@@ -744,9 +783,13 @@ def _print_explain_output(stats, cli, *, dry_run: bool = False) -> None:
     # Detailed skip reasons (only shown in verbose mode / when data available)
     if decision.skip_reasons:
         cli.blank()
-        cli.detail(f"  Skipped pages (first 10):", indent=0)
-        for i, (page_path, skip_reason) in enumerate(list(decision.skip_reasons.items())[:10]):
-            cli.detail(f"    • {_truncate_path(page_path)}: {skip_reason.value}", indent=0)
+        cli.detail("  Skipped pages (first 10):", indent=0)
+        for _i, (page_path, skip_reason) in enumerate(
+            list(decision.skip_reasons.items())[:10]
+        ):
+            cli.detail(
+                f"    • {_truncate_path(page_path)}: {skip_reason.value}", indent=0
+            )
         if len(decision.skip_reasons) > 10:
             cli.detail(f"    ... and {len(decision.skip_reasons) - 10} more", indent=0)
 
@@ -762,7 +805,12 @@ def _print_explain_output(stats, cli, *, dry_run: bool = False) -> None:
     else:
         reason_summary = decision.get_reason_summary()
         if reason_summary:
-            summary_parts = [f"{count} {reason}" for reason, count in sorted(reason_summary.items(), key=lambda x: -x[1])[:3]]
+            summary_parts = [
+                f"{count} {reason}"
+                for reason, count in sorted(
+                    reason_summary.items(), key=lambda x: -x[1]
+                )[:3]
+            ]
             cli.detail(f"  Reason summary: {', '.join(summary_parts)}", indent=0)
 
 
@@ -773,25 +821,25 @@ def _truncate_path(path: str, max_len: int = 25) -> str:
     # Keep the last part (filename) and truncate from the start
     parts = path.split("/")
     if len(parts) == 1:
-        return path[:max_len - 3] + "..."
+        return path[: max_len - 3] + "..."
     # Try to keep at least the filename
     filename = parts[-1]
     if len(filename) >= max_len - 3:
-        return "..." + filename[-(max_len - 3):]
+        return "..." + filename[-(max_len - 3) :]
     remaining = max_len - len(filename) - 4  # 4 for ".../"
     if remaining > 0:
         return ".../" + filename
-    return "..." + filename[-(max_len - 3):]
+    return "..." + filename[-(max_len - 3) :]
 
 
 def _print_explain_json(stats, *, dry_run: bool = False) -> None:
     """
     Print incremental build decision as JSON.
-    
+
     RFC: rfc-incremental-build-observability Phase 2
-    
+
     Outputs machine-readable JSON for tooling integration.
-    
+
     Args:
         stats: BuildStats object containing incremental_decision
         dry_run: Whether this was a dry-run (preview) build
@@ -801,7 +849,7 @@ def _print_explain_json(stats, *, dry_run: bool = False) -> None:
     from bengal.orchestration.build.results import IncrementalDecision
 
     decision: IncrementalDecision | None = getattr(stats, "incremental_decision", None)
-    
+
     if decision is None:
         output = {
             "error": "No incremental decision data available",
@@ -825,7 +873,9 @@ def _print_explain_json(stats, *, dry_run: bool = False) -> None:
         layer_trace = filter_log.to_dict().get("layer_trace") if filter_log else None
 
         output = {
-            "decision_type": filter_log.decision_type.value if filter_log else "unknown",
+            "decision_type": filter_log.decision_type.value
+            if filter_log
+            else "unknown",
             "pages_to_build": len(decision.pages_to_build),
             "pages_skipped": decision.pages_skipped_count,
             "fingerprint_changes": decision.fingerprint_changes,

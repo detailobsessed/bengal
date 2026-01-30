@@ -71,11 +71,8 @@ class BenchmarkHistoryLogger:
         if not self.log_file.exists():
             return []
 
-        entries = []
         with open(self.log_file) as f:
-            for line in f:
-                if line.strip():
-                    entries.append(json.loads(line))
+            entries = [json.loads(line) for line in f if line.strip()]
 
         if limit:
             return entries[-limit:]
@@ -124,7 +121,14 @@ class BenchmarkHistoryLogger:
         if rows:
             with open(output_file, "w", newline="") as f:
                 writer = csv.DictWriter(
-                    f, fieldnames=["timestamp", "test", "metric", "git_commit", "git_branch"]
+                    f,
+                    fieldnames=[
+                        "timestamp",
+                        "test",
+                        "metric",
+                        "git_commit",
+                        "git_branch",
+                    ],
                 )
                 writer.writeheader()
                 writer.writerows(rows)

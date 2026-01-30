@@ -249,7 +249,9 @@ class TestHasContentForVersion:
         section = Section(name="docs", path=tmp_path / "docs")
         section.index_page = make_page(tmp_path, "_index", version="v1")
         # Even with many pages, should return quickly from index check
-        section.pages = [make_page(tmp_path, f"page{i}", version="v2") for i in range(100)]
+        section.pages = [
+            make_page(tmp_path, f"page{i}", version="v2") for i in range(100)
+        ]
 
         # This should be fast due to short-circuit
         assert section.has_content_for_version("v1") is True
@@ -307,7 +309,9 @@ class TestVersionFilteringIntegration:
 
         root = Section(name="docs", path=tmp_path / "docs")
 
-        getting_started = Section(name="getting-started", path=tmp_path / "docs/getting-started")
+        getting_started = Section(
+            name="getting-started", path=tmp_path / "docs/getting-started"
+        )
         getting_started.pages = [make_page(tmp_path, "install", version="v1")]
 
         advanced = Section(name="advanced", path=tmp_path / "docs/advanced")

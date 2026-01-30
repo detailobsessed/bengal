@@ -82,14 +82,14 @@ BENCHMARKS = {
 def run_benchmark(script_name: str, output_file=None) -> dict:
     """
     Run a single benchmark script.
-    
+
     Args:
         script_name: Name of the benchmark script
         output_file: Optional file to write output to
-    
+
     Returns:
         Dict with execution results
-        
+
     """
     script_path = Path(__file__).parent / script_name
 
@@ -142,17 +142,21 @@ def run_benchmark(script_name: str, output_file=None) -> dict:
         }
 
 
-def run_benchmark_suite(benchmarks_to_run: list[str], output_path: str = None):
+def run_benchmark_suite(benchmarks_to_run: list[str], output_path: str | None = None):
     """
     Run a suite of benchmarks and generate summary.
-    
+
     Args:
         benchmarks_to_run: List of benchmark keys to run
         output_path: Optional file path to write results
-        
+
     """
     # Use context manager for file handling
-    with open(output_path, "w") if output_path else contextlib.nullcontext() as output_file:
+    with (
+        open(output_path, "w")
+        if output_path
+        else contextlib.nullcontext() as output_file
+    ):
         if output_file:
             output_file.write("Bengal SSG Performance Benchmarks\n")
             output_file.write(f"Generated: {datetime.now().isoformat()}\n")
@@ -167,7 +171,9 @@ def run_benchmark_suite(benchmarks_to_run: list[str], output_path: str = None):
 
         # Estimate duration
         total_minutes = sum(
-            BENCHMARKS[key]["duration_min"] for key in benchmarks_to_run if key in BENCHMARKS
+            BENCHMARKS[key]["duration_min"]
+            for key in benchmarks_to_run
+            if key in BENCHMARKS
         )
         print(f"Estimated duration: {total_minutes} minutes")
         print()
@@ -277,7 +283,9 @@ def main():
         print()
         for key, bench in BENCHMARKS.items():
             print(f"  {key:<20} - {bench['name']}")
-            print(f"  {'':<20}   Duration: ~{bench['duration_min']} min, Suite: {bench['suite']}")
+            print(
+                f"  {'':<20}   Duration: ~{bench['duration_min']} min, Suite: {bench['suite']}"
+            )
             print()
         return 0
 
@@ -289,15 +297,21 @@ def main():
         benchmarks_to_run = [b.strip() for b in args.benchmarks.split(",")]
     elif args.quick:
         # Quick suite
-        benchmarks_to_run = [key for key, bench in BENCHMARKS.items() if bench["suite"] == "quick"]
+        benchmarks_to_run = [
+            key for key, bench in BENCHMARKS.items() if bench["suite"] == "quick"
+        ]
     elif args.full:
         # Full suite (quick + scale tests)
         benchmarks_to_run = [
-            key for key, bench in BENCHMARKS.items() if bench["suite"] in ["quick", "full"]
+            key
+            for key, bench in BENCHMARKS.items()
+            if bench["suite"] in ["quick", "full"]
         ]
     else:
         # Default: quick suite
-        benchmarks_to_run = [key for key, bench in BENCHMARKS.items() if bench["suite"] == "quick"]
+        benchmarks_to_run = [
+            key for key, bench in BENCHMARKS.items() if bench["suite"] == "quick"
+        ]
 
     if not benchmarks_to_run:
         print("ERROR: No benchmarks selected")

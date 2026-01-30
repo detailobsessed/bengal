@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class PageSnapshot:
     """
     Immutable page snapshot for rendering.
-    
+
     All properties pre-computed at snapshot time.
     Thread-safe by design (frozen = no mutation possible).
     """
@@ -78,14 +78,17 @@ class PageSnapshot:
         """Equality based on source_path and content_hash."""
         if not isinstance(other, PageSnapshot):
             return NotImplemented
-        return self.source_path == other.source_path and self.content_hash == other.content_hash
+        return (
+            self.source_path == other.source_path
+            and self.content_hash == other.content_hash
+        )
 
 
 @dataclass(frozen=True, slots=True)
 class SectionSnapshot:
     """
     Immutable section snapshot for rendering.
-    
+
     Replaces: Section + SectionContext + TemplateSectionWrapper
     All three functionalities unified in one frozen type.
     """
@@ -151,10 +154,10 @@ NO_SECTION = SectionSnapshot(
 class TemplateSnapshot:
     """
     Pre-analyzed template with dependency graph.
-    
+
     Created during snapshot phase via static template analysis.
     Enables O(1) template→page lookup for incremental builds.
-    
+
     RFC: Snapshot-Enabled v2 Opportunities (Opportunity 5)
     """
 
@@ -185,7 +188,7 @@ class TemplateSnapshot:
 class SiteSnapshot:
     """
     Immutable site snapshot - the complete render context.
-    
+
     Created once after content discovery, used by all render phases.
     """
 

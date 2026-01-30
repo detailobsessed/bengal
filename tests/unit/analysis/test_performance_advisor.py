@@ -141,12 +141,17 @@ class TestPerformanceAdvisor:
         suggestions = advisor.analyze()
 
         # Should suggest enabling parallel
-        parallel_suggestions = [s for s in suggestions if s.type == SuggestionType.PARALLEL]
+        parallel_suggestions = [
+            s for s in suggestions if s.type == SuggestionType.PARALLEL
+        ]
         assert len(parallel_suggestions) > 0
 
         suggestion = parallel_suggestions[0]
         assert "parallel" in suggestion.title.lower()
-        assert suggestion.priority in [SuggestionPriority.HIGH, SuggestionPriority.MEDIUM]
+        assert suggestion.priority in [
+            SuggestionPriority.HIGH,
+            SuggestionPriority.MEDIUM,
+        ]
 
     def test_incremental_suggestion_when_not_used(self, slow_build_stats):
         """Test that incremental builds are suggested."""
@@ -154,7 +159,9 @@ class TestPerformanceAdvisor:
         suggestions = advisor.analyze()
 
         # Should suggest incremental builds
-        incremental_suggestions = [s for s in suggestions if s.type == SuggestionType.CACHING]
+        incremental_suggestions = [
+            s for s in suggestions if s.type == SuggestionType.CACHING
+        ]
         assert len(incremental_suggestions) > 0
 
         suggestion = incremental_suggestions[0]
@@ -178,7 +185,9 @@ class TestPerformanceAdvisor:
         suggestions = advisor.analyze()
 
         # Should detect rendering bottleneck (75% of time + >50ms per page)
-        template_suggestions = [s for s in suggestions if s.type == SuggestionType.TEMPLATES]
+        template_suggestions = [
+            s for s in suggestions if s.type == SuggestionType.TEMPLATES
+        ]
         assert len(template_suggestions) > 0
 
         suggestion = template_suggestions[0]
@@ -220,7 +229,10 @@ class TestPerformanceAdvisor:
                 SuggestionPriority.LOW: 2,
             }
             for i in range(len(top_3) - 1):
-                assert priority_values[top_3[i].priority] <= priority_values[top_3[i + 1].priority]
+                assert (
+                    priority_values[top_3[i].priority]
+                    <= priority_values[top_3[i + 1].priority]
+                )
 
     def test_skipped_build_analysis(self):
         """Test that skipped builds return no suggestions."""
@@ -275,7 +287,9 @@ class TestConvenienceFunction:
         advisor = analyze_build(slow_build_stats)
 
         assert isinstance(advisor, PerformanceAdvisor)
-        assert len(advisor.suggestions) > 0  # Analysis was run (slow build should have suggestions)
+        assert (
+            len(advisor.suggestions) > 0
+        )  # Analysis was run (slow build should have suggestions)
 
     def test_analyze_build_with_environment(self, fast_build_stats):
         """Test analysis with environment info."""

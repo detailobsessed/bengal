@@ -30,13 +30,19 @@ class TestCascadeIntegration:
         Tests that cascade properties flow from parent sections to child pages.
         """
         # Find the pages
-        super_widget = next(p for p in site.pages if "super-widget" in str(p.source_path))
-        custom_widget = next(p for p in site.pages if "custom-widget" in str(p.source_path))
+        super_widget = next(
+            p for p in site.pages if "super-widget" in str(p.source_path)
+        )
+        custom_widget = next(
+            p for p in site.pages if "custom-widget" in str(p.source_path)
+        )
 
         # Verify cascade applied to super-widget
         assert super_widget.metadata["type"] == "product"  # from products cascade
         assert super_widget.metadata["show_price"] is True  # from products cascade
-        assert super_widget.metadata["product_line"] == "current"  # from products cascade
+        assert (
+            super_widget.metadata["product_line"] == "current"
+        )  # from products cascade
         assert super_widget.metadata["category"] == "widget"  # from widgets cascade
         assert super_widget.metadata["warranty"] == "2-year"  # from widgets cascade
         assert super_widget.metadata["title"] == "Super Widget"  # own metadata
@@ -99,8 +105,12 @@ title: "Authentication v2"
         site.discover_content(content_dir)
 
         # Find pages
-        v1_auth = next(p for p in site.pages if p.metadata.get("title") == "Authentication v1")
-        v2_auth = next(p for p in site.pages if p.metadata.get("title") == "Authentication v2")
+        v1_auth = next(
+            p for p in site.pages if p.metadata.get("title") == "Authentication v1"
+        )
+        v2_auth = next(
+            p for p in site.pages if p.metadata.get("title") == "Authentication v2"
+        )
 
         # Verify v1 auth has correct cascade
         assert v1_auth.metadata["type"] == "api-doc"

@@ -45,7 +45,7 @@ def connected_site():
         page.metadata = {}
         cluster_b.append(page)
 
-    all_pages = [hub, bridge] + cluster_a + cluster_b
+    all_pages = [hub, bridge, *cluster_a, *cluster_b]
 
     # Create mock site
     site = Mock()
@@ -98,7 +98,7 @@ class TestPathAnalysisIntegration:
 
     def test_analyze_paths(self, connected_site):
         """Test basic path analysis."""
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        _site, graph, _hub, _bridge, _cluster_a, _cluster_b = connected_site
 
         # Analyze paths
         results = graph.analyze_paths()
@@ -112,7 +112,7 @@ class TestPathAnalysisIntegration:
 
     def test_identify_bridge_pages(self, connected_site):
         """Test that bridge pages have high betweenness centrality."""
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        _site, graph, _hub, bridge, _cluster_a, _cluster_b = connected_site
 
         results = graph.analyze_paths()
 
@@ -127,7 +127,7 @@ class TestPathAnalysisIntegration:
 
     def test_identify_accessible_pages(self, connected_site):
         """Test that well-connected pages have high closeness centrality."""
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        _site, graph, hub, _bridge, _cluster_a, _cluster_b = connected_site
 
         results = graph.analyze_paths()
 
@@ -142,7 +142,7 @@ class TestPathAnalysisIntegration:
 
     def test_path_analysis_caching(self, connected_site):
         """Test that path analysis results are cached."""
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        _site, graph, _hub, _bridge, _cluster_a, _cluster_b = connected_site
 
         # First analysis
         results1 = graph.analyze_paths()
@@ -158,11 +158,13 @@ class TestPathAnalysisIntegration:
 
         # Should be different object but same values
         assert results3 is not results1
-        assert len(results3.betweenness_centrality) == len(results1.betweenness_centrality)
+        assert len(results3.betweenness_centrality) == len(
+            results1.betweenness_centrality
+        )
 
     def test_get_betweenness_centrality(self, connected_site):
         """Test getting betweenness centrality for specific page."""
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        _site, graph, hub, _bridge, _cluster_a, _cluster_b = connected_site
 
         # Get betweenness (should auto-analyze)
         betweenness = graph.get_betweenness_centrality(hub)
@@ -172,7 +174,7 @@ class TestPathAnalysisIntegration:
 
     def test_get_closeness_centrality(self, connected_site):
         """Test getting closeness centrality for specific page."""
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        _site, graph, hub, _bridge, _cluster_a, _cluster_b = connected_site
 
         # Get closeness (should auto-analyze)
         closeness = graph.get_closeness_centrality(hub)
@@ -184,7 +186,7 @@ class TestPathAnalysisIntegration:
         """Test that path analysis requires graph to be built first."""
         from bengal.errors import BengalError
 
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        site, _graph, _hub, _bridge, _cluster_a, _cluster_b = connected_site
 
         # Create new graph without building
         new_graph = KnowledgeGraph(site)
@@ -194,7 +196,7 @@ class TestPathAnalysisIntegration:
 
     def test_top_bridges(self, connected_site):
         """Test getting top bridge pages."""
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        _site, graph, _hub, _bridge, _cluster_a, _cluster_b = connected_site
 
         results = graph.analyze_paths()
 
@@ -211,7 +213,7 @@ class TestPathAnalysisIntegration:
 
     def test_most_accessible(self, connected_site):
         """Test getting most accessible pages."""
-        site, graph, hub, bridge, cluster_a, cluster_b = connected_site
+        _site, graph, _hub, _bridge, _cluster_a, _cluster_b = connected_site
 
         results = graph.analyze_paths()
 
@@ -294,7 +296,8 @@ class TestPathAnalysisScalability:
         """Test path analysis on sparse graph (few connections)."""
         # Create 20 pages with minimal connections
         pages = [
-            Mock(source_path=Path(f"page{i}.md"), title=f"Page {i}", metadata={}) for i in range(20)
+            Mock(source_path=Path(f"page{i}.md"), title=f"Page {i}", metadata={})
+            for i in range(20)
         ]
 
         site = Mock()
@@ -327,21 +330,25 @@ class TestPathAnalysisScalability:
         last_page = pages[-1]
 
         assert (
-            results.betweenness_centrality[middle_page] > results.betweenness_centrality[first_page]
+            results.betweenness_centrality[middle_page]
+            > results.betweenness_centrality[first_page]
         )
         assert (
-            results.betweenness_centrality[middle_page] > results.betweenness_centrality[last_page]
+            results.betweenness_centrality[middle_page]
+            > results.betweenness_centrality[last_page]
         )
 
     def test_disconnected_components(self):
         """Test path analysis with disconnected components."""
         # Create two separate components
         component1 = [
-            Mock(source_path=Path(f"c1_{i}.md"), title=f"C1 {i}", metadata={}) for i in range(5)
+            Mock(source_path=Path(f"c1_{i}.md"), title=f"C1 {i}", metadata={})
+            for i in range(5)
         ]
 
         component2 = [
-            Mock(source_path=Path(f"c2_{i}.md"), title=f"C2 {i}", metadata={}) for i in range(5)
+            Mock(source_path=Path(f"c2_{i}.md"), title=f"C2 {i}", metadata={})
+            for i in range(5)
         ]
 
         all_pages = component1 + component2

@@ -85,7 +85,9 @@ def has_action_rebuild(obj: object) -> TypeGuard[HasActionRebuild]:
     Returns:
         True if obj has callable action_rebuild method
     """
-    return hasattr(obj, "action_rebuild") and callable(getattr(obj, "action_rebuild", None))
+    return hasattr(obj, "action_rebuild") and callable(
+        getattr(obj, "action_rebuild", None)
+    )
 
 
 @runtime_checkable
@@ -171,15 +173,15 @@ def has_walk(obj: object) -> TypeGuard[HasWalk]:
 # =============================================================================
 
 __all__ = [
+    "HasActionRebuild",
     # Protocols
     "HasClearTemplateCache",
-    "HasActionRebuild",
     "HasConfigChangedSignal",
     "HasErrors",
     "HasWalk",
+    "has_action_rebuild",
     # TypeGuards
     "has_clear_template_cache",
-    "has_action_rebuild",
     "has_config_changed_signal",
     "has_errors",
     "has_walk",

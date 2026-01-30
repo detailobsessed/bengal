@@ -15,10 +15,10 @@ if TYPE_CHECKING:
 def display_warnings(stats: BuildStats) -> None:
     """
     Display grouped warnings and errors.
-    
+
     Args:
         stats: Build statistics with warnings
-        
+
     """
     if not stats.warnings:
         return
@@ -45,7 +45,9 @@ def display_warnings(stats: BuildStats) -> None:
         type_name = type_names.get(warning_type, warning_type.title())
 
         if cli.use_rich:
-            cli.console.print(f"   [header]{type_name} ({len(type_warnings)}):[/header]")
+            cli.console.print(
+                f"   [header]{type_name} ({len(type_warnings)}):[/header]"
+            )
         else:
             cli.info(f"   {type_name} ({len(type_warnings)}):")
 

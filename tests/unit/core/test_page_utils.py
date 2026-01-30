@@ -2,8 +2,6 @@
 Tests for page utilities (factories).
 """
 
-from __future__ import annotations
-
 from bengal.core.page.utils import create_synthetic_page
 
 

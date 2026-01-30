@@ -118,11 +118,11 @@ class LogEvent:
 class BengalLogger:
     """
     Phase-aware structured logger for Bengal builds.
-    
+
     Tracks build phases, emits structured events, and provides
     timing information. All logs are written to both console
     and a build log file.
-        
+
     """
 
     def __init__(
@@ -237,7 +237,10 @@ class BengalLogger:
         error_type = type(error).__name__
 
         # Fast path: Only enhance AttributeError with 'get' attribute
-        if error_type != "AttributeError" or "'str' object has no attribute 'get'" not in error_msg:
+        if (
+            error_type != "AttributeError"
+            or "'str' object has no attribute 'get'" not in error_msg
+        ):
             return error_msg
 
         # Check if site is in context first (fast check before traceback)
@@ -255,12 +258,15 @@ class BengalLogger:
         tb_str = None
         tb_lines = None
         if error.__traceback__ is not None:
-            tb_lines = traceback.format_exception(type(error), error, error.__traceback__)
+            tb_lines = traceback.format_exception(
+                type(error), error, error.__traceback__
+            )
             tb_str = "".join(tb_lines)
 
         # Check if it's related to site.config
         is_site_config_error = (
-            tb_str is not None and ("site.config" in tb_str or "self.site.config" in tb_str)
+            tb_str is not None
+            and ("site.config" in tb_str or "self.site.config" in tb_str)
         ) or is_config_string
 
         if is_site_config_error:
@@ -274,7 +280,9 @@ class BengalLogger:
                     config_type_name = type(config_value).__name__
                     if isinstance(config_value, str):
                         preview = (
-                            config_value[:100] + "..." if len(config_value) > 100 else config_value
+                            config_value[:100] + "..."
+                            if len(config_value) > 100
+                            else config_value
                         )
                         config_value_preview = f"'{preview}'"
 
@@ -282,7 +290,9 @@ class BengalLogger:
             failing_line = None
             if tb_lines:
                 for line in tb_lines:
-                    if ".get(" in line and ("site.config" in line or "self.site.config" in line):
+                    if ".get(" in line and (
+                        "site.config" in line or "self.site.config" in line
+                    ):
                         # Extract just the code line, not the full traceback line
                         if "File" in line:
                             parts = line.split("\n")
@@ -325,7 +335,9 @@ class BengalLogger:
         # Generic AttributeError with 'get' - might be other dict access
         # Only format traceback if we haven't already
         if tb_lines is None and error.__traceback__ is not None:
-            tb_lines = traceback.format_exception(type(error), error, error.__traceback__)
+            tb_lines = traceback.format_exception(
+                type(error), error, error.__traceback__
+            )
 
         enhanced = [
             error_msg,
@@ -490,7 +502,9 @@ class BengalLogger:
             console.print("=" * 60)
 
             total = sum(timings.values())
-            for phase, duration in sorted(timings.items(), key=lambda x: x[1], reverse=True):
+            for phase, duration in sorted(
+                timings.items(), key=lambda x: x[1], reverse=True
+            ):
                 percentage = (duration / total * 100) if total > 0 else 0
                 console.print(f"  {phase:30s} {duration:8.1f}ms ({percentage:5.1f}%)")
 
@@ -504,7 +518,9 @@ class BengalLogger:
             print("=" * 60)
 
             total = sum(timings.values())
-            for phase, duration in sorted(timings.items(), key=lambda x: x[1], reverse=True):
+            for phase, duration in sorted(
+                timings.items(), key=lambda x: x[1], reverse=True
+            ):
                 percentage = (duration / total * 100) if total > 0 else 0
                 print(f"  {phase:30s} {duration:8.1f}ms ({percentage:5.1f}%)")
 
@@ -559,14 +575,18 @@ def truncate_error(e: Exception, max_len: int = 500) -> str:
         else:
             error_str = f"{error_type} (no details available)"
 
-    return truncate_str(error_str, max_len, f"\n... (truncated {len(error_str) - max_len} chars)")
+    return truncate_str(
+        error_str, max_len, f"\n... (truncated {len(error_str) - max_len} chars)"
+    )
 
 
 # Global logger registry with lock for thread-safe access (PEP 703)
 _loggers: dict[str, BengalLogger] = {}
 _lazy_loggers: dict[str, LazyLogger] = {}  # Cache of proxy objects
 _registry_version: int = 0  # Incremented on reset_loggers()
-_logger_lock = threading.RLock()  # Protects _loggers, _lazy_loggers, _registry_version (reentrant for nested calls)
+_logger_lock = (
+    threading.RLock()
+)  # Protects _loggers, _lazy_loggers, _registry_version (reentrant for nested calls)
 
 
 class _GlobalConfig(TypedDict):
@@ -586,7 +606,7 @@ _global_config: _GlobalConfig = {
 
 def _get_actual_logger(name: str) -> BengalLogger:
     """Internal helper to fetch or create the real logger instance.
-    
+
     Thread-safe: Uses double-checked locking pattern for safe concurrent
     access under free-threading (PEP 703).
     """
@@ -609,16 +629,16 @@ def _get_actual_logger(name: str) -> BengalLogger:
 class LazyLogger:
     """
     Transparent proxy for BengalLogger that tracks registry resets.
-    
+
     Module-level `logger = get_logger(__name__)` references hold this proxy.
     When `reset_loggers()` is called, the registry version increments and
     the proxy will fetch a fresh logger on next access.
-    
+
     Attributes:
         _name: The logger name to fetch.
         _real_logger: Cached reference to the actual logger.
         _version: The registry version when the logger was cached.
-        
+
     """
 
     __slots__ = ("_name", "_real_logger", "_version")
@@ -653,15 +673,15 @@ def configure_logging(
 ) -> None:
     """
     Configure global logging settings.
-    
+
     Thread-safe: Uses lock for safe concurrent access under free-threading (PEP 703).
-    
+
     Args:
         level: Minimum log level to emit
         log_file: Path to log file
         verbose: Show verbose output
         track_memory: Enable memory profiling (adds overhead)
-        
+
     """
     with _logger_lock:
         _global_config["level"] = level
@@ -709,24 +729,24 @@ def configure_logging(
 def get_logger(name: str) -> BengalLogger:
     """
     Get a logger proxy for the given name.
-    
+
     Returns a LazyLogger proxy that automatically refreshes when
     reset_loggers() is called. This ensures module-level logger
     references never become stale.
-    
+
     The proxy is cached, so calling get_logger() with the same name
     returns the same proxy instance.
-    
+
     Thread-safe: Uses double-checked locking pattern for safe concurrent
     access under free-threading (PEP 703). The fast path uses .get() to
     avoid KeyError if reset_loggers() clears the dict concurrently.
-    
+
     Args:
         name: Logger name (typically __name__)
-    
+
     Returns:
         LazyLogger proxy (type-compatible with BengalLogger)
-        
+
     """
     # Fast path: already exists (no lock needed)
     # Use .get() to avoid KeyError if reset_loggers() clears dict concurrently
@@ -743,15 +763,15 @@ def get_logger(name: str) -> BengalLogger:
 def set_console_quiet(quiet: bool = True) -> None:
     """
     Enable or disable console output for all loggers.
-    
+
     Used by live progress manager to suppress structured log events
     while preserving file logging for debugging.
-    
+
     Thread-safe: Uses lock for safe concurrent access under free-threading (PEP 703).
-    
+
     Args:
         quiet: If True, suppress console output; if False, enable it
-        
+
     """
     with _logger_lock:
         _global_config["quiet_console"] = quiet
@@ -763,7 +783,7 @@ def set_console_quiet(quiet: bool = True) -> None:
 
 def close_all_loggers() -> None:
     """Close all logger file handles.
-    
+
     Thread-safe: Uses lock for safe concurrent access under free-threading (PEP 703).
     """
     with _logger_lock:
@@ -773,7 +793,7 @@ def close_all_loggers() -> None:
 
 def reset_loggers() -> None:
     """Close all loggers, clear registry, and increment version counter.
-    
+
     Thread-safe: Uses lock for safe concurrent access under free-threading (PEP 703).
     """
     global _registry_version
@@ -791,7 +811,7 @@ def reset_loggers() -> None:
 
 def print_all_summaries() -> None:
     """Print timing and memory summaries from all loggers.
-    
+
     Thread-safe: Uses lock for safe concurrent access under free-threading (PEP 703).
     """
     # Merge all events (copy under lock to avoid iteration during mutation)

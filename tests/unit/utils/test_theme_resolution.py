@@ -67,7 +67,9 @@ class TestReadThemeExtends:
         mock_manifest.write_text('extends = "installed-parent"')
         mock_pkg.resolve_resource_path.return_value = mock_manifest
 
-        with patch("bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg):
+        with patch(
+            "bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg
+        ):
             extends = _read_theme_extends(tmp_path, "installed-theme")
 
         assert extends == "installed-parent"
@@ -209,7 +211,9 @@ class TestIterThemeAssetDirs:
         mock_pkg = MagicMock()
         mock_pkg.resolve_resource_path.return_value = mock_assets_dir
 
-        with patch("bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg):
+        with patch(
+            "bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg
+        ):
             dirs = iter_theme_asset_dirs(tmp_path, ["installed-theme"])
 
         assert len(dirs) == 1
@@ -227,7 +231,9 @@ class TestIterThemeAssetDirs:
         mock_pkg = MagicMock()
         mock_pkg.resolve_resource_path.return_value = installed_assets
 
-        with patch("bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg):
+        with patch(
+            "bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg
+        ):
             dirs = iter_theme_asset_dirs(tmp_path, ["dual-theme"])
 
         # Should only return site assets (takes precedence)
@@ -283,10 +289,10 @@ class TestIterThemeAssetDirs:
 
 class TestResolveThemeTemplatesPath:
     """Tests for resolve_theme_templates_path function.
-    
+
     This function is the canonical way to find theme template directories,
     used by all template engines for cross-theme extends support.
-        
+
     """
 
     def test_finds_site_theme_templates(self, tmp_path):
@@ -309,7 +315,9 @@ class TestResolveThemeTemplatesPath:
         mock_pkg = MagicMock()
         mock_pkg.resolve_resource_path.return_value = mock_templates_dir
 
-        with patch("bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg):
+        with patch(
+            "bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg
+        ):
             result = resolve_theme_templates_path("installed-theme", tmp_path)
 
         assert result == mock_templates_dir
@@ -326,7 +334,9 @@ class TestResolveThemeTemplatesPath:
         mock_pkg = MagicMock()
         mock_pkg.resolve_resource_path.return_value = installed_templates
 
-        with patch("bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg):
+        with patch(
+            "bengal.core.theme.resolution.get_theme_package", return_value=mock_pkg
+        ):
             result = resolve_theme_templates_path("dual-theme", tmp_path)
 
         # Should return site templates (takes precedence)

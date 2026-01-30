@@ -17,10 +17,10 @@ from typing import Any
 class ContentEntry:
     """
     Unified representation of content from any source.
-    
+
     ContentEntry is source-agnostic - whether content comes from local files,
     GitHub, Notion, or a REST API, it's represented the same way.
-    
+
     Attributes:
         id: Unique identifier within the source (e.g., file path, doc ID)
         slug: URL-friendly slug for routing
@@ -34,7 +34,7 @@ class ContentEntry:
         etag: HTTP ETag (for conditional requests)
         cached_path: Local cache file path (if cached)
         cached_at: When this entry was cached
-    
+
     Example:
             >>> entry = ContentEntry(
             ...     id="getting-started.md",
@@ -46,7 +46,7 @@ class ContentEntry:
             ... )
             >>> entry.title
             'Getting Started'
-        
+
     """
 
     # Identity
@@ -116,7 +116,9 @@ class ContentEntry:
             "source_type": self.source_type,
             "source_name": self.source_name,
             "source_url": self.source_url,
-            "last_modified": self.last_modified.isoformat() if self.last_modified else None,
+            "last_modified": self.last_modified.isoformat()
+            if self.last_modified
+            else None,
             "checksum": self.checksum,
             "etag": self.etag,
             "cached_path": str(self.cached_path) if self.cached_path else None,
@@ -143,12 +145,16 @@ class ContentEntry:
             source_name=data.get("source_name", "default"),
             source_url=data.get("source_url"),
             last_modified=(
-                datetime.fromisoformat(data["last_modified"]) if data.get("last_modified") else None
+                datetime.fromisoformat(data["last_modified"])
+                if data.get("last_modified")
+                else None
             ),
             checksum=data.get("checksum"),
             etag=data.get("etag"),
             cached_path=Path(data["cached_path"]) if data.get("cached_path") else None,
             cached_at=(
-                datetime.fromisoformat(data["cached_at"]) if data.get("cached_at") else None
+                datetime.fromisoformat(data["cached_at"])
+                if data.get("cached_at")
+                else None
             ),
         )

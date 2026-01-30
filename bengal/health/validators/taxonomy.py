@@ -23,13 +23,13 @@ if TYPE_CHECKING:
 class TaxonomyValidator(BaseValidator):
     """
     Validates taxonomy system integrity.
-    
+
     Checks:
     - Tag pages generated for all tags
     - No orphaned tag pages (tag doesn't exist)
     - Archive pages exist for sections with content
     - Pagination pages are consistent
-        
+
     """
 
     name = "Taxonomies"
@@ -154,7 +154,9 @@ class TaxonomyValidator(BaseValidator):
                 and p.metadata.get("type") == "archive"
                 and (
                     p.metadata.get("_section") == section
-                    or (p.metadata.get("_section_url") == getattr(section, "href", None))
+                    or (
+                        p.metadata.get("_section_url") == getattr(section, "href", None)
+                    )
                 )
                 for p in site.pages
             )
@@ -181,7 +183,9 @@ class TaxonomyValidator(BaseValidator):
                 and getattr(s, "name", "") != "root"
             )
             results.append(
-                CheckResult.success(f"Archive pages validated ({sections_with_content} sections)")
+                CheckResult.success(
+                    f"Archive pages validated ({sections_with_content} sections)"
+                )
             )
 
         return results
@@ -210,7 +214,9 @@ class TaxonomyValidator(BaseValidator):
                             )
 
                     # For categories, check page.metadata
-                    elif taxonomy_type == "categories" and not page.metadata.get("category"):
+                    elif taxonomy_type == "categories" and not page.metadata.get(
+                        "category"
+                    ):
                         issues.append(
                             f"Page {page.source_path.name} in category '{term_slug}' but has no category"
                         )
@@ -227,7 +233,9 @@ class TaxonomyValidator(BaseValidator):
         else:
             total_terms = sum(len(terms) for terms in site.taxonomies.values())
             results.append(
-                CheckResult.success(f"Taxonomy consistency validated ({total_terms} terms)")
+                CheckResult.success(
+                    f"Taxonomy consistency validated ({total_terms} terms)"
+                )
             )
 
         return results
@@ -239,12 +247,16 @@ class TaxonomyValidator(BaseValidator):
 
         # Find all pagination pages
         pagination_pages = [
-            p for p in site.pages if p.metadata.get("_generated") and "/page/" in str(p.output_path)
+            p
+            for p in site.pages
+            if p.metadata.get("_generated") and "/page/" in str(p.output_path)
         ]
 
         if not pagination_pages:
             results.append(
-                CheckResult.info("No pagination pages found (all lists fit on single page)")
+                CheckResult.info(
+                    "No pagination pages found (all lists fit on single page)"
+                )
             )
             return results
 

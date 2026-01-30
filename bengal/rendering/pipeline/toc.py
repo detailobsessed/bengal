@@ -59,19 +59,19 @@ logger = get_logger(__name__)
 def extract_toc_structure(toc_html: str) -> list[dict[str, Any]]:
     """
     Parse TOC HTML into structured data for custom rendering.
-    
+
     Handles both nested <ul> structures (python-markdown style) and flat lists (mistune style).
     For flat lists from mistune, parses indentation to infer heading levels.
-    
+
     This is a standalone function so it can be called from Page.toc_items
     property for lazy evaluation.
-    
+
     Args:
         toc_html: HTML table of contents
-    
+
     Returns:
         List of TOC items with id, title, and level (1=H2, 2=H3, 3=H4, etc.)
-        
+
     """
     if not toc_html:
         return []
@@ -109,7 +109,9 @@ def extract_toc_structure(toc_html: str) -> list[dict[str, Any]]:
                 self.current_item: dict[str, Any] | None = None
                 self.depth = 0
 
-            def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            def handle_starttag(
+                self, tag: str, attrs: list[tuple[str, str | None]]
+            ) -> None:
                 if tag == "ul":
                     self.depth += 1
                 elif tag == "a":

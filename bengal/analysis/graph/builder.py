@@ -17,8 +17,6 @@ GraphBuilder: Builds the knowledge graph from site data.
 
 """
 
-from __future__ import annotations
-
 import concurrent.futures
 import os
 import threading
@@ -27,8 +25,12 @@ from typing import TYPE_CHECKING, Any, cast
 
 from bengal.analysis.links.types import LinkMetrics, LinkType
 from bengal.errors import BengalGraphError, ErrorCode, record_error
+from bengal.utils.concurrency.workers import (
+    WorkloadType,
+    get_optimal_workers,
+    should_parallelize,
+)
 from bengal.utils.observability.logger import get_logger
-from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers, should_parallelize
 
 if TYPE_CHECKING:
     from bengal.protocols import PageLike, SiteLike
@@ -45,7 +47,7 @@ MIN_PAGES_FOR_PARALLEL = 100
 class GraphBuilder:
     """
     Builds the knowledge graph by analyzing page connections.
-    
+
     Analyzes connections from multiple sources:
     - Cross-references: Internal markdown links between pages
     - Taxonomies: Shared tags and categories
@@ -53,7 +55,7 @@ class GraphBuilder:
     - Menu items: Navigation structure
     - Section hierarchy: Parent-child relationships
     - Navigation links: Next/prev sequential relationships
-    
+
     Attributes:
         site: Site instance to analyze
         exclude_autodoc: Whether to exclude autodoc pages from analysis
@@ -61,12 +63,12 @@ class GraphBuilder:
         outgoing_refs: Dict mapping pages to sets of target pages
         link_types: Dict mapping (source, target) tuples to link types
         link_metrics: Dict mapping pages to LinkMetrics objects
-    
+
     Example:
             >>> builder = GraphBuilder(site, exclude_autodoc=True)
             >>> builder.build()
             >>> # Results available in builder.incoming_refs, etc.
-        
+
     """
 
     def __init__(
@@ -90,7 +92,11 @@ class GraphBuilder:
 
         # Determine parallel mode
         # Priority: env var > explicit parameter > config > auto
-        no_parallel_env = os.environ.get("BENGAL_NO_PARALLEL", "").lower() in ("1", "true", "yes")
+        no_parallel_env = os.environ.get("BENGAL_NO_PARALLEL", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
         if no_parallel_env:
             self.parallel = False
         elif parallel is not None:
@@ -281,7 +287,9 @@ class GraphBuilder:
         # Parallel execution
         results: list[dict[str, Any]] = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_page = {executor.submit(analyze_page, page): page for page in analysis_pages}
+            future_to_page = {
+                executor.submit(analyze_page, page): page for page in analysis_pages
+            }
             for future in concurrent.futures.as_completed(future_to_page):
                 page = future_to_page[future]
                 try:
@@ -375,7 +383,9 @@ class GraphBuilder:
         Only analyzes links from/to pages included in analysis (excludes autodoc).
         """
         if not hasattr(self.site, "xref_index") or not self.site.xref_index:
-            logger.debug("knowledge_graph_no_xref_index", action="skipping cross-ref analysis")
+            logger.debug(
+                "knowledge_graph_no_xref_index", action="skipping cross-ref analysis"
+            )
             return
 
         analysis_pages = self.get_analysis_pages()
@@ -408,7 +418,7 @@ class GraphBuilder:
         # Type narrowing: xref_index is a dict-like structure
         if not isinstance(xref, dict):
             return None
-        
+
         xref_dict = cast(dict[str, Any], xref)
 
         # Try by ID
@@ -431,7 +441,7 @@ class GraphBuilder:
         if isinstance(by_slug, dict):
             pages = by_slug.get(link, [])
             return pages[0] if pages else None
-        
+
         return None
 
     def _analyze_taxonomies(self) -> None:
@@ -442,7 +452,9 @@ class GraphBuilder:
         Only includes pages in analysis (excludes autodoc).
         """
         if not hasattr(self.site, "taxonomies") or not self.site.taxonomies:
-            logger.debug("knowledge_graph_no_taxonomies", action="skipping taxonomy analysis")
+            logger.debug(
+                "knowledge_graph_no_taxonomies", action="skipping taxonomy analysis"
+            )
             return
 
         analysis_pages_set = set(self.get_analysis_pages())
@@ -451,14 +463,14 @@ class GraphBuilder:
         taxonomies = self.site.taxonomies
         if not isinstance(taxonomies, dict):
             return
-        
+
         taxonomies_dict = cast(dict[str, Any], taxonomies)
-        
-        for _taxonomy_name, taxonomy_dict in taxonomies_dict.items():
+
+        for taxonomy_dict in taxonomies_dict.values():
             if not isinstance(taxonomy_dict, dict):
                 continue
             taxonomy_dict_typed = cast(dict[str, Any], taxonomy_dict)
-            for _term_slug, term_data in taxonomy_dict_typed.items():
+            for term_data in taxonomy_dict_typed.values():
                 if not isinstance(term_data, dict):
                     continue
                 term_data_typed = cast(dict[str, Any], term_data)
@@ -514,12 +526,16 @@ class GraphBuilder:
         menu = self.site.menu
         if not isinstance(menu, dict):
             return
-        
+
         menu_dict = cast(dict[str, Any], menu)
-        
-        for _menu_name, menu_items in menu_dict.items():
+
+        for menu_items in menu_dict.values():
             for item in menu_items:
-                if hasattr(item, "page") and item.page and item.page in analysis_pages_set:
+                if (
+                    hasattr(item, "page")
+                    and item.page
+                    and item.page in analysis_pages_set
+                ):
                     self.incoming_refs[item.page] += 10
                     self.link_types[(None, item.page)] = LinkType.MENU
 
@@ -614,7 +630,9 @@ class GraphBuilder:
 
         # Build inverted index: target -> {link_type: count}
         # O(L) single pass instead of O(P × L) nested loop
-        incoming_by_type: dict[PageLike, dict[LinkType, int]] = defaultdict(lambda: defaultdict(int))
+        incoming_by_type: dict[PageLike, dict[LinkType, int]] = defaultdict(
+            lambda: defaultdict(int)
+        )
         for (_source, target), link_type in self.link_types.items():
             incoming_by_type[target][link_type] += 1
 

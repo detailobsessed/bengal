@@ -16,23 +16,27 @@ from bengal.health.report import CheckResult, CheckStatus
 class ExternalRefValidator(BaseValidator):
     """
     Validate external references resolved during rendering.
-    
+
     Emits warnings for unresolved [[ext:project:target]] so builds can surface
     missing templates or indexes without failing.
-        
+
     """
 
     name = "external_references"
     description = "Reports unresolved external references"
     enabled_by_default = True
 
-    def validate(self, site: Any, build_context: Any | None = None) -> list[CheckResult]:
+    def validate(
+        self, site: Any, build_context: Any | None = None
+    ) -> list[CheckResult]:
         results: list[CheckResult] = []
 
         external_refs_config = getattr(site, "config", {}).get("external_refs", {})
         if isinstance(external_refs_config, bool) and not external_refs_config:
             return results
-        if isinstance(external_refs_config, dict) and not external_refs_config.get("enabled", True):
+        if isinstance(external_refs_config, dict) and not external_refs_config.get(
+            "enabled", True
+        ):
             return results
 
         resolver = getattr(site, "external_ref_resolver", None)

@@ -6,8 +6,6 @@ Tests config/env_overrides.py:
 Note: Config is now nested (site.baseurl instead of flat baseurl).
 """
 
-from __future__ import annotations
-
 import os
 from unittest.mock import patch
 
@@ -26,7 +24,9 @@ class TestApplyEnvOverridesExplicit:
     def test_bengal_baseurl_env_overrides_missing(self):
         """BENGAL_BASEURL env var overrides missing baseurl."""
         config = {}  # Missing baseurl allows env override
-        with patch.dict(os.environ, {"BENGAL_BASEURL": "https://env-override.com"}, clear=False):
+        with patch.dict(
+            os.environ, {"BENGAL_BASEURL": "https://env-override.com"}, clear=False
+        ):
             result = apply_env_overrides(config)
         assert result["site"]["baseurl"] == "https://env-override.com"
 
@@ -70,9 +70,13 @@ class TestApplyEnvOverridesExplicit:
     def test_bengal_baseurl_overrides_explicit_empty(self):
         """BENGAL_BASEURL can override explicit empty baseurl."""
         config = {"site": {"baseurl": ""}}  # Explicit empty
-        with patch.dict(os.environ, {"BENGAL_BASEURL": "https://env-override.com"}, clear=False):
+        with patch.dict(
+            os.environ, {"BENGAL_BASEURL": "https://env-override.com"}, clear=False
+        ):
             result = apply_env_overrides(config)
-        assert result["site"]["baseurl"] == "https://env-override.com"  # BENGAL_BASEURL overrides
+        assert (
+            result["site"]["baseurl"] == "https://env-override.com"
+        )  # BENGAL_BASEURL overrides
 
 
 class TestApplyEnvOverridesNetlify:
@@ -98,7 +102,10 @@ class TestApplyEnvOverridesNetlify:
         }
         with patch.dict(os.environ, env, clear=False):
             result = apply_env_overrides(config)
-        assert result["site"]["baseurl"] == "https://deploy-preview-123--mysite.netlify.app"
+        assert (
+            result["site"]["baseurl"]
+            == "https://deploy-preview-123--mysite.netlify.app"
+        )
 
     def test_netlify_production_takes_precedence(self):
         """Production URL takes precedence over deploy preview."""
@@ -261,7 +268,9 @@ class TestApplyEnvOverridesEdgeCases:
     def test_missing_baseurl_key(self):
         """Handles missing baseurl key in config."""
         config = {}
-        with patch.dict(os.environ, {"BENGAL_BASEURL": "https://example.com"}, clear=False):
+        with patch.dict(
+            os.environ, {"BENGAL_BASEURL": "https://example.com"}, clear=False
+        ):
             result = apply_env_overrides(config)
         assert result["site"]["baseurl"] == "https://example.com"
 
@@ -299,7 +308,13 @@ class TestApplyEnvOverridesEdgeCases:
 
         def mock_get(key, default=None):
             # Only raise for keys used in env override logic
-            if key in ("BENGAL_BASEURL", "BENGAL_BASE_URL", "NETLIFY", "VERCEL", "GITHUB_ACTIONS"):
+            if key in (
+                "BENGAL_BASEURL",
+                "BENGAL_BASE_URL",
+                "NETLIFY",
+                "VERCEL",
+                "GITHUB_ACTIONS",
+            ):
                 raise Exception("Test error")
             return original_get(key, default)
 
@@ -311,6 +326,8 @@ class TestApplyEnvOverridesEdgeCases:
     def test_returns_same_config_object(self):
         """Returns the same config object (mutated)."""
         config = {}  # Missing baseurl allows env override
-        with patch.dict(os.environ, {"BENGAL_BASEURL": "https://test.com"}, clear=False):
+        with patch.dict(
+            os.environ, {"BENGAL_BASEURL": "https://test.com"}, clear=False
+        ):
             result = apply_env_overrides(config)
         assert result is config

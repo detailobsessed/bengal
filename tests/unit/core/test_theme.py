@@ -1,7 +1,5 @@
 """Tests for Theme configuration object and feature flags."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest

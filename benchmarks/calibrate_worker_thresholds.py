@@ -21,8 +21,6 @@ See Also:
     - bengal/utils/workers.py for the auto-tune implementation
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import os
@@ -129,7 +127,9 @@ def find_break_even_threshold(
 
     for count in task_counts:
         tasks = task_generator(count)
-        times = measure_parallel_execution(tasks, processor, [1, workers], iterations=iterations)
+        times = measure_parallel_execution(
+            tasks, processor, [1, workers], iterations=iterations
+        )
 
         if times[workers] < times[1]:
             return count
@@ -475,7 +475,9 @@ def print_summary(results: list[CalibrationResult]) -> None:
 
 def main() -> None:
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Calibrate worker auto-tune thresholds")
+    parser = argparse.ArgumentParser(
+        description="Calibrate worker auto-tune thresholds"
+    )
     parser.add_argument(
         "--quick",
         action="store_true",

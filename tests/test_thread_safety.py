@@ -13,8 +13,6 @@ Run with GIL disabled (requires Python 3.14t):
     PYTHON_GIL=0 pytest tests/test_thread_safety.py -v -x
 """
 
-from __future__ import annotations
-
 import threading
 from typing import Any
 
@@ -36,7 +34,7 @@ class TestLRUCacheThreadSafety:
                     # Each thread creates param infos with overlapping names
                     result = _cached_param_info(
                         name=f"param_{i % 10}",
-                        type_hint=f"str | int" if i % 2 == 0 else None,
+                        type_hint="str | int" if i % 2 == 0 else None,
                         default=f"default_{i % 5}" if i % 3 == 0 else None,
                         description=f"Description for param {i}",
                     )
@@ -62,7 +60,6 @@ class TestLRUCacheThreadSafety:
     def test_icon_render_cache_concurrent_access(self) -> None:
         """Test icon render cache under concurrent access."""
         from bengal.rendering.template_functions.icons import (
-            _icon_render_cache,
             _render_icon_cached,
             clear_icon_cache,
         )
@@ -101,7 +98,7 @@ class TestLRUCacheThreadSafety:
 
     def test_directive_icon_cache_concurrent_access(self) -> None:
         """Test directive icon cache under concurrent access."""
-        from bengal.directives._icons import _svg_icon_cache, clear_icon_cache, render_svg_icon
+        from bengal.directives._icons import clear_icon_cache, render_svg_icon
 
         # Clear cache before test
         clear_icon_cache()
@@ -136,7 +133,7 @@ class TestLRUCacheThreadSafety:
 
     def test_theme_cache_concurrent_access(self) -> None:
         """Test theme discovery cache under concurrent access."""
-        from bengal.core.theme.registry import _installed_themes_cache, get_installed_themes
+        from bengal.core.theme.registry import get_installed_themes
 
         errors: list[Exception] = []
         results: list[dict] = []
@@ -164,7 +161,9 @@ class TestLRUCacheThreadSafety:
         # All results should be the same dict (singleton pattern)
         if results:
             first_id = id(results[0])
-            assert all(id(r) == first_id for r in results), "All results should be same instance"
+            assert all(id(r) == first_id for r in results), (
+                "All results should be same instance"
+            )
 
 
 class TestScaffoldRegistryThreadSafety:
@@ -328,7 +327,7 @@ class TestThreadSafeSetUsage:
         assert not errors, f"Thread safety errors: {errors}"
 
         # Each unique path should only be "new" once across all threads
-        unique_paths = set(path for path, _ in added_paths)
+        {path for path, _ in added_paths}
         new_counts = {}
         for path, was_new in added_paths:
             if was_new:

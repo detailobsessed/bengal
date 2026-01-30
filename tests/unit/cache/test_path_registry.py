@@ -5,8 +5,6 @@ RFC: rfc-cache-invalidation-architecture
 Tests canonical path representation for consistent cache keys.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 

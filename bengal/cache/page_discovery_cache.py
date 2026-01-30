@@ -45,7 +45,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -91,13 +91,13 @@ class PageDiscoveryCacheEntry:
 class PageDiscoveryCache:
     """
     Persistent cache for page metadata enabling lazy page loading.
-    
+
     Purpose:
     - Store page metadata (title, date, tags, section, slug)
     - Enable incremental discovery (only load changed pages)
     - Support lazy loading of full page content on demand
     - Validate cache entries to detect stale data
-    
+
     Cache Format (JSON):
     {
         "pages": {
@@ -112,9 +112,9 @@ class PageDiscoveryCache:
             }
         }
     }
-    
+
     Note: If cache format changes, load will fail and cache rebuilds automatically.
-        
+
     """
 
     CACHE_FILE = ".bengal/page_metadata.json"
@@ -254,7 +254,7 @@ class PageDiscoveryCache:
         """
         entry = PageDiscoveryCacheEntry(
             metadata=metadata,
-            cached_at=datetime.now(timezone.utc).isoformat(),
+            cached_at=datetime.now(UTC).isoformat(),
             is_valid=True,
         )
         self.pages[metadata.source_path] = entry
@@ -286,7 +286,9 @@ class PageDiscoveryCache:
         Returns:
             Dictionary mapping source_path to PageMetadata for valid entries
         """
-        return {path: entry.metadata for path, entry in self.pages.items() if entry.is_valid}
+        return {
+            path: entry.metadata for path, entry in self.pages.items() if entry.is_valid
+        }
 
     def get_invalid_entries(self) -> dict[str, PageMetadata]:
         """
@@ -295,7 +297,11 @@ class PageDiscoveryCache:
         Returns:
             Dictionary mapping source_path to PageMetadata for invalid entries
         """
-        return {path: entry.metadata for path, entry in self.pages.items() if not entry.is_valid}
+        return {
+            path: entry.metadata
+            for path, entry in self.pages.items()
+            if not entry.is_valid
+        }
 
     def validate_entry(self, source_path: Path, current_file_hash: str) -> bool:
         """
@@ -332,5 +338,7 @@ class PageDiscoveryCache:
             "total_entries": len(self.pages),
             "valid_entries": valid,
             "invalid_entries": invalid,
-            "cache_size_bytes": len(json.dumps([e.to_dict() for e in self.pages.values()])),
+            "cache_size_bytes": len(
+                json.dumps([e.to_dict() for e in self.pages.values()])
+            ),
         }

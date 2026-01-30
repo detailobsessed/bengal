@@ -43,8 +43,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -60,17 +58,17 @@ logger = get_logger(__name__)
 def _isoformat(timestamp: float | None) -> str | None:
     """
     Convert a POSIX timestamp to an ISO-8601 UTC string.
-    
+
     Args:
         timestamp: Unix timestamp in seconds, or None.
-    
+
     Returns:
         ISO-8601 formatted string with 'Z' suffix for UTC, or None if input is None.
-    
+
     Example:
             >>> _isoformat(1705315800.0)
             '2024-01-15T10:30:00Z'
-        
+
     """
     if timestamp is None:
         return None
@@ -80,17 +78,17 @@ def _isoformat(timestamp: float | None) -> str | None:
 def _posix(path_like: str) -> str:
     """
     Normalize a path to POSIX-style forward slashes for cross-platform portability.
-    
+
     Args:
         path_like: Path string, potentially with backslashes on Windows.
-    
+
     Returns:
         Path string with forward slashes only.
-    
+
     Example:
             >>> _posix("css\\style.css")
             'css/style.css'
-        
+
     """
     return PurePosixPath(path_like).as_posix()
 
@@ -99,19 +97,19 @@ def _posix(path_like: str) -> str:
 class AssetManifestEntry:
     """
     Manifest entry for a single logical asset.
-    
+
     Represents the mapping from a logical asset path (as used in templates) to
     its actual output location, along with metadata for debugging and deployment.
-    
+
     Uses ``slots=True`` for memory efficiency when tracking many assets.
-    
+
     Attributes:
         logical_path: Logical path requested from templates (e.g. ``css/style.css``).
         output_path: Relative path under the output directory (e.g. ``assets/css/style.X.css``).
         fingerprint: Content hash used for cache-busting, or None if disabled.
         size_bytes: File size in bytes for visibility and debugging.
         updated_at: ISO-8601 timestamp of the last file write.
-    
+
     Example:
             >>> entry = AssetManifestEntry(
             ...     logical_path="css/style.css",
@@ -122,7 +120,7 @@ class AssetManifestEntry:
             ... )
             >>> entry.to_dict()
         {'output_path': 'assets/css/style.abc123.css', 'fingerprint': 'abc123def456', ...}
-        
+
     """
 
     logical_path: str
@@ -152,7 +150,9 @@ class AssetManifestEntry:
         return data
 
     @classmethod
-    def from_dict(cls, logical_path: str, data: Mapping[str, object]) -> AssetManifestEntry:
+    def from_dict(
+        cls, logical_path: str, data: Mapping[str, object]
+    ) -> AssetManifestEntry:
         """
         Create an entry from a JSON payload.
 
@@ -179,19 +179,19 @@ class AssetManifestEntry:
 class AssetManifest:
     """
     Asset manifest container with serialization helpers.
-    
+
     Manages a collection of AssetManifestEntry objects and provides methods
     for reading, writing, and querying the manifest.
-    
+
     The manifest is the single source of truth for asset URL resolution during
     rendering. Templates use the ``asset()`` filter which queries this manifest
     to resolve logical paths to fingerprinted output URLs.
-    
+
     Attributes:
         version: Manifest format version for future compatibility.
         generated_at: ISO-8601 timestamp when manifest was created/updated.
         _entries: Internal dictionary mapping logical paths to entries.
-    
+
     Example:
             >>> manifest = AssetManifest()
             >>> manifest.set_entry(
@@ -204,7 +204,7 @@ class AssetManifest:
             >>> manifest.get("css/style.css").output_path
             'assets/css/style.ABC.css'
             >>> manifest.write(Path("public/asset-manifest.json"))
-        
+
     """
 
     version: int = 1
@@ -276,7 +276,9 @@ class AssetManifest:
         payload = {
             "version": self.version,
             "generated_at": self.generated_at,
-            "assets": {key: entry.to_dict() for key, entry in sorted(self._entries.items())},
+            "assets": {
+                key: entry.to_dict() for key, entry in sorted(self._entries.items())
+            },
         }
         path.parent.mkdir(parents=True, exist_ok=True)
         atomic_write_text(path, json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -311,7 +313,9 @@ class AssetManifest:
 
         manifest = cls()
         manifest.generated_at = (
-            str(data.get("generated_at")) if data.get("generated_at") else manifest.generated_at
+            str(data.get("generated_at"))
+            if data.get("generated_at")
+            else manifest.generated_at
         )
         manifest.version = int(data.get("version", manifest.version))
         manifest._entries = {}

@@ -27,7 +27,9 @@ def test_theme_asset_dedup_child_overrides_parent(tmp_path: Path):
     site.discover_assets()
 
     # There should be only one style.css in final asset list (dedup by rel path)
-    css_assets = [a for a in site.assets if str(a.output_path).endswith("css/style.css")]
+    css_assets = [
+        a for a in site.assets if str(a.output_path).endswith("css/style.css")
+    ]
     assert len(css_assets) == 1
     # The one retained should be the site asset
     assert css_assets[0].source_path == site_asset

@@ -167,7 +167,9 @@ def test_generate_skips_conflicting_paths(tmp_path):
     assert count == 0  # Should skip conflicting path
 
     # Original content should be preserved
-    assert (site.output_dir / "about" / "index.html").read_text() == "<html>Real Content</html>"
+    assert (
+        site.output_dir / "about" / "index.html"
+    ).read_text() == "<html>Real Content</html>"
 
 
 def test_generate_logs_alias_conflicts(tmp_path, caplog):

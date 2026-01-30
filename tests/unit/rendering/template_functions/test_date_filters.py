@@ -1,7 +1,5 @@
 """Tests for date filters in bengal.rendering.template_functions.dates module."""
 
-from __future__ import annotations
-
 from datetime import datetime, timedelta
 
 from bengal.rendering.template_functions.dates import (

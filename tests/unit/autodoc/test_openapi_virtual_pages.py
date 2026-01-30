@@ -2,8 +2,6 @@
 Integration-style unit test for OpenAPI virtual page generation.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock, Mock
 
@@ -115,13 +113,15 @@ components:
     assert result is not None
 
 
-def test_openapi_spec_file_is_resolved_relative_to_site_root(tmp_path: Path, monkeypatch) -> None:
+def test_openapi_spec_file_is_resolved_relative_to_site_root(
+    tmp_path: Path, monkeypatch
+) -> None:
     """
     Ensure spec_file is resolved relative to site.root_path, not the current working directory.
-    
+
     This matches how the example site config is written (e.g. spec_file: "api/openapi.yaml")
     and prevents missing OpenAPI autodocs in public/CI builds that run from the repo root.
-        
+
     """
     site_root = tmp_path / "site"
     api_dir = site_root / "api"
@@ -153,7 +153,9 @@ paths:
     site.root_path = site_root
     site.output_dir = tmp_path / "public"
     site.baseurl = "/"
-    site.config = {"autodoc": {"openapi": {"enabled": True, "spec_file": "api/openapi.yaml"}}}
+    site.config = {
+        "autodoc": {"openapi": {"enabled": True, "spec_file": "api/openapi.yaml"}}
+    }
     site.theme = "default"
     site.theme_config = {}
     site.menu = {"main": []}

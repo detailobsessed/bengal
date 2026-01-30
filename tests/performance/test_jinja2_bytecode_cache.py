@@ -63,10 +63,10 @@ cache_templates = true
 def test_bytecode_cache_improves_performance():
     """
     Test that bytecode cache improves build performance.
-    
+
     Uses multiple runs and statistical analysis to avoid flakiness from timing noise.
     Allows 10% tolerance margin to account for system variability.
-        
+
     """
     temp_dir = Path(tempfile.mkdtemp())
 
@@ -141,7 +141,9 @@ cache_templates = true
         if speedup >= 1.05:
             print(f"  ✅ Bytecode caching provides {speedup:.2f}x speedup")
         else:
-            print(f"  ⚠️  Speedup marginal ({speedup:.2f}x) - cache working but effect small")
+            print(
+                f"  ⚠️  Speedup marginal ({speedup:.2f}x) - cache working but effect small"
+            )
 
     finally:
         shutil.rmtree(temp_dir)

@@ -14,7 +14,7 @@ Part of the Document Application RFC Phase 6: Author-Time Intelligence.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from bengal.health.base import BaseValidator
 from bengal.health.report import CheckResult, CheckStatus
@@ -29,14 +29,14 @@ __all__ = ["AccessibilityValidator"]
 class AccessibilityValidator(BaseValidator):
     """
     Validates accessibility best practices.
-    
+
     Checks:
     1. Heading hierarchy (no skipped levels)
     2. Image alt text presence
     3. Link text quality
     4. ARIA landmark presence
     5. Form label associations
-    
+
     Configuration:
         health_check:
           accessibility:
@@ -45,14 +45,14 @@ class AccessibilityValidator(BaseValidator):
             check_links: true
             check_aria: true
             strict_mode: false
-        
+
     """
 
     name = "accessibility"
     description = "Validates accessibility best practices in HTML output"
 
     # Patterns for link text to avoid
-    BAD_LINK_TEXT_PATTERNS = [
+    BAD_LINK_TEXT_PATTERNS: ClassVar[list[str]] = [
         r"^click\s+here$",
         r"^here$",
         r"^read\s+more$",
@@ -61,7 +61,9 @@ class AccessibilityValidator(BaseValidator):
         r"^this$",
     ]
 
-    def validate(self, site: SiteLike, build_context: BuildContext | None = None) -> list[CheckResult]:
+    def validate(
+        self, site: SiteLike, build_context: BuildContext | None = None
+    ) -> list[CheckResult]:
         """
         Run accessibility validation.
 
@@ -83,7 +85,11 @@ class AccessibilityValidator(BaseValidator):
 
     def _get_config(self, site: SiteLike) -> dict[str, Any]:
         """Get accessibility validation config."""
-        health_config = site.config.get("health_check", {})
+        # site.config supports .get()
+        health_config_raw = site.config.get("health_check", {})
+        health_config = (
+            dict(health_config_raw) if isinstance(health_config_raw, dict) else {}
+        )
         return health_config.get(
             "accessibility",
             {
@@ -128,7 +134,9 @@ class AccessibilityValidator(BaseValidator):
 
         return results
 
-    def _check_headings(self, path: str, content: str, config: dict[str, Any]) -> list[CheckResult]:
+    def _check_headings(
+        self, path: str, content: str, config: dict[str, Any]
+    ) -> list[CheckResult]:
         """
         Check for proper heading hierarchy.
 
@@ -150,7 +158,11 @@ class AccessibilityValidator(BaseValidator):
         # Check for skipped levels
         for i in range(1, len(levels)):
             if levels[i] > levels[i - 1] + 1:
-                status = CheckStatus.ERROR if config.get("strict_mode") else CheckStatus.WARNING
+                status = (
+                    CheckStatus.ERROR
+                    if config.get("strict_mode")
+                    else CheckStatus.WARNING
+                )
                 results.append(
                     CheckResult(
                         status=status,
@@ -176,7 +188,9 @@ class AccessibilityValidator(BaseValidator):
 
         return results
 
-    def _check_images(self, path: str, content: str, config: dict[str, Any]) -> list[CheckResult]:
+    def _check_images(
+        self, path: str, content: str, config: dict[str, Any]
+    ) -> list[CheckResult]:
         """
         Check for missing image alt text.
         """
@@ -199,9 +213,9 @@ class AccessibilityValidator(BaseValidator):
                         validator=self.name,
                     )
                 )
-            elif re.search(r'alt\s*=\s*["\']["\']', attrs, re.IGNORECASE) and config.get(
-                "strict_mode"
-            ):
+            elif re.search(
+                r'alt\s*=\s*["\']["\']', attrs, re.IGNORECASE
+            ) and config.get("strict_mode"):
                 # Empty alt is OK for decorative images, but note in strict mode
                 results.append(
                     CheckResult(

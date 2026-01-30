@@ -30,15 +30,15 @@ logger = get_logger(__name__)
 class AssetURLValidator(BaseValidator):
     """
     Validates that asset URLs in rendered HTML resolve to actual files.
-    
+
     This catches fingerprinting issues before deployment. Critical for
     production builds where fingerprinting is enabled.
-    
+
     Checks:
     - CSS/JS links in HTML point to existing files
     - Detects when HTML uses non-fingerprinted URLs but only fingerprinted files exist
     - Samples HTML files for performance
-        
+
     """
 
     name = "Asset URLs"
@@ -130,7 +130,9 @@ class AssetURLValidator(BaseValidator):
                 unique_missing.append(item)
 
         # Report fingerprint mismatches as errors (these break production!)
-        fingerprint_issues = [m for m in unique_missing if m.get("fingerprinted_exists")]
+        fingerprint_issues = [
+            m for m in unique_missing if m.get("fingerprinted_exists")
+        ]
         if fingerprint_issues:
             sample = fingerprint_issues[:3]
             urls = [m["url"] for m in sample]
@@ -152,7 +154,9 @@ class AssetURLValidator(BaseValidator):
         case_issues = [m for m in unique_missing if m.get("case_mismatch")]
         if case_issues:
             sample = case_issues[:3]
-            detail_strs = [f"{m['url']} -> actual: {m['case_mismatch']}" for m in sample]
+            detail_strs = [
+                f"{m['url']} -> actual: {m['case_mismatch']}" for m in sample
+            ]
             results.append(
                 CheckResult(
                     status=CheckStatus.WARNING,
@@ -216,7 +220,10 @@ class AssetURLValidator(BaseValidator):
             return False
 
         # Look for files matching pattern: stem.*.suffix
-        return any(f.suffix == suffix and f.stem.startswith(stem + ".") for f in parent.iterdir())
+        return any(
+            f.suffix == suffix and f.stem.startswith(stem + ".")
+            for f in parent.iterdir()
+        )
 
     def _check_case_sensitivity(self, full_path: Path, asset_path: str) -> str | None:
         """Check if file exists but with different case.

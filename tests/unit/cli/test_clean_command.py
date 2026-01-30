@@ -166,7 +166,9 @@ class TestCleanCommand:
         assert cache_file.read_text() == cache_content, "Cache content unchanged"
         # Output should be empty or not exist
         if output_dir.exists():
-            assert len(list(output_dir.glob("*.html"))) == 0, "HTML files should be removed"
+            assert len(list(output_dir.glob("*.html"))) == 0, (
+                "HTML files should be removed"
+            )
 
     def _create_test_site(self, tmp_path):
         """Helper to create test site structure."""

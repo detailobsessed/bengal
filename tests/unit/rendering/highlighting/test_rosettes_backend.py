@@ -5,8 +5,6 @@ Validates that RosettesBackend correctly wraps the Rosettes
 syntax highlighter and produces expected output.
 """
 
-from __future__ import annotations
-
 from bengal.rendering.highlighting.rosettes import RosettesBackend
 
 

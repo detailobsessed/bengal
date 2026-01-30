@@ -5,8 +5,6 @@ Tests health/validators/links.py:
 - LinkValidator: core link validation logic
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -110,7 +108,9 @@ class TestLinkValidatorWrapperDisabled:
         mock_site.config["validate_links"] = False
         validator.validate(mock_site)
         assert validator.last_stats is not None
-        assert validator.last_stats.pages_skipped.get("disabled") == len(mock_site.pages)
+        assert validator.last_stats.pages_skipped.get("disabled") == len(
+            mock_site.pages
+        )
 
 
 class TestLinkValidatorWrapperValidation:
@@ -136,7 +136,9 @@ class TestLinkValidatorWrapperValidation:
 class TestLinkValidatorWrapperBrokenLinks:
     """Tests for broken link detection."""
 
-    def test_error_for_internal_broken_links(self, validator, mock_site_with_broken_links):
+    def test_error_for_internal_broken_links(
+        self, validator, mock_site_with_broken_links
+    ):
         """Returns error for broken internal links."""
         results = validator.validate(mock_site_with_broken_links)
 
@@ -209,7 +211,9 @@ class TestLinkValidatorWrapperStats:
 class TestLinkValidatorWrapperRecommendations:
     """Tests for recommendation messages."""
 
-    def test_internal_broken_has_recommendation(self, validator, mock_site_with_broken_links):
+    def test_internal_broken_has_recommendation(
+        self, validator, mock_site_with_broken_links
+    ):
         """Internal broken links have fix recommendation."""
         results = validator.validate(mock_site_with_broken_links)
 

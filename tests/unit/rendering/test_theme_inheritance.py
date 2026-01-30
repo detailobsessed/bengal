@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.core.theme import Theme
@@ -11,7 +9,9 @@ class DummySite:
         self.root_path = root_path
         self.theme = theme
         self.config = {}
-        self.output_dir = root_path / "public"  # Required by TemplateEngine for bytecode cache
+        self.output_dir = (
+            root_path / "public"
+        )  # Required by TemplateEngine for bytecode cache
         # Required Site attributes for template engine
         self.dev_mode = False
         self.versioning_enabled = False
@@ -37,7 +37,9 @@ class DummySite:
         return Theme(name=self.theme)
 
 
-def write_theme(root: Path, name: str, extends: str | None, with_template: bool = False) -> None:
+def write_theme(
+    root: Path, name: str, extends: str | None, with_template: bool = False
+) -> None:
     tdir = root / "themes" / name
     (tdir / "templates").mkdir(parents=True, exist_ok=True)
     if extends is not None:
@@ -68,15 +70,15 @@ def test_theme_chain_child_overrides_parent(tmp_path: Path):
 
 def test_cross_theme_extends_with_prefix_loader(tmp_path: Path):
     """Test that templates can explicitly extend from a named theme using prefix syntax.
-    
+
     This enables the pattern:
         {% extends "parent/base.html" %}
-    
+
     Which allows child themes to extend specific parent themes without relying on
     priority-based resolution.
-    
+
     Note: This is a Jinja2-specific feature using PrefixLoader.
-        
+
     """
     # Arrange: parent theme with a base template
     parent_dir = tmp_path / "themes" / "parent" / "templates"
@@ -130,7 +132,9 @@ def test_cross_theme_extends_fallback_to_priority(tmp_path: Path):
 {% block body %}PAGE CONTENT{% endblock %}""",
         encoding="utf-8",
     )
-    (tmp_path / "themes" / "child" / "theme.toml").write_text('name = "child"\n', encoding="utf-8")
+    (tmp_path / "themes" / "child" / "theme.toml").write_text(
+        'name = "child"\n', encoding="utf-8"
+    )
 
     # Act: the child theme uses default's base.html via normal priority resolution
     site = DummySite(tmp_path, theme="child")
@@ -145,9 +149,9 @@ def test_cross_theme_extends_fallback_to_priority(tmp_path: Path):
 
 def test_prefix_loader_enables_direct_theme_access(tmp_path: Path):
     """Test that PrefixLoader allows direct access to any theme's templates.
-    
+
     Note: This is a Jinja2-specific feature using PrefixLoader.
-        
+
     """
     # Arrange: create a theme with a unique template
     theme_dir = tmp_path / "themes" / "my-theme" / "templates"

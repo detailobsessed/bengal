@@ -10,13 +10,9 @@ These tests ensure that the config normalization logic correctly handles:
 Regression test for: Config normalization truthiness bug (__init__.py:165-166)
 """
 
-from __future__ import annotations
-
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock
-
-import pytest
 
 from bengal.postprocess.output_formats import OutputFormatsGenerator
 
@@ -26,7 +22,7 @@ class TestConfigNormalizationEdgeCases:
 
     def test_explicitly_disable_all_per_page_formats(self, tmp_path: Path) -> None:
         """User can explicitly disable all per-page formats via simple config.
-        
+
         Regression test: Previously, {"json": False, "llm_txt": False} would
         result in defaults being used because empty list is falsy.
         """
@@ -278,7 +274,9 @@ class TestConfigNormalizationEdgeCases:
 
     # Helper methods
 
-    def _create_mock_site(self, site_dir: Path, output_dir: Path, baseurl: str = "") -> Mock:
+    def _create_mock_site(
+        self, site_dir: Path, output_dir: Path, baseurl: str = ""
+    ) -> Mock:
         """Create a mock Site instance."""
         site = Mock()
         site.site_dir = site_dir

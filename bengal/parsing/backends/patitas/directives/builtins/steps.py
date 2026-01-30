@@ -47,7 +47,9 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from html import escape as html_escape
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, cast
+
+from patitas.nodes import Directive
 
 from bengal.parsing.backends.patitas.directives.contracts import (
     STEP_CONTRACT,
@@ -55,7 +57,6 @@ from bengal.parsing.backends.patitas.directives.contracts import (
     DirectiveContract,
 )
 from bengal.parsing.backends.patitas.directives.options import StyledOptions
-from patitas.nodes import Directive
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
@@ -66,14 +67,14 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class StepOptions(StyledOptions):
     """Options for step directive.
-    
+
     Attributes:
         description: Lead-in text with special typography
         optional: Mark step as optional/skippable
         duration: Estimated time for the step
         step_number: Step number (injected by parent steps container)
         heading_level: Heading level for step title (injected by parent)
-        
+
     """
 
     description: str | None = None
@@ -86,11 +87,11 @@ class StepOptions(StyledOptions):
 @dataclass(frozen=True, slots=True)
 class StepsOptions(StyledOptions):
     """Options for steps container directive.
-    
+
     Attributes:
         style: Step style (compact, default)
         start: Start numbering from this value
-        
+
     """
 
     style: str | None = None
@@ -99,12 +100,12 @@ class StepsOptions(StyledOptions):
 
 class StepDirective:
     """Handler for step directive.
-    
+
     Individual step that must be inside a steps container.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("step",)
@@ -126,13 +127,13 @@ class StepDirective:
             location=location,
             name=name,
             title=title,
-            options=options,  # Pass typed options directly
+            options=cast(Any, options),
             children=tuple(children),
         )
 
     def render(
         self,
-        node: Directive[StepOptions],
+        node: Directive[Any],
         rendered_children: str,
         sb: StringBuilder,
     ) -> None:
@@ -183,23 +184,33 @@ class StepDirective:
         # Build metadata line (optional badge + duration)
         metadata_parts = []
         if optional:
-            metadata_parts.append('<span class="step-badge step-badge-optional">Optional</span>')
+            metadata_parts.append(
+                '<span class="step-badge step-badge-optional">Optional</span>'
+            )
         if duration:
-            metadata_parts.append(f'<span class="step-duration">{html_escape(duration)}</span>')
+            metadata_parts.append(
+                f'<span class="step-duration">{html_escape(duration)}</span>'
+            )
         metadata_html = ""
         if metadata_parts:
-            metadata_html = f'<div class="step-metadata">{" ".join(metadata_parts)}</div>\n'
+            metadata_html = (
+                f'<div class="step-metadata">{" ".join(metadata_parts)}</div>\n'
+            )
 
         # Build description HTML if provided
         description_html = ""
         if description:
-            description_html = f'<p class="step-description">{html_escape(description)}</p>\n'
+            description_html = (
+                f'<p class="step-description">{html_escape(description)}</p>\n'
+            )
 
         if title:
             heading_tag = f"h{heading_level}"
             sb.append(f'<li{class_attr} id="{html_escape(step_id)}">')
             sb.append(marker_html)
-            sb.append(f'<{heading_tag} class="step-title">{html_escape(title)}</{heading_tag}>')
+            sb.append(
+                f'<{heading_tag} class="step-title">{html_escape(title)}</{heading_tag}>'
+            )
             sb.append(metadata_html)
             sb.append(description_html)
             sb.append(rendered_children)
@@ -225,12 +236,12 @@ class StepDirective:
 
 class StepsDirective:
     """Handler for steps container directive.
-    
+
     Contains step children that form a numbered list.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("steps",)
@@ -293,13 +304,13 @@ class StepsDirective:
             location=location,
             name=name,
             title=title,
-            options=options,  # Pass typed options directly
+            options=cast(Any, options),
             children=tuple(processed_children),
         )
 
     def render(
         self,
-        node: Directive[StepsOptions],
+        node: Directive[Any],
         rendered_children: str,
         sb: StringBuilder,
         *,
@@ -349,7 +360,9 @@ class StepsDirective:
             style_attr = f' style="counter-reset: step {start - 1}"'
 
         # Render children with step numbers
-        children_html = self._render_step_children(node.children, start, render_child_directive)
+        children_html = self._render_step_children(
+            node.children, start, render_child_directive
+        )
 
         # Wrap in <ol> if contains step <li> elements
         if "<li>" in children_html or "<li " in children_html:

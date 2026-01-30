@@ -5,8 +5,6 @@ Validates that the protocol is properly defined and can be used
 for type checking and runtime verification.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from bengal.rendering.highlighting import HighlightBackend

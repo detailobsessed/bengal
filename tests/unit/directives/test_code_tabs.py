@@ -10,8 +10,6 @@ Tests:
 - Legacy ### marker syntax (backward compatibility)
 """
 
-from __future__ import annotations
-
 from bengal.directives.code_tabs import (
     LANGUAGE_DISPLAY_NAMES,
     LANGUAGE_ICONS,
@@ -99,19 +97,19 @@ class TestParseInfoString:
 
     def test_filename_underscore(self):
         """Filenames with underscores work."""
-        filename, title, hl_lines = parse_info_string("test_utils.py")
+        filename, _title, _hl_lines = parse_info_string("test_utils.py")
         assert filename == "test_utils.py"
 
     def test_invalid_filename_no_extension(self):
         """Files without extension don't match as filename."""
         # Dockerfile has no extension, so it won't match the filename pattern
-        filename, title, hl_lines = parse_info_string("Dockerfile")
+        filename, _title, _hl_lines = parse_info_string("Dockerfile")
         # This won't match the strict filename pattern, falls through
         assert filename is None
 
     def test_complex_highlights(self):
         """Complex highlight specs are parsed."""
-        filename, title, hl_lines = parse_info_string("{1,3-5,7}")
+        _filename, _title, hl_lines = parse_info_string("{1,3-5,7}")
         assert hl_lines == [1, 3, 4, 5, 7]
 
 
@@ -516,11 +514,11 @@ class TestParseHlLines:
 
 class TestRenderCodeWithPygments:
     """Tests for syntax highlighting rendering.
-    
+
     Note: Uses render_code_with_pygments which is aliased to
     render_code_with_highlighting, which uses the Rosettes backend.
     Rosettes has a simpler output format without table-based line numbers.
-        
+
     """
 
     def test_basic_highlighting(self):
@@ -533,7 +531,7 @@ class TestRenderCodeWithPygments:
     def test_plain_code_preserved(self):
         """Plain code is returned unchanged for copy."""
         code = "def foo():\n    pass"
-        html, plain = render_code_with_pygments(code, "python")
+        _html, plain = render_code_with_pygments(code, "python")
         assert plain == code
 
     def test_line_numbers_auto(self):
@@ -661,12 +659,16 @@ class TestRenderCodeTabItem:
 
     def test_with_filename(self):
         """Filename is included in output."""
-        html = render_code_tab_item(None, lang="Python", code="pass", filename="main.py")
+        html = render_code_tab_item(
+            None, lang="Python", code="pass", filename="main.py"
+        )
         assert 'data-filename="main.py"' in html
 
     def test_with_hl_lines(self):
         """Highlight lines are serialized."""
-        html = render_code_tab_item(None, lang="Python", code="pass", hl_lines=[1, 3, 5])
+        html = render_code_tab_item(
+            None, lang="Python", code="pass", hl_lines=[1, 3, 5]
+        )
         assert 'data-hl-lines="1,3,5"' in html
 
     def test_html_escaping(self):

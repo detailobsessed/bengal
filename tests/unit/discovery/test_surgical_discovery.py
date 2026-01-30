@@ -8,8 +8,6 @@ These tests verify that surgical discovery (incremental builds with caching):
 - Handles executor vs non-executor paths correctly
 """
 
-from __future__ import annotations
-
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -66,7 +64,9 @@ def mock_cache() -> MagicMock:
 class TestSurgicalDiscoveryCacheHit:
     """Tests for cache hit scenarios in surgical discovery."""
 
-    def test_cache_hit_returns_page_proxy(self, content_dir: Path, mock_cache: MagicMock) -> None:
+    def test_cache_hit_returns_page_proxy(
+        self, content_dir: Path, mock_cache: MagicMock
+    ) -> None:
         """When cache has metadata, should return PageProxy without parsing."""
         file_path = content_dir / "docs" / "getting-started.md"
         mock_cache.get_metadata.return_value = make_page_core(
@@ -81,7 +81,9 @@ class TestSurgicalDiscoveryCacheHit:
         assert isinstance(result, PageProxy)
         assert result.title == "Cached Title"
 
-    def test_cache_hit_does_not_read_file(self, content_dir: Path, mock_cache: MagicMock) -> None:
+    def test_cache_hit_does_not_read_file(
+        self, content_dir: Path, mock_cache: MagicMock
+    ) -> None:
         """Cache hit should not read the file from disk."""
         file_path = content_dir / "docs" / "getting-started.md"
         mock_cache.get_metadata.return_value = make_page_core(file_path, "Cached")
@@ -100,7 +102,7 @@ class TestSurgicalDiscoveryCacheHit:
     ) -> None:
         """PageProxy from cache hit should have section set by discovery."""
         file_path = content_dir / "docs" / "getting-started.md"
-        section_path = str(content_dir / "docs")
+        str(content_dir / "docs")
         mock_cache.get_metadata.return_value = make_page_core(file_path, "Test")
 
         from bengal.core.section import Section
@@ -189,6 +191,7 @@ class TestSurgicalDiscoveryNoDoubleParsing:
         self, content_dir: Path, mock_cache: MagicMock
     ) -> None:
         """Discovery should handle mix of cache hits and misses."""
+
         # Set up cache to hit for some files, miss for others
         def get_metadata(path: Path) -> PageCore | None:
             if "getting-started" in str(path):
@@ -212,7 +215,7 @@ class TestSurgicalDiscoveryNoDoubleParsing:
             return original_create_page(file_path, current_lang, section)
 
         with patch.object(discovery, "_create_page", side_effect=tracking_create_page):
-            sections, pages = discovery._discover_surgical(mock_cache)
+            _sections, _pages = discovery._discover_surgical(mock_cache)
 
         # getting-started should NOT be in parsed_files (cache hit)
         assert not any("getting-started" in str(f) for f in parsed_files)

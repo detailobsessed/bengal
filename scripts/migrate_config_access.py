@@ -145,7 +145,12 @@ class MigrationReport:
             if "[" in issue.old_pattern:
                 key = issue.old_pattern.split("[")[1].split("]")[0].strip("\"'")
             elif "(" in issue.old_pattern:
-                key = issue.old_pattern.split("(")[1].split(")")[0].split(",")[0].strip("\"'")
+                key = (
+                    issue.old_pattern.split("(")[1]
+                    .split(")")[0]
+                    .split(",")[0]
+                    .strip("\"'")
+                )
             else:
                 key = issue.old_pattern.split(".")[-1]
             counts[key] = counts.get(key, 0) + 1
@@ -201,7 +206,9 @@ def find_python_issues(file: Path) -> list[Issue]:
 
         # Pattern 2: config.get("key") or config.get("key", default)
         # Handles: config.get("title"), config.get("parallel", True)
-        for match in re.finditer(r'(\w*\.?config)\.get\((["\'])(\w+)\2(?:,\s*([^)]+))?\)', line):
+        for match in re.finditer(
+            r'(\w*\.?config)\.get\((["\'])(\w+)\2(?:,\s*([^)]+))?\)', line
+        ):
             prefix = match.group(1)
             key = match.group(3)
             default = match.group(4)
@@ -361,10 +368,16 @@ def print_report(report: MigrationReport) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Config access migration tool")
-    parser.add_argument("--root", type=Path, default=Path("bengal"), help="Root directory to scan")
-    parser.add_argument("--templates", action="store_true", help="Include Jinja templates in scan")
+    parser.add_argument(
+        "--root", type=Path, default=Path("bengal"), help="Root directory to scan"
+    )
+    parser.add_argument(
+        "--templates", action="store_true", help="Include Jinja templates in scan"
+    )
     parser.add_argument("--json", action="store_true", help="Output JSON report")
-    parser.add_argument("--fix", action="store_true", help="Auto-fix issues (USE WITH CAUTION)")
+    parser.add_argument(
+        "--fix", action="store_true", help="Auto-fix issues (USE WITH CAUTION)"
+    )
     args = parser.parse_args()
 
     if args.fix:

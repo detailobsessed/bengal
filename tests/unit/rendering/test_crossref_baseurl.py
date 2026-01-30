@@ -5,8 +5,6 @@ Tests that ref(), anchor(), and relref() properly handle base URLs
 in various scenarios (path-only, absolute, none).
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.core.page import Page
@@ -39,7 +37,9 @@ class TestRefWithBaseUrl:
         assert '<a href="/bengal/docs/installation/">Installation</a>' in result
 
         # Test with custom text
-        result = crossref.ref("docs/installation", index, baseurl="/bengal", text="Install")
+        result = crossref.ref(
+            "docs/installation", index, baseurl="/bengal", text="Install"
+        )
         assert '<a href="/bengal/docs/installation/">Install</a>' in result
 
     def test_ref_with_absolute_baseurl(self, tmp_path):
@@ -124,7 +124,9 @@ class TestAnchorWithBaseUrl:
             "by_heading": {"getting started": [(page, "getting-started")]},
         }
 
-        result = crossref.anchor("Getting Started", index, baseurl="https://docs.example.com")
+        result = crossref.anchor(
+            "Getting Started", index, baseurl="https://docs.example.com"
+        )
         assert (
             '<a href="https://docs.example.com/tutorial/#getting-started">Getting Started</a>'
             in result

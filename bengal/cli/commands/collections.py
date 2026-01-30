@@ -113,15 +113,15 @@ collections = {
 def collections(ctx: click.Context) -> None:
     """
     Manage content collections.
-    
+
     Collections provide type-safe schemas for your content's frontmatter.
     Define schemas to validate content during builds and catch errors early.
-    
+
     Commands:
       init     Generate a starter collections.py file
       list     Show defined collections and their schemas
       validate Validate content against collection schemas
-        
+
     """
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
@@ -142,21 +142,24 @@ def collections(ctx: click.Context) -> None:
 @handle_cli_errors(show_art=False)
 @click.option("--force", "-f", is_flag=True, help="Overwrite existing collections.py")
 @click.option(
-    "--minimal", "-m", is_flag=True, help="Generate minimal template using built-in schemas"
+    "--minimal",
+    "-m",
+    is_flag=True,
+    help="Generate minimal template using built-in schemas",
 )
 @click.argument("source", type=click.Path(), default=".")
 def init_collections(force: bool, minimal: bool, source: str) -> None:
     """
     Generate a collections.py file with example schemas.
-    
+
     Creates a starter collections.py file at your project root with
     example schemas for blog posts and documentation pages.
-    
+
     Examples:
       bengal collections init           # Generate full template
       bengal collections init --minimal # Use built-in schemas
       bengal collections init --force   # Overwrite existing file
-        
+
     """
     cli = get_cli_output()
     root_path = Path(source).resolve()
@@ -186,8 +189,12 @@ def init_collections(force: bool, minimal: bool, source: str) -> None:
     # Show next steps
     cli.info("Next steps:")
     cli.detail("1. Edit collections.py to define your schemas", indent=1)
-    cli.detail("2. Uncomment collections for directories you want to validate", indent=1)
-    cli.detail("3. Run 'bengal build' - content will be validated automatically", indent=1)
+    cli.detail(
+        "2. Uncomment collections for directories you want to validate", indent=1
+    )
+    cli.detail(
+        "3. Run 'bengal build' - content will be validated automatically", indent=1
+    )
     cli.blank()
 
     if not minimal:
@@ -210,16 +217,18 @@ def init_collections(force: bool, minimal: bool, source: str) -> None:
 )
 @handle_cli_errors(show_art=False)
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
 def list_collections(config: str | None, source: str) -> None:
     """
     📋 List defined collections and their schemas.
-    
+
     Shows all collections defined in collections.py with their
     directories and schema fields.
-        
+
     """
     from dataclasses import fields, is_dataclass
 
@@ -278,18 +287,22 @@ def list_collections(config: str | None, source: str) -> None:
 @handle_cli_errors(show_art=False)
 @click.option("--collection", "-c", help="Validate specific collection only")
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
-def validate_collections(collection: str | None, config: str | None, source: str) -> None:
+def validate_collections(
+    collection: str | None, config: str | None, source: str
+) -> None:
     """
     ✓ Validate content against collection schemas.
-    
+
     Validates all content files against their collection schemas,
     reporting any validation errors.
-        
+
     """
-    import frontmatter  # type: ignore[import-untyped]
+    import frontmatter
 
     from bengal.collections import SchemaValidator, load_collections
 
@@ -324,6 +337,9 @@ def validate_collections(collection: str | None, config: str | None, source: str
     errors_by_file: dict[str, list[str]] = {}
 
     for name, coll_config in loaded.items():
+        if coll_config.directory is None:
+            cli.warning(f"Collection '{name}' has no directory configured")
+            continue
         collection_dir = content_dir / coll_config.directory
 
         if not collection_dir.exists():
@@ -383,7 +399,9 @@ def validate_collections(collection: str | None, config: str | None, source: str
     if total_errors == 0:
         cli.success(f"All {total_files} files valid!", icon="✓")
     else:
-        cli.error(f"Validation failed: {total_errors} error(s) in {len(errors_by_file)} file(s)")
+        cli.error(
+            f"Validation failed: {total_errors} error(s) in {len(errors_by_file)} file(s)"
+        )
         cli.blank()
 
         # Show detailed errors

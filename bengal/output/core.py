@@ -29,7 +29,6 @@ Related:
 
 from __future__ import annotations
 
-from bengal.utils.observability.logger import get_logger as _get_bengal_logger
 from typing import Any
 
 import click
@@ -39,6 +38,7 @@ from rich.table import Table
 from bengal.output.dev_server import DevServerOutputMixin
 from bengal.output.enums import MessageLevel
 from bengal.output.icons import IconSet, get_icon_set
+from bengal.utils.observability.logger import get_logger as _get_bengal_logger
 
 logger = _get_bengal_logger(__name__)
 
@@ -46,14 +46,14 @@ logger = _get_bengal_logger(__name__)
 class CLIOutput(DevServerOutputMixin):
     """
     Centralized CLI output manager.
-    
+
     All terminal output in Bengal flows through this class. It provides
     profile-aware formatting (Writer/Theme-Dev/Developer), consistent
     spacing, automatic TTY detection, and Rich/plain text rendering.
-    
+
     The class inherits dev server output methods from DevServerOutputMixin
     for request logging and file change notifications.
-    
+
     Attributes:
         profile: Active build profile controlling output verbosity and style.
         quiet: If True, suppresses INFO-level and below messages.
@@ -64,16 +64,16 @@ class CLIOutput(DevServerOutputMixin):
         profile_config: Configuration dict from the active profile.
         indent_char: Character used for indentation (default: space).
         indent_size: Number of indent_char per indent level (default: 2).
-    
+
     Example:
             >>> cli = CLIOutput(profile=BuildProfile.WRITER)
             >>> cli.header("Building your site...")
             >>> cli.phase("Discovery", duration_ms=61, details="245 pages")
             >>> cli.success("Built 245 pages in 0.8s")
-    
+
     Note:
         Use get_cli_output() from bengal.output.globals for singleton access.
-        
+
     """
 
     def __init__(
@@ -121,7 +121,9 @@ class CLIOutput(DevServerOutputMixin):
 
             self.dev_server = (_os.environ.get("BENGAL_DEV_SERVER") or "") == "1"
             # Phase deduplication window (ms) to suppress duplicate phase lines
-            self._phase_dedup_ms = int(_os.environ.get("BENGAL_CLI_PHASE_DEDUP_MS", "1500"))
+            self._phase_dedup_ms = int(
+                _os.environ.get("BENGAL_CLI_PHASE_DEDUP_MS", "1500")
+            )
         except Exception as e:
             logger.debug(
                 "cli_output_env_init_failed",
@@ -589,7 +591,9 @@ class CLIOutput(DevServerOutputMixin):
             click.echo(f"{icon_prefix}{label}:")
             click.echo(click.style(f"   {self.icons.arrow} {display_path}", fg="cyan"))
 
-    def metric(self, label: str, value: Any, unit: str | None = None, indent: int = 0) -> None:
+    def metric(
+        self, label: str, value: Any, unit: str | None = None, indent: int = 0
+    ) -> None:
         """
         Print a labeled metric value with optional unit.
 
@@ -693,7 +697,9 @@ class CLIOutput(DevServerOutputMixin):
                 show_default=show_default,
             )
         else:
-            result = click.prompt(text, default=default, type=type, show_default=show_default)
+            result = click.prompt(
+                text, default=default, type=type, show_default=show_default
+            )
         # User's Enter press added a newline, mark it
         self._last_was_blank = True
         return result
@@ -718,7 +724,9 @@ class CLIOutput(DevServerOutputMixin):
         if self.use_rich:
             from rich.prompt import Confirm
 
-            result = Confirm.ask(f"[prompt]{text}[/prompt]", default=default, console=self.console)
+            result = Confirm.ask(
+                f"[prompt]{text}[/prompt]", default=default, console=self.console
+            )
         else:
             result = click.confirm(text, default=default)
         # User's Enter press added a newline, mark it
@@ -806,7 +814,8 @@ class CLIOutput(DevServerOutputMixin):
         key = line
         now = self._now_ms()
         return (
-            self._last_phase_key == key and (now - self._last_phase_time_ms) < self._phase_dedup_ms
+            self._last_phase_key == key
+            and (now - self._last_phase_time_ms) < self._phase_dedup_ms
         )
 
     def _mark_phase_emit(self, line: str) -> None:

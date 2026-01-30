@@ -10,8 +10,6 @@ Verifies that:
 These tests ensure the memory-optimized build mode actually releases memory.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
@@ -25,9 +23,9 @@ import pytest
 class MockPage:
     """
     Mock page with cache attributes matching bengal.core.page.Page.
-    
+
     Includes all cache attributes that should be cleared for memory optimization.
-        
+
     """
 
     path: Path
@@ -265,7 +263,9 @@ class TestBatchProcessing:
                 release_memory=False,
             )
 
-        assert process_calls == [10, 10, 5], f"Expected [10, 10, 5], got {process_calls}"
+        assert process_calls == [10, 10, 5], (
+            f"Expected [10, 10, 5], got {process_calls}"
+        )
 
     def test_single_batch_when_pages_less_than_batch_size(self, mock_site, tmp_path):
         """Verify single batch when page count < batch_size."""
@@ -393,7 +393,9 @@ class TestLayerProcessing:
 
         return MockGraph
 
-    def test_only_leaves_get_memory_released(self, mock_site, mock_knowledge_graph, tmp_path):
+    def test_only_leaves_get_memory_released(
+        self, mock_site, mock_knowledge_graph, tmp_path
+    ):
         """Verify only leaf pages have caches cleared, not hubs/mid-tier."""
         from bengal.orchestration.streaming import StreamingRenderOrchestrator
 
@@ -452,8 +454,12 @@ class TestLayerProcessing:
         assert hub_page._ast_cache == [{"type": "p"}], "Hub AST should be preserved"
 
         # Mid-tier should preserve caches (release_memory=False for mid-tier)
-        assert mid_page._html_cache == "<p>Mid</p>", "Mid-tier cache should be preserved"
-        assert mid_page._ast_cache == [{"type": "p"}], "Mid-tier AST should be preserved"
+        assert mid_page._html_cache == "<p>Mid</p>", (
+            "Mid-tier cache should be preserved"
+        )
+        assert mid_page._ast_cache == [{"type": "p"}], (
+            "Mid-tier AST should be preserved"
+        )
 
         # Leaf should have caches cleared (release_memory=True for leaves)
         assert leaf_page._html_cache is None, "Leaf cache should be cleared"
@@ -498,7 +504,8 @@ class TestSmallSiteWarnings:
 
         # Check that warning was logged
         warning_logged = any(
-            "Memory optimization is designed for large sites" in msg for msg in logged_messages
+            "Memory optimization is designed for large sites" in msg
+            for msg in logged_messages
         )
         assert warning_logged, f"Expected warning in messages: {logged_messages}"
 
@@ -525,7 +532,8 @@ class TestSmallSiteWarnings:
 
         # Should NOT have warning about small sites
         warning_logged = any(
-            "Memory optimization is designed for large sites" in msg for msg in logged_messages
+            "Memory optimization is designed for large sites" in msg
+            for msg in logged_messages
         )
         assert not warning_logged, f"Should not warn for large sites: {logged_messages}"
 
@@ -552,4 +560,6 @@ class TestSmallSiteWarnings:
 
         # Should have marginal benefit info message
         info_logged = any("marginal benefit" in msg for msg in logged_messages)
-        assert info_logged, f"Expected marginal benefit info in messages: {logged_messages}"
+        assert info_logged, (
+            f"Expected marginal benefit info in messages: {logged_messages}"
+        )

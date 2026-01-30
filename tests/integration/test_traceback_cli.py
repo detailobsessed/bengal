@@ -27,7 +27,9 @@ def test_build_respects_traceback_flag_full(tmp_path, monkeypatch):
     with runner.isolated_filesystem(temp_dir=tmp_path):
         # Ensure env clean
         monkeypatch.delenv("BENGAL_TRACEBACK", raising=False)
-        result = runner.invoke(build_command, ["--traceback", "full"], catch_exceptions=False)
+        result = runner.invoke(
+            build_command, ["--traceback", "full"], catch_exceptions=False
+        )
         assert result.exit_code in [0, 1]
 
 
@@ -56,7 +58,9 @@ def test_health_linkcheck_respects_traceback(tmp_path, monkeypatch):
         monkeypatch.setenv("BENGAL_TRACEBACK", "compact")
         # Use --internal-only to avoid external requests in test
         result = runner.invoke(
-            linkcheck_command, ["--internal-only", "--traceback", "minimal"], catch_exceptions=False
+            linkcheck_command,
+            ["--internal-only", "--traceback", "minimal"],
+            catch_exceptions=False,
         )
         # May abort with 1 if no output exists yet; we're only asserting command wiring works
         assert result.exit_code in [0, 1]

@@ -31,7 +31,9 @@ def create_test_site(num_assets: int) -> Path:
     # Create JS assets
     js_count = num_assets // 3
     for i in range(js_count):
-        content = f"console.log('test{i}');\nfunction test{i}() {{ return {i}; }}\n" * 20
+        content = (
+            f"console.log('test{i}');\nfunction test{i}() {{ return {i}; }}\n" * 20
+        )
         (temp_dir / "assets" / "js" / f"script{i}.js").write_text(content)
 
     # Create image assets (minimal PNG)
@@ -61,14 +63,14 @@ fingerprint_assets = true
 def benchmark_asset_processing(num_assets: int, parallel: bool) -> float:
     """
     Benchmark asset processing with or without parallelism.
-    
+
     Args:
         num_assets: Number of assets to process
         parallel: Whether to use parallel processing
-    
+
     Returns:
         Time in seconds
-        
+
     """
     site_dir = create_test_site(num_assets)
 
@@ -101,13 +103,13 @@ def benchmark_asset_processing(num_assets: int, parallel: bool) -> float:
 def benchmark_post_processing(parallel: bool) -> float:
     """
     Benchmark post-processing with or without parallelism.
-    
+
     Args:
         parallel: Whether to use parallel processing
-    
+
     Returns:
         Time in seconds
-        
+
     """
     temp_dir = Path(tempfile.mkdtemp())
 

@@ -74,7 +74,9 @@ def show_latest(manager: BenchmarkResults, benchmark: str):
     print()
 
 
-def compare_runs(manager: BenchmarkResults, benchmark: str, files: list[str] = None):
+def compare_runs(
+    manager: BenchmarkResults, benchmark: str, files: list[str] | None = None
+):
     """Compare two benchmark runs."""
     try:
         if files:
@@ -103,7 +105,9 @@ def _show_scale_comparison(comparison: dict):
     print()
     print("Detailed Comparison by Scale:")
     print("-" * 80)
-    print(f"{'Scale':<10} {'Metric':<30} {'Current':<12} {'Previous':<12} {'Change':<12}")
+    print(
+        f"{'Scale':<10} {'Metric':<30} {'Current':<12} {'Previous':<12} {'Change':<12}"
+    )
     print("-" * 80)
 
     for i, (curr_scale, prev_scale) in enumerate(
@@ -113,14 +117,24 @@ def _show_scale_comparison(comparison: dict):
 
         # Compare key metrics
         metrics = [
-            ("Full Build", curr_scale["full_build_time"], prev_scale["full_build_time"], "s"),
+            (
+                "Full Build",
+                curr_scale["full_build_time"],
+                prev_scale["full_build_time"],
+                "s",
+            ),
             (
                 "Incr Speedup",
                 curr_scale["incr_single_speedup"],
                 prev_scale["incr_single_speedup"],
                 "x",
             ),
-            ("Cache Size", curr_scale["cache_size_mb"], prev_scale["cache_size_mb"], "MB"),
+            (
+                "Cache Size",
+                curr_scale["cache_size_mb"],
+                prev_scale["cache_size_mb"],
+                "MB",
+            ),
         ]
 
         for metric_name, curr_val, prev_val, unit in metrics:
@@ -219,15 +233,21 @@ def generate_report(manager: BenchmarkResults):
                     )
                     print(f"Average speedup: {summary['avg_speedup']:.1f}x")
                     print(f"Largest scale: {summary['largest_scale']:,} pages")
-                    print(f"Status: {'✅ PASS' if summary['all_passed'] else '❌ FAIL'}")
+                    print(
+                        f"Status: {'✅ PASS' if summary['all_passed'] else '❌ FAIL'}"
+                    )
 
             elif benchmark == "stability":
                 if "summary" in data:
                     summary = data["summary"]
                     print(f"Builds tested: {summary.get('num_builds', 'N/A')}")
-                    print(f"Performance change: {summary.get('degradation_pct', 0):+.1f}%")
+                    print(
+                        f"Performance change: {summary.get('degradation_pct', 0):+.1f}%"
+                    )
                     print(f"Memory growth: {summary.get('memory_growth_mb', 0):+.1f}MB")
-                    print(f"Status: {'✅ STABLE' if summary.get('all_passed') else '⚠️  ISSUES'}")
+                    print(
+                        f"Status: {'✅ STABLE' if summary.get('all_passed') else '⚠️  ISSUES'}"
+                    )
 
             elif benchmark == "template_complexity" and "complexity_levels" in data:
                 overheads = [
@@ -236,7 +256,9 @@ def generate_report(manager: BenchmarkResults):
                     if level["name"] != "baseline"
                 ]
                 if overheads:
-                    print(f"Overhead range: {min(overheads):.1f}% - {max(overheads):.1f}%")
+                    print(
+                        f"Overhead range: {min(overheads):.1f}% - {max(overheads):.1f}%"
+                    )
                     print(f"Heavy templates: {[o for o in overheads if o > 20]}")
 
         except Exception as e:
@@ -271,7 +293,9 @@ def main():
     # Trend command
     trend_parser = subparsers.add_parser("trend", help="Show trend for a metric")
     trend_parser.add_argument("benchmark", help="Benchmark name")
-    trend_parser.add_argument("metric", help="Metric path (e.g., 'scales.0.full_build_time')")
+    trend_parser.add_argument(
+        "metric", help="Metric path (e.g., 'scales.0.full_build_time')"
+    )
     trend_parser.add_argument("--limit", type=int, default=10, help="Number of results")
 
     # Report command

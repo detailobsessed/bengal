@@ -380,7 +380,9 @@ class TestSiteWideLLMFullGeneration:
         output_dir.mkdir()
 
         mock_site = self._create_mock_site(tmp_path, output_dir)
-        page = self._create_mock_page("Test", "/test/", "Content", output_dir / "test/index.html")
+        page = self._create_mock_page(
+            "Test", "/test/", "Content", output_dir / "test/index.html"
+        )
         mock_site.pages = [page]
 
         config = {"enabled": True, "per_page": [], "site_wide": []}  # No llm_full
@@ -457,7 +459,9 @@ class TestLLMTextFormatSpec:
         output_dir.mkdir()
 
         mock_site = self._create_mock_site(tmp_path, output_dir)
-        page = self._create_mock_page("Test", "/test/", "Content", output_dir / "test/index.html")
+        page = self._create_mock_page(
+            "Test", "/test/", "Content", output_dir / "test/index.html"
+        )
         mock_site.pages = [page]
 
         config = {"enabled": True, "per_page": ["llm_txt"], "site_wide": []}

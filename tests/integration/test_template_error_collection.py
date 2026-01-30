@@ -196,7 +196,9 @@ Content
 
         # Should raise exception in strict mode
         with pytest.raises(BengalRenderingError):
-            orchestrator.build(BuildOptions(force_sequential=True, verbose=False, strict=True))
+            orchestrator.build(
+                BuildOptions(force_sequential=True, verbose=False, strict=True)
+            )
 
     def test_error_contains_rich_information(self, temp_site):
         """Test that collected errors contain rich debugging information."""
@@ -239,7 +241,13 @@ Content
             # assert error.page_source is not None  # Not applicable for proactive validation
 
             # Should have error type
-            assert error.error_type in ["syntax", "filter", "undefined", "runtime", "other"]
+            assert error.error_type in [
+                "syntax",
+                "filter",
+                "undefined",
+                "runtime",
+                "other",
+            ]
 
             # Should have message
             assert error.message is not None and len(error.message) > 0

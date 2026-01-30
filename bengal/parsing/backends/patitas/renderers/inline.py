@@ -8,7 +8,8 @@ Thread-safe: all handlers are pure functions with no shared mutable state.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from patitas.nodes import (
     CodeSpan,
@@ -36,7 +37,7 @@ from bengal.parsing.backends.patitas.renderers.utils import (
 )
 
 if TYPE_CHECKING:
-    from patitas.nodes import Inline
+    pass
 
 # Type alias for inline render handler
 InlineHandler = Callable[[Any, StringBuilder, Callable], None]
@@ -50,7 +51,11 @@ def render_text(node: Text, sb: StringBuilder, render_children: Callable) -> Non
     # Note: VariableSubstitutionPlugin handles its own safety checks.
     content = node.content
     renderer = getattr(render_children, "__self__", None)
-    if renderer and hasattr(renderer, "_text_transformer") and renderer._text_transformer:
+    if (
+        renderer
+        and hasattr(renderer, "_text_transformer")
+        and renderer._text_transformer
+    ):
         content = renderer._text_transformer(content)
 
     # Accumulate word count if metadata context is active
@@ -61,7 +66,9 @@ def render_text(node: Text, sb: StringBuilder, render_children: Callable) -> Non
     sb.append(escape_html(content))
 
 
-def render_emphasis(node: Emphasis, sb: StringBuilder, render_children: Callable) -> None:
+def render_emphasis(
+    node: Emphasis, sb: StringBuilder, render_children: Callable
+) -> None:
     """Render emphasis (<em>)."""
     sb.append("<em>")
     render_children(node.children, sb)
@@ -106,22 +113,30 @@ def render_image(node: Image, sb: StringBuilder, render_children: Callable) -> N
     sb.append(" />")
 
 
-def render_code_span(node: CodeSpan, sb: StringBuilder, render_children: Callable) -> None:
+def render_code_span(
+    node: CodeSpan, sb: StringBuilder, render_children: Callable
+) -> None:
     """Render inline code (<code>)."""
     sb.append(f"<code>{escape_html(node.code)}</code>")
 
 
-def render_line_break(node: LineBreak, sb: StringBuilder, render_children: Callable) -> None:
+def render_line_break(
+    node: LineBreak, sb: StringBuilder, render_children: Callable
+) -> None:
     """Render hard line break (<br />)."""
     sb.append("<br />\n")
 
 
-def render_soft_break(node: SoftBreak, sb: StringBuilder, render_children: Callable) -> None:
+def render_soft_break(
+    node: SoftBreak, sb: StringBuilder, render_children: Callable
+) -> None:
     """Render soft line break (newline)."""
     sb.append("\n")
 
 
-def render_html_inline(node: HtmlInline, sb: StringBuilder, render_children: Callable) -> None:
+def render_html_inline(
+    node: HtmlInline, sb: StringBuilder, render_children: Callable
+) -> None:
     """Render raw HTML inline."""
     sb.append(node.html)
 

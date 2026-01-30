@@ -29,10 +29,10 @@ def create_skeleton_from_args(
 ) -> Skeleton:
     """
     Create an in-memory skeleton based on legacy init arguments.
-    
+
     This bridges the gap between the old imperative init command
     and the new declarative skeleton system.
-        
+
     """
     structure: list[Component] = []
 
@@ -60,11 +60,16 @@ def create_skeleton_from_args(
         if with_content:
             for i in range(pages_per_section):
                 page_num = i + 1
-                page_name = f"sample-post-{page_num}" if type_ == "blog" else f"page-{page_num}"
+                page_name = (
+                    f"sample-post-{page_num}" if type_ == "blog" else f"page-{page_num}"
+                )
 
                 page = Component(
                     path=f"{page_name}.md",
-                    props={"title": f"Sample {name.title()} {page_num}", "draft": False},
+                    props={
+                        "title": f"Sample {name.title()} {page_num}",
+                        "draft": False,
+                    },
                     content=f"# Sample Page {page_num}\n\nThis is sample content for {name}.",
                 )
                 section.pages.append(page)
@@ -72,7 +77,9 @@ def create_skeleton_from_args(
         structure.append(section)
 
     return Skeleton(
-        name="init-scaffold", description="Scaffold created via bengal init", structure=structure
+        name="init-scaffold",
+        description="Scaffold created via bengal init",
+        structure=structure,
     )
 
 
@@ -126,9 +133,9 @@ def init(
 ) -> None:
     """
     Initialize site structure.
-    
+
     Uses the Component Model to generate sections and pages.
-        
+
     """
     cli = CLIOutput()
 

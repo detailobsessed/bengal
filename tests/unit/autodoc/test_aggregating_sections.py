@@ -5,9 +5,9 @@ Tests the create_aggregating_parent_sections() function and the api-hub type
 used for landing pages that aggregate multiple API documentation types.
 """
 
-from __future__ import annotations
-
-from bengal.autodoc.orchestration.section_builders import create_aggregating_parent_sections
+from bengal.autodoc.orchestration.section_builders import (
+    create_aggregating_parent_sections,
+)
 from bengal.autodoc.orchestration.utils import get_template_dir_for_type
 from bengal.core.section import Section
 

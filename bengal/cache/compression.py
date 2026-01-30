@@ -20,6 +20,7 @@ Related:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
@@ -48,22 +49,24 @@ COMPRESSION_LEVEL = 3
 ZstdError = zstd.ZstdError
 
 
-def save_compressed(data: dict[str, Any], path: Path, level: int = COMPRESSION_LEVEL) -> int:
+def save_compressed(
+    data: dict[str, Any], path: Path, level: int = COMPRESSION_LEVEL
+) -> int:
     """
     Save data as compressed JSON (.json.zst) with atomic write.
-    
+
     Args:
         data: Dictionary to serialize
         path: Output path (should end in .json.zst)
         level: Compression level 1-22 (default: 3)
-    
+
     Returns:
         Number of bytes written (compressed size)
-    
+
     Raises:
         OSError: If file cannot be written
         TypeError: If data is not JSON-serializable
-        
+
     """
     # Serialize to compact JSON (no indentation).
     #
@@ -72,7 +75,9 @@ def save_compressed(data: dict[str, Any], path: Path, level: int = COMPRESSION_L
     # Uses to_jsonable to handle dataclasses and module reloads in dev server.
     from bengal.utils.serialization import to_jsonable
 
-    json_bytes = json.dumps(data, separators=(",", ":"), default=to_jsonable).encode("utf-8")
+    json_bytes = json.dumps(data, separators=(",", ":"), default=to_jsonable).encode(
+        "utf-8"
+    )
     original_size = len(json_bytes)
 
     # Compress with Zstandard (PEP 784)
@@ -85,7 +90,7 @@ def save_compressed(data: dict[str, Any], path: Path, level: int = COMPRESSION_L
     # Atomic write: write to temp file, then rename
     # This prevents corrupted cache files on crash during write
     path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Create temp file in same directory (ensures same filesystem for atomic rename)
     fd, temp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
     try:
@@ -95,10 +100,8 @@ def save_compressed(data: dict[str, Any], path: Path, level: int = COMPRESSION_L
         os.replace(temp_path, path)
     except Exception:
         # Clean up temp file on failure
-        try:
+        with contextlib.suppress(OSError):
             os.unlink(temp_path)
-        except OSError:
-            pass
         raise
 
     ratio = original_size / compressed_size if compressed_size > 0 else 0
@@ -116,19 +119,19 @@ def save_compressed(data: dict[str, Any], path: Path, level: int = COMPRESSION_L
 def load_compressed(path: Path) -> dict[str, Any]:
     """
     Load compressed JSON (.json.zst).
-    
+
     Args:
         path: Path to compressed cache file
-    
+
     Returns:
         Deserialized dictionary
-    
+
     Raises:
         FileNotFoundError: If path doesn't exist
         BengalCacheError: If cache version is incompatible (code A002)
         zstd.ZstdError: If decompression fails
         json.JSONDecodeError: If JSON is invalid
-        
+
     """
     compressed = path.read_bytes()
 
@@ -171,13 +174,13 @@ def load_compressed(path: Path) -> dict[str, Any]:
 def detect_format(path: Path) -> str:
     """
     Detect cache file format by extension.
-    
+
     Args:
         path: Path to cache file
-    
+
     Returns:
         "zstd" for .json.zst files, "json" for .json files, "unknown" otherwise
-        
+
     """
     name = path.name
     if name.endswith(".json.zst"):
@@ -190,13 +193,13 @@ def detect_format(path: Path) -> str:
 def get_compressed_path(json_path: Path) -> Path:
     """
     Get the compressed path for a JSON cache file.
-    
+
     Args:
         json_path: Original JSON path (e.g., .bengal/cache.json)
-    
+
     Returns:
         Compressed path (e.g., .bengal/cache.json.zst)
-        
+
     """
     if json_path.name.endswith(".json.zst"):
         return json_path
@@ -206,13 +209,13 @@ def get_compressed_path(json_path: Path) -> Path:
 def get_json_path(compressed_path: Path) -> Path:
     """
     Get the JSON path for a compressed cache file.
-    
+
     Args:
         compressed_path: Compressed path (e.g., .bengal/cache.json.zst)
-    
+
     Returns:
         JSON path (e.g., .bengal/cache.json)
-        
+
     """
     name = compressed_path.name
     if name.endswith(".json.zst"):
@@ -223,19 +226,19 @@ def get_json_path(compressed_path: Path) -> Path:
 def load_auto(path: Path) -> dict[str, Any]:
     """
     Load cache file with automatic format detection.
-    
+
     Tries compressed format first (.json.zst), falls back to JSON (.json).
     This enables seamless migration from uncompressed to compressed caches.
-    
+
     Args:
         path: Base path (without .zst extension)
-    
+
     Returns:
         Deserialized dictionary
-    
+
     Raises:
         FileNotFoundError: If neither compressed nor JSON file exists
-        
+
     """
     # Try compressed first
     compressed_path = get_compressed_path(path)
@@ -271,14 +274,14 @@ def load_auto(path: Path) -> dict[str, Any]:
 def migrate_to_compressed(json_path: Path, remove_original: bool = True) -> Path | None:
     """
     Migrate an uncompressed JSON cache file to compressed format.
-    
+
     Args:
         json_path: Path to uncompressed JSON file
         remove_original: Whether to remove the original JSON file after migration
-    
+
     Returns:
         Path to compressed file, or None if migration failed/not needed
-        
+
     """
     if not json_path.exists():
         return None

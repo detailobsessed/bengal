@@ -4,8 +4,6 @@ Tests health/validators/performance.py:
 - PerformanceValidator: build performance validation in health check system
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -207,7 +205,9 @@ class TestPerformanceValidatorSlowPages:
         results = validator.validate(mock_site)
 
         info_results = [r for r in results if r.status == CheckStatus.INFO]
-        assert any("render" in r.message.lower() and "%" in r.message for r in info_results)
+        assert any(
+            "render" in r.message.lower() and "%" in r.message for r in info_results
+        )
 
     def test_success_for_good_render_time(self, validator, mock_site):
         """Success for good render time."""
@@ -258,7 +258,9 @@ class TestPerformanceValidatorParallelMode:
 
         # Should not flag as too slow for sequential
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        speed_warnings = [r for r in warning_results if "slower than expected" in r.message.lower()]
+        speed_warnings = [
+            r for r in warning_results if "slower than expected" in r.message.lower()
+        ]
         assert len(speed_warnings) == 0
 
 
@@ -276,7 +278,9 @@ class TestPerformanceValidatorRecommendations:
         results = validator.validate(mock_site)
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        slow_warning = next((r for r in warning_results if "slower" in r.message.lower()), None)
+        slow_warning = next(
+            (r for r in warning_results if "slower" in r.message.lower()), None
+        )
         assert slow_warning is not None
         assert slow_warning.recommendation is not None
 

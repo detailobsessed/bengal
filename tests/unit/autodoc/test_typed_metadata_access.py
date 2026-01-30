@@ -277,7 +277,10 @@ class TestGetPythonFunctionSignature:
             element_type="function",
             typed_metadata=meta,
         )
-        assert get_python_function_signature(elem) == "def build(force: bool = False) -> None"
+        assert (
+            get_python_function_signature(elem)
+            == "def build(force: bool = False) -> None"
+        )
 
     def test_fallback_to_untyped(self):
         """Should fall back to metadata dict when typed_metadata is None."""

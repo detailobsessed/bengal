@@ -37,8 +37,6 @@ Expected Performance (Post-Optimization):
 - Expected speedup: 10-100x for PageRank, 5-20x for Link Suggestions
 """
 
-from __future__ import annotations
-
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -72,7 +70,6 @@ class SyntheticPage:
 
     def extract_links(self):
         """Mock link extraction - links are pre-populated."""
-        pass
 
 
 class SyntheticSite:
@@ -141,7 +138,9 @@ class SyntheticSite:
 
             # 1-2 categories per page
             num_cats = random.randint(1, 2)
-            categories = random.sample(self.category_pool, min(num_cats, len(self.category_pool)))
+            categories = random.sample(
+                self.category_pool, min(num_cats, len(self.category_pool))
+            )
 
             page = SyntheticPage(
                 title=f"Page {i}",
@@ -410,7 +409,9 @@ def test_pagerank_correctness_after_optimization(synthetic_100_site):
     result = calculator.compute()
 
     # Verify convergence
-    assert result.converged, f"PageRank did not converge in {result.iterations} iterations"
+    assert result.converged, (
+        f"PageRank did not converge in {result.iterations} iterations"
+    )
 
     # Verify score normalization (sum ≈ 1.0)
     total_score = sum(result.scores.values())
@@ -474,8 +475,8 @@ def test_full_analysis_pipeline_100_pages(benchmark, synthetic_100_site):
 
     This represents a realistic workflow where all analysis is performed.
     """
-    from bengal.analysis.links.suggestions import LinkSuggestionEngine
     from bengal.analysis.graph.page_rank import PageRankCalculator
+    from bengal.analysis.links.suggestions import LinkSuggestionEngine
 
     def full_pipeline():
         graph = MockKnowledgeGraph(synthetic_100_site)

@@ -26,8 +26,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 from bengal.autodoc.extractors.python.extractor import PythonExtractor
 
 __all__ = ["PythonExtractor"]

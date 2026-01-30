@@ -35,12 +35,16 @@ class TestTaxonomyIndexComparison:
             index = TaxonomyIndex(tmpdir_path / "taxonomy_index.json")
 
             # Add initial tag
-            index.update_tag("python", "Python", ["content/post1.md", "content/post2.md"])
+            index.update_tag(
+                "python", "Python", ["content/post1.md", "content/post2.md"]
+            )
             index.save_to_disk()
 
             # Load fresh and check - same pages shouldn't trigger generation
             index2 = TaxonomyIndex(tmpdir_path / "taxonomy_index.json")
-            assert not index2.pages_changed("python", ["content/post1.md", "content/post2.md"])
+            assert not index2.pages_changed(
+                "python", ["content/post1.md", "content/post2.md"]
+            )
 
     def test_added_page_to_tag_triggers_generation(self):
         """Test that adding a page to a tag triggers regeneration"""
@@ -49,7 +53,9 @@ class TestTaxonomyIndexComparison:
             index = TaxonomyIndex(tmpdir_path / "taxonomy_index.json")
 
             # Add initial tag
-            index.update_tag("python", "Python", ["content/post1.md", "content/post2.md"])
+            index.update_tag(
+                "python", "Python", ["content/post1.md", "content/post2.md"]
+            )
             index.save_to_disk()
 
             # Load fresh and check - new page should trigger generation
@@ -65,7 +71,9 @@ class TestTaxonomyIndexComparison:
             index = TaxonomyIndex(tmpdir_path / "taxonomy_index.json")
 
             # Add initial tag
-            index.update_tag("python", "Python", ["content/post1.md", "content/post2.md"])
+            index.update_tag(
+                "python", "Python", ["content/post1.md", "content/post2.md"]
+            )
             index.save_to_disk()
 
             # Load fresh and check - removed page should trigger generation
@@ -79,12 +87,16 @@ class TestTaxonomyIndexComparison:
             index = TaxonomyIndex(tmpdir_path / "taxonomy_index.json")
 
             # Add initial tag with ordered pages
-            index.update_tag("python", "Python", ["content/post1.md", "content/post2.md"])
+            index.update_tag(
+                "python", "Python", ["content/post1.md", "content/post2.md"]
+            )
             index.save_to_disk()
 
             # Load fresh and check - different order should NOT trigger generation
             index2 = TaxonomyIndex(tmpdir_path / "taxonomy_index.json")
-            assert not index2.pages_changed("python", ["content/post2.md", "content/post1.md"])
+            assert not index2.pages_changed(
+                "python", ["content/post2.md", "content/post1.md"]
+            )
 
 
 class TestIncrementalTagGeneration:
@@ -233,7 +245,9 @@ Content.
 
             # Check that TaxonomyIndex was created (compressed format)
             index_file = tmpdir_path / ".bengal" / "taxonomy_index.json.zst"
-            assert index_file.exists(), "TaxonomyIndex should be persisted as compressed .json.zst"
+            assert index_file.exists(), (
+                "TaxonomyIndex should be persisted as compressed .json.zst"
+            )
 
             # Verify it has correct data
             index = TaxonomyIndex(index_file)
@@ -545,7 +559,7 @@ A post in tutorials category.
             tutorials_html = output_dir / "categories" / "tutorials" / "index.html"
 
             # Tutorials category may or may not exist depending on taxonomy config
-            tutorials_existed = tutorials_html.exists()
+            tutorials_html.exists()
 
             # CHANGE category from tutorials to guides
             post_file.write_text("""---
@@ -563,7 +577,7 @@ A post now in guides category.
             orch2.build(BuildOptions(incremental=True))
 
             # Build should succeed with category change
-            guides_html = output_dir / "categories" / "guides" / "index.html"
+            output_dir / "categories" / "guides" / "index.html"
 
             # If categories taxonomy is enabled, guides page should exist
             # (depends on Bengal's taxonomy configuration)

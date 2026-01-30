@@ -6,8 +6,6 @@ Ensures that should_bypass correctly handles path variations
 RFC: Theme hot reload path resolution fix
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -45,7 +43,9 @@ class TestShouldBypassPathResolution:
 
         assert result is True
 
-    def test_resolved_path_match(self, tracker: MockFileTracking, temp_file: Path) -> None:
+    def test_resolved_path_match(
+        self, tracker: MockFileTracking, temp_file: Path
+    ) -> None:
         """Test that resolved paths match even with different representations."""
         # Create a path with ./ component
         path_with_dot = temp_file.parent / "." / temp_file.name
@@ -56,7 +56,9 @@ class TestShouldBypassPathResolution:
 
         assert result is True
 
-    def test_symlink_path_match(self, tracker: MockFileTracking, tmp_path: Path) -> None:
+    def test_symlink_path_match(
+        self, tracker: MockFileTracking, tmp_path: Path
+    ) -> None:
         """Test that symlinked paths match their targets."""
         # Create a real file
         real_file = tmp_path / "real.css"
@@ -77,7 +79,9 @@ class TestShouldBypassPathResolution:
 
         assert result is True
 
-    def test_symlink_in_changed_sources(self, tracker: MockFileTracking, tmp_path: Path) -> None:
+    def test_symlink_in_changed_sources(
+        self, tracker: MockFileTracking, tmp_path: Path
+    ) -> None:
         """Test that real paths match when symlink is in changed_sources."""
         # Create a real file
         real_file = tmp_path / "real.css"
@@ -98,7 +102,9 @@ class TestShouldBypassPathResolution:
 
         assert result is True
 
-    def test_no_match_different_files(self, tracker: MockFileTracking, tmp_path: Path) -> None:
+    def test_no_match_different_files(
+        self, tracker: MockFileTracking, tmp_path: Path
+    ) -> None:
         """Test that different files don't match."""
         file1 = tmp_path / "file1.css"
         file1.write_text("/* file1 */")
@@ -128,7 +134,9 @@ class TestShouldBypassPathResolution:
 
         assert result is True  # Not in cache = changed
 
-    def test_path_with_parent_reference(self, tracker: MockFileTracking, tmp_path: Path) -> None:
+    def test_path_with_parent_reference(
+        self, tracker: MockFileTracking, tmp_path: Path
+    ) -> None:
         """Test paths with .. components are resolved correctly."""
         # Create subdirectory and file
         subdir = tmp_path / "subdir"

@@ -12,8 +12,6 @@ Run with:
 This establishes baseline measurements before optimization.
 """
 
-from __future__ import annotations
-
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -41,7 +39,7 @@ def generate_collections(num_collections: int) -> dict[str, CollectionConfig[Any
 
     Returns:
         Dictionary mapping collection names to CollectionConfig instances
-    
+
     Note:
         Directory paths are relative to content_root (typically "content/"),
         so we use "section_N" not "content/section_N".
@@ -261,7 +259,9 @@ class TestCollectionPathMatchingPerformance:
         iterations = 1000
         start = time.perf_counter()
         for _ in range(iterations):
-            name, config = get_collection_for_path(file_path, content_root, collections_10)
+            name, _config = get_collection_for_path(
+                file_path, content_root, collections_10
+            )
         elapsed = time.perf_counter() - start
 
         assert name == "collection_5"
@@ -282,7 +282,9 @@ class TestCollectionPathMatchingPerformance:
         iterations = 1000
         start = time.perf_counter()
         for _ in range(iterations):
-            name, config = get_collection_for_path(file_path, content_root, collections_100)
+            name, _config = get_collection_for_path(
+                file_path, content_root, collections_100
+            )
         elapsed = time.perf_counter() - start
 
         assert name == "collection_50"
@@ -304,7 +306,7 @@ class TestCollectionPathMatchingPerformance:
         iterations = 1000
         start = time.perf_counter()
         for _ in range(iterations):
-            name, config = get_collection_for_path(
+            name, _config = get_collection_for_path(
                 file_path, content_root, collections_10, trie=trie
             )
         elapsed = time.perf_counter() - start
@@ -328,7 +330,7 @@ class TestCollectionPathMatchingPerformance:
         iterations = 1000
         start = time.perf_counter()
         for _ in range(iterations):
-            name, config = get_collection_for_path(
+            name, _config = get_collection_for_path(
                 file_path, content_root, collections_100, trie=trie
             )
         elapsed = time.perf_counter() - start

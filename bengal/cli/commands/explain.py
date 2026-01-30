@@ -65,7 +65,7 @@ def explain(
 ) -> None:
     """
     Explain how a page is built.
-    
+
     Shows complete traceability for any page including:
     - Source file information
     - Frontmatter metadata
@@ -74,22 +74,22 @@ def explain(
     - Shortcodes/directives used
     - Cache status (HIT/MISS/STALE)
     - Output location
-    
+
     Examples:
         bengal explain docs/guide.md
         bengal explain content/posts/hello.md --verbose
         bengal explain api/reference.md --diagnose
         bengal explain docs/guide.md --json
-    
+
     The page path can be:
         - Relative to content dir: docs/guide.md
         - Full path: content/docs/guide.md
         - Partial match: guide.md (if unique)
-    
+
     See also:
         bengal validate - Check site health
         bengal site build - Build the site
-        
+
     """
     cli = get_cli_output()
 
@@ -181,9 +181,13 @@ def explain(
         cli.blank()
         if explanation.issues:
             error_count = sum(1 for i in explanation.issues if i.severity == "error")
-            warning_count = sum(1 for i in explanation.issues if i.severity == "warning")
+            warning_count = sum(
+                1 for i in explanation.issues if i.severity == "warning"
+            )
             if error_count:
-                cli.error(f"Found {error_count} error(s) and {warning_count} warning(s)")
+                cli.error(
+                    f"Found {error_count} error(s) and {warning_count} warning(s)"
+                )
             elif warning_count:
                 cli.warning(f"Found {warning_count} warning(s)")
         else:

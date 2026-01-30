@@ -1,7 +1,5 @@
 """Tests for the unified HTML transformer."""
 
-from __future__ import annotations
-
 from bengal.rendering.pipeline.unified_transform import (
     HybridHTMLTransformer,
     create_transformer,

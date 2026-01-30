@@ -10,8 +10,6 @@ Or standalone:
     python benchmarks/test_kida_vs_jinja.py
 """
 
-from __future__ import annotations
-
 import time
 from pathlib import Path
 from typing import Any
@@ -39,7 +37,8 @@ def get_sample_context() -> dict[str, Any]:
             "title": "Bengal Documentation",
             "url": "https://lbliii.github.io/bengal",
             "pages": [
-                {"title": f"Page {i}", "url": f"/page-{i}/", "draft": False} for i in range(100)
+                {"title": f"Page {i}", "url": f"/page-{i}/", "draft": False}
+                for i in range(100)
             ],
             "nav_version": "1.0.0",
         },
@@ -102,7 +101,6 @@ def benchmark_template(
 ) -> BenchmarkResult:
     """Benchmark a template with both engines."""
     from jinja2 import Environment as JinjaEnv
-
     from kida import Environment as KidaEnv
 
     # Setup Jinja2
@@ -217,7 +215,7 @@ def test_nested_loop_performance(benchmark, simple_context, kida_env):
     template = kida_env.from_string(
         "{% for row in rows %}{% for col in row %}{{ col }}{% endfor %}{% endfor %}"
     )
-    context = {"rows": [[j for j in range(10)] for i in range(100)]}
+    context = {"rows": [list(range(10)) for i in range(100)]}
     benchmark(template.render, **context)
 
 

@@ -28,15 +28,20 @@ RFC: rfc-asset-resolution-observability.md (Observability)
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, cast
+
+if TYPE_CHECKING:
+    from bengal.protocols import SiteLike
 
 from bengal.utils.concurrency.thread_local import ThreadSafeSet
 from bengal.utils.observability.logger import get_logger
 from bengal.utils.observability.observability import ComponentStats
+
 
 class AssetSiteLike(Protocol):
     """Minimal protocol for site objects used in asset resolution."""
@@ -70,14 +75,14 @@ _fallback_warned: ThreadSafeSet = ThreadSafeSet()
 
 __all__ = [
     "AssetManifestContext",
-    "get_asset_manifest",
-    "set_asset_manifest",
-    "reset_asset_manifest",
     "asset_manifest_context",
-    "resolve_asset_url",
     "clear_manifest_cache",
+    "get_asset_manifest",
     # Observability exports (Phase 2)
     "get_resolution_stats",
+    "reset_asset_manifest",
+    "resolve_asset_url",
+    "set_asset_manifest",
 ]
 
 # =============================================================================
@@ -168,7 +173,9 @@ def set_asset_manifest(ctx: AssetManifestContext) -> Token[AssetManifestContext 
     return _asset_manifest.set(ctx)
 
 
-def reset_asset_manifest(token: Token[AssetManifestContext | None] | None = None) -> None:
+def reset_asset_manifest(
+    token: Token[AssetManifestContext | None] | None = None,
+) -> None:
     """Reset asset manifest context.
 
     If token is provided, restores to the previous value (proper nesting).
@@ -226,32 +233,35 @@ def resolve_asset_url(
 ) -> str:
     """
     Resolve an asset path to its final URL.
-    
+
     This is the single source of truth for asset URL resolution.
     Handles fingerprinting, baseurl, and file:// protocol.
-    
+
     RFC: rfc-build-performance-optimizations Phase 2
     Tracks asset references during render-time if AssetTracker is active.
-    
+
     Args:
         asset_path: Logical asset path (e.g., 'css/style.css')
         site: Site instance
         page: Optional page context (for file:// relative paths)
-    
+
     Returns:
         Resolved asset URL ready for use in HTML
-    
+
     Example:
             >>> resolve_asset_url('css/style.css', site)
             '/bengal/assets/css/style.abc123.css'  # Fingerprinted
             >>> resolve_asset_url('css/style.css', site)  # Dev mode
             '/bengal/assets/css/style.css'  # Non-fingerprinted
-        
+
     """
     from bengal.rendering.template_engine.url_helpers import with_baseurl
 
+    # Cast to SiteLike for with_baseurl compatibility
+    site_like = cast("SiteLike", site)
+
     if not asset_path:
-        url = with_baseurl("/assets/", site)
+        url = with_baseurl("/assets/", site_like)
     else:
         # Normalize path
         clean_path = asset_path.replace("\\", "/").strip().lstrip("/")
@@ -263,16 +273,16 @@ def resolve_asset_url(
             url = _resolve_file_protocol(clean_path, site, page)
         # In dev server mode, prefer stable URLs without fingerprints
         elif getattr(site, "dev_mode", False):
-            url = with_baseurl(f"/assets/{clean_path}", site)
+            url = with_baseurl(f"/assets/{clean_path}", site_like)
         else:
             # Look up fingerprinted path from manifest
             fingerprinted_path = _resolve_fingerprinted(clean_path, site)
             if fingerprinted_path:
-                url = with_baseurl(f"/{fingerprinted_path}", site)
+                url = with_baseurl(f"/{fingerprinted_path}", site_like)
             else:
                 # Fallback: return direct asset path
-                url = with_baseurl(f"/assets/{clean_path}", site)
-    
+                url = with_baseurl(f"/assets/{clean_path}", site_like)
+
     # RFC: rfc-build-performance-optimizations Phase 2
     # Track asset reference if tracker is active (render-time tracking)
     tracker = _get_asset_tracker()
@@ -280,18 +290,19 @@ def resolve_asset_url(
         # Track the original logical path, not the resolved URL
         # (the logical path is what we need for dependency tracking)
         tracker.track(asset_path if asset_path else "/assets/")
-    
+
     return url
 
 
 def _get_asset_tracker() -> Any | None:
     """Get current asset tracker if available.
-    
+
     Returns:
         Current AssetTracker instance, or None
     """
     try:
         from bengal.rendering.asset_tracking import get_current_tracker
+
         return get_current_tracker()
     except ImportError:
         # Graceful degradation if module not available
@@ -375,18 +386,20 @@ def _resolve_fingerprinted(logical_path: str, site: AssetSiteLike) -> str | None
     return None
 
 
-def _resolve_file_protocol(asset_path: str, site: AssetSiteLike, page: Any = None) -> str:
+def _resolve_file_protocol(
+    asset_path: str, site: AssetSiteLike, page: Any = None
+) -> str:
     """
     Generate asset URL for file:// protocol using relative paths.
-    
+
     Args:
         asset_path: Validated asset path
         site: Site instance
         page: Page context for computing relative path
-    
+
     Returns:
         Relative asset URL
-        
+
     """
     asset_url_path = f"assets/{asset_path}"
 
@@ -395,7 +408,9 @@ def _resolve_file_protocol(asset_path: str, site: AssetSiteLike, page: Any = Non
         try:
             page_rel_to_root = page.output_path.relative_to(site.output_dir)
             depth = (
-                len(page_rel_to_root.parent.parts) if page_rel_to_root.parent != Path(".") else 0
+                len(page_rel_to_root.parent.parts)
+                if page_rel_to_root.parent != Path(".")
+                else 0
             )
             if depth > 0:
                 relative_prefix = "/".join([".."] * depth)

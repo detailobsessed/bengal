@@ -27,8 +27,6 @@ Expected Performance:
 RFC Reference: plan/drafted/rfc-config-algorithm-optimization.md
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 
@@ -49,25 +47,33 @@ def bengal_site_root() -> Path:
 @pytest.fixture
 def synthetic_config_5_files(tmp_path: Path) -> Path:
     """Create synthetic config directory with 5 files."""
-    return _create_synthetic_config(tmp_path / "config_5", num_files=5, keys_per_file=20)
+    return _create_synthetic_config(
+        tmp_path / "config_5", num_files=5, keys_per_file=20
+    )
 
 
 @pytest.fixture
 def synthetic_config_15_files(tmp_path: Path) -> Path:
     """Create synthetic config directory with 15 files."""
-    return _create_synthetic_config(tmp_path / "config_15", num_files=15, keys_per_file=20)
+    return _create_synthetic_config(
+        tmp_path / "config_15", num_files=15, keys_per_file=20
+    )
 
 
 @pytest.fixture
 def synthetic_config_30_files(tmp_path: Path) -> Path:
     """Create synthetic config directory with 30 files."""
-    return _create_synthetic_config(tmp_path / "config_30", num_files=30, keys_per_file=20)
+    return _create_synthetic_config(
+        tmp_path / "config_30", num_files=30, keys_per_file=20
+    )
 
 
 @pytest.fixture
 def large_config_1000_keys(tmp_path: Path) -> Path:
     """Create config with 1000+ keys for stress testing."""
-    return _create_synthetic_config(tmp_path / "config_1000", num_files=10, keys_per_file=100)
+    return _create_synthetic_config(
+        tmp_path / "config_1000", num_files=10, keys_per_file=100
+    )
 
 
 def _create_synthetic_config(

@@ -13,7 +13,9 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 # Base URL for Phosphor icons (regular weight)
-PHOSPHOR_BASE_URL = "https://raw.githubusercontent.com/phosphor-icons/core/main/assets/regular"
+PHOSPHOR_BASE_URL = (
+    "https://raw.githubusercontent.com/phosphor-icons/core/main/assets/regular"
+)
 
 # Map Bengal icon names to Phosphor icon names
 ICON_MAPPING = {
@@ -66,7 +68,9 @@ ICON_MAPPING = {
     "bengal-rosette": None,  # Keep custom
 }
 
-ICONS_DIR = Path(__file__).parent.parent / "bengal" / "themes" / "default" / "assets" / "icons"
+ICONS_DIR = (
+    Path(__file__).parent.parent / "bengal" / "themes" / "default" / "assets" / "icons"
+)
 
 
 def download_phosphor_icon(icon_name: str) -> str | None:
@@ -120,7 +124,9 @@ def normalize_phosphor_svg(svg_content: str, icon_name: str) -> str:
     svg_content = re.sub(r'\s+fill="[^"]*"', "", svg_content)
 
     # Ensure fill="none" on root SVG (for proper theme support)
-    svg_content = re.sub(r"<svg\s+([^>]*)>", r'<svg \1 fill="none">', svg_content, count=1)
+    svg_content = re.sub(
+        r"<svg\s+([^>]*)>", r'<svg \1 fill="none">', svg_content, count=1
+    )
 
     # Replace any hardcoded fill colors in paths with currentColor
     svg_content = re.sub(r'fill="#[0-9a-fA-F]{6}"', 'fill="currentColor"', svg_content)

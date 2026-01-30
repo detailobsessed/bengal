@@ -4,8 +4,6 @@ Extended tests for sitemap validator.
 Additional tests that would have caught the unused coverage calculation bug.
 """
 
-from __future__ import annotations
-
 from unittest.mock import Mock
 
 import pytest
@@ -23,12 +21,12 @@ def mock_site(tmp_path):
 
     # Create mock pages (5 non-draft, 2 draft)
     pages = []
-    for i in range(5):
+    for _i in range(5):
         page = Mock()
         page.metadata = {"draft": False}
         pages.append(page)
-    
-    for i in range(2):
+
+    for _i in range(2):
         page = Mock()
         page.metadata = {"draft": True}
         pages.append(page)
@@ -57,9 +55,11 @@ class TestSitemapValidatorCoverage:
 
         # Should warn about coverage
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        coverage_warnings = [r for r in warning_results if "missing" in r.message.lower()]
+        coverage_warnings = [
+            r for r in warning_results if "missing" in r.message.lower()
+        ]
         assert len(coverage_warnings) >= 1
-        
+
         # Warning should mention the counts
         warning_msg = coverage_warnings[0].message
         assert "3" in warning_msg  # sitemap count
@@ -84,13 +84,15 @@ class TestSitemapValidatorCoverage:
 
         # Should NOT warn about coverage
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        coverage_warnings = [r for r in warning_results if "missing" in r.message.lower()]
+        coverage_warnings = [
+            r for r in warning_results if "missing" in r.message.lower()
+        ]
         assert len(coverage_warnings) == 0
 
     def test_no_warning_when_sitemap_has_more_urls(self, mock_site, tmp_path):
         """
         No warning when sitemap has MORE URLs than pages.
-        
+
         This is normal - generated pages like tags/archives add URLs.
         """
         # Create sitemap with 7 URLs (more than 5 non-draft pages)
@@ -134,7 +136,9 @@ class TestSitemapValidatorCoverage:
 
         # Should NOT warn - 5 URLs = 5 publishable pages
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        coverage_warnings = [r for r in warning_results if "missing" in r.message.lower()]
+        coverage_warnings = [
+            r for r in warning_results if "missing" in r.message.lower()
+        ]
         assert len(coverage_warnings) == 0
 
 
@@ -146,7 +150,7 @@ class TestSitemapValidatorEmptyStates:
         site = Mock()
         site.output_dir = tmp_path
         site.config = {"baseurl": "https://example.com"}
-        
+
         # All pages are drafts
         page = Mock()
         page.metadata = {"draft": True}
@@ -184,7 +188,9 @@ class TestSitemapValidatorCodes:
         results = validator.validate(mock_site)
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        coverage_warnings = [r for r in warning_results if "missing" in r.message.lower()]
-        
+        coverage_warnings = [
+            r for r in warning_results if "missing" in r.message.lower()
+        ]
+
         if coverage_warnings:
             assert coverage_warnings[0].code == "H509"

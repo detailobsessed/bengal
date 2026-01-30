@@ -5,8 +5,6 @@ Tests URL ownership enforcement across content, taxonomy, autodoc, redirects,
 and special pages in realistic build scenarios.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest

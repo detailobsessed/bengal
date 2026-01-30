@@ -7,8 +7,6 @@ Verifies screen transitions, help overlay, and quit behavior.
 Reference: https://textual.textualize.io/guide/testing/
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.cli.dashboard.screens import (

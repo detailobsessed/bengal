@@ -4,8 +4,6 @@
 Run with: python -m benchmarks.lexer_benchmark
 """
 
-from __future__ import annotations
-
 import time
 from typing import TYPE_CHECKING
 
@@ -49,7 +47,9 @@ def generate_synthetic_code(lines: int) -> str:
             parts.append(f'    """Docstring for Class{i}."""')
             parts.append("")
         elif i % 5 == 0:
-            parts.append(f"    def method_{i}(self, arg1: str, arg2: int = 42) -> bool:")
+            parts.append(
+                f"    def method_{i}(self, arg1: str, arg2: int = 42) -> bool:"
+            )
             parts.append('        """Method docstring."""')
             parts.append("        # This is a comment")
             parts.append('        result = f"Value: {arg1}, {arg2}"')
@@ -114,7 +114,9 @@ def print_results(results: list[dict]) -> None:
         return
 
     # Header
-    print(f"{'Lexer':<25} {'Avg (ms)':<12} {'Min (ms)':<12} {'Tokens/sec':<15} {'MB/sec':<10}")
+    print(
+        f"{'Lexer':<25} {'Avg (ms)':<12} {'Min (ms)':<12} {'Tokens/sec':<15} {'MB/sec':<10}"
+    )
     print("-" * 80)
 
     # Sort by average time
@@ -154,7 +156,9 @@ def main() -> None:
 
         python_lexer = get_lexer("python")
         print("\nBenchmarking rosettes PythonStateMachineLexer...")
-        result = benchmark_lexer("rosettes (state-machine)", python_lexer.tokenize, code)
+        result = benchmark_lexer(
+            "rosettes (state-machine)", python_lexer.tokenize, code
+        )
         results.append(result)
     except ImportError as e:
         print(f"Could not import rosettes: {e}")

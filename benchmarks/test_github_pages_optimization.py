@@ -411,7 +411,7 @@ def test_build_configuration(
             shutil.rmtree(output_dir)
 
         # Build command with configuration
-        cmd = ["bengal", "build"] + build_config.to_cli_args()
+        cmd = ["bengal", "build", *build_config.to_cli_args()]
 
         subprocess.run(
             cmd,
@@ -437,7 +437,9 @@ def test_build_configuration(
         ("site_500_pages", 500),
     ],
 )
-def test_optimal_ci_build(benchmark, request, github_pages_constraints, site_fixture, page_count):
+def test_optimal_ci_build(
+    benchmark, request, github_pages_constraints, site_fixture, page_count
+):
     """
     Test optimal CI/CD build configuration.
 
@@ -470,7 +472,9 @@ def test_optimal_ci_build(benchmark, request, github_pages_constraints, site_fix
         ("site_1000_pages", 1000),
     ],
 )
-def test_large_site_optimal(benchmark, request, github_pages_constraints, site_fixture, page_count):
+def test_large_site_optimal(
+    benchmark, request, github_pages_constraints, site_fixture, page_count
+):
     """
     Test optimal configuration for large sites (500+ pages).
 
@@ -496,7 +500,9 @@ def test_large_site_optimal(benchmark, request, github_pages_constraints, site_f
 
 
 @pytest.mark.benchmark
-def test_parallel_vs_sequential_2core(benchmark, request, github_pages_constraints, site_200_pages):
+def test_parallel_vs_sequential_2core(
+    benchmark, request, github_pages_constraints, site_200_pages
+):
     """
     Compare parallel vs sequential on 2-core system (GitHub Pages constraint).
 

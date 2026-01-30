@@ -14,8 +14,6 @@ significant speedup (3-4x on multi-core machines).
 
 """
 
-from __future__ import annotations
-
 import ast
 import concurrent.futures
 import multiprocessing
@@ -60,8 +58,8 @@ from bengal.autodoc.utils import (
     get_python_function_is_property,
     sanitize_text,
 )
-from bengal.utils.observability.logger import get_logger
 from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
+from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -69,7 +67,7 @@ logger = get_logger(__name__)
 class PythonExtractor(Extractor):
     """
     Extract Python API documentation via AST parsing.
-    
+
     Features:
     - No imports (AST-only) - fast and reliable
     - Extracts modules, classes, functions, methods
@@ -78,12 +76,12 @@ class PythonExtractor(Extractor):
     - Signature building
     - Alias detection
     - Inherited member synthesis
-    
+
     Performance:
     - ~0.1-0.5s per file
     - No dependencies loaded
     - No side effects
-        
+
     """
 
     def __init__(
@@ -119,7 +117,9 @@ class PythonExtractor(Extractor):
         # Reverse index for O(1) simple name lookup during inheritance resolution
         # Maps simple class name -> list of qualified names (e.g., "Config" -> ["pkg1.Config", "pkg2.Config"])
         self.simple_name_index: dict[str, list[str]] = {}
-        self._source_root: Path | None = None  # Track source root for module name resolution
+        self._source_root: Path | None = (
+            None  # Track source root for module name resolution
+        )
 
         # Initialize grouping configuration
         self._grouping_config = self._init_grouping()
@@ -292,7 +292,9 @@ class PythonExtractor(Extractor):
 
         return elements
 
-    def _extract_files_sequential(self, py_files: list[Path], directory: Path) -> list[DocElement]:
+    def _extract_files_sequential(
+        self, py_files: list[Path], directory: Path
+    ) -> list[DocElement]:
         """Extract files sequentially (original implementation)."""
         elements = []
 
@@ -312,9 +314,7 @@ class PythonExtractor(Extractor):
                 tb = traceback.extract_tb(e.__traceback__)
                 if tb:
                     last_frame = tb[-1]
-                    error_location = (
-                        f"{last_frame.filename}:{last_frame.lineno} in {last_frame.name}"
-                    )
+                    error_location = f"{last_frame.filename}:{last_frame.lineno} in {last_frame.name}"
                 else:
                     error_location = "unknown location"
 
@@ -327,7 +327,9 @@ class PythonExtractor(Extractor):
 
         return elements
 
-    def _extract_files_parallel(self, py_files: list[Path], directory: Path) -> list[DocElement]:
+    def _extract_files_parallel(
+        self, py_files: list[Path], directory: Path
+    ) -> list[DocElement]:
         """
         Extract files in parallel using ThreadPoolExecutor.
 
@@ -375,9 +377,7 @@ class PythonExtractor(Extractor):
                 tb = traceback.extract_tb(e.__traceback__)
                 if tb:
                     last_frame = tb[-1]
-                    error_location = (
-                        f"{last_frame.filename}:{last_frame.lineno} in {last_frame.name}"
-                    )
+                    error_location = f"{last_frame.filename}:{last_frame.lineno} in {last_frame.name}"
                 else:
                     error_location = "unknown location"
 
@@ -391,7 +391,8 @@ class PythonExtractor(Extractor):
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_file = {
-                executor.submit(extract_single_file, py_file): py_file for py_file in py_files
+                executor.submit(extract_single_file, py_file): py_file
+                for py_file in py_files
             }
             for future in concurrent.futures.as_completed(future_to_file):
                 file_elements = future.result()
@@ -414,7 +415,7 @@ class PythonExtractor(Extractor):
     def _extract_file(self, file_path: Path) -> list[DocElement]:
         """
         Extract documentation from a single Python file.
-        
+
         RFC: rfc-build-performance-optimizations Phase 3
         Checks cache before parsing AST to skip parsing for unchanged files.
         On cache hit, reconstructs DocElement from cached serialization.
@@ -422,17 +423,19 @@ class PythonExtractor(Extractor):
         # RFC: rfc-build-performance-optimizations Phase 3
         # Check cache before parsing - skip AST parsing on cache hit
         if self.cache:
-            from bengal.utils.primitives.hashing import hash_file
             from bengal.autodoc.base import DocElement
-            
+            from bengal.utils.primitives.hashing import hash_file
+
             source_hash = hash_file(file_path, truncate=16)
             cached_info = self.cache.get_cached_module(str(file_path), source_hash)
-            
+
             if cached_info:
                 # Cache hit - reconstruct DocElement from cached serialization
                 # This skips AST parsing entirely, providing the full performance benefit
                 try:
-                    module_element = DocElement.from_dict(cached_info.module_element_dict)
+                    module_element = DocElement.from_dict(
+                        cached_info.module_element_dict
+                    )
 
                     logger.debug(
                         "autodoc_cache_reconstruction_success",
@@ -449,7 +452,7 @@ class PythonExtractor(Extractor):
                         action="falling_back_to_ast_parsing",
                     )
                     # Fall through to normal parsing below
-        
+
         # Cache miss or reconstruction failed - parse AST normally
         source = file_path.read_text(encoding="utf-8")
 
@@ -460,7 +463,7 @@ class PythonExtractor(Extractor):
 
         # Extract module-level documentation
         module_element = self._extract_module(tree, file_path, source)
-        
+
         # RFC: rfc-build-performance-optimizations Phase 3
         # Cache parsed module info after extraction
         if self.cache and module_element:
@@ -479,10 +482,10 @@ class PythonExtractor(Extractor):
     ) -> None:
         """
         Cache parsed module information for future builds.
-        
+
         RFC: rfc-build-performance-optimizations Phase 3
         Stores full DocElement serialization in cache to skip AST parsing on subsequent builds.
-        
+
         Args:
             file_path: Path to Python source file
             source: Source file content
@@ -490,27 +493,29 @@ class PythonExtractor(Extractor):
         """
         if not self.cache:
             return
-        
+
         from bengal.cache.build_cache.autodoc_content_cache import CachedModuleInfo
         from bengal.utils.primitives.hashing import hash_str
-        
+
         # Compute source hash
         source_hash = hash_str(source, truncate=16)
-        
+
         # Store full DocElement serialization (enables complete reconstruction)
         # This includes all metadata, children, typed_metadata, etc.
         module_element_dict = module_element.to_dict()
-        
+
         # Create cached info with full serialization
         cached_info = CachedModuleInfo(
             source_hash=source_hash,
             module_element_dict=module_element_dict,
         )
-        
+
         # Store in cache
         self.cache.cache_module(str(file_path), cached_info)
 
-    def _extract_module(self, tree: ast.Module, file_path: Path, source: str) -> DocElement | None:
+    def _extract_module(
+        self, tree: ast.Module, file_path: Path, source: str
+    ) -> DocElement | None:
         """Extract module documentation."""
         module_name = infer_module_name(file_path, self._source_root)
         docstring = ast.get_docstring(tree)
@@ -627,9 +632,7 @@ class PythonExtractor(Extractor):
         parsed_doc = parse_docstring(docstring) if docstring else None
 
         # Extract base classes
-        bases = []
-        for base in node.bases:
-            bases.append(expr_to_string(base))
+        bases = [expr_to_string(base) for base in node.bases]
 
         # Extract decorators
         decorators = [expr_to_string(d) for d in node.decorator_list]
@@ -638,7 +641,9 @@ class PythonExtractor(Extractor):
         methods = []
         properties = []
         class_vars = []
-        instance_attrs: dict[str, tuple[str | None, int]] = {}  # name -> (annotation, lineno)
+        instance_attrs: dict[
+            str, tuple[str | None, int]
+        ] = {}  # name -> (annotation, lineno)
 
         for item in node.body:
             if isinstance(item, ast.FunctionDef | ast.AsyncFunctionDef):
@@ -663,7 +668,10 @@ class PythonExtractor(Extractor):
                             ):
                                 attr_name = target.attr
                                 annotation_str = annotation_to_string(stmt.annotation)
-                                instance_attrs[attr_name] = (annotation_str, stmt.lineno)
+                                instance_attrs[attr_name] = (
+                                    annotation_str,
+                                    stmt.lineno,
+                                )
                         # Also look for: self.x = value with type comment (less common)
                         # But more importantly, handle self.x: Type without assignment
                         elif isinstance(stmt, ast.Assign):
@@ -723,7 +731,9 @@ class PythonExtractor(Extractor):
                         qualified_name=f"{qualified_name}.{attr_name}",
                         description=attr_desc,
                         element_type="attribute",
-                        source_file=get_relative_source_path(file_path, self._source_root),
+                        source_file=get_relative_source_path(
+                            file_path, self._source_root
+                        ),
                         line_number=lineno,
                         metadata={
                             "annotation": annotation_str,
@@ -742,7 +752,9 @@ class PythonExtractor(Extractor):
                         qualified_name=f"{qualified_name}.{attr_name}",
                         description=attr_desc,
                         element_type="attribute",
-                        source_file=get_relative_source_path(file_path, self._source_root),
+                        source_file=get_relative_source_path(
+                            file_path, self._source_root
+                        ),
                         line_number=node.lineno,
                         metadata={
                             "annotation": None,
@@ -762,7 +774,9 @@ class PythonExtractor(Extractor):
         is_exception = any(b in ("Exception", "BaseException") for b in bases) or any(
             "Exception" in b for b in bases
         )
-        is_dataclass = "dataclass" in decorators or any("dataclass" in d for d in decorators)
+        is_dataclass = "dataclass" in decorators or any(
+            "dataclass" in d for d in decorators
+        )
         is_abstract = any("ABC" in base for base in bases)
         is_mixin = node.name.endswith("Mixin")
 
@@ -800,14 +814,21 @@ class PythonExtractor(Extractor):
         )
 
     def _extract_function(
-        self, node: ast.FunctionDef | ast.AsyncFunctionDef, file_path: Path, parent_name: str = ""
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+        file_path: Path,
+        parent_name: str = "",
     ) -> DocElement | None:
         """Extract function/method documentation."""
         qualified_name = f"{parent_name}.{node.name}" if parent_name else node.name
         docstring = ast.get_docstring(node)
 
         # Skip private functions unless they have docstrings
-        if node.name.startswith("_") and not node.name.startswith("__") and not docstring:
+        if (
+            node.name.startswith("_")
+            and not node.name.startswith("__")
+            and not docstring
+        ):
             return None
 
         # Parse docstring
@@ -924,14 +945,14 @@ class PythonExtractor(Extractor):
         # Build raises info (parsed.raises is a list of dicts, not a dict)
         raises: list[RaisesInfo] = []
         if hasattr(parsed, "raises") and parsed.raises:
-            for raise_item in parsed.raises:
-                if isinstance(raise_item, dict):
-                    raises.append(
-                        RaisesInfo(
-                            type_name=raise_item.get("type", ""),
-                            description=raise_item.get("description", ""),
-                        )
-                    )
+            raises.extend(
+                RaisesInfo(
+                    type_name=raise_item.get("type", ""),
+                    description=raise_item.get("description", ""),
+                )
+                for raise_item in parsed.raises
+                if isinstance(raise_item, dict)
+            )
 
         return ParsedDocstring(
             summary=getattr(parsed, "summary", "") or "",

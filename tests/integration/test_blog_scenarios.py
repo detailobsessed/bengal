@@ -9,8 +9,6 @@ Tests blog-specific functionality:
 Phase 2 of RFC: User Scenario Coverage & Validation Matrix
 """
 
-from __future__ import annotations
-
 import pytest
 
 
@@ -29,10 +27,7 @@ class TestBlogPagination:
         posts = [p for p in site.pages if "/posts/post-" in str(p.source_path)]
 
         # Verify posts have dates for sorting
-        dates = []
-        for post in posts:
-            if hasattr(post, "date") and post.date:
-                dates.append(post.date)
+        dates = [post.date for post in posts if hasattr(post, "date") and post.date]
 
         # All generated posts should have dates
         assert len(dates) == len(posts), "All posts should have dates for sorting"
@@ -66,7 +61,9 @@ class TestBlogPagination:
             index_html = (output / "posts" / "index.html").read_text()
             # This is acceptable if pagination isn't rendering separate pages
             # but posts should still be accessible
-            assert "post-" in index_html.lower() or len(list(output.glob("**/post-*"))) > 0
+            assert (
+                "post-" in index_html.lower() or len(list(output.glob("**/post-*"))) > 0
+            )
 
     def test_individual_post_pages_created(self, site, build_site) -> None:
         """Each post should have its own page."""

@@ -16,8 +16,6 @@ We verify:
 These tests use real Site objects and verify actual build behavior.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -25,7 +23,6 @@ import pytest
 
 from tests._testing.assertions import (
     assert_all_pages_have_urls,
-    assert_menu_structure,
     assert_output_files_exist,
     assert_page_rendered,
     assert_taxonomy_pages_complete,
@@ -391,8 +388,7 @@ class TestPageURLsBehavior:
                 output_file = site.output_dir / "index.html"
 
             assert output_file.exists(), (
-                f"No output file for page with URL '{href}'. "
-                f"Expected: {output_file}"
+                f"No output file for page with URL '{href}'. Expected: {output_file}"
             )
 
 

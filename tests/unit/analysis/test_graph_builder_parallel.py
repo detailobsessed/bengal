@@ -5,8 +5,6 @@ Tests the free-threading expansion for knowledge graph building,
 ensuring parallel mode produces identical results to sequential mode.
 """
 
-from __future__ import annotations
-
 import os
 from unittest.mock import patch
 
@@ -20,10 +18,10 @@ from bengal.core.site import Site
 @pytest.fixture
 def small_site(tmp_path):
     """Create a small test site (below parallel threshold).
-    
+
     Note: CPU_BOUND workloads have a parallel threshold of 5 tasks.
     We use 4 pages to stay below this threshold.
-        
+
     """
     site = Site(root_path=tmp_path, config={})
 
@@ -238,7 +236,7 @@ class TestParallelMetrics:
         assert len(builder.link_metrics) > 0
 
         # Check that metrics are valid LinkMetrics objects
-        for _page, metrics in builder.link_metrics.items():
+        for metrics in builder.link_metrics.values():
             assert hasattr(metrics, "explicit")
             assert hasattr(metrics, "related")
             assert hasattr(metrics, "total_links")
@@ -264,7 +262,9 @@ class TestParallelTaxonomyAndMenus:
         builder.build()
 
         # Check that taxonomy links are added
-        taxonomy_links = [lt for lt in builder.link_types.values() if lt == LinkType.TAXONOMY]
+        taxonomy_links = [
+            lt for lt in builder.link_types.values() if lt == LinkType.TAXONOMY
+        ]
         assert len(taxonomy_links) > 0
 
     def test_menu_analysis_runs(self, small_site):
@@ -277,7 +277,10 @@ class TestParallelTaxonomyAndMenus:
                 self.page = page
 
         small_site.menu = {
-            "main": [MockMenuItem(small_site.pages[0]), MockMenuItem(small_site.pages[1])],
+            "main": [
+                MockMenuItem(small_site.pages[0]),
+                MockMenuItem(small_site.pages[1]),
+            ],
         }
 
         builder = GraphBuilder(small_site, parallel=True)

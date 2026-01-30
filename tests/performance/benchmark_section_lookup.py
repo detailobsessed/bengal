@@ -52,7 +52,9 @@ def test_registry_build_performance(site_with_many_sections):
 
     elapsed_ms = elapsed * 1000
     # Note: Path normalization with resolve() is filesystem-bound, so we're lenient
-    assert elapsed_ms < 500, f"Registry build too slow: {elapsed_ms:.2f}ms for 1000 sections"
+    assert elapsed_ms < 500, (
+        f"Registry build too slow: {elapsed_ms:.2f}ms for 1000 sections"
+    )
 
     # Verify registry was built correctly
     assert site.registry.section_count == 1000
@@ -213,7 +215,9 @@ def test_path_normalization_performance(tmp_path):
 
         elapsed_ms = elapsed * 1000
         # Path normalization with resolve() is filesystem-bound
-        assert elapsed_ms < 10, f"Normalized lookup too slow: {elapsed_ms:.3f}ms for {test_path}"
+        assert elapsed_ms < 10, (
+            f"Normalized lookup too slow: {elapsed_ms:.3f}ms for {test_path}"
+        )
 
 
 def test_registry_rebuild_performance(site_with_many_sections):
@@ -245,7 +249,9 @@ def test_registry_rebuild_performance(site_with_many_sections):
 
     elapsed_ms = elapsed * 1000
     # Rebuild should be reasonably fast
-    assert elapsed_ms < 600, f"Registry rebuild too slow: {elapsed_ms:.2f}ms for 1100 sections"
+    assert elapsed_ms < 600, (
+        f"Registry rebuild too slow: {elapsed_ms:.2f}ms for 1100 sections"
+    )
     assert site.registry.section_count == 1100
 
 

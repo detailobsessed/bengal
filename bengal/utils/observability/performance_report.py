@@ -44,11 +44,11 @@ from typing import Any
 class BuildMetric:
     """
     Represents a single build's performance metrics.
-    
+
     Immutable record of timing, memory, and configuration data
     captured during a build. Used for historical analysis and
     trend detection.
-    
+
     Attributes:
         timestamp: ISO 8601 timestamp when build completed.
         total_pages: Number of pages processed.
@@ -64,14 +64,14 @@ class BuildMetric:
         rendering_time_ms: Template rendering phase duration.
         assets_time_ms: Asset processing phase duration.
         postprocess_time_ms: Post-processing phase duration.
-    
+
     Example:
             >>> metric = BuildMetric.from_dict({"total_pages": 100, "build_time_ms": 2500})
             >>> metric.build_time_s
         2.5
             >>> metric.pages_per_second
         40.0
-        
+
     """
 
     timestamp: str
@@ -147,14 +147,14 @@ class BuildMetric:
 class PerformanceReport:
     """
     Generates performance reports from collected build metrics.
-    
+
     Loads metrics from `.bengal/metrics/history.jsonl`, analyzes trends,
     and outputs reports in various formats. Used by the `bengal perf`
     CLI command for performance monitoring.
-    
+
     Attributes:
         metrics_dir: Directory containing metrics files.
-    
+
     Example:
             >>> report = PerformanceReport()
             >>>
@@ -166,7 +166,7 @@ class PerformanceReport:
             >>>
             >>> # Compare latest build to previous
             >>> report.compare(build1_idx=0, build2_idx=1)
-        
+
     """
 
     def __init__(self, metrics_dir: Path | None = None):
@@ -327,9 +327,13 @@ class PerformanceReport:
         )
 
         # Average metrics
-        avg_time = sum(m.build_time_ms for m in valid_metrics) / len(valid_metrics) / 1000
+        avg_time = (
+            sum(m.build_time_ms for m in valid_metrics) / len(valid_metrics) / 1000
+        )
         avg_memory = sum(m.memory_rss_mb for m in valid_metrics) / len(valid_metrics)
-        avg_throughput = sum(m.pages_per_second for m in valid_metrics) / len(valid_metrics)
+        avg_throughput = sum(m.pages_per_second for m in valid_metrics) / len(
+            valid_metrics
+        )
 
         print(f"\n📈 Trends (last {len(valid_metrics)} builds)")
         print(f"   Time:       {time_change:+.1f}%")
@@ -400,15 +404,23 @@ class PerformanceReport:
             # Compare to average
             valid_metrics = [m for m in metrics if not m.skipped]
             if len(valid_metrics) > 1:
-                avg_time = sum(m.build_time_s for m in valid_metrics) / len(valid_metrics)
-                avg_memory = sum(m.memory_rss_mb for m in valid_metrics) / len(valid_metrics)
+                avg_time = sum(m.build_time_s for m in valid_metrics) / len(
+                    valid_metrics
+                )
+                avg_memory = sum(m.memory_rss_mb for m in valid_metrics) / len(
+                    valid_metrics
+                )
 
                 time_diff = latest.build_time_s - avg_time
                 mem_diff = latest.memory_rss_mb - avg_memory
 
                 print(f"\n📈 vs. Average ({len(valid_metrics)} builds)")
-                print(f"   Time:       {time_diff:+.2f}s ({(time_diff / avg_time * 100):+.1f}%)")
-                print(f"   Memory:     {mem_diff:+.1f}MB ({(mem_diff / avg_memory * 100):+.1f}%)")
+                print(
+                    f"   Time:       {time_diff:+.2f}s ({(time_diff / avg_time * 100):+.1f}%)"
+                )
+                print(
+                    f"   Memory:     {mem_diff:+.1f}MB ({(mem_diff / avg_memory * 100):+.1f}%)"
+                )
 
         # Phase breakdown if available
         if latest.rendering_time_ms > 0:
@@ -486,7 +498,12 @@ class PerformanceReport:
         )
 
     def _compare_metric(
-        self, name: str, val1: Any, val2: Any, num1: float | None = None, num2: float | None = None
+        self,
+        name: str,
+        val1: Any,
+        val2: Any,
+        num1: float | None = None,
+        num2: float | None = None,
     ) -> None:
         """
         Print a single row in the comparison table.

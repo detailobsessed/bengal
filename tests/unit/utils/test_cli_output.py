@@ -28,7 +28,9 @@ class TestColorTheming:
         from rich.console import Console
 
         buffer = StringIO()
-        cli.console = Console(file=buffer, force_terminal=True, width=80, legacy_windows=False)
+        cli.console = Console(
+            file=buffer, force_terminal=True, width=80, legacy_windows=False
+        )
 
         cli.success("Build completed")
         output = buffer.getvalue()
@@ -43,7 +45,9 @@ class TestColorTheming:
         from io import StringIO
 
         buffer = StringIO()
-        cli.console = Console(file=buffer, force_terminal=True, width=80, legacy_windows=False)
+        cli.console = Console(
+            file=buffer, force_terminal=True, width=80, legacy_windows=False
+        )
 
         cli.warning("Cache miss detected")
         output = buffer.getvalue()
@@ -58,7 +62,9 @@ class TestColorTheming:
         from io import StringIO
 
         buffer = StringIO()
-        cli.console = Console(file=buffer, force_terminal=True, width=80, legacy_windows=False)
+        cli.console = Console(
+            file=buffer, force_terminal=True, width=80, legacy_windows=False
+        )
 
         cli.error("Build failed")
         output = buffer.getvalue()
@@ -76,7 +82,11 @@ class TestColorTheming:
 
         buffer = StringIO()
         cli.console = Console(
-            file=buffer, force_terminal=True, width=80, legacy_windows=False, theme=bengal_theme
+            file=buffer,
+            force_terminal=True,
+            width=80,
+            legacy_windows=False,
+            theme=bengal_theme,
         )
 
         cli.header("Building site")
@@ -93,7 +103,9 @@ class TestColorTheming:
         from io import StringIO
 
         buffer = StringIO()
-        cli.console = Console(file=buffer, force_terminal=True, width=80, legacy_windows=False)
+        cli.console = Console(
+            file=buffer, force_terminal=True, width=80, legacy_windows=False
+        )
 
         cli.path("/path/to/output")
         output = buffer.getvalue()
@@ -111,7 +123,9 @@ class TestColorTheming:
         from io import StringIO
 
         buffer = StringIO()
-        cli.console = Console(file=buffer, force_terminal=True, width=80, legacy_windows=False)
+        cli.console = Console(
+            file=buffer, force_terminal=True, width=80, legacy_windows=False
+        )
 
         cli.metric("Pages", 100)
         output = buffer.getvalue()
@@ -133,7 +147,11 @@ class TestPanelHeader:
 
         buffer = StringIO()
         cli.console = Console(
-            file=buffer, force_terminal=True, width=80, legacy_windows=False, theme=bengal_theme
+            file=buffer,
+            force_terminal=True,
+            width=80,
+            legacy_windows=False,
+            theme=bengal_theme,
         )
 
         cli.header("Test Header")
@@ -153,7 +171,11 @@ class TestPanelHeader:
 
         buffer = StringIO()
         cli.console = Console(
-            file=buffer, force_terminal=True, width=80, legacy_windows=False, theme=bengal_theme
+            file=buffer,
+            force_terminal=True,
+            width=80,
+            legacy_windows=False,
+            theme=bengal_theme,
         )
 
         cli.header("Test Header")
@@ -172,7 +194,11 @@ class TestPanelHeader:
 
         buffer = StringIO()
         cli.console = Console(
-            file=buffer, force_terminal=True, width=80, legacy_windows=False, theme=bengal_theme
+            file=buffer,
+            force_terminal=True,
+            width=80,
+            legacy_windows=False,
+            theme=bengal_theme,
         )
 
         cli.header("Test Header", mascot=False)
@@ -229,7 +255,9 @@ class TestSemanticPhaseStyles:
         from io import StringIO
 
         buffer = StringIO()
-        cli.console = Console(file=buffer, force_terminal=True, width=80, legacy_windows=False)
+        cli.console = Console(
+            file=buffer, force_terminal=True, width=80, legacy_windows=False
+        )
 
         cli.phase("Discovery", duration_ms=100)
         output = buffer.getvalue()
@@ -244,7 +272,9 @@ class TestSemanticPhaseStyles:
         from io import StringIO
 
         buffer = StringIO()
-        cli.console = Console(file=buffer, force_terminal=True, width=80, legacy_windows=False)
+        cli.console = Console(
+            file=buffer, force_terminal=True, width=80, legacy_windows=False
+        )
 
         cli.phase("Rendering", duration_ms=500, details="245 pages")
         output = buffer.getvalue()
@@ -259,7 +289,9 @@ class TestSemanticPhaseStyles:
         from io import StringIO
 
         buffer = StringIO()
-        cli.console = Console(file=buffer, force_terminal=True, width=80, legacy_windows=False)
+        cli.console = Console(
+            file=buffer, force_terminal=True, width=80, legacy_windows=False
+        )
 
         cli.phase("Assets", duration_ms=42)
         output = buffer.getvalue()
@@ -406,7 +438,11 @@ class TestIntegration:
 
         buffer = StringIO()
         cli.console = Console(
-            file=buffer, force_terminal=True, width=80, legacy_windows=False, theme=bengal_theme
+            file=buffer,
+            force_terminal=True,
+            width=80,
+            legacy_windows=False,
+            theme=bengal_theme,
         )
 
         # Simulate build output

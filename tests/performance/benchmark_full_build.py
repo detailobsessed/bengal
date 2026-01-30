@@ -15,15 +15,15 @@ from bengal.orchestration.build.options import BuildOptions
 def create_realistic_site(num_pages: int, num_assets: int, num_tags: int = 10) -> Path:
     """
     Create a temporary test site with realistic content.
-    
+
     Args:
         num_pages: Number of pages/posts to create
         num_assets: Number of assets (CSS, JS, images)
         num_tags: Number of unique tags to distribute across posts
-    
+
     Returns:
         Path to temporary site directory
-        
+
     """
     temp_dir = Path(tempfile.mkdtemp())
 
@@ -223,15 +223,15 @@ per_page = 10
 def benchmark_site_build(num_pages: int, num_assets: int, label: str) -> dict:
     """
     Benchmark a full site build and return timing breakdown.
-    
+
     Args:
         num_pages: Number of pages to generate
         num_assets: Number of assets to generate
         label: Label for this benchmark
-    
+
     Returns:
         Dictionary with timing information
-        
+
     """
     print(f"\n{label.upper()} ({num_pages} pages, {num_assets} assets)")
     print("-" * 80)
@@ -254,7 +254,9 @@ def benchmark_site_build(num_pages: int, num_assets: int, label: str) -> dict:
             # Run full build (BuildOrchestrator handles all phases)
             parallel = site.config.get("parallel", True)
             build_stats = site.build(
-                BuildOptions(force_sequential=not parallel, incremental=False, verbose=False)
+                BuildOptions(
+                    force_sequential=not parallel, incremental=False, verbose=False
+                )
             )
 
             total_time = time.time() - start_total
@@ -348,7 +350,9 @@ def run_full_build_benchmarks():
     print("BENCHMARK SUMMARY")
     print("=" * 80)
     print()
-    print(f"{'Site':<12} {'Pages':<8} {'Assets':<8} {'Build Time':<12} {'Pages/sec':<12}")
+    print(
+        f"{'Site':<12} {'Pages':<8} {'Assets':<8} {'Build Time':<12} {'Pages/sec':<12}"
+    )
     print("-" * 80)
 
     for label, pages, assets, times in results:

@@ -133,7 +133,8 @@ This is the updated intro page.
 
         # Should have content_changed reason for the modified file
         content_changed_count = sum(
-            1 for r in decision.rebuild_reasons.values()
+            1
+            for r in decision.rebuild_reasons.values()
             if r.code.value == "content_changed"
         )
         assert content_changed_count >= 1
@@ -147,7 +148,9 @@ This is the updated intro page.
         site = load_site_from_cli(source=str(minimal_site))
 
         # First build (with explain to establish decision tracking)
-        first_stats = site.build(BuildOptions(incremental=False, quiet=True, explain=True))
+        first_stats = site.build(
+            BuildOptions(incremental=False, quiet=True, explain=True)
+        )
         # Verify first build worked
         assert getattr(first_stats, "incremental_decision", None) is not None
 

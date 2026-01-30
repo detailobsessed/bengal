@@ -6,8 +6,6 @@ that the optimization works correctly with realistic content.
 Run with: pytest benchmarks/test_complexity_ordering.py -v --benchmark-only
 """
 
-from __future__ import annotations
-
 from unittest.mock import Mock
 
 import pytest
@@ -231,11 +229,10 @@ class TestRealWorldScenarios:
     def test_variance_ratio_interpretation(self) -> None:
         """Validate variance ratio interpretation from RFC."""
         # High variance scenario
-        high_var_pages = []
-        for i in range(10):
-            high_var_pages.append(_make_page("```\n```\n" * 30, f"heavy_{i}"))
-        for i in range(90):
-            high_var_pages.append(_make_page("short", f"light_{i}"))
+        high_var_pages = [
+            _make_page("```\n```\n" * 30, f"heavy_{i}") for i in range(10)
+        ]
+        high_var_pages.extend(_make_page("short", f"light_{i}") for i in range(90))
 
         stats = get_complexity_stats(high_var_pages)
 
@@ -251,4 +248,6 @@ class TestRealWorldScenarios:
         stats = get_complexity_stats(low_var_pages)
 
         # Should have variance ratio of 1.0 (all same complexity)
-        assert stats["variance_ratio"] == 1.0, f"Expected 1.0, got {stats['variance_ratio']}"
+        assert stats["variance_ratio"] == 1.0, (
+            f"Expected 1.0, got {stats['variance_ratio']}"
+        )

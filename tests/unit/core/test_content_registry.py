@@ -7,8 +7,6 @@ by path and URL with freeze/unfreeze lifecycle management.
 See: plan/drafted/rfc-site-responsibility-separation.md
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 

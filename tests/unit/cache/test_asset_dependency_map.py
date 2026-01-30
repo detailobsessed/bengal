@@ -114,8 +114,12 @@ class TestAssetDependencyMap:
 
     def test_get_all_assets(self, asset_map):
         """Test getting all unique assets."""
-        asset_map.track_page_assets(Path("page1.md"), {"/css/style.css", "/images/logo.png"})
-        asset_map.track_page_assets(Path("page2.md"), {"/images/logo.png", "/js/app.js"})
+        asset_map.track_page_assets(
+            Path("page1.md"), {"/css/style.css", "/images/logo.png"}
+        )
+        asset_map.track_page_assets(
+            Path("page2.md"), {"/images/logo.png", "/js/app.js"}
+        )
 
         all_assets = asset_map.get_all_assets()
         assert all_assets == {"/css/style.css", "/images/logo.png", "/js/app.js"}
@@ -131,7 +135,9 @@ class TestAssetDependencyMap:
 
     def test_get_asset_pages(self, asset_map):
         """Test reverse lookup - find pages using an asset."""
-        asset_map.track_page_assets(Path("p1.md"), {"/css/style.css", "/images/logo.png"})
+        asset_map.track_page_assets(
+            Path("p1.md"), {"/css/style.css", "/images/logo.png"}
+        )
         asset_map.track_page_assets(Path("p2.md"), {"/images/logo.png"})
         asset_map.track_page_assets(Path("p3.md"), {"/js/app.js"})
 
@@ -234,7 +240,9 @@ class TestAssetDependencyMap:
 
     def test_stats(self, asset_map):
         """Test getting statistics."""
-        asset_map.track_page_assets(Path("p1.md"), {"/css/style.css", "/images/logo.png"})
+        asset_map.track_page_assets(
+            Path("p1.md"), {"/css/style.css", "/images/logo.png"}
+        )
         asset_map.track_page_assets(Path("p2.md"), {"/images/logo.png", "/js/app.js"})
         asset_map.track_page_assets(Path("p3.md"), {"/fonts/inter.woff2"})
 
@@ -244,7 +252,9 @@ class TestAssetDependencyMap:
         assert stats["total_pages"] == 3
         assert stats["valid_pages"] == 2
         assert stats["invalid_pages"] == 1
-        assert stats["unique_assets"] == 3  # logo, app, inter (css from invalidated p1 not counted)
+        assert (
+            stats["unique_assets"] == 3
+        )  # logo, app, inter (css from invalidated p1 not counted)
         assert stats["avg_assets_per_page"] > 0
         assert stats["cache_size_bytes"] > 0
 
@@ -335,10 +345,10 @@ class TestAssetDependencyMap:
 
 class TestAssetDependencyMapErrorCodes:
     """Tests for error code logging in AssetDependencyMap.
-    
+
     Note: Bengal uses structlog which outputs to stdout, not standard logging.
     We use capsys to capture stdout output for verification.
-        
+
     """
 
     def test_load_failure_logs_error_code(self, tmp_path, capsys):

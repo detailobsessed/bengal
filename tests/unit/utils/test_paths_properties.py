@@ -25,7 +25,9 @@ class TestProfileDirProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_always_returns_absolute_path(self, dir_name):
@@ -40,12 +42,16 @@ class TestProfileDirProperties:
 
             profile_dir = BengalPaths.get_profile_dir(source_dir)
 
-            assert profile_dir.is_absolute(), f"Profile dir should be absolute: {profile_dir}"
+            assert profile_dir.is_absolute(), (
+                f"Profile dir should be absolute: {profile_dir}"
+            )
 
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_always_creates_directory(self, dir_name):
@@ -61,12 +67,16 @@ class TestProfileDirProperties:
             profile_dir = BengalPaths.get_profile_dir(source_dir)
 
             assert profile_dir.exists(), f"Profile dir should exist: {profile_dir}"
-            assert profile_dir.is_dir(), f"Profile dir should be directory: {profile_dir}"
+            assert profile_dir.is_dir(), (
+                f"Profile dir should be directory: {profile_dir}"
+            )
 
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_always_under_bengal_dir(self, dir_name):
@@ -91,7 +101,9 @@ class TestProfileDirProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_idempotent(self, dir_name):
@@ -116,7 +128,9 @@ class TestLogDirProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_always_returns_absolute_path(self, dir_name):
@@ -134,7 +148,9 @@ class TestLogDirProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_always_creates_directory(self, dir_name):
@@ -153,7 +169,9 @@ class TestLogDirProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_always_under_bengal_dir(self, dir_name):
@@ -166,7 +184,9 @@ class TestLogDirProperties:
 
             log_dir = BengalPaths.get_log_dir(source_dir)
 
-            assert ".bengal" in log_dir.parts, f"Log dir should be under .bengal: {log_dir}"
+            assert ".bengal" in log_dir.parts, (
+                f"Log dir should be under .bengal: {log_dir}"
+            )
             assert "logs" in log_dir.parts, f"Log dir should be under logs: {log_dir}"
 
 
@@ -176,7 +196,9 @@ class TestBuildLogPathProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_default_path_always_under_source(self, dir_name):
@@ -189,9 +211,9 @@ class TestBuildLogPathProperties:
 
             log_path = BengalPaths.get_build_log_path(source_dir)
 
-            assert log_path.parent == source_dir or log_path.is_relative_to(source_dir), (
-                f"Build log should be under source: {log_path}"
-            )
+            assert log_path.parent == source_dir or log_path.is_relative_to(
+                source_dir
+            ), f"Build log should be under source: {log_path}"
 
     @pytest.mark.hypothesis
     @given(
@@ -221,7 +243,9 @@ class TestBuildLogPathProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_default_path_has_bengal_prefix(self, dir_name):
@@ -234,7 +258,9 @@ class TestBuildLogPathProperties:
 
             log_path = BengalPaths.get_build_log_path(source_dir)
 
-            assert ".bengal" in str(log_path), f"Build log path should contain .bengal: {log_path}"
+            assert ".bengal" in str(log_path), (
+                f"Build log path should contain .bengal: {log_path}"
+            )
             assert log_path.parts[-3] == ".bengal", (
                 f"Build log should be under .bengal/logs/: {log_path}"
             )
@@ -246,9 +272,13 @@ class TestProfilePathProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         ),
-        filename=st.text(alphabet=string.ascii_lowercase + ".", min_size=1, max_size=30),
+        filename=st.text(
+            alphabet=string.ascii_lowercase + ".", min_size=1, max_size=30
+        ),
     )
     def test_custom_filename_preserved(self, dir_name, filename):
         """
@@ -271,7 +301,9 @@ class TestProfilePathProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_default_creates_parent_directory(self, dir_name):
@@ -298,7 +330,9 @@ class TestCachePathProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_cache_always_in_output_dir(self, dir_name):
@@ -317,7 +351,9 @@ class TestCachePathProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_cache_has_json_extension(self, dir_name):
@@ -329,12 +365,16 @@ class TestCachePathProperties:
 
             cache_path = BengalPaths.get_cache_path(output_dir)
 
-            assert cache_path.suffix == ".json", f"Cache should be JSON: {cache_path.suffix}"
+            assert cache_path.suffix == ".json", (
+                f"Cache should be JSON: {cache_path.suffix}"
+            )
 
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_cache_has_bengal_prefix(self, dir_name):
@@ -357,7 +397,9 @@ class TestTemplateCacheDirProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_always_creates_directory(self, dir_name):
@@ -371,12 +413,16 @@ class TestTemplateCacheDirProperties:
             cache_dir = BengalPaths.get_template_cache_dir(output_dir)
 
             assert cache_dir.exists(), f"Template cache dir should exist: {cache_dir}"
-            assert cache_dir.is_dir(), f"Template cache dir should be directory: {cache_dir}"
+            assert cache_dir.is_dir(), (
+                f"Template cache dir should be directory: {cache_dir}"
+            )
 
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_always_under_bengal_cache(self, dir_name):
@@ -399,7 +445,9 @@ class TestTemplateCacheDirProperties:
     @pytest.mark.hypothesis
     @given(
         dir_name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "_-", min_size=1, max_size=50
+            alphabet=string.ascii_lowercase + string.digits + "_-",
+            min_size=1,
+            max_size=50,
         )
     )
     def test_idempotent(self, dir_name):
@@ -413,7 +461,9 @@ class TestTemplateCacheDirProperties:
             dir1 = BengalPaths.get_template_cache_dir(output_dir)
             dir2 = BengalPaths.get_template_cache_dir(output_dir)
 
-            assert dir1 == dir2, f"Template cache dir should be idempotent: {dir1} != {dir2}"
+            assert dir1 == dir2, (
+                f"Template cache dir should be idempotent: {dir1} != {dir2}"
+            )
 
 
 class TestPathSeparationProperties:

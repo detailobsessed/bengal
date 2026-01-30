@@ -54,28 +54,28 @@ from bengal.errors import BengalConfigError, ErrorCode
 class Theme:
     """
     Theme configuration object.
-    
+
     Available in templates as `site.theme` for theme developers to access
     theme-related settings.
-    
+
     Attributes:
         name: Theme name (e.g., "default", "my-custom-theme")
         default_appearance: Default appearance mode ("light", "dark", "system")
         default_palette: Default color palette key (empty string for default)
         features: List of enabled feature flags (e.g., ["navigation.toc", "content.code.copy"])
         config: Additional theme-specific configuration from [theme] section
-    
+
     Feature Flags:
         Features are declarative toggles for theme behavior. Users enable/disable
         features via config rather than editing templates.
-    
+
         Example:
             [theme]
             features = ["navigation.toc", "content.code.copy"]
-    
+
         Templates check features via:
             {% if 'navigation.toc' in site.theme_config.features %}
-        
+
     """
 
     name: str = "default"
@@ -195,7 +195,9 @@ class Theme:
 
                 # Try site themes first, then bundled themes
                 site_theme_path = root_path / "themes" / theme_name
-                bundled_theme_path = Path(__file__).parent.parent.parent / "themes" / theme_name
+                bundled_theme_path = (
+                    Path(__file__).parent.parent.parent / "themes" / theme_name
+                )
 
                 theme_path = None
                 if site_theme_path.exists():
@@ -253,9 +255,13 @@ class Theme:
 
                 # Site config can override appearance and palette even when theme.yaml exists
                 if "default_appearance" in theme_section:
-                    default_appearance = theme_section.get("default_appearance", default_appearance)
+                    default_appearance = theme_section.get(
+                        "default_appearance", default_appearance
+                    )
                 if "default_palette" in theme_section:
-                    default_palette = theme_section.get("default_palette", default_palette)
+                    default_palette = theme_section.get(
+                        "default_palette", default_palette
+                    )
 
             return cls(
                 name=theme_config_obj.name,

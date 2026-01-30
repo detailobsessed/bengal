@@ -6,14 +6,15 @@ calls to process() for hubs, mid-tier, and leaves. This test verifies that the
 build generation mechanism properly invalidates caches across these phases.
 """
 
-from __future__ import annotations
-
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from bengal.orchestration.render import _get_current_generation, clear_thread_local_pipelines
+from bengal.orchestration.render import (
+    _get_current_generation,
+    clear_thread_local_pipelines,
+)
 
 
 class TestStreamingUsesRenderOrchestratorCacheInvalidation:

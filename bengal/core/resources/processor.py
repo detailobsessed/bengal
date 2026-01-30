@@ -67,22 +67,22 @@ class CachedResult:
 
 class ImageProcessor:
     """Image processing with caching.
-    
+
     Uses Pillow for processing, with optional libvips for performance.
     Caches processed images in .bengal/image-cache/.
-    
+
     Thread Safety:
         Uses atomic file writes to prevent corruption during parallel builds.
         Cache reads are lock-free; writes use tempfile + rename pattern.
-    
+
     Memory Management:
         For images >10MP, uses chunked processing via PIL.Image.draft()
         to reduce peak memory usage.
-    
+
     Attributes:
         site: Site instance for configuration
         cache_dir: Path to image cache directory
-        
+
     """
 
     CACHE_DIR = ".bengal/image-cache"
@@ -121,8 +121,8 @@ class ImageProcessor:
         - Source path + mtime
         - Operation + spec
         """
-        from bengal.core.resources.types import parse_spec
         from bengal.core.resources.image import ProcessedImage
+        from bengal.core.resources.types import parse_spec
 
         try:
             # Check if source exists
@@ -291,7 +291,11 @@ class ImageProcessor:
         img: Image.Image = Image.open(source)
 
         # Memory optimization for large images
-        if img.width * img.height > LARGE_IMAGE_THRESHOLD and params.width and params.height:
+        if (
+            img.width * img.height > LARGE_IMAGE_THRESHOLD
+            and params.width
+            and params.height
+        ):
             # Use draft mode to load at reduced resolution
             img.draft(img.mode, (params.width * 2, params.height * 2))
             img.load()
@@ -385,7 +389,9 @@ class ImageProcessor:
             return self._smart_crop(img, target)
         else:
             centering = self._anchor_to_centering(params.anchor)
-            return ImageOps.fit(img, target, method=PILImage.Resampling.LANCZOS, centering=centering)
+            return ImageOps.fit(
+                img, target, method=PILImage.Resampling.LANCZOS, centering=centering
+            )
 
     def _fit(self, img: Image.Image, params: Any) -> Image.Image:
         """Resize to fit within dimensions.
@@ -433,7 +439,9 @@ class ImageProcessor:
             return img.resize((new_width, params.height), PILImage.Resampling.LANCZOS)
         elif params.width and params.height:
             # Both specified - resize to exact dimensions
-            return img.resize((params.width, params.height), PILImage.Resampling.LANCZOS)
+            return img.resize(
+                (params.width, params.height), PILImage.Resampling.LANCZOS
+            )
         else:
             # No dimensions specified
             return img
@@ -533,13 +541,13 @@ class ImageProcessor:
 
 def get_cache_stats(site: Any) -> dict[str, Any]:
     """Get image cache statistics.
-    
+
     Args:
         site: Site instance
-    
+
     Returns:
         Dict with cache stats (count, size, etc.)
-        
+
     """
     cache_dir = site.root_path / ImageProcessor.CACHE_DIR
 
@@ -569,13 +577,13 @@ def get_cache_stats(site: Any) -> dict[str, Any]:
 
 def clear_cache(site: Any) -> int:
     """Clear the image cache.
-    
+
     Args:
         site: Site instance
-    
+
     Returns:
         Number of files deleted
-        
+
     """
     import shutil
 

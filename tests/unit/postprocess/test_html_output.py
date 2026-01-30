@@ -13,8 +13,6 @@ Covers:
 - Void tag handling
 """
 
-from __future__ import annotations
-
 
 class TestFormatHtmlOutputRawMode:
     """Test format_html_output in raw mode."""
@@ -403,11 +401,15 @@ class TestFormatHtmlOutputOptions:
         html = "<div><!-- comment -->Hello</div>"
 
         # With remove_comments=True
-        result = format_html_output(html, mode="pretty", options={"remove_comments": True})
+        result = format_html_output(
+            html, mode="pretty", options={"remove_comments": True}
+        )
         assert "<!-- comment -->" not in result
 
         # With remove_comments=False (should keep comment)
-        result = format_html_output(html, mode="pretty", options={"remove_comments": False})
+        result = format_html_output(
+            html, mode="pretty", options={"remove_comments": False}
+        )
         assert "Hello" in result
 
     def test_collapse_blank_lines_option(self) -> None:
@@ -417,7 +419,9 @@ class TestFormatHtmlOutputOptions:
         html = "<div>\n\n\n\n</div>"
 
         # With collapse_blank_lines=True (default)
-        result = format_html_output(html, mode="pretty", options={"collapse_blank_lines": True})
+        result = format_html_output(
+            html, mode="pretty", options={"collapse_blank_lines": True}
+        )
         assert "\n\n\n\n" not in result
 
 

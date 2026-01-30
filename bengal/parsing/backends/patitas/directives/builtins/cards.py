@@ -42,7 +42,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from html import escape as html_escape
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, cast
+
+from patitas.nodes import Directive
 
 from bengal.parsing.backends.patitas.directives.contracts import (
     CARD_CONTRACT,
@@ -50,7 +52,6 @@ from bengal.parsing.backends.patitas.directives.contracts import (
     DirectiveContract,
 )
 from bengal.parsing.backends.patitas.directives.options import StyledOptions
-from patitas.nodes import Directive
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
@@ -99,13 +100,13 @@ VALID_COLORS = frozenset(
 
 def normalize_columns(columns: str) -> str:
     """Normalize columns specification.
-    
+
     Args:
         columns: Raw columns value (auto, 1-6, or responsive like 1-2-3)
-    
+
     Returns:
         Normalized columns string
-        
+
     """
     columns = str(columns).strip()
 
@@ -118,7 +119,11 @@ def normalize_columns(columns: str) -> str:
 
     if "-" in columns:
         parts = columns.split("-")
-        if all(p.isdigit() and 1 <= int(p) <= 6 for p in parts) and len(parts) in (2, 3, 4):
+        if all(p.isdigit() and 1 <= int(p) <= 6 for p in parts) and len(parts) in (
+            2,
+            3,
+            4,
+        ):
             return columns
 
     return "auto"
@@ -126,14 +131,14 @@ def normalize_columns(columns: str) -> str:
 
 def _render_icon(icon_name: str, card_title: str = "") -> str:
     """Render icon using Bengal SVG icons.
-    
+
     Args:
         icon_name: Name of the icon to render
         card_title: Title of the card (for warning context)
-    
+
     Returns:
         SVG HTML string, or empty string if not found
-        
+
     """
     try:
         from bengal.directives._icons import render_icon, warn_missing_icon
@@ -156,14 +161,14 @@ def _render_icon(icon_name: str, card_title: str = "") -> str:
 @dataclass(frozen=True, slots=True)
 class CardsOptions(StyledOptions):
     """Options for cards grid directive.
-    
+
     Attributes:
         columns: Column layout ("auto", "1-6", or responsive "1-2-3")
         gap: Grid gap (small, medium, large)
         style: Visual style (default, minimal, bordered)
         variant: Card variant (navigation, info, concept)
         layout: Card layout (default, horizontal, portrait, compact)
-        
+
     """
 
     columns: str = "auto"
@@ -176,7 +181,7 @@ class CardsOptions(StyledOptions):
 @dataclass(frozen=True, slots=True)
 class CardOptions(StyledOptions):
     """Options for individual card directive.
-    
+
     Attributes:
         icon: Icon name
         link: URL or page reference
@@ -187,7 +192,7 @@ class CardOptions(StyledOptions):
         footer: Footer content
         pull: Fields to pull from linked page (comma-separated)
         layout: Layout override (default, horizontal, portrait, compact)
-        
+
     """
 
     icon: str = ""
@@ -204,7 +209,7 @@ class CardOptions(StyledOptions):
 @dataclass(frozen=True, slots=True)
 class ChildCardsOptions(StyledOptions):
     """Options for child-cards directive.
-    
+
     Attributes:
         columns: Column layout
         gap: Grid gap
@@ -212,7 +217,7 @@ class ChildCardsOptions(StyledOptions):
         fields: Fields to pull (comma-separated)
         layout: Card layout
         style: Visual style
-        
+
     """
 
     columns: str = "auto"
@@ -230,12 +235,12 @@ class ChildCardsOptions(StyledOptions):
 
 class CardsDirective:
     """Handler for cards grid container directive.
-    
+
     Creates a responsive grid of cards with sensible defaults.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("cards",)
@@ -267,13 +272,13 @@ class CardsDirective:
             location=location,
             name=name,
             title=title,
-            options=normalized_opts,  # Pass typed options directly
+            options=cast(Any, normalized_opts),
             children=tuple(children),
         )
 
     def render(
         self,
-        node: Directive[CardsOptions],
+        node: Directive[Any],
         rendered_children: str,
         sb: StringBuilder,
     ) -> None:
@@ -305,12 +310,12 @@ class CardsDirective:
 
 class CardDirective:
     """Handler for individual card directive.
-    
+
     Renders a single card with optional link, icon, badge, etc.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("card",)
@@ -352,13 +357,13 @@ class CardDirective:
             location=location,
             name=name,
             title=title,
-            options=normalized_opts,  # Pass typed options directly
+            options=cast(Any, normalized_opts),
             children=tuple(children),
         )
 
     def render(
         self,
-        node: Directive[CardOptions],
+        node: Directive[Any],
         rendered_children: str,
         sb: StringBuilder,
     ) -> None:
@@ -409,7 +414,9 @@ class CardDirective:
             if icon:
                 rendered_icon = _render_icon(icon, card_title=title)
                 if rendered_icon:
-                    sb.append(f'    <span class="card-icon" data-icon="{html_escape(icon)}">\n')
+                    sb.append(
+                        f'    <span class="card-icon" data-icon="{html_escape(icon)}">\n'
+                    )
                     sb.append(f"      {rendered_icon}\n")
                     sb.append("    </span>\n")
             if title:
@@ -420,7 +427,9 @@ class CardDirective:
 
         # Description (brief summary below header)
         if description:
-            sb.append(f'  <div class="card-description">{html_escape(description)}</div>\n')
+            sb.append(
+                f'  <div class="card-description">{html_escape(description)}</div>\n'
+            )
 
         # Card content
         if rendered_children.strip():
@@ -444,13 +453,13 @@ class CardDirective:
 
 class ChildCardsDirective:
     """Handler for child-cards directive.
-    
+
     Auto-generates cards from current page's child sections/pages.
     Requires render context with current page information.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("child-cards",)
@@ -476,7 +485,9 @@ class ChildCardsDirective:
         normalized_opts = replace(
             options,
             gap=options.gap if options.gap in VALID_GAPS else "medium",
-            include=options.include if options.include in ("sections", "pages", "all") else "all",
+            include=options.include
+            if options.include in ("sections", "pages", "all")
+            else "all",
             fields=",".join(fields),
             layout=options.layout if options.layout in VALID_LAYOUTS else "default",
             style=options.style if options.style in VALID_STYLES else "default",
@@ -486,13 +497,13 @@ class ChildCardsDirective:
             location=location,
             name=name,
             title=title,
-            options=normalized_opts,  # Pass typed options directly
+            options=cast(Any, normalized_opts),
             children=(),  # No children - auto-generated at render time
         )
 
     def render(
         self,
-        node: Directive[ChildCardsOptions],
+        node: Directive[Any],
         rendered_children: str,
         sb: StringBuilder,
         *,

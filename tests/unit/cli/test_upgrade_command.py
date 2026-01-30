@@ -8,19 +8,15 @@ Covers:
 - Environment variable controls
 """
 
-from __future__ import annotations
-
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from click.testing import CliRunner
 
 from bengal import __version__
 from bengal.cli.commands.upgrade.check import (
-    CACHE_TTL,
     UpgradeInfo,
     check_for_upgrade,
     fetch_latest_version,
@@ -32,9 +28,9 @@ from bengal.cli.commands.upgrade.check import (
 from bengal.cli.commands.upgrade.command import upgrade
 from bengal.cli.commands.upgrade.installers import (
     InstallerInfo,
-    detect_installer,
     _is_pipx_install,
     _is_uv_project,
+    detect_installer,
 )
 
 
@@ -469,7 +465,7 @@ class TestUpgradeCommand:
         monkeypatch.setattr("subprocess.run", mock_run)
 
         runner = CliRunner()
-        result = runner.invoke(upgrade, ["--yes"])
+        runner.invoke(upgrade, ["--yes"])
 
         # Should have attempted upgrade without prompt
         mock_run.assert_called_once()
@@ -559,7 +555,9 @@ class TestIsPipxInstall:
 
     def test_returns_true_when_bengal_in_pipx_list(self, monkeypatch):
         """Test returns True when bengal appears in pipx list."""
-        monkeypatch.setattr("shutil.which", lambda x: "/usr/bin/pipx" if x == "pipx" else None)
+        monkeypatch.setattr(
+            "shutil.which", lambda x: "/usr/bin/pipx" if x == "pipx" else None
+        )
 
         mock_result = MagicMock()
         mock_result.stdout = "bengal 0.1.8\nsome-other-tool 1.0.0\n"
@@ -569,7 +567,9 @@ class TestIsPipxInstall:
 
     def test_returns_false_when_bengal_not_in_pipx_list(self, monkeypatch):
         """Test returns False when bengal is not in pipx list."""
-        monkeypatch.setattr("shutil.which", lambda x: "/usr/bin/pipx" if x == "pipx" else None)
+        monkeypatch.setattr(
+            "shutil.which", lambda x: "/usr/bin/pipx" if x == "pipx" else None
+        )
 
         mock_result = MagicMock()
         mock_result.stdout = "some-other-tool 1.0.0\nanother-tool 2.0.0\n"

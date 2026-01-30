@@ -4,10 +4,9 @@ Unit tests for collections loader.
 Tests CollectionPathTrie and path matching functionality.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from bengal.collections import (
     CollectionPathTrie,
@@ -34,10 +33,10 @@ class TestCollectionPathTrie:
         """Test empty trie returns no match."""
         trie = CollectionPathTrie()
 
-        name, config = trie.find(Path("content/blog/post.md"))
+        name, _config = trie.find(Path("content/blog/post.md"))
 
         assert name is None
-        assert config is None
+        assert _config is None
 
     def test_single_collection(self) -> None:
         """Test trie with single collection."""
@@ -71,7 +70,9 @@ class TestCollectionPathTrie:
         """Test overlapping directories return deepest match."""
         trie = CollectionPathTrie()
         docs_config = define_collection(schema=SimpleSchema, directory="content/docs")
-        api_config = define_collection(schema=SimpleSchema, directory="content/docs/api")
+        api_config = define_collection(
+            schema=SimpleSchema, directory="content/docs/api"
+        )
 
         trie.insert(Path("content/docs"), "docs", docs_config)
         trie.insert(Path("content/docs/api"), "api", api_config)
@@ -155,7 +156,7 @@ class TestBuildCollectionTrie:
         trie = build_collection_trie(collections)
 
         assert len(trie) == 1
-        name, config = trie.find(Path("content/blog/post.md"))
+        name, _config = trie.find(Path("content/blog/post.md"))
         assert name == "blog"
 
     def test_multiple_collections(self) -> None:
@@ -198,7 +199,7 @@ class TestGetCollectionForPathWithTrie:
         trie = build_collection_trie(collections)
         content_root = Path(".")
 
-        name, config = get_collection_for_path(
+        name, _config = get_collection_for_path(
             Path("blog/post.md"),
             content_root,
             collections,
@@ -235,7 +236,7 @@ class TestGetCollectionForPathWithTrie:
         content_root = Path(".")
 
         # Should match api (deepest), not docs
-        name, config = get_collection_for_path(
+        name, _config = get_collection_for_path(
             Path("docs/api/endpoint.md"),
             content_root,
             collections,
@@ -251,7 +252,7 @@ class TestGetCollectionForPathWithTrie:
         }
         content_root = Path(".")
 
-        name, config = get_collection_for_path(
+        name, _config = get_collection_for_path(
             Path("blog/post.md"),
             content_root,
             collections,
@@ -269,7 +270,7 @@ class TestGetCollectionForPathWithTrie:
         content_root = Path(".")
 
         # Should match api (deepest), not docs - same behavior as trie
-        name, config = get_collection_for_path(
+        name, _config = get_collection_for_path(
             Path("docs/api/endpoint.md"),
             content_root,
             collections,
@@ -279,7 +280,7 @@ class TestGetCollectionForPathWithTrie:
         assert name == "api"
 
         # File in docs/ but not api/ should match docs collection
-        name, config = get_collection_for_path(
+        name, _config = get_collection_for_path(
             Path("docs/guide.md"),
             content_root,
             collections,
@@ -361,15 +362,24 @@ class TestCollectionPathEdgeCases:
         assert trie.find(Path("docs/api/v2/endpoint.md"))[0] == "v2"
 
         # Test linear scan (should have same behavior)
-        assert get_collection_for_path(
-            Path("docs/guide.md"), content_root, collections, trie=None
-        )[0] == "docs"
-        assert get_collection_for_path(
-            Path("docs/api/endpoint.md"), content_root, collections, trie=None
-        )[0] == "api"
-        assert get_collection_for_path(
-            Path("docs/api/v2/endpoint.md"), content_root, collections, trie=None
-        )[0] == "v2"
+        assert (
+            get_collection_for_path(
+                Path("docs/guide.md"), content_root, collections, trie=None
+            )[0]
+            == "docs"
+        )
+        assert (
+            get_collection_for_path(
+                Path("docs/api/endpoint.md"), content_root, collections, trie=None
+            )[0]
+            == "api"
+        )
+        assert (
+            get_collection_for_path(
+                Path("docs/api/v2/endpoint.md"), content_root, collections, trie=None
+            )[0]
+            == "v2"
+        )
 
     def test_sibling_directories(self) -> None:
         """Test collections in sibling directories don't interfere."""
@@ -410,7 +420,9 @@ class TestCollectionPathEdgeCases:
         """Test that trie and linear scan return identical results."""
         collections = {
             "outer": define_collection(schema=SimpleSchema, directory="content"),
-            "inner": define_collection(schema=SimpleSchema, directory="content/special"),
+            "inner": define_collection(
+                schema=SimpleSchema, directory="content/special"
+            ),
         }
         trie = build_collection_trie(collections)
         content_root = Path(".")
@@ -423,10 +435,10 @@ class TestCollectionPathEdgeCases:
         ]
 
         for path in test_paths:
-            trie_result = get_collection_for_path(path, content_root, collections, trie=trie)
-            linear_result = get_collection_for_path(path, content_root, collections, trie=None)
+            trie_result = get_collection_for_path(
+                path, content_root, collections, trie=trie
+            )
+            linear_result = get_collection_for_path(
+                path, content_root, collections, trie=None
+            )
             assert trie_result[0] == linear_result[0], f"Mismatch for {path}"
-
-
-# Import Any for type hint
-from typing import Any

@@ -15,7 +15,11 @@ from bengal.cli.helpers import (
     handle_cli_errors,
     load_site_from_cli,
 )
-from bengal.utils.observability.logger import LogLevel, close_all_loggers, configure_logging
+from bengal.utils.observability.logger import (
+    LogLevel,
+    close_all_loggers,
+    configure_logging,
+)
 
 
 @click.command("report", cls=BengalCommand)
@@ -78,29 +82,29 @@ def report(
 ) -> None:
     """
     Generate comprehensive site analysis report.
-    
+
     Combines multiple analyses into a single unified report:
     - Connectivity analysis (orphans, link density)
     - Link suggestions (top recommendations)
     - Bridge pages (navigation bottlenecks)
     - Communities (topic clusters)
-    
+
     Use this command to get a complete picture of your site's structure
     and actionable recommendations for improvement.
-    
+
     Examples:
         # Full analysis report
         bengal graph report
-    
+
         # Quick summary for CI
         bengal graph report --brief
-    
+
         # CI mode with thresholds
         bengal graph report --ci --threshold-isolated 5
-    
+
         # Export as JSON
         bengal graph report --format json > report.json
-        
+
     """
     from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
@@ -108,7 +112,9 @@ def report(
     configure_logging(level=LogLevel.WARNING)
 
     # Load site using helper
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     try:
         if not brief:
@@ -122,7 +128,7 @@ def report(
         if not brief:
             cli.info(f"📊 Analyzing {len(site.pages)} pages...")
 
-        graph_obj = KnowledgeGraph(site)
+        graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
         graph_obj.build()
 
         # Gather analysis data
@@ -131,13 +137,16 @@ def report(
 
         # Get additional analysis data
         try:
-            bridges = graph_obj.get_bridges()[:5]  # Top 5 bridges
+            path_results = graph_obj.analyze_paths()
+            bridges = path_results.get_top_bridges(5)  # Top 5 bridges
         except Exception:
             bridges = []
 
         try:
-            communities = graph_obj.get_communities()
-            community_count = len(communities) if communities else 0
+            community_results = graph_obj.detect_communities()
+            community_count = (
+                len(community_results.communities) if community_results else 0
+            )
         except Exception:
             community_count = 0
 
@@ -172,14 +181,19 @@ def report(
             "orphan_percentage": round(pct["isolated"], 1),
             "lightly_linked_count": dist["lightly_linked"],
             # Page lists
-            "isolated_pages": [str(p.source_path) for p in connectivity_report.isolated[:20]],
+            "isolated_pages": [
+                str(p.source_path) for p in connectivity_report.isolated[:20]
+            ],
             "lightly_linked_pages": [
                 str(p.source_path) for p in connectivity_report.lightly_linked[:10]
             ],
             # Other analysis
             "bridge_count": len(bridges),
             "community_count": community_count,
-            "bridges": [getattr(p, "title", str(p.source_path)) for p in bridges],
+            "bridges": [
+                getattr(page, "title", str(page.source_path))
+                for page, _score in bridges
+            ],
             "thresholds": {
                 "isolated": threshold_isolated,
                 "lightly_linked": threshold_lightly,
@@ -194,7 +208,9 @@ def report(
             _output_markdown(cli, report_data, brief)
 
         else:  # console
-            _output_console(cli, report_data, brief, ci, threshold_isolated, threshold_lightly)
+            _output_console(
+                cli, report_data, brief, ci, threshold_isolated, threshold_lightly
+            )
 
         # CI exit code logic
         if ci:
@@ -232,7 +248,9 @@ def _output_console(
 
     if brief:
         # Compact output for CI
-        score_quality = "good" if data.get("avg_connectivity_score", 0) >= 1.0 else "needs work"
+        score_quality = (
+            "good" if data.get("avg_connectivity_score", 0) >= 1.0 else "needs work"
+        )
         isolated_status = "⚠️" if dist.get("isolated", 0) > threshold_isolated else "✅"
 
         cli.info(f"📊 Site Analysis: {data['total_pages']} pages")
@@ -242,7 +260,9 @@ def _output_console(
         cli.info(
             f"   Lightly linked: {dist.get('lightly_linked', 0)} ({pct.get('lightly_linked', 0):.1f}%)"
         )
-        cli.info(f"   Avg score: {data.get('avg_connectivity_score', 0):.2f} ({score_quality})")
+        cli.info(
+            f"   Avg score: {data.get('avg_connectivity_score', 0):.2f} ({score_quality})"
+        )
         if data.get("bridges"):
             cli.info(f"   Top bridges: {', '.join(data['bridges'][:3])}")
 
@@ -320,7 +340,10 @@ def _output_console(
             cli.info("   • Add internal links to lightly-linked pages")
         if data.get("avg_connectivity_score", 0) < 1.0:
             cli.info("   • Improve overall internal linking (aim for score ≥1.0)")
-        if dist.get("isolated", 0) == 0 and data.get("avg_connectivity_score", 0) >= 1.0:
+        if (
+            dist.get("isolated", 0) == 0
+            and data.get("avg_connectivity_score", 0) >= 1.0
+        ):
             cli.success("   ✅ Site structure looks good!")
         cli.blank()
 
@@ -353,7 +376,9 @@ def _output_markdown(cli: Any, data: dict[str, Any], brief: bool) -> None:
     cli.info(
         f"| 🟠 Lightly Linked | {dist.get('lightly_linked', 0)} | {pct.get('lightly_linked', 0):.1f}% |"
     )
-    cli.info(f"| 🔴 Isolated | {dist.get('isolated', 0)} | {pct.get('isolated', 0):.1f}% |")
+    cli.info(
+        f"| 🔴 Isolated | {dist.get('isolated', 0)} | {pct.get('isolated', 0):.1f}% |"
+    )
     cli.info("")
 
     isolated_pages = data.get("isolated_pages", [])

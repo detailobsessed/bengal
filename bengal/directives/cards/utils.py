@@ -11,9 +11,9 @@ import re
 from collections.abc import Callable
 from typing import Any
 
-from bengal.utils.observability.logger import get_logger
 from bengal.rendering.pipeline.thread_local import get_thread_parser
 from bengal.rendering.template_functions.strings import first_sentence
+from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -52,7 +52,11 @@ def normalize_columns(columns: str) -> str:
 
     if "-" in columns:
         parts = columns.split("-")
-        if all(p.isdigit() and 1 <= int(p) <= 6 for p in parts) and len(parts) in (2, 3, 4):
+        if all(p.isdigit() and 1 <= int(p) <= 6 for p in parts) and len(parts) in (
+            2,
+            3,
+            4,
+        ):
             return columns
 
     return "auto"
@@ -71,7 +75,9 @@ def extract_octicon(title: str) -> tuple[str, str]:
     return "", title
 
 
-def pull_from_linked_page(renderer: Any, link: str, fields: list[str]) -> dict[str, Any]:
+def pull_from_linked_page(
+    renderer: Any, link: str, fields: list[str]
+) -> dict[str, Any]:
     """Pull metadata from a linked page."""
     page = None
 
@@ -92,7 +98,10 @@ def pull_from_linked_page(renderer: Any, link: str, fields: list[str]) -> dict[s
                 if not page:
                     for p in getattr(section, "pages", []):
                         source_str = str(getattr(p, "source_path", ""))
-                        if f"/{child_name}." in source_str or f"/{child_name}/" in source_str:
+                        if (
+                            f"/{child_name}." in source_str
+                            or f"/{child_name}/" in source_str
+                        ):
                             page = p
                             break
 
@@ -118,22 +127,32 @@ def extract_page_fields(page: Any, fields: list[str]) -> dict[str, Any]:
             result["title"] = getattr(page, "title", "")
         elif field == "description":
             result["description"] = (
-                page.metadata.get("description", "") if hasattr(page, "metadata") else ""
+                page.metadata.get("description", "")
+                if hasattr(page, "metadata")
+                else ""
             )
         elif field == "icon":
-            result["icon"] = page.metadata.get("icon", "") if hasattr(page, "metadata") else ""
+            result["icon"] = (
+                page.metadata.get("icon", "") if hasattr(page, "metadata") else ""
+            )
         elif field == "image":
-            result["image"] = page.metadata.get("image", "") if hasattr(page, "metadata") else ""
+            result["image"] = (
+                page.metadata.get("image", "") if hasattr(page, "metadata") else ""
+            )
         elif field == "badge":
-            result["badge"] = page.metadata.get("badge", "") if hasattr(page, "metadata") else ""
+            result["badge"] = (
+                page.metadata.get("badge", "") if hasattr(page, "metadata") else ""
+            )
 
     return result
 
 
-def resolve_page(xref_index: dict[str, Any], link: str, current_page_dir: str | None = None) -> Any:
+def resolve_page(
+    xref_index: dict[str, Any], link: str, current_page_dir: str | None = None
+) -> Any:
     """Resolve a link to a page object."""
     # Relative path
-    if link.startswith("./") or link.startswith("../"):
+    if link.startswith(("./", "../")):
         if current_page_dir:
             clean_link = link.replace(".md", "").rstrip("/")
             if clean_link.startswith("./"):
@@ -146,7 +165,11 @@ def resolve_page(xref_index: dict[str, Any], link: str, current_page_dir: str | 
                     up_count += 1
                     remaining = remaining[3:]
                 if up_count < len(parts):
-                    parent = "/".join(parts[:-up_count]) if up_count > 0 else current_page_dir
+                    parent = (
+                        "/".join(parts[:-up_count])
+                        if up_count > 0
+                        else current_page_dir
+                    )
                     resolved_path = f"{parent}/{remaining}" if remaining else parent
                 else:
                     resolved_path = remaining
@@ -173,7 +196,7 @@ def resolve_page(xref_index: dict[str, Any], link: str, current_page_dir: str | 
 def resolve_link_url(renderer: Any, link: str) -> str:
     """Resolve a link reference to a URL (includes baseurl for absolute paths)."""
     # External URLs - return as-is
-    if link.startswith("http://") or link.startswith("https://"):
+    if link.startswith(("http://", "https://")):
         return link
 
     # Site-relative paths need baseurl applied
@@ -202,14 +225,14 @@ def resolve_link_url(renderer: Any, link: str) -> str:
 def render_icon(icon_name: str, card_title: str = "") -> str:
     """
     Render icon using Bengal SVG icons.
-    
+
     Args:
         icon_name: Name of the icon to render
         card_title: Title of the card (for warning context)
-    
+
     Returns:
         SVG HTML string, or empty string if not found
-        
+
     """
     from bengal.directives._icons import render_icon as _render_icon
     from bengal.directives._icons import warn_missing_icon
@@ -222,16 +245,22 @@ def render_icon(icon_name: str, card_title: str = "") -> str:
     return icon_html
 
 
-def collect_children(section: Any, current_page: Any, include: str) -> list[dict[str, Any]]:
+def collect_children(
+    section: Any, current_page: Any, include: str
+) -> list[dict[str, Any]]:
     """Collect child sections/pages from section."""
     children: list[dict[str, Any]] = []
 
     if include in ("sections", "all"):
         for subsection in getattr(section, "subsections", []):
             # Skip hidden sections
-            if hasattr(subsection, "metadata") and subsection.metadata.get("hidden", False):
+            if hasattr(subsection, "metadata") and subsection.metadata.get(
+                "hidden", False
+            ):
                 continue
-            has_weight = hasattr(subsection, "metadata") and "weight" in subsection.metadata
+            has_weight = (
+                hasattr(subsection, "metadata") and "weight" in subsection.metadata
+            )
             children.append(
                 {
                     "type": "section",
@@ -259,7 +288,7 @@ def collect_children(section: Any, current_page: Any, include: str) -> list[dict
     if include in ("pages", "all"):
         for page in getattr(section, "pages", []):
             source_str = str(getattr(page, "source_path", ""))
-            if source_str.endswith("_index.md") or source_str.endswith("index.md"):
+            if source_str.endswith(("_index.md", "index.md")):
                 continue
             if (
                 hasattr(current_page, "source_path")
@@ -276,11 +305,17 @@ def collect_children(section: Any, current_page: Any, include: str) -> list[dict
                     "type": "page",
                     "title": getattr(page, "title", ""),
                     "description": (
-                        page.metadata.get("description", "") if hasattr(page, "metadata") else ""
+                        page.metadata.get("description", "")
+                        if hasattr(page, "metadata")
+                        else ""
                     ),
-                    "icon": page.metadata.get("icon", "") if hasattr(page, "metadata") else "",
+                    "icon": page.metadata.get("icon", "")
+                    if hasattr(page, "metadata")
+                    else "",
                     "url": getattr(page, "href", ""),
-                    "weight": page.metadata.get("weight", 0) if hasattr(page, "metadata") else 0,
+                    "weight": page.metadata.get("weight", 0)
+                    if hasattr(page, "metadata")
+                    else 0,
                     "_has_explicit_weight": has_weight,
                 }
             )
@@ -308,8 +343,14 @@ def warn_mixed_weights(children: list[dict[str, Any]], current_page: Any) -> Non
 
     # Only warn if there's a mix (some have weights, some don't)
     if with_weight and without_weight:
-        page_path = getattr(current_page, "source_path", "unknown") if current_page else "unknown"
-        missing_titles = ", ".join(c.get("title", "Untitled") for c in without_weight[:3])
+        page_path = (
+            getattr(current_page, "source_path", "unknown")
+            if current_page
+            else "unknown"
+        )
+        missing_titles = ", ".join(
+            c.get("title", "Untitled") for c in without_weight[:3]
+        )
         if len(without_weight) > 3:
             missing_titles += f" (+{len(without_weight) - 3} more)"
 
@@ -363,7 +404,9 @@ def render_child_card(
         if icon:
             rendered_icon = render_icon(icon, card_title=title)
             if rendered_icon:
-                parts.append(f'    <span class="card-icon" data-icon="{escape_html(icon)}">')
+                parts.append(
+                    f'    <span class="card-icon" data-icon="{escape_html(icon)}">'
+                )
                 parts.append(f"      {rendered_icon}")
                 parts.append("    </span>")
         if title:
@@ -372,7 +415,7 @@ def render_child_card(
 
     if description:
         parts.append('  <div class="card-content">')
-        parts.append(f"    { _render_description_html(description) }")
+        parts.append(f"    {_render_description_html(description)}")
         parts.append("  </div>")
 
     parts.append("</a>")
@@ -413,18 +456,18 @@ def _render_description_html(description: str) -> str:
 
 def escape_html(text: str) -> str:
     """Escape HTML special characters for safe use in attributes.
-    
+
     This is a convenience re-export of the canonical implementation.
-    
+
     Args:
         text: Raw text to escape.
-    
+
     Returns:
         HTML-escaped string safe for use in attribute values.
-    
+
     See Also:
         ``bengal.utils.text.escape_html``: Canonical implementation.
-        
+
     """
     from bengal.utils.primitives.text import escape_html as _escape_html
 

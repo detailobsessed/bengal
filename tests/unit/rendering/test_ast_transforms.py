@@ -1,7 +1,5 @@
 """Tests for AST-level link transformations."""
 
-from __future__ import annotations
-
 from bengal.parsing.ast.transforms import (
     add_baseurl_to_ast,
     normalize_md_links_in_ast,
@@ -73,7 +71,9 @@ class TestTransformLinksInAST:
             {
                 "type": "link",
                 "url": "/docs/",
-                "children": [{"type": "strong", "children": [{"type": "text", "raw": "Bold"}]}],
+                "children": [
+                    {"type": "strong", "children": [{"type": "text", "raw": "Bold"}]}
+                ],
             }
         ]
         result = transform_links_in_ast(ast, lambda x: x)
@@ -105,7 +105,9 @@ class TestNormalizeMdLinksInAST:
 
     def test_nested_index_md(self) -> None:
         """normalize_md_links_in_ast handles nested _index.md."""
-        ast: list[ASTNode] = [{"type": "link", "url": "./docs/_index.md", "children": []}]
+        ast: list[ASTNode] = [
+            {"type": "link", "url": "./docs/_index.md", "children": []}
+        ]
         result = normalize_md_links_in_ast(ast)
         assert result[0]["url"] == "./docs/"
 
@@ -123,7 +125,9 @@ class TestNormalizeMdLinksInAST:
 
     def test_external_link_unchanged(self) -> None:
         """normalize_md_links_in_ast leaves external links unchanged."""
-        ast: list[ASTNode] = [{"type": "link", "url": "https://example.com", "children": []}]
+        ast: list[ASTNode] = [
+            {"type": "link", "url": "https://example.com", "children": []}
+        ]
         result = normalize_md_links_in_ast(ast)
         assert result[0]["url"] == "https://example.com"
 
@@ -145,7 +149,9 @@ class TestAddBaseurlToAST:
 
     def test_skips_external_links(self) -> None:
         """add_baseurl_to_ast skips external links."""
-        ast: list[ASTNode] = [{"type": "link", "url": "https://example.com", "children": []}]
+        ast: list[ASTNode] = [
+            {"type": "link", "url": "https://example.com", "children": []}
+        ]
         result = add_baseurl_to_ast(ast, "/bengal")
         assert result[0]["url"] == "https://example.com"
 

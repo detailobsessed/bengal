@@ -43,20 +43,20 @@ class CachedSource:
 class ContentLayerManager:
     """
     Manages content from multiple sources.
-    
+
     Handles:
     - Source registration (local, remote, custom)
     - Parallel async fetching
     - Disk caching with TTL and invalidation
     - Aggregation of all sources into unified content list
-    
+
     Example:
             >>> manager = ContentLayerManager(cache_dir=Path(".bengal/content_cache"))
             >>> manager.register_source("docs", "local", {"directory": "content/docs"})
             >>> manager.register_source("blog", "notion", {"database_id": "abc123"})
             >>> entries = manager.fetch_all_sync()
             >>> print(f"Fetched {len(entries)} content entries")
-        
+
     """
 
     def __init__(
@@ -146,7 +146,8 @@ class ContentLayerManager:
 
         # Fetch from all sources concurrently
         tasks = [
-            self._fetch_source(name, source, use_cache) for name, source in self.sources.items()
+            self._fetch_source(name, source, use_cache)
+            for name, source in self.sources.items()
         ]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -205,7 +206,9 @@ class ContentLayerManager:
         if use_cache:
             cached = self._load_cache(name)
             if cached and self._is_cache_valid(name, cache_key):
-                logger.debug(f"Using cached content for '{name}' ({len(cached)} entries)")
+                logger.debug(
+                    f"Using cached content for '{name}' ({len(cached)} entries)"
+                )
                 return cached
 
         # Offline mode: must use cache
@@ -224,11 +227,9 @@ class ContentLayerManager:
 
         # Fetch fresh content
         logger.info(f"Fetching content from '{name}' ({source.source_type})...")
-        entries: list[ContentEntry] = []
 
         try:
-            async for entry in source.fetch_all():
-                entries.append(entry)
+            entries: list[ContentEntry] = [entry async for entry in source.fetch_all()]
         except Exception as e:
             # Try to fall back to cache on error
             cached = self._load_cache(name)
@@ -409,7 +410,9 @@ class ContentLayerManager:
                         "cached_at": cached_at.isoformat(),
                         "age_seconds": age.total_seconds(),
                         "expired": age > self.cache_ttl,
-                        "size_bytes": cache_path.stat().st_size if cache_path.exists() else 0,
+                        "size_bytes": cache_path.stat().st_size
+                        if cache_path.exists()
+                        else 0,
                     }
                 except Exception as e:
                     logger.debug(

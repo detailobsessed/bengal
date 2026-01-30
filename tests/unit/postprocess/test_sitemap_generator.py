@@ -15,8 +15,6 @@ Covers:
 - XML structure and formatting
 """
 
-from __future__ import annotations
-
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
@@ -98,7 +96,9 @@ class TestSitemapGeneratorWithPages:
         return site
 
     @patch("bengal.utils.io.atomic_write.AtomicFile")
-    def test_generates_sitemap_with_pages(self, mock_atomic: MagicMock, tmp_path: Path) -> None:
+    def test_generates_sitemap_with_pages(
+        self, mock_atomic: MagicMock, tmp_path: Path
+    ) -> None:
         """Test sitemap generation with valid pages."""
         from bengal.postprocess.sitemap import SitemapGenerator
 
@@ -548,7 +548,9 @@ class TestSitemapGeneratorHreflangRegression:
         return page
 
     @patch("bengal.utils.io.atomic_write.AtomicFile")
-    def test_hreflang_output_matches_expected(self, mock_atomic: MagicMock, tmp_path: Path) -> None:
+    def test_hreflang_output_matches_expected(
+        self, mock_atomic: MagicMock, tmp_path: Path
+    ) -> None:
         """Test hreflang links are correct for translated pages."""
         from bengal.postprocess.sitemap import SitemapGenerator
 
@@ -587,7 +589,9 @@ class TestSitemapGeneratorHreflangRegression:
         assert mock_atomic.called
 
     @patch("bengal.utils.io.atomic_write.AtomicFile")
-    def test_hreflang_includes_x_default(self, mock_atomic: MagicMock, tmp_path: Path) -> None:
+    def test_hreflang_includes_x_default(
+        self, mock_atomic: MagicMock, tmp_path: Path
+    ) -> None:
         """Test x-default is added correctly for default language."""
         from bengal.postprocess.sitemap import SitemapGenerator
 

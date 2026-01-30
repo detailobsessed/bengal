@@ -4,8 +4,6 @@ Unit tests for standard collection schemas.
 Tests that built-in schemas work correctly with the validator.
 """
 
-from __future__ import annotations
-
 from dataclasses import fields, is_dataclass
 from datetime import datetime
 

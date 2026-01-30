@@ -6,12 +6,8 @@ Tests the logging, warning deduplication, and stats tracking added to
 asset manifest resolution for better observability.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -23,7 +19,7 @@ from bengal.rendering.assets import (
     clear_manifest_cache,
     get_resolution_stats,
 )
-from bengal.utils.observability.logger import get_logger, reset_loggers
+from bengal.utils.observability.logger import reset_loggers
 
 
 @dataclass
@@ -52,12 +48,12 @@ def clean_state():
 
 def _get_logger_events(logger_name: str = "bengal.rendering.assets") -> list:
     """Get events from the BengalLogger for assertions.
-    
+
     Bengal uses a custom BengalLogger that stores events internally,
     rather than using Python's standard logging module.
     """
     from bengal.utils.observability.logger import _loggers
-    
+
     if logger_name in _loggers:
         return _loggers[logger_name].get_events()
     return []
@@ -102,9 +98,13 @@ class TestWarningLogging:
         _resolve_fingerprinted("css/style.css", mock_site)
 
         events = _get_logger_events()
-        warning_events = [e for e in events if e.message == "asset_manifest_disk_fallback"]
+        warning_events = [
+            e for e in events if e.message == "asset_manifest_disk_fallback"
+        ]
         assert len(warning_events) == 1
-        assert str(mock_site.output_dir) in str(warning_events[0].context.get("output_dir", ""))
+        assert str(mock_site.output_dir) in str(
+            warning_events[0].context.get("output_dir", "")
+        )
 
     def test_warning_includes_hint(self, mock_site: MockSite) -> None:
         """Warning should include helpful hint about ContextVar."""
@@ -113,7 +113,9 @@ class TestWarningLogging:
         _resolve_fingerprinted("css/style.css", mock_site)
 
         events = _get_logger_events()
-        warning_events = [e for e in events if e.message == "asset_manifest_disk_fallback"]
+        warning_events = [
+            e for e in events if e.message == "asset_manifest_disk_fallback"
+        ]
         assert len(warning_events) == 1
         hint = warning_events[0].context.get("hint", "")
         assert "ContextVar not set" in hint or "asset_manifest_context" in hint
@@ -131,7 +133,9 @@ class TestWarningDeduplication:
         _resolve_fingerprinted("css/style.css", mock_site)
 
         events = _get_logger_events()
-        warning_count = sum(1 for e in events if e.message == "asset_manifest_disk_fallback")
+        warning_count = sum(
+            1 for e in events if e.message == "asset_manifest_disk_fallback"
+        )
         assert warning_count == 1
 
     def test_different_paths_warn_separately(self, mock_site: MockSite) -> None:
@@ -143,7 +147,9 @@ class TestWarningDeduplication:
         _resolve_fingerprinted("images/logo.png", mock_site)
 
         events = _get_logger_events()
-        warning_count = sum(1 for e in events if e.message == "asset_manifest_disk_fallback")
+        warning_count = sum(
+            1 for e in events if e.message == "asset_manifest_disk_fallback"
+        )
         assert warning_count == 3
 
     def test_deduplication_reset_on_clear_cache(self, mock_site: MockSite) -> None:
@@ -154,7 +160,9 @@ class TestWarningDeduplication:
 
         # Count warnings before reset
         events_before = _get_logger_events()
-        warning_count_before = sum(1 for e in events_before if e.message == "asset_manifest_disk_fallback")
+        warning_count_before = sum(
+            1 for e in events_before if e.message == "asset_manifest_disk_fallback"
+        )
         assert warning_count_before == 1
 
         # Clear resets both cache and deduplication
@@ -165,7 +173,9 @@ class TestWarningDeduplication:
         _resolve_fingerprinted("css/style.css", mock_site)
 
         events_after = _get_logger_events()
-        warning_count_after = sum(1 for e in events_after if e.message == "asset_manifest_disk_fallback")
+        warning_count_after = sum(
+            1 for e in events_after if e.message == "asset_manifest_disk_fallback"
+        )
         assert warning_count_after == 1
 
 
@@ -174,8 +184,8 @@ class TestDevModeLogging:
 
     def test_debug_log_in_dev_mode(self, mock_site: MockSite) -> None:
         """Debug log in dev mode (expected fallback)."""
-        from bengal.utils.observability.logger import configure_logging, LogLevel
-        
+        from bengal.utils.observability.logger import LogLevel, configure_logging
+
         # Enable DEBUG level to capture debug events
         configure_logging(level=LogLevel.DEBUG)
         mock_site.dev_mode = True

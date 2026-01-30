@@ -25,8 +25,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -40,8 +38,8 @@ if TYPE_CHECKING:
 
 
 # Thread-safe LRU cache for parameter info (replaces @lru_cache for free-threading)
-_param_info_cache: LRUCache[tuple[str, str | None, str | None, str | None], Any] = LRUCache(
-    maxsize=1024, name="param_info"
+_param_info_cache: LRUCache[tuple[str, str | None, str | None, str | None], Any] = (
+    LRUCache(maxsize=1024, name="param_info")
 )
 
 
@@ -53,44 +51,45 @@ def _cached_param_info(
 ) -> Any:
     """
     Cache common parameter patterns for deserialization.
-    
+
     Memoizes ParameterInfo construction to avoid repeated object creation
     for common signatures (e.g., "self", "cls", common type hints).
-    
+
     Thread-safe: Uses LRUCache with RLock for safe concurrent access
     under free-threading (PEP 703).
-    
+
     Args:
         name: Parameter name
         type_hint: Type annotation string
         default: Default value string
         description: Docstring description
-    
+
     Returns:
         ParameterInfo dataclass instance
-        
+
     """
     key = (name, type_hint, default, description)
-    
+
     def _create_param_info() -> Any:
         # Import here to avoid circular imports
         from bengal.autodoc.models.python import ParameterInfo
+
         return ParameterInfo(
             name=name,
             type_hint=type_hint,
             default=default,
             description=description,
         )
-    
+
     return _param_info_cache.get_or_set(key, _create_param_info)
 
 
 def clear_autodoc_caches() -> None:
     """
     Clear autodoc-related caches.
-    
+
     Call between builds or when cache invalidation is needed.
-        
+
     """
     _param_info_cache.clear()
 
@@ -99,10 +98,10 @@ def clear_autodoc_caches() -> None:
 class DocElement:
     """
     Represents a documented element (function, class, endpoint, command, etc.).
-    
+
     This is the unified data model used by all extractors.
     Each extractor converts its specific domain into this common format.
-    
+
     Attributes:
         name: Element name (e.g., 'build', 'Site', 'GET /users')
         qualified_name: Full path (e.g., 'bengal.core.site.Site.build')
@@ -119,7 +118,7 @@ class DocElement:
             Computed during page building. Use for internal comparisons.
         href: Public URL with baseurl (e.g., "/bengal/cli/assets/build/").
             Computed during page building. Use in templates: <a href="{{ child.href }}">
-        
+
     """
 
     name: str
@@ -135,8 +134,12 @@ class DocElement:
     see_also: list[str] = field(default_factory=list)
     deprecated: str | None = None
     # URL properties - computed during page building when site context is available
-    _path: str | None = None  # Site-relative path without baseurl (e.g., "/cli/assets/build/")
-    href: str | None = None  # Public URL with baseurl (e.g., "/bengal/cli/assets/build/")
+    _path: str | None = (
+        None  # Site-relative path without baseurl (e.g., "/cli/assets/build/")
+    )
+    href: str | None = (
+        None  # Public URL with baseurl (e.g., "/bengal/cli/assets/build/")
+    )
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for caching/serialization."""
@@ -163,7 +166,9 @@ class DocElement:
                 error_code="A001",  # cache_corruption - preventing cache corruption
             )
             # Filter out invalid children to prevent cache corruption
-            valid_children = [child for child in self.children if isinstance(child, DocElement)]
+            valid_children = [
+                child for child in self.children if isinstance(child, DocElement)
+            ]
         else:
             valid_children = self.children
 
@@ -203,7 +208,9 @@ class DocElement:
                 "autodoc_cache_malformed_entry",
                 expected_type="dict",
                 actual_type=type(data).__name__,
-                data_preview=str(data)[:100] if isinstance(data, str) else repr(data)[:100],
+                data_preview=str(data)[:100]
+                if isinstance(data, str)
+                else repr(data)[:100],
                 action="skipping_entry",
                 error_code="A001",  # cache_corruption - malformed cache entry
             )
@@ -353,7 +360,9 @@ class DocElement:
                 suggestion="Clear the cache with: rm -rf .bengal/cache/",
             )
 
-        def _to_openapi_request_body(rb: Any, context: str) -> OpenAPIRequestBodyMetadata:
+        def _to_openapi_request_body(
+            rb: Any, context: str
+        ) -> OpenAPIRequestBodyMetadata:
             """Convert OpenAPI request body data to OpenAPIRequestBodyMetadata, failing loudly on mismatch."""
             if isinstance(rb, dict):
                 return OpenAPIRequestBodyMetadata(**rb)
@@ -454,19 +463,19 @@ class DocElement:
 class Extractor(ABC):
     """
     Base class for all documentation extractors.
-    
+
     Each documentation type (Python, OpenAPI, CLI) implements this interface.
     This enables a unified API for generating documentation from different sources.
-    
+
     Example:
         class PythonExtractor(Extractor):
             def extract(self, source: Path) -> List[DocElement]:
                 # Extract Python API docs via AST
                     ...
-    
+
             # Templates are now unified under bengal/autodoc/templates/
             # with python/, cli/, openapi/ subdirectories
-        
+
     """
 
     @abstractmethod
@@ -483,7 +492,6 @@ class Extractor(ABC):
         Note:
             This should be fast and not have side effects (no imports, no network calls)
         """
-        pass
 
     @abstractmethod
     def get_output_path(self, element: DocElement) -> Path | None:
@@ -502,4 +510,3 @@ class Extractor(ABC):
             For OpenAPI: GET /users → endpoints/get-users.md
             For CLI: bengal build → commands/build.md
         """
-        pass

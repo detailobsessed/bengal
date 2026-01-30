@@ -4,8 +4,6 @@ Unit tests for CacheStore.
 Tests the generic cache storage mechanism that works with Cacheable types.
 """
 
-from __future__ import annotations
-
 import json
 from dataclasses import dataclass
 from datetime import datetime

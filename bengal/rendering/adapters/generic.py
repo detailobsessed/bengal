@@ -10,7 +10,7 @@ following the pattern in jinja.py or kida.py.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from bengal.protocols import SiteLike
@@ -18,14 +18,14 @@ if TYPE_CHECKING:
 
 def register_context_functions(env: Any, site: SiteLike) -> None:
     """Register context-dependent template functions for unknown engines.
-    
+
     These functions use site defaults since we can't access page context.
     For full context support, create a custom adapter for your engine.
-    
+
     Args:
         env: Template environment instance
         site: Site instance
-        
+
     """
     # Import pure function implementations
     from bengal.rendering.template_functions.i18n import (
@@ -54,18 +54,18 @@ def register_context_functions(env: Any, site: SiteLike) -> None:
             lang: Override language (falls back to site default)
             default: Default value if key not found
         """
-        return base_translate(key, params=params, lang=lang, default=default)
+        return base_translate(key, params, lang, default)
 
-    def current_lang() -> str | None:
+    def current_lang() -> str:
         """Get current language from site default.
 
         Note: This generic adapter cannot access page context.
         """
-        return _current_lang(site, None)
+        return _current_lang(site, None) or ""
 
     def languages() -> list[dict[str, Any]]:
         """Get configured languages list."""
-        return _languages(site)
+        return cast(list[dict[str, Any]], _languages(site))
 
     def tag_url(tag: str) -> str:
         """Generate tag URL.

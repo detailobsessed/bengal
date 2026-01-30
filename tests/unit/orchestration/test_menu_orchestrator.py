@@ -112,7 +112,12 @@ def test_dev_menu_skipped_if_exists():
     config = {
         "menu": {
             "main": [
-                {"name": "Dev", "url": "/manual-dev", "identifier": "dev-manual", "weight": 50}
+                {
+                    "name": "Dev",
+                    "url": "/manual-dev",
+                    "identifier": "dev-manual",
+                    "weight": 50,
+                }
             ]
         },
         "params": {"repo_url": "https://github.com/example/repo"},

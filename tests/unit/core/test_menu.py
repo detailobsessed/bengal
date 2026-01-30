@@ -2,8 +2,6 @@
 Tests for the menu system.
 """
 
-from __future__ import annotations
-
 from bengal.core.menu import MenuBuilder, MenuItem
 from tests._testing.mocks import MockPage
 
@@ -23,7 +21,10 @@ class TestMenuItem:
     def test_menu_item_with_parent(self):
         """Test menu item with parent relationship."""
         item = MenuItem(
-            name="Getting Started", url="/docs/getting-started/", parent="docs", weight=1
+            name="Getting Started",
+            url="/docs/getting-started/",
+            parent="docs",
+            weight=1,
         )
         assert item.parent == "docs"
         assert item.weight == 1
@@ -152,8 +153,18 @@ class TestMenuBuilder:
         builder = MenuBuilder()
         config = [
             {"name": "Docs", "url": "/docs/", "identifier": "docs", "weight": 1},
-            {"name": "Getting Started", "url": "/docs/intro/", "parent": "docs", "weight": 1},
-            {"name": "Advanced", "url": "/docs/advanced/", "parent": "docs", "weight": 2},
+            {
+                "name": "Getting Started",
+                "url": "/docs/intro/",
+                "parent": "docs",
+                "weight": 1,
+            },
+            {
+                "name": "Advanced",
+                "url": "/docs/advanced/",
+                "parent": "docs",
+                "weight": 2,
+            },
         ]
 
         builder.add_from_config(config)

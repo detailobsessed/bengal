@@ -6,8 +6,6 @@ Tests template-specific functionality:
 - Template rendering with data
 """
 
-from __future__ import annotations
-
 import pytest
 
 
@@ -155,4 +153,6 @@ class TestChangelogTemplate:
             versions = [r.get("version", "0.0.0") for r in releases]
 
             # First version should be the latest (1.0.0 > 0.9.0)
-            assert versions[0] >= versions[-1], "Releases should be ordered newest first"
+            assert versions[0] >= versions[-1], (
+                "Releases should be ordered newest first"
+            )

@@ -4,8 +4,6 @@ Unit tests for TemplateEngine.validate_templates() method.
 Tests proactive template syntax validation functionality.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest

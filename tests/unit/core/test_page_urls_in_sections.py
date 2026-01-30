@@ -168,7 +168,9 @@ class TestPageURLGenerationDuringRendering:
 
     def test_url_without_output_path_falls_back(self):
         """Test URL generation falls back to slug when no output_path."""
-        page = Page(source_path=Path("/content/docs/guide.md"), metadata={"title": "Guide"})
+        page = Page(
+            source_path=Path("/content/docs/guide.md"), metadata={"title": "Guide"}
+        )
 
         # Should fall back to slug-based URL
         fallback_url = page.href
@@ -264,7 +266,9 @@ class TestEdgeCases:
         page = Page(
             source_path=Path("/content/docs/guides/advanced/optimization.md"),
             metadata={"title": "Optimization"},
-            output_path=Path("/site/public/docs/guides/advanced/optimization/index.html"),
+            output_path=Path(
+                "/site/public/docs/guides/advanced/optimization/index.html"
+            ),
         )
         page._site = site
 

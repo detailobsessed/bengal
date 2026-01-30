@@ -28,18 +28,18 @@ logger = get_logger(__name__)
 class CacheValidator(BaseValidator):
     """
     Validates build cache integrity (essential checks only).
-    
+
     Checks:
     - Cache file exists and is readable
     - Cache format is valid JSON
     - Cache size is reasonable (not corrupted/bloated)
     - Has expected structure (file_hashes, dependencies)
-    
+
     Skips:
     - Deep dependency graph validation (complex)
     - File hash verification (too slow)
     - Advanced corruption detection (overkill)
-        
+
     """
 
     name = "Cache Integrity"
@@ -64,7 +64,12 @@ class CacheValidator(BaseValidator):
             return results
 
         # Check 1: Cache location (new location since v0.1.2)
-        cache_path = site.paths.build_cache
+        # Use getattr for paths since SiteLike protocol may not include it
+        site_paths = getattr(site, "paths", None)
+        cache_path = getattr(site_paths, "build_cache", None) if site_paths else None
+        if cache_path is None:
+            # Fallback to default location
+            cache_path = site.root_path / ".bengal" / "cache.json"
 
         # Check for old cache location (migration needed)
         old_cache_path = site.output_dir / ".bengal-cache.json"
@@ -101,7 +106,9 @@ class CacheValidator(BaseValidator):
             return results
 
         results.append(
-            CheckResult.success(f"Cache file readable at {cache_path.relative_to(site.root_path)}")
+            CheckResult.success(
+                f"Cache file readable at {cache_path.relative_to(site.root_path)}"
+            )
         )
 
         # Check 3: Cache structure valid
@@ -121,7 +128,10 @@ class CacheValidator(BaseValidator):
         results.extend(self._check_cache_size(cache_path, cache_data))
 
         # Check 5: Cache location correctness (new check for v0.1.2+)
-        if cache_path == site.paths.build_cache:
+        expected_cache_path = (
+            getattr(site_paths, "build_cache", None) if site_paths else None
+        )
+        if expected_cache_path and cache_path == expected_cache_path:
             results.append(CheckResult.success("Cache at correct location (.bengal/)"))
         else:
             results.append(
@@ -160,26 +170,34 @@ class CacheValidator(BaseValidator):
             )
             return False, {}
 
-    def _check_cache_structure(self, cache_data: dict[str, Any]) -> tuple[bool, list[str]]:
+    def _check_cache_structure(
+        self, cache_data: dict[str, Any]
+    ) -> tuple[bool, list[str]]:
         """Check if cache has expected structure."""
         issues = []
 
         # Check for expected top-level keys
         expected_keys = ["file_hashes", "dependencies"]
-        for key in expected_keys:
-            if key not in cache_data:
-                issues.append(f"missing '{key}'")
+        issues.extend(
+            f"missing '{key}'" for key in expected_keys if key not in cache_data
+        )
 
         # Check that values are dicts
-        if "file_hashes" in cache_data and not isinstance(cache_data["file_hashes"], dict):
+        if "file_hashes" in cache_data and not isinstance(
+            cache_data["file_hashes"], dict
+        ):
             issues.append("'file_hashes' is not a dict")
 
-        if "dependencies" in cache_data and not isinstance(cache_data["dependencies"], dict):
+        if "dependencies" in cache_data and not isinstance(
+            cache_data["dependencies"], dict
+        ):
             issues.append("'dependencies' is not a dict")
 
         return len(issues) == 0, issues
 
-    def _check_cache_size(self, cache_path: Path, cache_data: dict[str, Any]) -> list[CheckResult]:
+    def _check_cache_size(
+        self, cache_path: Path, cache_data: dict[str, Any]
+    ) -> list[CheckResult]:
         """Check if cache size is reasonable."""
         results = []
 
@@ -198,7 +216,9 @@ class CacheValidator(BaseValidator):
         elif size_mb > 10:
             results.append(CheckResult.info(f"Cache file size: {size_mb:.1f} MB"))
         else:
-            results.append(CheckResult.success(f"Cache file size: {size_mb:.1f} MB (reasonable)"))
+            results.append(
+                CheckResult.success(f"Cache file size: {size_mb:.1f} MB (reasonable)")
+            )
 
         # Check entry counts
         file_count = len(cache_data.get("file_hashes", {}))
@@ -213,7 +233,9 @@ class CacheValidator(BaseValidator):
             )
         else:
             results.append(
-                CheckResult.info(f"Cache tracking {file_count:,} files, {dep_count:,} dependencies")
+                CheckResult.info(
+                    f"Cache tracking {file_count:,} files, {dep_count:,} dependencies"
+                )
             )
 
         return results

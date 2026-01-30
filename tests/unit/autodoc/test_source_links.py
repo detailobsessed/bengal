@@ -48,7 +48,9 @@ def test_formats_absolute_path_with_custom_package_name(tmp_path: Path) -> None:
     assert result == "company_api/endpoints/users.py"
 
 
-def test_formats_absolute_path_relative_to_site_root_when_no_parent(tmp_path: Path) -> None:
+def test_formats_absolute_path_relative_to_site_root_when_no_parent(
+    tmp_path: Path,
+) -> None:
     """Files inside site directory are relative to parent (repo root)."""
     site_root = tmp_path / "site"
     source = site_root / "api" / "openapi.yaml"

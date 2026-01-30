@@ -1,7 +1,5 @@
 """Tests for taxonomy view filters (TagView, tag_views filter)."""
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 from bengal.rendering.template_functions.taxonomies import (

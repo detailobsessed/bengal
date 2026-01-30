@@ -28,7 +28,7 @@ def check_tool_installed(tool: str) -> bool:
         return False
 
 
-def generate_snakeviz(profile_path: Path, output_dir: Path = None):
+def generate_snakeviz(profile_path: Path, output_dir: Path | None = None):
     """Generate interactive HTML flame graph with snakeviz."""
     if not check_tool_installed("snakeviz"):
         print("❌ snakeviz not installed. Install with: pip install snakeviz")
@@ -43,7 +43,7 @@ def generate_snakeviz(profile_path: Path, output_dir: Path = None):
     return True
 
 
-def generate_flameprof(profile_path: Path, output_path: Path = None):
+def generate_flameprof(profile_path: Path, output_path: Path | None = None):
     """Generate static SVG flame graph with flameprof."""
     if not check_tool_installed("flameprof"):
         print("❌ flameprof not installed. Install with: pip install flameprof")
@@ -70,7 +70,7 @@ def generate_flameprof(profile_path: Path, output_path: Path = None):
         return False
 
 
-def generate_gprof2dot(profile_path: Path, output_path: Path = None):
+def generate_gprof2dot(profile_path: Path, output_path: Path | None = None):
     """Generate call graph with gprof2dot."""
     if not check_tool_installed("gprof2dot"):
         print("❌ gprof2dot not installed. Install with: pip install gprof2dot")
@@ -98,7 +98,10 @@ def generate_gprof2dot(profile_path: Path, output_path: Path = None):
 
         # Convert dot to PNG
         subprocess.run(
-            ["dot", "-Tpng", "-o", str(output_path)], input=dot_result.stdout, text=True, check=True
+            ["dot", "-Tpng", "-o", str(output_path)],
+            input=dot_result.stdout,
+            text=True,
+            check=True,
         )
 
         print(f"✓ Call graph saved to: {output_path}")
@@ -154,7 +157,9 @@ Examples:
         """,
     )
 
-    parser.add_argument("profile", type=Path, nargs="?", help="Path to profile data file (.stats)")
+    parser.add_argument(
+        "profile", type=Path, nargs="?", help="Path to profile data file (.stats)"
+    )
 
     parser.add_argument(
         "--tool",
@@ -164,7 +169,9 @@ Examples:
         help="Visualization tool to use (default: snakeviz)",
     )
 
-    parser.add_argument("--output", "-o", type=Path, help="Output file path (for static outputs)")
+    parser.add_argument(
+        "--output", "-o", type=Path, help="Output file path (for static outputs)"
+    )
 
     parser.add_argument(
         "--list-tools", action="store_true", help="List available visualization tools"

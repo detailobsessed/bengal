@@ -26,36 +26,36 @@ from __future__ import annotations
 
 import json
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from bengal.build.tracking import DependencyTracker
-    from bengal.utils.observability.cli_progress import LiveProgressManager
     from bengal.core.asset import Asset
     from bengal.core.output import OutputCollector
     from bengal.core.page import Page
     from bengal.orchestration.build import BuildOrchestrator
-    from bengal.output import CLIOutput
     from bengal.orchestration.build_context import BuildContext
-    from bengal.utils.observability.profile import BuildProfile
+    from bengal.output import CLIOutput
     from bengal.protocols import ProgressReporter
+    from bengal.utils.observability.cli_progress import LiveProgressManager
+    from bengal.utils.observability.profile import BuildProfile
 
 
 def _get_top_bottleneck(total_render_ms: float) -> str | None:
     """
     Get the top rendering bottleneck from template profiler.
-    
+
     Returns the slowest template function or template as a formatted string
     showing what percentage of total render time it consumed.
-    
+
     Args:
         total_render_ms: Total rendering time in milliseconds
-    
+
     Returns:
         Formatted string like "get_nav 42%" or None if no profiler data
-        
+
     """
     from bengal.rendering.template_profiler import get_profiler
 
@@ -108,21 +108,21 @@ def _optimize_css(
 ) -> None:
     """
     Generate optimized CSS based on content types and features.
-    
+
     Analyzes site content to determine which CSS files are needed,
     then generates a minimal style.css with only necessary imports.
     The optimized CSS is written to the cache directory and the
     style.css asset's source is overridden to use it.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         cli: CLI output for user messages
         assets_to_process: List of assets (may be modified to update style.css source)
-    
+
     Side effects:
         - Writes optimized CSS to .bengal/cache/assets/optimized-style.css
         - Updates style.css asset's _bundled_content to use optimized version
-        
+
     """
     from bengal.orchestration.css_optimizer import CSSOptimizer
 
@@ -197,16 +197,16 @@ def _optimize_css(
 def _rewrite_fonts_css_urls(orchestrator: BuildOrchestrator) -> None:
     """
     Rewrite fonts.css to use fingerprinted font filenames.
-    
+
     After asset fingerprinting, font files have hashed names like:
         fonts/outfit-400.6c18d579.woff2
-    
+
     This function updates fonts.css to reference these fingerprinted names
     instead of the original names.
-    
+
     Args:
         orchestrator: Build orchestrator instance
-        
+
     """
     fonts_css_path = orchestrator.site.output_dir / "assets" / "fonts.css"
     manifest_path = orchestrator.site.output_dir / "asset-manifest.json"
@@ -242,9 +242,9 @@ def phase_assets(
 ) -> list[Asset]:
     """
     Phase 13: Process Assets.
-    
+
     Processes assets (copy, minify, fingerprint) before rendering so asset_url() works.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         cli: CLI output for user messages
@@ -252,17 +252,19 @@ def phase_assets(
         parallel: Whether to use parallel processing
         assets_to_process: List of assets to process
         collector: Optional output collector for hot reload tracking
-    
+
     Returns:
         Updated assets_to_process list (may be expanded if theme assets need processing)
-    
+
     Side effects:
         - Copies/processes assets to output directory
         - Updates orchestrator.stats.assets_time_ms
-        
+
     """
     # Asset processing is I/O-bound and benefits from parallel execution
-    with orchestrator.logger.phase("assets", asset_count=len(assets_to_process), parallel=parallel):
+    with orchestrator.logger.phase(
+        "assets", asset_count=len(assets_to_process), parallel=parallel
+    ):
         assets_start = time.time()
 
         # CRITICAL FIX: On incremental builds, if no assets changed, still need to ensure
@@ -272,11 +274,16 @@ def phase_assets(
             # Check if theme has assets
             from bengal.services.theme import get_theme_assets_dir
 
-            theme_dir = get_theme_assets_dir(orchestrator.site.root_path, orchestrator.site.theme)
+            theme_dir = get_theme_assets_dir(
+                orchestrator.site.root_path, orchestrator.site.theme
+            )
             if theme_dir and theme_dir.exists():
                 # Check if output/assets directory was populated
                 output_assets = orchestrator.site.output_dir / "assets"
-                if not output_assets.exists() or len(list(output_assets.rglob("*"))) < 5:
+                if (
+                    not output_assets.exists()
+                    or len(list(output_assets.rglob("*"))) < 5
+                ):
                     # Theme assets not in output - re-process all assets
                     assets_to_process = orchestrator.site.assets
 
@@ -287,7 +294,10 @@ def phase_assets(
             _optimize_css(orchestrator, cli, assets_to_process)
 
         orchestrator.assets.process(
-            assets_to_process, parallel=parallel, progress_manager=None, collector=collector
+            assets_to_process,
+            parallel=parallel,
+            progress_manager=None,
+            collector=collector,
         )
 
         # Rewrite fonts.css to use fingerprinted font filenames
@@ -300,21 +310,23 @@ def phase_assets(
         # Show phase completion
         cli.phase("Assets", duration_ms=orchestrator.stats.assets_time_ms)
 
-        orchestrator.logger.info("assets_complete", assets_processed=len(assets_to_process))
+        orchestrator.logger.info(
+            "assets_complete", assets_processed=len(assets_to_process)
+        )
 
     return assets_to_process
 
 
 def _log_template_introspection(orchestrator: BuildOrchestrator, verbose: bool) -> None:
     """Log template introspection insights (verbose mode only).
-    
+
     Uses Kida's introspection API to analyze templates and log:
     - Cacheable blocks (site-wide vs page-level)
     - Block dependencies
     - Optimization opportunities
-    
+
     RFC: kida-template-introspection
-        
+
     """
     if not verbose:
         return
@@ -335,9 +347,11 @@ def _log_template_introspection(orchestrator: BuildOrchestrator, verbose: bool) 
         page_cacheable = 0
 
         for template_name in templates_to_check:
-            cacheable = engine.get_cacheable_blocks(template_name)
+            cacheable = getattr(engine, "get_cacheable_blocks", lambda _: None)(
+                template_name
+            )
             if cacheable:
-                for _block_name, scope in cacheable.items():
+                for scope in cacheable.values():
                     if scope == "site":
                         site_cacheable += 1
                     elif scope == "page":
@@ -366,7 +380,7 @@ def phase_render(
     memory_optimized: bool,
     pages_to_build: list[Page],
     tracker: DependencyTracker | None,
-    profile: BuildProfile,
+    profile: BuildProfile | None,
     progress_manager: LiveProgressManager | None,
     reporter: ProgressReporter | None,
     profile_templates: bool = False,
@@ -376,9 +390,9 @@ def phase_render(
 ) -> BuildContext:
     """
     Phase 14: Render Pages.
-    
+
     Renders all pages to HTML using templates.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         cli: CLI output for user messages
@@ -397,14 +411,14 @@ def phase_render(
                       cached content. If provided, its cached content is preserved
                       in the final context for use by validators.
         collector: Optional output collector for hot reload tracking
-    
+
     Returns:
         BuildContext used for rendering (needed by postprocess)
-    
+
     Side effects:
         - Renders pages to HTML
         - Updates orchestrator.stats.rendering_time_ms
-        
+
     """
     quiet_mode = quiet and not verbose
 
@@ -435,7 +449,9 @@ def phase_render(
         # Create context with entries dict for fast lookups
         if manifest is not None:
             manifest_entries = {k: v.output_path for k, v in manifest.entries.items()}
-            manifest_mtime = manifest_path.stat().st_mtime if manifest_path.exists() else None
+            manifest_mtime = (
+                manifest_path.stat().st_mtime if manifest_path.exists() else None
+            )
         else:
             manifest_entries = {}
             manifest_mtime = None
@@ -447,8 +463,8 @@ def phase_render(
         with asset_manifest_context(asset_ctx):
             # Use memory-optimized streaming if requested
             if memory_optimized:
-                from bengal.orchestration.streaming import StreamingRenderOrchestrator
                 from bengal.orchestration.build_context import BuildContext
+                from bengal.orchestration.streaming import StreamingRenderOrchestrator
 
                 streaming_render = StreamingRenderOrchestrator(orchestrator.site)
                 ctx = BuildContext(
@@ -468,9 +484,14 @@ def phase_render(
                     ctx._page_contents = early_context._page_contents
                 # Transfer incremental state (changed pages) for validators.
                 if early_context is not None:
-                    ctx.changed_page_paths = set(getattr(early_context, "changed_page_paths", set()))
+                    ctx.changed_page_paths = set(
+                        getattr(early_context, "changed_page_paths", set())
+                    )
                 # Compute parallel mode: use should_parallelize() unless force_sequential=True
-                from bengal.utils.concurrency.workers import WorkloadType, should_parallelize
+                from bengal.utils.concurrency.workers import (
+                    WorkloadType,
+                    should_parallelize,
+                )
 
                 use_parallel = not force_sequential and should_parallelize(
                     len(pages_to_build), workload_type=WorkloadType.MIXED
@@ -506,13 +527,18 @@ def phase_render(
                     ctx._page_contents = early_context._page_contents
                 # Transfer incremental state (changed pages) for validators.
                 if early_context is not None:
-                    ctx.changed_page_paths = set(getattr(early_context, "changed_page_paths", set()))
+                    ctx.changed_page_paths = set(
+                        getattr(early_context, "changed_page_paths", set())
+                    )
                 # Transfer snapshot from early context (RFC: rfc-bengal-snapshot-engine)
                 if early_context and hasattr(early_context, "snapshot"):
                     ctx.snapshot = early_context.snapshot
-                
+
                 # Compute parallel mode: use should_parallelize() unless force_sequential=True
-                from bengal.utils.concurrency.workers import WorkloadType, should_parallelize
+                from bengal.utils.concurrency.workers import (
+                    WorkloadType,
+                    should_parallelize,
+                )
 
                 use_parallel = not force_sequential and should_parallelize(
                     len(pages_to_build), workload_type=WorkloadType.MIXED
@@ -524,12 +550,16 @@ def phase_render(
                 # (RFC: rfc-bengal-snapshot-engine)
                 if use_parallel and ctx.snapshot:
                     from bengal.snapshots.scheduler import WaveScheduler
-                    from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
-                    
+                    from bengal.utils.concurrency.workers import (
+                        WorkloadType,
+                        get_optimal_workers,
+                    )
+
                     # Get max_workers from config (same approach as RenderOrchestrator)
                     config = orchestrator.site.config
-                    if hasattr(config, "build"):
-                        max_workers_override = getattr(config.build, "max_workers", None)
+                    build_obj = getattr(config, "build", None)
+                    if build_obj is not None:
+                        max_workers_override = getattr(build_obj, "max_workers", None)
                     else:
                         build_section = config.get("build", {})
                         max_workers_override = (
@@ -537,18 +567,20 @@ def phase_render(
                             if isinstance(build_section, dict)
                             else config.get("max_workers")
                         )
-                    
+
                     max_workers = get_optimal_workers(
                         len(pages_to_build),
                         workload_type=WorkloadType.MIXED,
                         config_override=max_workers_override,
                     )
-                    
+
                     # Create write-behind collector for async I/O (RFC: rfc-path-to-200-pgs)
-                    from bengal.rendering.pipeline.write_behind import WriteBehindCollector
-                    
+                    from bengal.rendering.pipeline.write_behind import (
+                        WriteBehindCollector,
+                    )
+
                     write_behind = WriteBehindCollector() if use_parallel else None
-                    
+
                     scheduler = WaveScheduler(
                         snapshot=ctx.snapshot,
                         site=orchestrator.site,
@@ -558,20 +590,24 @@ def phase_render(
                         build_context=ctx,
                         max_workers=max_workers,
                         write_behind=write_behind,
-                        progress_manager=progress_manager,
+                        progress_manager=cast(Any, progress_manager),
                     )
-                    render_stats = scheduler.render_all(pages_to_build)
+                    scheduler.render_all(pages_to_build)
                     # RenderStats are for internal tracking only
                     # BuildStats tracks timing via rendering_time_ms (set below)
                     # Errors are handled by RenderingPipeline and tracked in BuildStats.errors_by_category
-                    
+
                     # Flush write-behind collector if enabled (same as RenderOrchestrator)
                     if ctx.write_behind:
                         try:
                             written = ctx.write_behind.flush_and_close()
-                            orchestrator.logger.debug("write_behind_flushed", files_written=written)
+                            orchestrator.logger.debug(
+                                "write_behind_flushed", files_written=written
+                            )
                         except Exception as e:
-                            orchestrator.logger.error("write_behind_flush_error", error=str(e))
+                            orchestrator.logger.error(
+                                "write_behind_flush_error", error=str(e)
+                            )
                 else:
                     # Fallback to existing renderer (sequential or when snapshot unavailable)
                     orchestrator.render.process(
@@ -652,15 +688,15 @@ def phase_update_site_pages(
 ) -> None:
     """
     Phase 15: Update Site Pages.
-    
+
     Updates site.pages with freshly rendered pages (for incremental builds).
     Replaces stale PageProxy objects with rendered Page objects.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         incremental: Whether this is an incremental build
         pages_to_build: List of freshly rendered pages
-        
+
     """
     if incremental and pages_to_build:
         start = time.perf_counter()
@@ -720,17 +756,17 @@ def phase_track_assets(
 ) -> None:
     """
     Phase 16: Persist Asset Dependencies.
-    
+
     Persists asset dependencies that were accumulated during rendering
     (inline extraction). Assets are extracted in RenderingPipeline and
     accumulated in BuildContext for efficient batch persistence.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         pages_to_build: List of rendered pages
         cli: Optional CLI output handler
         build_context: BuildContext with accumulated assets from rendering
-        
+
     """
     with orchestrator.logger.phase("track_assets", enabled=True):
         start = time.perf_counter()

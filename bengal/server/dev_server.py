@@ -66,7 +66,7 @@ import socketserver
 import threading
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from bengal.cache import clear_build_cache, clear_output_directory, clear_template_cache
 from bengal.errors import BengalServerError, ErrorCode, reset_dev_server_state
@@ -88,7 +88,7 @@ logger = get_logger(__name__)
 class DevServer:
     """
     Development server with file watching, auto-rebuild, and serve-first startup.
-    
+
     Provides a complete development environment for Bengal sites with:
     - Serve-first startup: Serves cached content immediately for instant first paint
     - Background validation: Validates cache and hot-reloads if stale
@@ -98,14 +98,14 @@ class DevServer:
     - Stale process detection and cleanup
     - Automatic port fallback
     - Optional browser auto-open
-    
+
     The server uses serve-first when cached output exists: it starts serving
     immediately while validating in the background. If validation finds stale
     content, it triggers a hot reload. This provides instant first paint for
     returning users.
-    
+
     When no cache exists, the server falls back to build-first mode.
-    
+
     Features:
     - Serve-first startup (instant first paint when cache exists)
     - Incremental + parallel builds (5-10x faster than full builds)
@@ -113,15 +113,15 @@ class DevServer:
     - Custom 404 error pages
     - PID file tracking for stale process detection
     - Comprehensive resource cleanup on shutdown
-    
+
     Example:
         from bengal.core import Site
         from bengal.server import DevServer
-    
+
         site = Site.from_config()
         server = DevServer(site, port=5173, watch=True)
         server.start()  # Runs until Ctrl+C
-        
+
     """
 
     def __init__(
@@ -243,18 +243,25 @@ class DevServer:
                     rm.register_watcher_runner(watcher_runner)
                     rm.register_build_trigger(build_trigger)
                     watcher_runner.start()
-                    logger.info("file_watcher_started", watch_dirs=self._get_watched_directories())
+                    logger.info(
+                        "file_watcher_started",
+                        watch_dirs=self._get_watched_directories(),
+                    )
 
                 # Open browser immediately (instant first paint!)
                 if self.open_browser:
                     self._open_browser_delayed(actual_port)
-                    logger.debug("browser_opening", url=f"http://{self.host}:{actual_port}/")
+                    logger.debug(
+                        "browser_opening", url=f"http://{self.host}:{actual_port}/"
+                    )
 
                 # Print startup message
                 self._print_startup_message(actual_port, serve_first=True)
 
                 # Start serving in background thread while we validate
-                server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+                server_thread = threading.Thread(
+                    target=httpd.serve_forever, daemon=True
+                )
                 server_thread.start()
 
                 # Run validation build in foreground (shows progress)
@@ -283,7 +290,9 @@ class DevServer:
                 # BUILD-FIRST: No cache, must build before serving
                 logger.info(
                     "build_first_mode",
-                    reason="no_cache" if not self._has_cached_output() else "baseurl_cleared",
+                    reason="no_cache"
+                    if not self._has_cached_output()
+                    else "baseurl_cleared",
                 )
 
                 # Initial build (blocking)
@@ -295,7 +304,9 @@ class DevServer:
                     incremental=not baseurl_was_cleared,
                 )
                 stats = self.site.build(build_opts)
-                display_build_stats(stats, show_art=False, output_dir=str(self.site.output_dir))
+                display_build_stats(
+                    stats, show_art=False, output_dir=str(self.site.output_dir)
+                )
 
                 logger.debug(
                     "initial_build_complete",
@@ -328,12 +339,17 @@ class DevServer:
                     rm.register_watcher_runner(watcher_runner)
                     rm.register_build_trigger(build_trigger)
                     watcher_runner.start()
-                    logger.info("file_watcher_started", watch_dirs=self._get_watched_directories())
+                    logger.info(
+                        "file_watcher_started",
+                        watch_dirs=self._get_watched_directories(),
+                    )
 
                 # Open browser
                 if self.open_browser:
                     self._open_browser_delayed(actual_port)
-                    logger.debug("browser_opening", url=f"http://{self.host}:{actual_port}/")
+                    logger.debug(
+                        "browser_opening", url=f"http://{self.host}:{actual_port}/"
+                    )
 
                 # Print startup message
                 self._print_startup_message(actual_port)
@@ -441,9 +457,13 @@ class DevServer:
                 changed_count=actual_changes,
             )
             # Trigger hot reload
-            send_reload_payload(decision.action, "cache-validation", decision.changed_paths)
+            send_reload_payload(
+                decision.action, "cache-validation", decision.changed_paths
+            )
             icons = get_icon_set(should_use_emoji())
-            print(f"\n  {icons.success} Cache validated - {actual_changes} files updated, browser reloading...")
+            print(
+                f"\n  {icons.success} Cache validated - {actual_changes} files updated, browser reloading..."
+            )
         else:
             icons = get_icon_set(should_use_emoji())
             print(f"\n  {icons.success} Cache validated - content is fresh")
@@ -479,7 +499,9 @@ class DevServer:
                 min_interval = get_dev_config(
                     cfg, "reload", "min_notify_interval_ms", default=300
                 )
-                controller.set_min_notify_interval_ms(int(min_interval))
+                controller.set_min_notify_interval_ms(
+                    int(min_interval) if isinstance(min_interval, (int, str)) else 300
+                )
             except Exception as e:
                 logger.warning("reload_config_min_interval_failed", error=str(e))
 
@@ -493,7 +515,9 @@ class DevServer:
                 ignore_paths = get_dev_config(
                     cfg, "reload", "ignore_paths", default=default_ignores
                 )
-                controller.set_ignored_globs(list(ignore_paths) if ignore_paths else None)
+                controller.set_ignored_globs(
+                    list(cast("list[str]", ignore_paths)) if ignore_paths else None
+                )
             except Exception as e:
                 logger.warning("reload_config_ignores_failed", error=str(e))
 
@@ -509,10 +533,10 @@ class DevServer:
                         get_dev_config(cfg, "reload", "hash_on_suspect", default=True)
                     ),
                     suspect_hash_limit=int(suspect_hash_limit)
-                    if suspect_hash_limit is not None
+                    if isinstance(suspect_hash_limit, (int, str))
                     else None,
                     suspect_size_limit_bytes=int(suspect_size_limit)
-                    if suspect_size_limit is not None
+                    if isinstance(suspect_size_limit, (int, str))
                     else None,
                 )
             except Exception as e:
@@ -794,7 +818,9 @@ class DevServer:
             )
 
             icons = get_icon_set(should_use_emoji())
-            print(f"\n{icons.warning} Found stale Bengal server process (PID {stale_pid})")
+            print(
+                f"\n{icons.warning} Found stale Bengal server process (PID {stale_pid})"
+            )
 
             if is_holding_port:
                 print(f"   This process is holding port {self.port}")
@@ -833,7 +859,9 @@ class DevServer:
             else:
                 print("  Continuing anyway (may encounter port conflicts)...")
                 logger.warning(
-                    "stale_process_ignored", pid=stale_pid, user_choice="continue_anyway"
+                    "stale_process_ignored",
+                    pid=stale_pid,
+                    user_choice="continue_anyway",
                 )
 
     def _create_server(self) -> tuple[socketserver.ThreadingTCPServer, int]:
@@ -860,7 +888,9 @@ class DevServer:
 
         # Check if requested port is available
         if not self._is_port_available(self.port):
-            logger.warning("port_unavailable", port=self.port, auto_port_enabled=self.auto_port)
+            logger.warning(
+                "port_unavailable", port=self.port, auto_port_enabled=self.auto_port
+            )
 
             icons = get_icon_set(should_use_emoji())
             if self.auto_port:
@@ -869,7 +899,11 @@ class DevServer:
                     actual_port = self._find_available_port(self.port + 1)
                     print(f"{icons.warning} Port {self.port} is already in use")
                     print(f"{icons.arrow} Using port {actual_port} instead")
-                    logger.info("port_fallback", requested_port=self.port, actual_port=actual_port)
+                    logger.info(
+                        "port_fallback",
+                        requested_port=self.port,
+                        actual_port=actual_port,
+                    )
                 except (OSError, BengalServerError) as e:
                     print(
                         f"{icons.error} Port {self.port} is already in use and no alternative "
@@ -877,7 +911,9 @@ class DevServer:
                     )
                     print("\nTo fix this issue:")
                     print(f"  1. Stop the process using port {self.port}, or")
-                    print("  2. Specify a different port with: bengal serve --port <PORT>")
+                    print(
+                        "  2. Specify a different port with: bengal serve --port <PORT>"
+                    )
                     print(f"  3. Find the blocking process with: lsof -ti:{self.port}")
                     logger.error(
                         "no_ports_available",
@@ -988,7 +1024,9 @@ class DevServer:
             lines.append(
                 f"   [yellow]{icons.warning}[/yellow]  File watching enabled (auto-reload on changes)"
             )
-            lines.append("      [dim](Live reload enabled - browser refreshes after rebuild)[/dim]")
+            lines.append(
+                "      [dim](Live reload enabled - browser refreshes after rebuild)[/dim]"
+            )
         else:
             lines.append("   [dim]○  File watching disabled[/dim]")
 

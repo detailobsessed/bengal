@@ -10,8 +10,6 @@ This catches regressions like the placeholder bug where child-cards
 output "Child cards will be generated at build time" instead of actual cards.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock
@@ -129,7 +127,9 @@ class TestChildCardsWithPageContext:
         assert "Learn about organizing content" in result
         assert "Learn about authoring" in result
 
-    def test_child_cards_no_placeholder_with_empty_section(self, parser: PatitasParser) -> None:
+    def test_child_cards_no_placeholder_with_empty_section(
+        self, parser: PatitasParser
+    ) -> None:
         """Empty section shows 'No child content' not the build-time placeholder."""
         section = create_mock_section(subsections=[], pages=[])
         current_page = create_mock_page(
@@ -148,7 +148,9 @@ class TestChildCardsWithPageContext:
         assert "No child content found" in result
         assert "Child cards will be generated at build time" not in result
 
-    def test_child_cards_no_page_context_shows_message(self, parser: PatitasParser) -> None:
+    def test_child_cards_no_page_context_shows_message(
+        self, parser: PatitasParser
+    ) -> None:
         """Without page context, shows appropriate message."""
         # No page in context
         context = {"site": Mock()}
@@ -228,9 +230,9 @@ class TestChildCardsWithPageContext:
 
 class TestParserParityForChildCards:
     """Ensure Mistune and Patitas produce equivalent output for child-cards.
-    
+
     This parity test would have caught the patitas placeholder bug.
-        
+
     """
 
     @pytest.fixture

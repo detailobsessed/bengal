@@ -87,7 +87,9 @@ class BuildStats:
     time_saved_ms: float = 0  # Estimated time saved by caching
 
     # Cache bypass statistics
-    cache_bypass_hits: int = 0  # Pages that bypassed cache (in changed_sources or is_changed)
+    cache_bypass_hits: int = (
+        0  # Pages that bypassed cache (in changed_sources or is_changed)
+    )
     cache_bypass_misses: int = 0  # Pages that used cache (not changed)
 
     # Block cache statistics - tracks site-wide template block caching (nav, footer, etc.)
@@ -100,6 +102,8 @@ class BuildStats:
     menu_time_ms: float = 0
     related_posts_time_ms: float = 0
     fonts_time_ms: float = 0
+    parsing_time_ms: float = 0
+    snapshot_time_ms: float = 0
 
     # Output directory (for display)
     output_dir: str | None = None
@@ -148,7 +152,9 @@ class BuildStats:
             self._error_deduplicator = ErrorDeduplicator()
         return self._error_deduplicator
 
-    def add_warning(self, file_path: str, message: str, warning_type: str = "other") -> None:
+    def add_warning(
+        self, file_path: str, message: str, warning_type: str = "other"
+    ) -> None:
         """Add a warning to the build."""
         self.warnings.append(BuildWarning(file_path, message, warning_type))
 
@@ -183,7 +189,9 @@ class BuildStats:
             Dictionary with error counts and breakdown by category
         """
         total_errors = sum(len(cat.errors) for cat in self.errors_by_category.values())
-        total_warnings = sum(len(cat.warnings) for cat in self.errors_by_category.values())
+        total_warnings = sum(
+            len(cat.warnings) for cat in self.errors_by_category.values()
+        )
 
         # Also count template_errors
         if self.template_errors:
@@ -204,7 +212,9 @@ class BuildStats:
     def add_directive(self, directive_type: str) -> None:
         """Track a directive usage."""
         self.total_directives += 1
-        self.directives_by_type[directive_type] = self.directives_by_type.get(directive_type, 0) + 1
+        self.directives_by_type[directive_type] = (
+            self.directives_by_type.get(directive_type, 0) + 1
+        )
 
     @property
     def pages_built(self) -> int:
@@ -232,7 +242,11 @@ class BuildStats:
         Returns:
             List of TemplateRenderError objects with syntax errors.
         """
-        return [e for e in self.template_errors if getattr(e, "error_type", None) == "syntax"]
+        return [
+            e
+            for e in self.template_errors
+            if getattr(e, "error_type", None) == "syntax"
+        ]
 
     @property
     def not_found_errors(self) -> list[Any]:
@@ -246,7 +260,11 @@ class BuildStats:
         Returns:
             List of TemplateRenderError objects for missing templates.
         """
-        return [e for e in self.template_errors if getattr(e, "error_type", None) == "not_found"]
+        return [
+            e
+            for e in self.template_errors
+            if getattr(e, "error_type", None) == "not_found"
+        ]
 
     @property
     def warnings_by_type(self) -> dict[str, list[BuildWarning]]:

@@ -4,8 +4,6 @@ Tests health/validators/menu.py:
 - MenuValidator: navigation menu validation in health check system
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -79,7 +77,9 @@ class TestMenuValidatorNoMenus:
         results = validator.validate(site)
         assert len(results) == 1
         assert results[0].status == CheckStatus.INFO
-        assert "no" in results[0].message.lower() and "menu" in results[0].message.lower()
+        assert (
+            "no" in results[0].message.lower() and "menu" in results[0].message.lower()
+        )
 
     def test_info_has_recommendation(self, validator):
         """Info message has recommendation."""

@@ -2,8 +2,6 @@
 Unit tests for Python autodoc metadata dataclasses.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.autodoc.models import (
@@ -64,7 +62,9 @@ class TestRaisesInfo:
 
     def test_with_description(self) -> None:
         """Test RaisesInfo with description."""
-        raises = RaisesInfo(type_name="FileNotFoundError", description="If file doesn't exist")
+        raises = RaisesInfo(
+            type_name="FileNotFoundError", description="If file doesn't exist"
+        )
         assert raises.type_name == "FileNotFoundError"
         assert raises.description == "If file doesn't exist"
 

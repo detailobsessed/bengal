@@ -43,11 +43,15 @@ class ErrorDeduplicator:
 
     # Key: (template_name, line_number, error_type, message_prefix)
     # Value: list of page sources that had this error
-    seen_errors: dict[tuple[str, int | None, str, str], list[str]] = field(default_factory=dict)
+    seen_errors: dict[tuple[str, int | None, str, str], list[str]] = field(
+        default_factory=dict
+    )
     # Maximum errors to show per unique error signature
     max_display_per_error: int = 2
 
-    def _get_error_key(self, error: TemplateRenderError) -> tuple[str, int | None, str, str]:
+    def _get_error_key(
+        self, error: TemplateRenderError
+    ) -> tuple[str, int | None, str, str]:
         """Generate a key for error deduplication."""
         # Use first 50 chars of message to group similar errors
         msg_prefix = str(error.message)[:50] if error.message else ""
@@ -91,7 +95,10 @@ class ErrorDeduplicator:
             return
 
         try:
-            from bengal.utils.observability.rich_console import get_console, should_use_rich
+            from bengal.utils.observability.rich_console import (
+                get_console,
+                should_use_rich,
+            )
 
             if should_use_rich():
                 console = get_console()
@@ -103,7 +110,7 @@ class ErrorDeduplicator:
                 # Show summary of each unique error
                 for key, pages in self.seen_errors.items():
                     if len(pages) > self.max_display_per_error:
-                        template, line, error_type, msg = key
+                        template, line, error_type, _msg = key
                         extra = len(pages) - self.max_display_per_error
                         console.print(
                             f"   • [dim]{template}:{line}[/dim] ({error_type}): "
@@ -118,12 +125,16 @@ class ErrorDeduplicator:
         import click
 
         click.echo()
-        click.secho(f"⚠️  {suppressed} similar error(s) suppressed", fg="yellow", bold=True)
+        click.secho(
+            f"⚠️  {suppressed} similar error(s) suppressed", fg="yellow", bold=True
+        )
         for key, pages in self.seen_errors.items():
             if len(pages) > self.max_display_per_error:
-                template, line, error_type, msg = key
+                template, line, error_type, _msg = key
                 extra = len(pages) - self.max_display_per_error
-                click.echo(f"   • {template}:{line} ({error_type}): +{extra} more page(s)")
+                click.echo(
+                    f"   • {template}:{line} ({error_type}): +{extra} more page(s)"
+                )
         click.echo()
 
     def reset(self) -> None:

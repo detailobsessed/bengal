@@ -14,8 +14,6 @@ Run with:
 This establishes baseline measurements before optimization.
 """
 
-from __future__ import annotations
-
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -117,7 +115,9 @@ def generate_dependency_data(
 
         # Add some unique dependencies
         for i in range(deps_per_page - len(deps)):
-            deps.add(f"content/data/file-{(p * deps_per_page + i) % (num_pages * 2)}.yaml")
+            deps.add(
+                f"content/data/file-{(p * deps_per_page + i) % (num_pages * 2)}.yaml"
+            )
 
         dependencies[page_path] = deps
 
@@ -159,28 +159,36 @@ def create_taxonomy_index(tag_to_pages: dict[str, list[str]]) -> Any:
 @pytest.fixture
 def taxonomy_index_100():
     """TaxonomyIndex-like data: 100 pages, 20 tags."""
-    tag_to_pages, _ = generate_taxonomy_data(num_pages=100, num_tags=20, tags_per_page=3)
+    tag_to_pages, _ = generate_taxonomy_data(
+        num_pages=100, num_tags=20, tags_per_page=3
+    )
     return create_taxonomy_index(tag_to_pages)
 
 
 @pytest.fixture
 def taxonomy_index_1k():
     """TaxonomyIndex-like data: 1K pages, 100 tags."""
-    tag_to_pages, _ = generate_taxonomy_data(num_pages=1000, num_tags=100, tags_per_page=5)
+    tag_to_pages, _ = generate_taxonomy_data(
+        num_pages=1000, num_tags=100, tags_per_page=5
+    )
     return create_taxonomy_index(tag_to_pages)
 
 
 @pytest.fixture
 def taxonomy_index_5k():
     """TaxonomyIndex-like data: 5K pages, 300 tags."""
-    tag_to_pages, _ = generate_taxonomy_data(num_pages=5000, num_tags=300, tags_per_page=10)
+    tag_to_pages, _ = generate_taxonomy_data(
+        num_pages=5000, num_tags=300, tags_per_page=10
+    )
     return create_taxonomy_index(tag_to_pages)
 
 
 @pytest.fixture
 def taxonomy_index_10k():
     """TaxonomyIndex-like data: 10K pages, 500 tags."""
-    tag_to_pages, _ = generate_taxonomy_data(num_pages=10000, num_tags=500, tags_per_page=15)
+    tag_to_pages, _ = generate_taxonomy_data(
+        num_pages=10000, num_tags=500, tags_per_page=15
+    )
     return create_taxonomy_index(tag_to_pages)
 
 
@@ -203,21 +211,30 @@ class MockIndexEntry:
 def query_index_entries_1k():
     """QueryIndex entries: 1K pages across 50 keys (~20 pages/key)."""
     entries_data = generate_query_index_data(num_pages=1000, num_keys=50)
-    return {key: MockIndexEntry(key=key, page_paths=paths) for key, paths in entries_data.items()}
+    return {
+        key: MockIndexEntry(key=key, page_paths=paths)
+        for key, paths in entries_data.items()
+    }
 
 
 @pytest.fixture
 def query_index_entries_5k():
     """QueryIndex entries: 5K pages across 100 keys (~50 pages/key)."""
     entries_data = generate_query_index_data(num_pages=5000, num_keys=100)
-    return {key: MockIndexEntry(key=key, page_paths=paths) for key, paths in entries_data.items()}
+    return {
+        key: MockIndexEntry(key=key, page_paths=paths)
+        for key, paths in entries_data.items()
+    }
 
 
 @pytest.fixture
 def query_index_entries_10k():
     """QueryIndex entries: 10K pages across 100 keys (~100 pages/key)."""
     entries_data = generate_query_index_data(num_pages=10000, num_keys=100)
-    return {key: MockIndexEntry(key=key, page_paths=paths) for key, paths in entries_data.items()}
+    return {
+        key: MockIndexEntry(key=key, page_paths=paths)
+        for key, paths in entries_data.items()
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -228,19 +245,25 @@ def query_index_entries_10k():
 @pytest.fixture
 def file_tracking_deps_1k():
     """Dependency data: 1K pages, 10 deps/page."""
-    return generate_dependency_data(num_pages=1000, deps_per_page=10, num_shared_deps=20)
+    return generate_dependency_data(
+        num_pages=1000, deps_per_page=10, num_shared_deps=20
+    )
 
 
 @pytest.fixture
 def file_tracking_deps_5k():
     """Dependency data: 5K pages, 15 deps/page."""
-    return generate_dependency_data(num_pages=5000, deps_per_page=15, num_shared_deps=50)
+    return generate_dependency_data(
+        num_pages=5000, deps_per_page=15, num_shared_deps=50
+    )
 
 
 @pytest.fixture
 def file_tracking_deps_10k():
     """Dependency data: 10K pages, 20 deps/page."""
-    return generate_dependency_data(num_pages=10000, deps_per_page=20, num_shared_deps=100)
+    return generate_dependency_data(
+        num_pages=10000, deps_per_page=20, num_shared_deps=100
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -338,7 +361,9 @@ class TestTaxonomyRemovePageFromAllTags:
 
         for _i in range(iterations):
             # Create fresh copy for each iteration (since removal modifies state)
-            tag_to_pages, _ = generate_taxonomy_data(num_pages=1000, num_tags=100, tags_per_page=5)
+            tag_to_pages, _ = generate_taxonomy_data(
+                num_pages=1000, num_tags=100, tags_per_page=5
+            )
             index = create_taxonomy_index(tag_to_pages)
 
             start = time.perf_counter()
@@ -346,7 +371,9 @@ class TestTaxonomyRemovePageFromAllTags:
             timings.append(time.perf_counter() - start)
 
         avg_ms = (sum(timings) / len(timings)) * 1000
-        print(f"\n📊 remove_page_from_all_tags (1K pages, 100 tags): {avg_ms:.4f}ms avg")
+        print(
+            f"\n📊 remove_page_from_all_tags (1K pages, 100 tags): {avg_ms:.4f}ms avg"
+        )
         assert isinstance(result, set)
 
     @pytest.mark.slow
@@ -368,7 +395,9 @@ class TestTaxonomyRemovePageFromAllTags:
             timings.append(time.perf_counter() - start)
 
         avg_ms = (sum(timings) / len(timings)) * 1000
-        print(f"\n📊 remove_page_from_all_tags (10K pages, 500 tags): {avg_ms:.4f}ms avg")
+        print(
+            f"\n📊 remove_page_from_all_tags (10K pages, 500 tags): {avg_ms:.4f}ms avg"
+        )
         print("   ✅ Target after optimization: <20ms")
         assert isinstance(result, set)
 
@@ -402,7 +431,9 @@ class TestQueryIndexRemovePageFromKey:
             timings.append(time.perf_counter() - start)
 
         avg_us = (sum(timings) / len(timings)) * 1_000_000
-        print(f"\n📊 set.discard() (1K pages, 50 keys, ~20 pages/key): {avg_us:.2f}μs avg")
+        print(
+            f"\n📊 set.discard() (1K pages, 50 keys, ~20 pages/key): {avg_us:.2f}μs avg"
+        )
 
     def test_set_discard_10k(self, query_index_entries_10k):
         """Benchmark: set.discard() on 10K pages across 100 keys (~100 pages/key)."""
@@ -420,7 +451,9 @@ class TestQueryIndexRemovePageFromKey:
             timings.append(time.perf_counter() - start)
 
         avg_us = (sum(timings) / len(timings)) * 1_000_000
-        print(f"\n📊 set.discard() (10K pages, 100 keys, ~100 pages/key): {avg_us:.2f}μs avg")
+        print(
+            f"\n📊 set.discard() (10K pages, 100 keys, ~100 pages/key): {avg_us:.2f}μs avg"
+        )
         print("   ✅ O(1) set operations achieved")
 
     def test_set_vs_list_comparison(self, query_index_entries_10k):

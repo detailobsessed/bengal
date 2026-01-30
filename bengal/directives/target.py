@@ -49,54 +49,52 @@ __all__ = ["TargetDirective", "TargetOptions"]
 class TargetOptions(DirectiveOptions):
     """
     Options for target directive.
-    
+
     The target directive is intentionally simple - no options by default.
     The anchor ID is specified as the directive title.
-    
+
     Example:
         :::{target} important-note
         :::
-        
-    """
 
-    pass
+    """
 
 
 class TargetDirective(BengalDirective):
     """
     Create an explicit anchor target at any location.
-    
+
     Syntax:
         :::{target} my-anchor-id
         :::
-    
+
     The target renders as an invisible anchor element that can be
     referenced via [[#my-anchor-id]] cross-reference syntax.
-    
+
     Anchor ID Requirements:
         - Must start with a letter (a-z, A-Z)
         - May contain letters, numbers, hyphens, underscores
         - Case-sensitive in output, case-insensitive for resolution
-    
+
     Use Cases:
         - Anchor before a note/warning that users should link to
         - Stable anchor that survives content restructuring
         - Migration from Sphinx's ``.. _label:`` syntax
-    
+
     Example:
         :::{target} important-caveat
         :::
-    
+
         :::{warning}
         This caveat is critical for production use.
         :::
-    
+
         See [[#important-caveat|the caveat]] for details.
-    
+
     Note:
         The anchor is invisible - it renders as an empty <span> element.
         Any content inside the directive is ignored (anchors are point targets).
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["target", "anchor"]
@@ -132,7 +130,7 @@ class TargetDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: TargetOptions,  # type: ignore[override]
+        options: TargetOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -194,4 +192,6 @@ class TargetDirective(BengalDirective):
         anchor_id = attrs.get("id", "")
         # Invisible anchor element - no visual output
         # The class allows CSS to add scroll-margin-top for fixed headers
-        return f'<span id="{self.escape_html(anchor_id)}" class="target-anchor"></span>\n'
+        return (
+            f'<span id="{self.escape_html(anchor_id)}" class="target-anchor"></span>\n'
+        )

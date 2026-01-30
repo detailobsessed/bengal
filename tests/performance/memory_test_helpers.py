@@ -136,7 +136,9 @@ class MemoryProfiler:
             raise RuntimeError("Must use as context manager")
 
         # Calculate deltas
-        python_delta_bytes = self.after.python_current_bytes - self.before.python_current_bytes
+        python_delta_bytes = (
+            self.after.python_current_bytes - self.before.python_current_bytes
+        )
         python_peak_bytes = self.after.python_peak_bytes - self.before.python_peak_bytes
         rss_delta_bytes = self.after.rss_bytes - self.before.rss_bytes
         vms_delta_bytes = self.after.vms_bytes - self.before.vms_bytes
@@ -168,14 +170,14 @@ class MemoryProfiler:
 def profile_memory(name: str = "Operation", verbose: bool = True):
     """
     Convenience context manager for profiling memory.
-    
+
     Example:
         with profile_memory("Building site", verbose=True) as prof:
             site.build(BuildOptions())
-    
+
         delta = prof.get_delta()
         assert delta.rss_delta_mb < 500
-        
+
     """
     profiler = MemoryProfiler(track_allocations=verbose)
 

@@ -15,24 +15,24 @@ if TYPE_CHECKING:
 def get_breadcrumbs(page: Page) -> list[dict[str, Any]]:
     """
     Get breadcrumb items for a page.
-    
+
     Returns a list of breadcrumb items that can be styled and rendered
     however you want in your template. Each item is a dictionary with:
     - title: Display text for the breadcrumb
     - url: URL to link to
     - is_current: True if this is the current page (should not be a link)
-    
+
     This function handles the logic of:
     - Building the ancestor chain
     - Detecting section index pages (to avoid duplication)
     - Determining which item is current
-    
+
     Args:
         page: Page to generate breadcrumbs for
-    
+
     Returns:
         List of breadcrumb items (dicts with title, url, is_current)
-    
+
     Example (basic):
         {% for item in get_breadcrumbs(page) %}
           {% if item.is_current %}
@@ -41,7 +41,7 @@ def get_breadcrumbs(page: Page) -> list[dict[str, Any]]:
             <a href="{{ item.href }}">{{ item.title }}</a>
           {% endif %}
         {% endfor %}
-    
+
     Example (with custom styling):
         <nav aria-label="Breadcrumb">
           <ol class="breadcrumb">
@@ -56,7 +56,7 @@ def get_breadcrumbs(page: Page) -> list[dict[str, Any]]:
             {% endfor %}
           </ol>
         </nav>
-    
+
     Example (JSON-LD structured data):
         <script type="application/ld+json">
         {
@@ -74,7 +74,7 @@ def get_breadcrumbs(page: Page) -> list[dict[str, Any]]:
           ]
         }
         </script>
-        
+
     """
     items: list[dict[str, Any]] = []
 
@@ -89,15 +89,22 @@ def get_breadcrumbs(page: Page) -> list[dict[str, Any]]:
         tag_name = page.metadata.get("_tag", "Tag")
         items.append({"title": "Home", "href": "/", "is_current": False})
         items.append({"title": "Tags", "href": "/tags/", "is_current": False})
-        page_url = getattr(page, "_path", None) or f"/tags/{page.metadata.get('_tag_slug', '')}/"
+        page_url = (
+            getattr(page, "_path", None)
+            or f"/tags/{page.metadata.get('_tag_slug', '')}/"
+        )
         items.append({"title": tag_name, "href": page_url, "is_current": True})
         return items
 
     # Handle pages without ancestors (fallback)
     if not hasattr(page, "ancestors") or not page.ancestors:
         # If page doesn't have enough info to generate breadcrumbs, return empty
-        has_title = hasattr(page, "title") and isinstance(getattr(page, "title", None), str)
-        has_url = hasattr(page, "_path") and isinstance(getattr(page, "_path", None), str)
+        has_title = hasattr(page, "title") and isinstance(
+            getattr(page, "title", None), str
+        )
+        has_url = hasattr(page, "_path") and isinstance(
+            getattr(page, "_path", None), str
+        )
         if not (has_title and has_url):
             return []
         # If page has a title and URL, add Home and the page
@@ -124,7 +131,8 @@ def get_breadcrumbs(page: Page) -> list[dict[str, Any]]:
     if last_ancestor and hasattr(page, "_path"):
         # Use _path for comparison (without baseurl)
         ancestor_url = (
-            getattr(last_ancestor, "_path", None) or f"/{getattr(last_ancestor, 'slug', '')}/"
+            getattr(last_ancestor, "_path", None)
+            or f"/{getattr(last_ancestor, 'slug', '')}/"
         )
         page_path = getattr(page, "_path", None) or f"/{getattr(page, 'slug', '')}/"
         is_section_index = ancestor_url == page_path
@@ -160,14 +168,14 @@ def get_breadcrumbs(page: Page) -> list[dict[str, Any]]:
 def _derive_title(obj: Any, url: str) -> str:
     """
     Derive a title from an object, falling back to slug or URL if empty.
-    
+
     Args:
         obj: Object with potential title/slug attributes
         url: URL to extract title from as last resort
-    
+
     Returns:
         Title string
-        
+
     """
     title = getattr(obj, "title", None)
     if title and str(title).strip():

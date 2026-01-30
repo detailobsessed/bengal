@@ -10,8 +10,6 @@ Covers:
 - Stats display functions
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -33,7 +31,9 @@ class TestBuildWarning:
         assert warning.message == "Test message"
         assert warning.warning_type == "jinja2"
 
-    def test_short_path_relative_to_cwd(self, tmp_path: Path, monkeypatch: MagicMock) -> None:
+    def test_short_path_relative_to_cwd(
+        self, tmp_path: Path, monkeypatch: MagicMock
+    ) -> None:
         """Test short_path returns path relative to cwd."""
         from bengal.orchestration.stats import BuildWarning
 
@@ -295,7 +295,9 @@ class TestDisplayFunctions:
     """Test display functions."""
 
     @patch("bengal.orchestration.stats.warnings.CLIOutput")
-    def test_display_warnings_skips_when_no_warnings(self, mock_cli_class: MagicMock) -> None:
+    def test_display_warnings_skips_when_no_warnings(
+        self, mock_cli_class: MagicMock
+    ) -> None:
         """Test display_warnings does nothing when no warnings."""
         from bengal.orchestration.stats import BuildStats, display_warnings
 
@@ -307,7 +309,9 @@ class TestDisplayFunctions:
         mock_cli_class.return_value.error_header.assert_not_called()
 
     @patch("bengal.orchestration.stats.display.CLIOutput")
-    def test_display_simple_build_stats_handles_skipped(self, mock_cli_class: MagicMock) -> None:
+    def test_display_simple_build_stats_handles_skipped(
+        self, mock_cli_class: MagicMock
+    ) -> None:
         """Test display_simple_build_stats handles skipped builds."""
         from bengal.orchestration.stats import BuildStats, display_simple_build_stats
 
@@ -321,7 +325,9 @@ class TestDisplayFunctions:
         mock_cli.info.assert_called()
 
     @patch("bengal.orchestration.stats.display.CLIOutput")
-    def test_display_build_stats_handles_skipped(self, mock_cli_class: MagicMock) -> None:
+    def test_display_build_stats_handles_skipped(
+        self, mock_cli_class: MagicMock
+    ) -> None:
         """Test display_build_stats handles skipped builds."""
         from bengal.orchestration.stats import BuildStats, display_build_stats
 

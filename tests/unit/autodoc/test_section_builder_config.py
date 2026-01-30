@@ -96,7 +96,9 @@ class TestDisplayNameConfig:
         assert root_section is not None
         assert root_section.title == "MyApp API Reference"
 
-    def test_python_section_uses_default_when_no_display_name(self, mock_site, mock_elements):
+    def test_python_section_uses_default_when_no_display_name(
+        self, mock_site, mock_elements
+    ):
         """Python sections should fall back to 'Python API Reference' when no display_name."""
         # Ensure display_name is not set
         mock_site.config["autodoc"]["python"].pop("display_name", None)
@@ -110,7 +112,9 @@ class TestDisplayNameConfig:
         assert root_section is not None
         assert root_section.title == "Python API Reference"
 
-    def test_python_section_uses_default_when_empty_display_name(self, mock_site, mock_elements):
+    def test_python_section_uses_default_when_empty_display_name(
+        self, mock_site, mock_elements
+    ):
         """Python sections should fall back to default when display_name is empty string."""
         mock_site.config["autodoc"]["python"]["display_name"] = ""
 
@@ -136,7 +140,9 @@ class TestDisplayNameConfig:
         assert root_section is not None
         assert root_section.title == "MyApp CLI"
 
-    def test_cli_section_uses_default_when_no_display_name(self, mock_site, mock_cli_elements):
+    def test_cli_section_uses_default_when_no_display_name(
+        self, mock_site, mock_cli_elements
+    ):
         """CLI sections should fall back to 'CLI Reference' when no display_name."""
         mock_site.config["autodoc"]["cli"].pop("display_name", None)
 

@@ -8,8 +8,7 @@ Thread-safe: all state is local to each render() call.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 from patitas.nodes import (
     Block,
@@ -58,7 +57,9 @@ class BlockRendererMixin:
     - _get_unique_slug(text): method
     """
 
-    def _render_block(self: HtmlRendererProtocol, node: Block, sb: StringBuilder) -> None:
+    def _render_block(
+        self: HtmlRendererProtocol, node: Block, sb: StringBuilder
+    ) -> None:
         """Render a block node to StringBuilder."""
         match node:
             case Heading(level=level, children=children, explicit_id=explicit_id):
@@ -195,7 +196,9 @@ class BlockRendererMixin:
 
         sb.append("</li>\n")
 
-    def _render_table(self: HtmlRendererProtocol, table: Table, sb: StringBuilder) -> None:
+    def _render_table(
+        self: HtmlRendererProtocol, table: Table, sb: StringBuilder
+    ) -> None:
         """Render a table with thead and tbody."""
         # Accumulate metadata if context is active
         meta = get_metadata()
@@ -260,7 +263,9 @@ class BlockRendererMixin:
                         # Inline the paragraph content with back-reference
                         sb.append("<p>")
                         self._render_inline_children(child.children, sb)
-                        sb.append(f'<a href="#fnref-{identifier}" class="footnote">&#8617;</a>')
+                        sb.append(
+                            f'<a href="#fnref-{identifier}" class="footnote">&#8617;</a>'
+                        )
                         sb.append("</p>")
                     else:
                         self._render_block(child, sb)

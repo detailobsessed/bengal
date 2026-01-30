@@ -201,7 +201,9 @@ def hello():
         # Check for Pygments syntax highlighting
         assert '<span class="k">def</span>' in result or "def" in result
         assert '<span class="nf">hello</span>' in result or "hello" in result
-        assert '<div class="highlight">' in result or "<code" in result or "<pre" in result
+        assert (
+            '<div class="highlight">' in result or "<code" in result or "<pre" in result
+        )
 
 
 class TestEdgeCases:
@@ -715,7 +717,9 @@ class TestChildCardsDirective:
         page.metadata = metadata or {"description": description}
         return page
 
-    def _create_mock_subsection(self, name, title, description="", url="/", metadata=None):
+    def _create_mock_subsection(
+        self, name, title, description="", url="/", metadata=None
+    ):
         """Create a mock subsection for testing."""
         from pathlib import Path
         from unittest.mock import Mock
@@ -750,7 +754,9 @@ class TestChildCardsDirective:
         section = self._create_mock_section(subsections=[subsection1, subsection2])
 
         # Create mock current page with _section
-        current_page = self._create_mock_page(title="Content", source_path="docs/content/_index.md")
+        current_page = self._create_mock_page(
+            title="Content", source_path="docs/content/_index.md"
+        )
         current_page._section = section
 
         # Set current page on renderer
@@ -779,7 +785,9 @@ class TestChildCardsDirective:
         """Test child-cards with include: sections only shows subsections."""
 
         subsection = self._create_mock_subsection("sub", "Subsection", url="/docs/sub/")
-        page = self._create_mock_page("Regular Page", source_path="docs/page.md", url="/docs/page/")
+        page = self._create_mock_page(
+            "Regular Page", source_path="docs/page.md", url="/docs/page/"
+        )
 
         section = self._create_mock_section(subsections=[subsection], pages=[page])
         current_page = self._create_mock_page("Index", source_path="docs/_index.md")
@@ -891,7 +899,11 @@ class TestChildCardsDirective:
         subsection.index_page = Mock()
         subsection.index_page.href = "/docs/org/"
         # Use a real dict for metadata so .get() works correctly
-        subsection.metadata = {"description": "Organize stuff", "icon": "folder", "weight": 0}
+        subsection.metadata = {
+            "description": "Organize stuff",
+            "icon": "folder",
+            "weight": 0,
+        }
 
         section = self._create_mock_section(subsections=[subsection])
         current_page = self._create_mock_page("Index", source_path="docs/_index.md")
@@ -919,7 +931,9 @@ class TestChildCardsDirective:
             description="First sentence with **bold**.\n\n- item 1\n- item 2",
             source_path="docs/page.md",
             url="/docs/page/",
-            metadata={"description": "First sentence with **bold**.\n\n- item 1\n- item 2"},
+            metadata={
+                "description": "First sentence with **bold**.\n\n- item 1\n- item 2"
+            },
         )
 
         section = self._create_mock_section(subsections=[], pages=[page])

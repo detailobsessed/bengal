@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -9,7 +7,9 @@ from bengal.rendering.external_refs.resolver import UnresolvedRef
 
 
 def test_external_refs_empty_resolves_to_no_results() -> None:
-    site = SimpleNamespace(config={"external_refs": {"enabled": True}}, external_ref_resolver=None)
+    site = SimpleNamespace(
+        config={"external_refs": {"enabled": True}}, external_ref_resolver=None
+    )
     validator = ExternalRefValidator()
 
     assert validator.validate(site) == []
@@ -17,7 +17,9 @@ def test_external_refs_empty_resolves_to_no_results() -> None:
 
 def test_external_refs_unresolved_warning() -> None:
     unresolved = [
-        UnresolvedRef(project="p", target="Missing", source_file=Path("docs/page.md"), line=10)
+        UnresolvedRef(
+            project="p", target="Missing", source_file=Path("docs/page.md"), line=10
+        )
     ]
     site = SimpleNamespace(
         config={"external_refs": {"enabled": True}},

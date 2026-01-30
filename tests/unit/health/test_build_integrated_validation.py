@@ -8,8 +8,6 @@ Verifies that:
 4. Tiered validation filtering works correctly
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from threading import Thread
 from typing import TYPE_CHECKING
@@ -128,7 +126,9 @@ class TestBuildContextContentCache:
 class TestContentDiscoveryIntegration:
     """Tests for ContentDiscovery integration with BuildContext."""
 
-    def test_discovery_caches_content_when_build_context_provided(self, tmp_path: Path) -> None:
+    def test_discovery_caches_content_when_build_context_provided(
+        self, tmp_path: Path
+    ) -> None:
         """Test that ContentDiscovery caches content when build_context is provided."""
         from bengal.content.discovery.content_discovery import ContentDiscovery
 
@@ -161,7 +161,7 @@ class TestContentDiscoveryIntegration:
 
         # Run discovery without build_context (backward compat)
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         assert len(pages) == 1
         assert pages[0].title == "Test"
@@ -211,7 +211,9 @@ This is a note directive
 
         # Create a real file
         test_file = tmp_path / "test.md"
-        test_file.write_text("---\ntitle: Test\n---\n\nNo directives here.", encoding="utf-8")
+        test_file.write_text(
+            "---\ntitle: Test\n---\n\nNo directives here.", encoding="utf-8"
+        )
 
         # Create mock page with real path
         mock_page = MagicMock()
@@ -237,7 +239,9 @@ This is a note directive
 
         # Create a real file
         test_file = tmp_path / "test.md"
-        test_file.write_text("---\ntitle: Test\n---\n\nNo directives here.", encoding="utf-8")
+        test_file.write_text(
+            "---\ntitle: Test\n---\n\nNo directives here.", encoding="utf-8"
+        )
 
         # Create mock page with real path
         mock_page = MagicMock()
@@ -285,7 +289,9 @@ class TestTieredValidation:
         health.validators = mock_validators
 
         # Check tier filtering for build tier
-        in_build = [v for v in mock_validators if health._is_validator_in_tier(v, "build")]
+        in_build = [
+            v for v in mock_validators if health._is_validator_in_tier(v, "build")
+        ]
         names_in_build = {v.name.lower() for v in in_build}
 
         assert "config" in names_in_build
@@ -318,7 +324,9 @@ class TestTieredValidation:
 
         health.validators = mock_validators
 
-        in_full = [v for v in mock_validators if health._is_validator_in_tier(v, "full")]
+        in_full = [
+            v for v in mock_validators if health._is_validator_in_tier(v, "full")
+        ]
         names_in_full = {v.name.lower() for v in in_full}
 
         assert "config" in names_in_full
@@ -418,7 +426,7 @@ baseurl = "/"
 
         ctx = BuildContext()
         discovery = ContentDiscovery(content_dir, build_context=ctx)
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Verify content was cached
         assert ctx.has_cached_content

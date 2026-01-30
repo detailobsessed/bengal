@@ -29,7 +29,9 @@ class TestInfrastructurePrototype:
         assert len(site.pages) == 1
         assert (site.output_dir / "index.html").exists()
 
-    @pytest.mark.bengal(testroot="test-baseurl", confoverrides={"site.baseurl": "/custom"})
+    @pytest.mark.bengal(
+        testroot="test-baseurl", confoverrides={"site.baseurl": "/custom"}
+    )
     def test_config_overrides(self, site):
         """Test config overrides with @pytest.mark.bengal."""
         # Override should be applied
@@ -49,7 +51,9 @@ class TestInfrastructurePrototype:
 
     def test_site_factory_with_overrides(self, site_factory):
         """Test site_factory with config overrides."""
-        site = site_factory("test-basic", confoverrides={"site.title": "Overridden Title"})
+        site = site_factory(
+            "test-basic", confoverrides={"site.title": "Overridden Title"}
+        )
 
         assert site.title == "Overridden Title"
 

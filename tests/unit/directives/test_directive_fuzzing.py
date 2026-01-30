@@ -5,10 +5,8 @@ These tests use fuzzing to discover edge cases that manual tests might miss.
 They ensure directive parsing is robust against arbitrary and malformed input.
 """
 
-from __future__ import annotations
-
-import pytest
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from bengal.directives.validator import DirectiveSyntaxValidator
 
@@ -67,7 +65,9 @@ class TestValidatorFuzzing:
         st.lists(
             st.tuples(
                 st.integers(min_value=3, max_value=10),  # colon count
-                st.text(alphabet="abcdefghijklmnopqrstuvwxyz-_", min_size=1, max_size=15),
+                st.text(
+                    alphabet="abcdefghijklmnopqrstuvwxyz-_", min_size=1, max_size=15
+                ),
             ),
             min_size=0,
             max_size=15,

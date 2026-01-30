@@ -7,10 +7,7 @@ independent of CI cache keys, providing defense-in-depth for cache correctness.
 See: plan/rfc-ci-cache-inputs.md (Phase 4: Self-Validating Cache)
 """
 
-from __future__ import annotations
-
 import time
-from pathlib import Path
 
 import pytest
 
@@ -44,7 +41,11 @@ class TestAutodocSourceMetadata:
         # Path normalized relative to site parent
         normalized_key = str(source_file.relative_to(tmp_path))
         assert normalized_key in cache.autodoc_source_metadata
-        assert cache.autodoc_source_metadata[normalized_key] == (source_hash, source_mtime, {})
+        assert cache.autodoc_source_metadata[normalized_key] == (
+            source_hash,
+            source_mtime,
+            {},
+        )
 
     def test_add_autodoc_dependency_without_metadata(self, tmp_path):
         """Missing metadata is rejected."""

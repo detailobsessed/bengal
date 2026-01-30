@@ -83,8 +83,8 @@ from bengal.postprocess.output_formats.utils import (
     generate_excerpt,
     get_page_relative_url,
 )
-from bengal.utils.io.atomic_write import AtomicFile
 from bengal.utils.autodoc import is_autodoc_page
+from bengal.utils.io.atomic_write import AtomicFile
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
@@ -92,11 +92,9 @@ if TYPE_CHECKING:
     from bengal.orchestration.build_context import AccumulatedPageData, BuildContext
     from bengal.protocols import SiteLike
 else:
-    from bengal.protocols import PageLike as Page
-    from bengal.orchestration.build_context import AccumulatedPageData
-    from bengal.protocols import PageLike as Page
     from bengal.orchestration.build_context import AccumulatedPageData, BuildContext
-    from bengal.protocols import PageLike, SiteLike
+    from bengal.protocols import PageLike as Page
+    from bengal.protocols import SiteLike
 
 logger = get_logger(__name__)
 
@@ -104,25 +102,25 @@ logger = get_logger(__name__)
 class SiteIndexGenerator:
     """
     Generates site-wide index.json for search and navigation.
-    
+
     Creates a comprehensive JSON index optimized for Lunr.js client-side
     search, faceted filtering, and programmatic access to site content.
-    
+
     Creation:
         Direct instantiation: SiteIndexGenerator(site, excerpt_length=200)
             - Created by OutputFormatsGenerator for index generation
             - Requires Site instance with rendered pages
-    
+
     Attributes:
         site: Site instance with pages and configuration
         excerpt_length: Character length for page excerpts (default: 200)
         json_indent: JSON indentation (None for compact)
         include_full_content: Include full content in index (default: False)
-    
+
     Relationships:
         - Used by: OutputFormatsGenerator facade
         - Uses: Site for pages, LunrIndexGenerator for pre-built search index
-    
+
     Features:
         - Search-optimized summaries with objectID for Lunr
         - Section and tag aggregations for faceted navigation
@@ -130,11 +128,11 @@ class SiteIndexGenerator:
         - Per-version indexes when versioning enabled
         - i18n support with per-locale indexes
         - Write-if-changed optimization
-    
+
     Example:
             >>> generator = SiteIndexGenerator(site, excerpt_length=200)
             >>> path = generator.generate(pages)  # Returns Path or list[Path]
-        
+
     """
 
     def __init__(
@@ -213,7 +211,9 @@ class SiteIndexGenerator:
                 version_accumulated = [
                     d for d in accumulated_data if d.source_path in version_paths
                 ]
-            path = self._generate_version_index(version_id, version_pages, version_accumulated)
+            path = self._generate_version_index(
+                version_id, version_pages, version_accumulated
+            )
             generated.append(path)
 
         return generated
@@ -292,7 +292,8 @@ class SiteIndexGenerator:
 
         # Convert counts to lists (sorted for deterministic output)
         site_data["sections"] = [
-            {"name": name, "count": count} for name, count in sorted(site_data["sections"].items())
+            {"name": name, "count": count}
+            for name, count in sorted(site_data["sections"].items())
         ]
         site_data["tags"] = [
             {"name": name, "count": count}
@@ -312,7 +313,9 @@ class SiteIndexGenerator:
         index_path = self._get_index_path()
 
         # Write only if content changed (sort_keys for deterministic JSON)
-        new_json_str = json.dumps(site_data, indent=self.json_indent, ensure_ascii=False, sort_keys=True)
+        new_json_str = json.dumps(
+            site_data, indent=self.json_indent, ensure_ascii=False, sort_keys=True
+        )
         self._write_if_changed(index_path, new_json_str)
 
         logger.debug(
@@ -323,7 +326,9 @@ class SiteIndexGenerator:
 
         return index_path
 
-    def _add_to_site_data(self, site_data: dict[str, Any], page_summary: dict[str, Any]) -> None:
+    def _add_to_site_data(
+        self, site_data: dict[str, Any], page_summary: dict[str, Any]
+    ) -> None:
         """Add page summary to site data and update aggregations."""
         site_data["pages"].append(page_summary)
 
@@ -376,8 +381,7 @@ class SiteIndexGenerator:
                 summary["content"] = data.content_preview
 
         # Enhanced metadata (type, author, draft, etc.)
-        for key, value in data.enhanced_metadata.items():
-            summary[key] = value
+        summary.update(data.enhanced_metadata)
 
         # Content type alias
         if result_type := summary.get("type"):
@@ -446,7 +450,8 @@ class SiteIndexGenerator:
 
         # Convert counts to lists (sorted for deterministic output)
         site_data["sections"] = [
-            {"name": name, "count": count} for name, count in sorted(site_data["sections"].items())
+            {"name": name, "count": count}
+            for name, count in sorted(site_data["sections"].items())
         ]
         site_data["tags"] = [
             {"name": name, "count": count}
@@ -465,7 +470,9 @@ class SiteIndexGenerator:
             index_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write only if content changed (sort_keys for deterministic JSON)
-        new_json_str = json.dumps(site_data, indent=self.json_indent, ensure_ascii=False, sort_keys=True)
+        new_json_str = json.dumps(
+            site_data, indent=self.json_indent, ensure_ascii=False, sort_keys=True
+        )
         self._write_if_changed(index_path, new_json_str)
 
         logger.debug(
@@ -491,7 +498,9 @@ class SiteIndexGenerator:
             return True
         version_config = self.site.version_config
         # Type narrowing: check if enabled attribute exists
-        if not hasattr(version_config, "enabled") or not getattr(version_config, "enabled", False):
+        if not hasattr(version_config, "enabled") or not getattr(
+            version_config, "enabled", False
+        ):
             return True
         # Type narrowing: check if get_version method exists
         get_version_method = getattr(version_config, "get_version", None)
@@ -617,7 +626,9 @@ class SiteIndexGenerator:
             if self.include_full_content:
                 summary["content"] = content_text
             else:
-                summary["content"] = generate_excerpt(content_text, self.excerpt_length * 3)
+                summary["content"] = generate_excerpt(
+                    content_text, self.excerpt_length * 3
+                )
 
         # Directory structure
         if page_uri and isinstance(page_uri, str):
@@ -652,7 +663,9 @@ class SiteIndexGenerator:
         except (TypeError, ValueError):
             return False
 
-    def _safe_get_metadata_value(self, metadata: dict[str, Any], key: str) -> Any | None:
+    def _safe_get_metadata_value(
+        self, metadata: dict[str, Any], key: str
+    ) -> Any | None:
         """Safely get metadata value, ensuring it's JSON-serializable."""
         value = metadata.get(key)
         if value is None:
@@ -663,7 +676,9 @@ class SiteIndexGenerator:
         if isinstance(value, (list, tuple)):
             # Filter out Mock objects from lists
             filtered_list = [
-                v for v in value if not isinstance(v, Mock) and self._is_json_serializable(v)
+                v
+                for v in value
+                if not isinstance(v, Mock) and self._is_json_serializable(v)
             ]
             return filtered_list if filtered_list else None
         if isinstance(value, dict):
@@ -678,7 +693,9 @@ class SiteIndexGenerator:
             return value
         return None
 
-    def _add_enhanced_metadata(self, summary: dict[str, Any], metadata: dict[str, Any]) -> None:
+    def _add_enhanced_metadata(
+        self, summary: dict[str, Any], metadata: dict[str, Any]
+    ) -> None:
         """Add enhanced metadata fields to summary, ensuring JSON serializability."""
         # Content type and layout
         if value := self._safe_get_metadata_value(metadata, "type"):

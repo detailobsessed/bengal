@@ -52,16 +52,16 @@ from bengal.errors import BengalContentError, ErrorCode
 class MenuItem:
     """
     Represents a single menu item with optional hierarchy.
-    
+
     Menu items form hierarchical navigation structures with parent-child
     relationships. Items can be marked as active based on current page URL,
     and support weight-based sorting for display order.
-    
+
     Creation:
         Config file: Explicit menu definitions in bengal.toml
         Page frontmatter: Pages register themselves via menu metadata
         Section structure: Auto-generated from section hierarchy
-    
+
     Attributes:
         name: Display name for the menu item
         url: URL path for the menu item
@@ -72,27 +72,27 @@ class MenuItem:
         children: Child menu items (populated during menu building)
         active: Whether this item matches the current page URL
         active_trail: Whether this item is in the active path (has active child)
-    
+
     Performance:
         Children are sorted lazily via sort_children() rather than on every
         add_child() call. This changes complexity from O(n × k log k) to
         O(n + k log k) for menu building with n inserts and k children.
-    
+
     Relationships:
         - Used by: MenuBuilder for menu construction
         - Used by: MenuOrchestrator for menu building
         - Used in: Templates via site.menu for navigation rendering
-    
+
     Examples:
         # From config
         menu_item = MenuItem(name="Home", url="/", weight=1)
-    
+
         # From page frontmatter
         menu_item = MenuItem(name=page.title, url=page.href, weight=page.metadata.get("weight", 0))
-    
+
         # With icon
         menu_item = MenuItem(name="API Reference", url="/api/", icon="book")
-        
+
     """
 
     name: str
@@ -284,22 +284,22 @@ class MenuItem:
 class MenuBuilder:
     """
     Builds hierarchical menu structures from various sources.
-    
+
     Constructs menu hierarchies from config definitions, page frontmatter, and
     section structure. Handles deduplication, cycle detection, and hierarchy
     building with parent-child relationships.
-    
+
     Creation:
         Direct instantiation: MenuBuilder()
             - Created by MenuOrchestrator for menu building
             - Fresh instance created for each menu build
-    
+
     Attributes:
         items: List of MenuItem objects (flat list before hierarchy building)
         _seen_identifiers: Set of seen identifiers for deduplication
         _seen_urls: Set of seen URLs for deduplication
         _seen_names: Set of seen names for deduplication
-    
+
     Behavior Notes:
         - Identifiers: Each MenuItem has an identifier (slug from name by default).
           Parent references use identifiers.
@@ -307,18 +307,18 @@ class MenuBuilder:
           ValueError when a cycle is found. Consumers should surface this early as
           a configuration error.
         - Deduplication: Automatically prevents duplicate items by identifier, URL, and name.
-    
+
     Relationships:
         - Uses: MenuItem for menu item representation
         - Used by: MenuOrchestrator for menu building
         - Used in: Menu building during content discovery phase
-    
+
     Examples:
         builder = MenuBuilder()
         builder.add_from_config(menu_config)
         builder.add_from_page(page, "main", page.metadata.get("menu", {}))
         menu_items = builder.build_hierarchy()
-        
+
     """
 
     def __init__(self, diagnostics: DiagnosticsSink | None = None) -> None:
@@ -428,7 +428,9 @@ class MenuBuilder:
             self.items.append(item)
             self._track_item(item)
 
-    def add_from_page(self, page: Page, menu_name: str, menu_config: dict[str, Any]) -> None:
+    def add_from_page(
+        self, page: Page, menu_name: str, menu_config: dict[str, Any]
+    ) -> None:
         """
         Add a page to menu based on frontmatter metadata.
 
@@ -520,10 +522,11 @@ class MenuBuilder:
         by_id = {item.identifier: item for item in self.items}
 
         # Validate parent references
-        orphaned_items = []
-        for item in self.items:
-            if item.parent and item.parent not in by_id:
-                orphaned_items.append((item.name, item.parent))
+        orphaned_items = [
+            (item.name, item.parent)
+            for item in self.items
+            if item.parent and item.parent not in by_id
+        ]
 
         if orphaned_items:
             message = (
@@ -713,4 +716,6 @@ class MenuBuilder:
             if item.mark_active(current_url):
                 active_count += 1
 
-        emit_diagnostic(self, "debug", "menu_active_items_marked", active_items=active_count)
+        emit_diagnostic(
+            self, "debug", "menu_active_items_marked", active_items=active_count
+        )

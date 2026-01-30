@@ -134,7 +134,9 @@ class Site:
     menu_builders: dict[str, MenuBuilder] = field(default_factory=dict)
     # Localized menus when i18n is enabled: {lang: {menu_name: [MenuItem]}}.
     menu_localized: dict[str, dict[str, list[MenuItem]]] = field(default_factory=dict)
-    menu_builders_localized: dict[str, dict[str, MenuBuilder]] = field(default_factory=dict)
+    menu_builders_localized: dict[str, dict[str, MenuBuilder]] = field(
+        default_factory=dict
+    )
     # Current language context for rendering (set per page during rendering).
     current_language: str | None = None
     # Global data from data/ directory (YAML, JSON, TOML files).
@@ -148,9 +150,15 @@ class Site:
     current_version: Version | None = None
 
     # Private caches for expensive properties (invalidated when pages change)
-    _regular_pages_cache: list[Page] | None = field(default=None, repr=False, init=False)
-    _generated_pages_cache: list[Page] | None = field(default=None, repr=False, init=False)
-    _listable_pages_cache: list[Page] | None = field(default=None, repr=False, init=False)
+    _regular_pages_cache: list[Page] | None = field(
+        default=None, repr=False, init=False
+    )
+    _generated_pages_cache: list[Page] | None = field(
+        default=None, repr=False, init=False
+    )
+    _listable_pages_cache: list[Page] | None = field(
+        default=None, repr=False, init=False
+    )
     # Page path map cache for O(1) page resolution (used by resolve_pages template function)
     _page_path_map: dict[str, Page] | None = field(default=None, repr=False, init=False)
     _page_path_map_version: int = field(default=-1, repr=False, init=False)
@@ -169,7 +177,9 @@ class Site:
     _registry: ContentRegistry | None = field(default=None, repr=False, init=False)
 
     # Current build state (set during build, None outside build context)
-    _current_build_state: BuildState | None = field(default=None, repr=False, init=False)
+    _current_build_state: BuildState | None = field(
+        default=None, repr=False, init=False
+    )
 
     # Config hash for cache invalidation (computed on init)
     _config_hash: str | None = field(default=None, repr=False, init=False)
@@ -181,7 +191,9 @@ class Site:
 
     # Dynamic runtime attributes (set by various orchestrators)
     # Menu metadata for dev server menu items (set by MenuOrchestrator)
-    _dev_menu_metadata: dict[str, Any] | None = field(default=None, repr=False, init=False)
+    _dev_menu_metadata: dict[str, Any] | None = field(
+        default=None, repr=False, init=False
+    )
     # Affected tags during incremental builds (set by TaxonomyOrchestrator)
     _affected_tags: set[str] = field(default_factory=set, repr=False, init=False)
     # Page lookup maps for efficient page resolution (set by template functions)
@@ -189,9 +201,15 @@ class Site:
         default=None, repr=False, init=False
     )
     # Last build stats for health check access (set by finalization phase)
-    _last_build_stats: dict[str, Any] | None = field(default=None, repr=False, init=False)
+    _last_build_stats: dict[str, Any] | None = field(
+        default=None, repr=False, init=False
+    )
     # Template parser cache (set by get_page template function)
     _template_parser: Any = field(default=None, repr=False, init=False)
+    # Last build options (set by BuildOrchestrator for phase-level optimizations)
+    _last_build_options: Any = field(default=None, repr=False, init=False)
+    # Build cache reference (set by BuildOrchestrator)
+    _cache: Any = field(default=None, repr=False, init=False)
 
     # =========================================================================
     # RUNTIME CACHES (Phase B: Formalized from dynamic injection)
@@ -202,17 +220,23 @@ class Site:
     _asset_manifest_previous: Any = field(default=None, repr=False, init=False)
 
     # Thread-safe set of fallback warnings to avoid duplicate warnings
-    _asset_manifest_fallbacks_global: set[str] = field(default_factory=set, repr=False, init=False)
+    _asset_manifest_fallbacks_global: set[str] = field(
+        default_factory=set, repr=False, init=False
+    )
 
     # Lock for thread-safe fallback set access (initialized in __post_init__)
     _asset_manifest_fallbacks_lock: Any = field(default=None, repr=False, init=False)
 
     # --- Template Environment Caches ---
     # Theme chain cache for template resolution
-    _bengal_theme_chain_cache: dict[str, Any] | None = field(default=None, repr=False, init=False)
+    _bengal_theme_chain_cache: dict[str, Any] | None = field(
+        default=None, repr=False, init=False
+    )
 
     # Template directories cache
-    _bengal_template_dirs_cache: dict[str, Any] | None = field(default=None, repr=False, init=False)
+    _bengal_template_dirs_cache: dict[str, Any] | None = field(
+        default=None, repr=False, init=False
+    )
 
     # Template metadata cache
     _bengal_template_metadata_cache: dict[str, Any] | None = field(
@@ -221,7 +245,9 @@ class Site:
 
     # --- Discovery State ---
     # Discovery timing breakdown (set by ContentOrchestrator)
-    _discovery_breakdown_ms: dict[str, float] | None = field(default=None, repr=False, init=False)
+    _discovery_breakdown_ms: dict[str, float] | None = field(
+        default=None, repr=False, init=False
+    )
 
     # Features detected during content discovery (mermaid, graph, data_tables, etc.)
     # Used by CSSOptimizer to include only CSS for features actually in use.
@@ -254,11 +280,8 @@ class Site:
             theme_value = self.config.get("theme")
             if isinstance(theme_value, str):
                 self.theme = theme_value
-            elif (
-                (isinstance(theme_value, dict)
-                and theme_value.get("name"))
-                or (hasattr(theme_value, "get")
-                and theme_value.get("name"))
+            elif (isinstance(theme_value, dict) and theme_value.get("name")) or (
+                hasattr(theme_value, "get") and theme_value.get("name")
             ):
                 self.theme = str(theme_value.get("name"))
             elif hasattr(theme_value, "name") and theme_value.name:
@@ -545,11 +568,17 @@ class Site:
         """
         if self.output_dir.exists():
             # Use debug level to avoid noise in clean command output
-            emit_diagnostic(self, "debug", "cleaning_output_dir", path=str(self.output_dir))
+            emit_diagnostic(
+                self, "debug", "cleaning_output_dir", path=str(self.output_dir)
+            )
             self._rmtree_robust(self.output_dir)
-            emit_diagnostic(self, "debug", "output_dir_cleaned", path=str(self.output_dir))
+            emit_diagnostic(
+                self, "debug", "output_dir_cleaned", path=str(self.output_dir)
+            )
         else:
-            emit_diagnostic(self, "debug", "output_dir_does_not_exist", path=str(self.output_dir))
+            emit_diagnostic(
+                self, "debug", "output_dir_does_not_exist", path=str(self.output_dir)
+            )
 
     @staticmethod
     def _rmtree_robust(path: Path, max_retries: int = 3) -> None:
@@ -583,7 +612,9 @@ class Site:
         - Clear derived: taxonomies, menu, menu_builders, xref_index (if present)
         - Clear caches: cached page lists
         """
-        emit_diagnostic(self, "debug", "site_reset_ephemeral_state", site_root=str(self.root_path))
+        emit_diagnostic(
+            self, "debug", "site_reset_ephemeral_state", site_root=str(self.root_path)
+        )
 
         # Content to be rediscovered
         self.pages = []
@@ -856,7 +887,9 @@ class Site:
                 if url in urls_seen:
                     # Get ownership context from registry
                     claim = self.url_registry.get_claim(url)
-                    owner_info = f" ({claim.owner}, priority {claim.priority})" if claim else ""
+                    owner_info = (
+                        f" ({claim.owner}, priority {claim.priority})" if claim else ""
+                    )
 
                     msg = (
                         f"URL collision detected: {url}\n"
@@ -1124,7 +1157,9 @@ class Site:
             site.logo  # Returns "/assets/logo.png" or ""
         """
         cfg = self.config
-        return cfg.get("logo_image", "") or cfg.get("site", {}).get("logo_image", "") or ""
+        return (
+            cfg.get("logo_image", "") or cfg.get("site", {}).get("logo_image", "") or ""
+        )
 
     @property
     def config_hash(self) -> str:
@@ -1460,7 +1495,9 @@ class Site:
                 ),
             },
             "speculation": {
-                "enabled": speculation.get("enabled", defaults["speculation"]["enabled"]),
+                "enabled": speculation.get(
+                    "enabled", defaults["speculation"]["enabled"]
+                ),
                 "prerender": {
                     "eagerness": speculation.get("prerender", {}).get(
                         "eagerness", defaults["speculation"]["prerender"]["eagerness"]
@@ -1489,10 +1526,18 @@ class Site:
                 "accordions": interactivity.get(
                     "accordions", defaults["interactivity"]["accordions"]
                 ),
-                "modals": interactivity.get("modals", defaults["interactivity"]["modals"]),
-                "tooltips": interactivity.get("tooltips", defaults["interactivity"]["tooltips"]),
-                "dropdowns": interactivity.get("dropdowns", defaults["interactivity"]["dropdowns"]),
-                "code_copy": interactivity.get("code_copy", defaults["interactivity"]["code_copy"]),
+                "modals": interactivity.get(
+                    "modals", defaults["interactivity"]["modals"]
+                ),
+                "tooltips": interactivity.get(
+                    "tooltips", defaults["interactivity"]["tooltips"]
+                ),
+                "dropdowns": interactivity.get(
+                    "dropdowns", defaults["interactivity"]["dropdowns"]
+                ),
+                "code_copy": interactivity.get(
+                    "code_copy", defaults["interactivity"]["code_copy"]
+                ),
             },
             # Feature flags with defaults (all enabled by default)
             "features": {
@@ -1555,16 +1600,26 @@ class Site:
             "hover_delay": value.get("hover_delay", defaults["hover_delay"]),
             "hide_delay": value.get("hide_delay", defaults["hide_delay"]),
             "show_section": value.get("show_section", defaults["show_section"]),
-            "show_reading_time": value.get("show_reading_time", defaults["show_reading_time"]),
-            "show_word_count": value.get("show_word_count", defaults["show_word_count"]),
+            "show_reading_time": value.get(
+                "show_reading_time", defaults["show_reading_time"]
+            ),
+            "show_word_count": value.get(
+                "show_word_count", defaults["show_word_count"]
+            ),
             "show_date": value.get("show_date", defaults["show_date"]),
             "show_tags": value.get("show_tags", defaults["show_tags"]),
             "max_tags": value.get("max_tags", defaults["max_tags"]),
-            "include_selectors": value.get("include_selectors", defaults["include_selectors"]),
-            "exclude_selectors": value.get("exclude_selectors", defaults["exclude_selectors"]),
+            "include_selectors": value.get(
+                "include_selectors", defaults["include_selectors"]
+            ),
+            "exclude_selectors": value.get(
+                "exclude_selectors", defaults["exclude_selectors"]
+            ),
             # Cross-site preview configuration (RFC: Cross-Site Link Previews)
             "allowed_hosts": value.get("allowed_hosts", defaults["allowed_hosts"]),
-            "allowed_schemes": value.get("allowed_schemes", defaults["allowed_schemes"]),
+            "allowed_schemes": value.get(
+                "allowed_schemes", defaults["allowed_schemes"]
+            ),
             "host_failure_threshold": value.get(
                 "host_failure_threshold", defaults["host_failure_threshold"]
             ),
@@ -1703,7 +1758,9 @@ class Site:
         if self._regular_pages_cache is not None:
             return self._regular_pages_cache
 
-        self._regular_pages_cache = [p for p in self.pages if not p.metadata.get("_generated")]
+        self._regular_pages_cache = [
+            p for p in self.pages if not p.metadata.get("_generated")
+        ]
         return self._regular_pages_cache
 
     @property
@@ -1726,7 +1783,9 @@ class Site:
         if self._generated_pages_cache is not None:
             return self._generated_pages_cache
 
-        self._generated_pages_cache = [p for p in self.pages if p.metadata.get("_generated")]
+        self._generated_pages_cache = [
+            p for p in self.pages if p.metadata.get("_generated")
+        ]
         return self._generated_pages_cache
 
     @property
@@ -1781,7 +1840,10 @@ class Site:
             page = page_map.get("content/posts/my-post.md")
         """
         current_version = len(self.pages)
-        if self._page_path_map is None or self._page_path_map_version != current_version:
+        if (
+            self._page_path_map is None
+            or self._page_path_map_version != current_version
+        ):
             self._page_path_map = {str(p.source_path): p for p in self.pages}
             self._page_path_map_version = current_version
         return self._page_path_map
@@ -1870,7 +1932,9 @@ class Site:
         data_dir = self.root_path / "data"
 
         if not data_dir.exists():
-            emit_diagnostic(self, "debug", "data_directory_not_found", path=str(data_dir))
+            emit_diagnostic(
+                self, "debug", "data_directory_not_found", path=str(data_dir)
+            )
             return DotDict()
 
         emit_diagnostic(self, "debug", "loading_data_directory", path=str(data_dir))
@@ -2102,7 +2166,9 @@ class Site:
             content_dir = self.root_path / "content"
 
         if not content_dir.exists():
-            emit_diagnostic(self, "warning", "content_dir_not_found", path=str(content_dir))
+            emit_diagnostic(
+                self, "warning", "content_dir_not_found", path=str(content_dir)
+            )
             return
 
         from bengal.collections import load_collections
@@ -2110,7 +2176,9 @@ class Site:
 
         collections = load_collections(self.root_path)
 
-        build_config = self.config.get("build", {}) if isinstance(self.config, dict) else {}
+        build_config = (
+            self.config.get("build", {}) if isinstance(self.config, dict) else {}
+        )
         strict_validation = build_config.get("strict_collections", False)
 
         discovery = ContentDiscovery(
@@ -2119,7 +2187,7 @@ class Site:
             collections=collections,
             strict_validation=strict_validation,
         )
-        self.sections, self.pages = discovery.discover()
+        self.sections, self.pages = discovery.discover()  # type: ignore[assignment]
 
         # MUST come before _setup_page_references (registry needed for lookups)
         self.register_sections()
@@ -2244,18 +2312,26 @@ class Site:
             assets_dir = self.root_path / "assets"
 
         if assets_dir.exists():
-            emit_diagnostic(self, "debug", "discovering_site_assets", path=str(assets_dir))
+            emit_diagnostic(
+                self, "debug", "discovering_site_assets", path=str(assets_dir)
+            )
             site_discovery = AssetDiscovery(assets_dir)
             self.assets.extend(site_discovery.discover())
         elif not self.assets:
-            emit_diagnostic(self, "warning", "assets_dir_not_found", path=str(assets_dir))
+            emit_diagnostic(
+                self, "warning", "assets_dir_not_found", path=str(assets_dir)
+            )
 
         # Deduplicate by output path: later entries override earlier (site > child theme > parents)
         if self.assets:
             dedup: dict[str, Asset] = {}
             order: list[str] = []
             for asset in self.assets:
-                key = str(asset.output_path) if asset.output_path else str(asset.source_path.name)
+                key = (
+                    str(asset.output_path)
+                    if asset.output_path
+                    else str(asset.source_path.name)
+                )
                 if key in dedup:
                     dedup[key] = asset
                 else:
@@ -2364,7 +2440,9 @@ class Site:
 
         if pages_without_section:
             # Log warning with samples (limit to 5 to avoid log spam)
-            sample_pages = [(str(p.source_path), s.name) for p, s in pages_without_section[:5]]
+            sample_pages = [
+                (str(p.source_path), s.name) for p, s in pages_without_section[:5]
+            ]
             emit_diagnostic(
                 self,
                 "warning",

@@ -5,12 +5,12 @@ Tests dataclass and Pydantic model validation with type coercion,
 error handling, and edge cases.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 from bengal.collections.errors import ValidationError
 from bengal.collections.validator import SchemaValidator, ValidationResult
@@ -145,7 +145,9 @@ class TestTypeCoercion:
     def test_bool_from_string_true(self) -> None:
         """Test bool coerced from string 'true'."""
         validator = SchemaValidator(BlogPostSchema)
-        result = validator.validate({"title": "Post", "date": datetime.now(), "draft": "true"})
+        result = validator.validate(
+            {"title": "Post", "date": datetime.now(), "draft": "true"}
+        )
 
         assert result.valid is True
         assert result.data.draft is True
@@ -153,7 +155,9 @@ class TestTypeCoercion:
     def test_bool_from_string_false(self) -> None:
         """Test bool coerced from string 'false'."""
         validator = SchemaValidator(BlogPostSchema)
-        result = validator.validate({"title": "Post", "date": datetime.now(), "draft": "false"})
+        result = validator.validate(
+            {"title": "Post", "date": datetime.now(), "draft": "false"}
+        )
 
         assert result.valid is True
         assert result.data.draft is False
@@ -161,7 +165,9 @@ class TestTypeCoercion:
     def test_bool_from_string_yes(self) -> None:
         """Test bool coerced from string 'yes'."""
         validator = SchemaValidator(BlogPostSchema)
-        result = validator.validate({"title": "Post", "date": datetime.now(), "draft": "yes"})
+        result = validator.validate(
+            {"title": "Post", "date": datetime.now(), "draft": "yes"}
+        )
 
         assert result.valid is True
         assert result.data.draft is True
@@ -280,7 +286,9 @@ class TestListValidation:
     def test_empty_list(self) -> None:
         """Test empty list is valid."""
         validator = SchemaValidator(BlogPostSchema)
-        result = validator.validate({"title": "Post", "date": datetime.now(), "tags": []})
+        result = validator.validate(
+            {"title": "Post", "date": datetime.now(), "tags": []}
+        )
 
         assert result.valid is True
         assert result.data.tags == []
@@ -296,7 +304,9 @@ class TestListValidation:
     def test_non_list_fails(self) -> None:
         """Test non-list value fails for list field."""
         validator = SchemaValidator(BlogPostSchema)
-        result = validator.validate({"title": "Post", "date": datetime.now(), "tags": "not-a-list"})
+        result = validator.validate(
+            {"title": "Post", "date": datetime.now(), "tags": "not-a-list"}
+        )
 
         assert result.valid is False
         assert any("tags" in e.field for e in result.errors)
@@ -317,7 +327,9 @@ class TestListValidation:
     def test_list_item_type_error(self) -> None:
         """Test list with invalid item type fails."""
         validator = SchemaValidator(ComplexTypesSchema)
-        result = validator.validate({"items": ["a"], "mapping": {}, "optional_list": ["not-int"]})
+        result = validator.validate(
+            {"items": ["a"], "mapping": {}, "optional_list": ["not-int"]}
+        )
 
         assert result.valid is False
         # Error should indicate which item failed
@@ -343,7 +355,9 @@ class TestOptionalTypes:
     def test_optional_with_none(self) -> None:
         """Test optional field with explicit None."""
         validator = SchemaValidator(BlogPostSchema)
-        result = validator.validate({"title": "Post", "date": datetime.now(), "description": None})
+        result = validator.validate(
+            {"title": "Post", "date": datetime.now(), "description": None}
+        )
 
         assert result.valid is True
         assert result.data.description is None
@@ -361,12 +375,16 @@ class TestOptionalTypes:
         validator = SchemaValidator(ComplexTypesSchema)
 
         # With value
-        result = validator.validate({"items": ["a"], "mapping": {}, "optional_list": [1, 2, 3]})
+        result = validator.validate(
+            {"items": ["a"], "mapping": {}, "optional_list": [1, 2, 3]}
+        )
         assert result.valid is True
         assert result.data.optional_list == [1, 2, 3]
 
         # With None
-        result = validator.validate({"items": ["a"], "mapping": {}, "optional_list": None})
+        result = validator.validate(
+            {"items": ["a"], "mapping": {}, "optional_list": None}
+        )
         assert result.valid is True
         assert result.data.optional_list is None
 
@@ -380,7 +398,9 @@ class TestNestedDataclass:
     def test_nested_valid(self) -> None:
         """Test valid nested dataclass."""
         validator = SchemaValidator(NestedSchema)
-        result = validator.validate({"name": "Parent", "metadata": {"title": "Child", "count": 10}})
+        result = validator.validate(
+            {"name": "Parent", "metadata": {"title": "Child", "count": 10}}
+        )
 
         assert result.valid is True
         assert result.data.name == "Parent"
@@ -800,7 +820,7 @@ class UnionSchema:
 
 class TestUnionTypeCoercion:
     """Tests for union type handling.
-    
+
     Note: Union coercion tries types in order. For `str | int`, `str` is tried
     first. Since most values can be coerced to str, the first type often wins.
     """
@@ -815,7 +835,7 @@ class TestUnionTypeCoercion:
 
     def test_union_coerces_to_first_matching_type(self) -> None:
         """Test union coerces to the first type that works.
-        
+
         For `str | int`, even an int value gets coerced to str since
         str(42) succeeds. This matches how unions try types in order.
         """
@@ -948,7 +968,9 @@ class TestErrorMessageQuality:
     def test_nested_error_has_full_path(self) -> None:
         """Test that nested field errors include the full field path."""
         validator = SchemaValidator(NestedSchema)
-        result = validator.validate({"name": "Parent", "metadata": {"count": "not-int"}})
+        result = validator.validate(
+            {"name": "Parent", "metadata": {"count": "not-int"}}
+        )
 
         assert result.valid is False
         # Error should reference metadata.title (missing) or metadata.count (wrong type)
@@ -976,11 +998,13 @@ class TestErrorMessageQuality:
     def test_list_item_error_shows_index(self) -> None:
         """Test that list item errors show the index."""
         validator = SchemaValidator(ComplexTypesSchema)
-        result = validator.validate({
-            "items": ["valid"],
-            "mapping": {},
-            "optional_list": [1, 2, "not-int", 4],
-        })
+        result = validator.validate(
+            {
+                "items": ["valid"],
+                "mapping": {},
+                "optional_list": [1, 2, "not-int", 4],
+            }
+        )
 
         assert result.valid is False
         # Error should mention optional_list[2]
@@ -996,10 +1020,12 @@ class TestDatetimeEdgeCases:
     def test_datetime_with_timezone(self) -> None:
         """Test datetime with timezone offset."""
         validator = SchemaValidator(BlogPostSchema)
-        result = validator.validate({
-            "title": "Post",
-            "date": "2025-01-15T10:30:00+05:00",
-        })
+        result = validator.validate(
+            {
+                "title": "Post",
+                "date": "2025-01-15T10:30:00+05:00",
+            }
+        )
 
         assert result.valid is True
         assert result.data.date.year == 2025
@@ -1007,10 +1033,12 @@ class TestDatetimeEdgeCases:
     def test_datetime_iso_format_with_microseconds(self) -> None:
         """Test datetime with microseconds."""
         validator = SchemaValidator(BlogPostSchema)
-        result = validator.validate({
-            "title": "Post",
-            "date": "2025-01-15T10:30:00.123456",
-        })
+        result = validator.validate(
+            {
+                "title": "Post",
+                "date": "2025-01-15T10:30:00.123456",
+            }
+        )
 
         assert result.valid is True
 
@@ -1147,7 +1175,3 @@ class TestPydanticIntegration:
 
         assert result.valid is True
         assert result.data.count == 42
-
-
-# Import pytest for importorskip
-import pytest

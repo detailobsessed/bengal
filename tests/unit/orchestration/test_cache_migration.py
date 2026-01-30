@@ -23,7 +23,9 @@ class TestCacheMigration:
         public_dir.mkdir()
         old_cache = public_dir / ".bengal-cache.json"
         old_cache_data = {
-            "file_fingerprints": {"content/index.md": {"hash": "abc123", "mtime": 0, "size": 0}},
+            "file_fingerprints": {
+                "content/index.md": {"hash": "abc123", "mtime": 0, "size": 0}
+            },
             "dependencies": {},
             "last_build": "2025-10-13T10:00:00",
         }
@@ -34,7 +36,7 @@ class TestCacheMigration:
         site.output_dir = public_dir
 
         incremental = IncrementalOrchestrator(site)
-        cache, tracker = incremental.initialize(enabled=True)
+        cache, _tracker = incremental.initialize(enabled=True)
 
         # Verify migration occurred
         new_cache_path = tmp_path / ".bengal" / "cache.json"
@@ -72,7 +74,7 @@ class TestCacheMigration:
         site = Site(root_path=tmp_path, config={"output_dir": "public"})
         site.output_dir = public_dir
         incremental = IncrementalOrchestrator(site)
-        cache, tracker = incremental.initialize(enabled=True)
+        cache, _tracker = incremental.initialize(enabled=True)
 
         # Verify all fields preserved
         assert len(cache.file_fingerprints) == 2
@@ -94,7 +96,9 @@ class TestCacheMigration:
         old_cache.write_text(
             json.dumps(
                 {
-                    "file_fingerprints": {"old": {"hash": "data", "mtime": 0, "size": 0}},
+                    "file_fingerprints": {
+                        "old": {"hash": "data", "mtime": 0, "size": 0}
+                    },
                     "last_build": "2025-10-01T10:00:00",
                 }
             )
@@ -107,7 +111,9 @@ class TestCacheMigration:
         new_cache.write_text(
             json.dumps(
                 {
-                    "file_fingerprints": {"new": {"hash": "data", "mtime": 0, "size": 0}},
+                    "file_fingerprints": {
+                        "new": {"hash": "data", "mtime": 0, "size": 0}
+                    },
                     "last_build": "2025-10-13T10:00:00",
                 }
             )
@@ -117,7 +123,7 @@ class TestCacheMigration:
         site = Site(root_path=tmp_path, config={"output_dir": "public"})
         site.output_dir = public_dir
         incremental = IncrementalOrchestrator(site)
-        cache, tracker = incremental.initialize(enabled=True)
+        cache, _tracker = incremental.initialize(enabled=True)
 
         # Verify new cache is used
         assert "new" in cache.file_fingerprints
@@ -138,7 +144,7 @@ class TestCacheMigration:
         site = Site(root_path=tmp_path, config={"output_dir": "public"})
         site.output_dir = public_dir
         incremental = IncrementalOrchestrator(site)
-        cache, tracker = incremental.initialize(enabled=True)
+        cache, _tracker = incremental.initialize(enabled=True)
 
         # Should have fresh cache
         assert len(cache.file_fingerprints) == 0
@@ -158,7 +164,9 @@ class TestCacheMigration:
         cache_dir.mkdir()
         cache_file = cache_dir / "cache.json"
         cache_file.write_text(
-            json.dumps({"file_fingerprints": {"test": {"hash": "data", "mtime": 0, "size": 0}}})
+            json.dumps(
+                {"file_fingerprints": {"test": {"hash": "data", "mtime": 0, "size": 0}}}
+            )
         )
 
         # Create site and clean
@@ -182,7 +190,7 @@ class TestCacheMigration:
         site = Site(root_path=tmp_path, config={"output_dir": "public"})
         site.output_dir = public_dir
         incremental = IncrementalOrchestrator(site)
-        cache, tracker = incremental.initialize(enabled=True)
+        _cache, _tracker = incremental.initialize(enabled=True)
 
         # Verify new cache location used
         new_cache_path = tmp_path / ".bengal" / "cache.json"
@@ -200,7 +208,9 @@ class TestCacheMigration:
         public_dir.mkdir()
 
         old_cache = public_dir / ".bengal-cache.json"
-        cache_data = {"file_fingerprints": {"test": {"hash": "abc123", "mtime": 0, "size": 0}}}
+        cache_data = {
+            "file_fingerprints": {"test": {"hash": "abc123", "mtime": 0, "size": 0}}
+        }
         old_cache.write_text(json.dumps(cache_data))
 
         # Verify old cache exists
@@ -210,7 +220,7 @@ class TestCacheMigration:
         site = Site(root_path=tmp_path, config={"output_dir": "public"})
         site.output_dir = public_dir
         incremental = IncrementalOrchestrator(site)
-        cache, tracker = incremental.initialize(enabled=True)
+        cache, _tracker = incremental.initialize(enabled=True)
 
         # Verify new cache was created with migrated data
         new_cache_path = tmp_path / ".bengal" / "cache.json"

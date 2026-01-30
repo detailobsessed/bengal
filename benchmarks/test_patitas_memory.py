@@ -37,7 +37,7 @@ def measure_memory(func, *args, iterations=10):
         try:
             func(*args)
         finally:
-            current, peak = tracemalloc.get_traced_memory()
+            _current, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
 
         measurements.append(peak / 1024)  # Convert to KB
@@ -162,7 +162,9 @@ def main():
     # Check RFC target
     target_ratio = 0.60
     if avg_ratio <= target_ratio:
-        print(f"✅ RFC target met: Patitas uses ≤{target_ratio * 100:.0f}% of Mistune memory")
+        print(
+            f"✅ RFC target met: Patitas uses ≤{target_ratio * 100:.0f}% of Mistune memory"
+        )
     else:
         print(f"⚠️  RFC target: ≤{target_ratio * 100:.0f}% of Mistune memory")
         print(f"    Actual: {avg_ratio * 100:.1f}%")

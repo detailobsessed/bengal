@@ -12,16 +12,11 @@ Note:
     3. Consider if this is a breaking change for external users
 """
 
-from __future__ import annotations
-
 import inspect
-from typing import get_type_hints
-
-import pytest
+from typing import ClassVar, get_type_hints
 
 from bengal.protocols import (
     Cacheable,
-    ContentSourceProtocol,
     DirectiveHandler,
     HighlightService,
     OutputCollector,
@@ -41,7 +36,13 @@ from bengal.protocols import (
 class TestProgressReporterStability:
     """Guard against breaking changes to ProgressReporter."""
 
-    REQUIRED_METHODS = {"add_phase", "start_phase", "update_phase", "complete_phase", "log"}
+    REQUIRED_METHODS: ClassVar[set[str]] = {
+        "add_phase",
+        "start_phase",
+        "update_phase",
+        "complete_phase",
+        "log",
+    }
 
     def test_has_required_methods(self) -> None:
         """ProgressReporter must have these exact methods."""
@@ -53,7 +54,7 @@ class TestProgressReporterStability:
         """add_phase(phase_id, label, total=None) signature."""
         sig = inspect.signature(ProgressReporter.add_phase)
         params = list(sig.parameters.keys())
-        
+
         assert "self" in params or len(params) >= 2
         assert "phase_id" in params
         assert "label" in params
@@ -63,7 +64,7 @@ class TestProgressReporterStability:
         """update_phase(phase_id, current=None, current_item=None) signature."""
         sig = inspect.signature(ProgressReporter.update_phase)
         params = list(sig.parameters.keys())
-        
+
         assert "phase_id" in params
         assert "current" in params
         assert "current_item" in params
@@ -81,7 +82,7 @@ class TestCacheableStability:
         """Cacheable must have from_cache_dict classmethod."""
         assert hasattr(Cacheable, "from_cache_dict")
         # from_cache_dict should be a classmethod
-        method = getattr(Cacheable, "from_cache_dict")
+        method = Cacheable.from_cache_dict
         assert callable(method)
 
     def test_to_cache_dict_returns_dict(self) -> None:
@@ -94,7 +95,12 @@ class TestCacheableStability:
 class TestOutputCollectorStability:
     """Guard against breaking changes to OutputCollector."""
 
-    REQUIRED_METHODS = {"record", "get_outputs", "css_only", "clear"}
+    REQUIRED_METHODS: ClassVar[set[str]] = {
+        "record",
+        "get_outputs",
+        "css_only",
+        "clear",
+    }
 
     def test_has_required_methods(self) -> None:
         """OutputCollector must have these methods."""
@@ -106,7 +112,7 @@ class TestOutputCollectorStability:
         """record(path, output_type=None, phase='render') signature."""
         sig = inspect.signature(OutputCollector.record)
         params = list(sig.parameters.keys())
-        
+
         assert "path" in params
         assert "output_type" in params
         assert "phase" in params
@@ -133,7 +139,7 @@ class TestHighlightServiceStability:
         """highlight(code, language, *, hl_lines=None, show_linenos=False) signature."""
         sig = inspect.signature(HighlightService.highlight)
         params = list(sig.parameters.keys())
-        
+
         assert "code" in params
         assert "language" in params
 
@@ -141,7 +147,16 @@ class TestHighlightServiceStability:
 class TestPageLikeStability:
     """Guard against breaking changes to PageLike."""
 
-    REQUIRED_PROPERTIES = {"title", "href", "content", "frontmatter", "date", "draft", "weight", "source_path"}
+    REQUIRED_PROPERTIES: ClassVar[set[str]] = {
+        "title",
+        "href",
+        "content",
+        "frontmatter",
+        "date",
+        "draft",
+        "weight",
+        "source_path",
+    }
 
     def test_has_required_properties(self) -> None:
         """PageLike must have these properties."""
@@ -152,7 +167,16 @@ class TestPageLikeStability:
 class TestSectionLikeStability:
     """Guard against breaking changes to SectionLike."""
 
-    REQUIRED_PROPERTIES = {"name", "title", "path", "href", "pages", "subsections", "parent", "index_page"}
+    REQUIRED_PROPERTIES: ClassVar[set[str]] = {
+        "name",
+        "title",
+        "path",
+        "href",
+        "pages",
+        "subsections",
+        "parent",
+        "index_page",
+    }
 
     def test_has_required_properties(self) -> None:
         """SectionLike must have these properties."""
@@ -163,7 +187,15 @@ class TestSectionLikeStability:
 class TestSiteLikeStability:
     """Guard against breaking changes to SiteLike."""
 
-    REQUIRED_PROPERTIES = {"title", "baseurl", "config", "pages", "sections", "root_section", "root_path"}
+    REQUIRED_PROPERTIES: ClassVar[set[str]] = {
+        "title",
+        "baseurl",
+        "config",
+        "pages",
+        "sections",
+        "root_section",
+        "root_path",
+    }
 
     def test_has_required_properties(self) -> None:
         """SiteLike must have these properties."""
@@ -178,12 +210,14 @@ class TestTemplateProtocolsStability:
         """TemplateRenderer must have render methods."""
         assert hasattr(TemplateRenderer, "render_template")
         assert hasattr(TemplateRenderer, "render_string")
-        
+
         # site and template_dirs are class-level attributes defined in the protocol
         # They appear in __annotations__ rather than as regular attributes
         annotations = getattr(TemplateRenderer, "__annotations__", {})
         assert "site" in annotations, "TemplateRenderer missing 'site' annotation"
-        assert "template_dirs" in annotations, "TemplateRenderer missing 'template_dirs' annotation"
+        assert "template_dirs" in annotations, (
+            "TemplateRenderer missing 'template_dirs' annotation"
+        )
 
     def test_introspector_has_required_methods(self) -> None:
         """TemplateIntrospector must have introspection methods."""
@@ -200,14 +234,14 @@ class TestTemplateProtocolsStability:
         # From TemplateRenderer
         assert hasattr(TemplateEngine, "render_template")
         assert hasattr(TemplateEngine, "render_string")
-        
+
         # From TemplateIntrospector
         assert hasattr(TemplateEngine, "template_exists")
         assert hasattr(TemplateEngine, "list_templates")
-        
+
         # From TemplateValidator
         assert hasattr(TemplateEngine, "validate")
-        
+
         # Engine-specific
         assert hasattr(TemplateEngine, "capabilities")
         assert hasattr(TemplateEngine, "has_capability")
@@ -216,7 +250,14 @@ class TestTemplateProtocolsStability:
 class TestOutputTargetStability:
     """Guard against breaking changes to OutputTarget."""
 
-    REQUIRED_METHODS = {"name", "write", "write_bytes", "copy", "mkdir", "exists"}
+    REQUIRED_METHODS: ClassVar[set[str]] = {
+        "name",
+        "write",
+        "write_bytes",
+        "copy",
+        "mkdir",
+        "exists",
+    }
 
     def test_has_required_methods(self) -> None:
         """OutputTarget must have these methods."""

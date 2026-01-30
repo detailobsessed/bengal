@@ -14,7 +14,11 @@ from bengal.cli.helpers import (
     handle_cli_errors,
     load_site_from_cli,
 )
-from bengal.utils.observability.logger import LogLevel, close_all_loggers, configure_logging
+from bengal.utils.observability.logger import (
+    LogLevel,
+    close_all_loggers,
+    configure_logging,
+)
 
 
 @click.command(cls=BengalCommand)
@@ -30,7 +34,9 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
     tags=["analysis", "graph", "navigation"],
 )
 @handle_cli_errors(show_art=False)
-@click.option("--top-n", "-n", default=20, type=int, help="Number of pages to show (default: 20)")
+@click.option(
+    "--top-n", "-n", default=20, type=int, help="Number of pages to show (default: 20)"
+)
 @click.option(
     "--metric",
     "-m",
@@ -46,37 +52,39 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
     help="Output format (default: table)",
 )
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
 def bridges(top_n: int, metric: str, format: str, config: str, source: str) -> None:
     """
     🌉 Identify bridge pages and navigation bottlenecks.
-    
+
     Analyzes navigation paths to find:
     - Bridge pages (high betweenness): Pages that connect different parts of the site
     - Accessible pages (high closeness): Pages easy to reach from anywhere
     - Navigation bottlenecks: Critical pages for site navigation
-    
+
     Use path analysis to:
     - Optimize navigation structure
     - Identify critical pages
     - Improve content discoverability
     - Find navigation gaps
-    
+
     Examples:
         # Show top 20 bridge pages
         bengal bridges
-    
+
         # Show most accessible pages
         bengal bridges --metric closeness
-    
+
         # Show only betweenness centrality
         bengal bridges --metric betweenness
-    
+
         # Export as JSON
         bengal bridges --format json > bridges.json
-        
+
     """
     from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
@@ -84,7 +92,9 @@ def bridges(top_n: int, metric: str, format: str, config: str, source: str) -> N
     configure_logging(level=LogLevel.WARNING)
 
     # Load site using helper
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     # Discover content
     cli.info("🔍 Discovering site content...")
@@ -95,7 +105,7 @@ def bridges(top_n: int, metric: str, format: str, config: str, source: str) -> N
 
     # Build knowledge graph
     cli.info(f"📊 Building knowledge graph from {len(site.pages)} pages...")
-    graph_obj = KnowledgeGraph(site)
+    graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
     graph_obj.build()
 
     # Analyze paths
@@ -110,13 +120,17 @@ def bridges(top_n: int, metric: str, format: str, config: str, source: str) -> N
 
         writer = csv.writer(sys.stdout)
         if metric in ["betweenness", "both"]:
-            writer.writerow(["Rank", "Title", "URL", "Betweenness", "Incoming", "Outgoing"])
+            writer.writerow(
+                ["Rank", "Title", "URL", "Betweenness", "Incoming", "Outgoing"]
+            )
             bridges_list = results.get_top_bridges(top_n)
             for i, (page, score) in enumerate(bridges_list, 1):
                 incoming = graph_obj.incoming_refs.get(page, 0)
                 outgoing = len(graph_obj.outgoing_refs.get(page, set()))
                 url = getattr(page, "url_path", str(page.source_path))
-                writer.writerow([i, page.title, url, f"{score:.10f}", incoming, outgoing])
+                writer.writerow(
+                    [i, page.title, url, f"{score:.10f}", incoming, outgoing]
+                )
 
         if metric in ["closeness", "both"]:
             if metric == "both":
@@ -180,7 +194,9 @@ def bridges(top_n: int, metric: str, format: str, config: str, source: str) -> N
                 incoming = graph_obj.incoming_refs.get(page, 0)
                 outgoing = len(graph_obj.outgoing_refs.get(page, set()))
                 cli.info(f"{i:3d}. {page.title}")
-                cli.info(f"     Betweenness: {score:.6f} | {incoming} in, {outgoing} out")
+                cli.info(
+                    f"     Betweenness: {score:.6f} | {incoming} in, {outgoing} out"
+                )
 
         if metric in ["closeness", "both"]:
             cli.info("\n🎯 Most Accessible Pages (Closeness Centrality)")
@@ -203,7 +219,9 @@ def bridges(top_n: int, metric: str, format: str, config: str, source: str) -> N
         if metric in ["betweenness", "both"]:
             cli.info(f"\n🔗 Top {top_n} Bridge Pages (Betweenness Centrality)")
             cli.info("-" * 100)
-            cli.info(f"{'Rank':<6} {'Title':<50} {'Betweenness':<14} {'In':<5} {'Out':<5}")
+            cli.info(
+                f"{'Rank':<6} {'Title':<50} {'Betweenness':<14} {'In':<5} {'Out':<5}"
+            )
             cli.info("-" * 100)
 
             bridges_list = results.get_top_bridges(top_n)
@@ -215,7 +233,9 @@ def bridges(top_n: int, metric: str, format: str, config: str, source: str) -> N
                 incoming = graph_obj.incoming_refs.get(page, 0)
                 outgoing = len(graph_obj.outgoing_refs.get(page, set()))
 
-                cli.info(f"{i:<6} {title:<50} {score:.10f}  {incoming:<5} {outgoing:<5}")
+                cli.info(
+                    f"{i:<6} {title:<50} {score:.10f}  {incoming:<5} {outgoing:<5}"
+                )
 
         if metric in ["closeness", "both"]:
             cli.info(f"\n🎯 Top {top_n} Most Accessible Pages (Closeness Centrality)")
@@ -245,12 +265,15 @@ def bridges(top_n: int, metric: str, format: str, config: str, source: str) -> N
         cli.info("=" * 60)
 
         avg_betweenness = (
-            sum(results.betweenness_centrality.values()) / len(results.betweenness_centrality)
+            sum(results.betweenness_centrality.values())
+            / len(results.betweenness_centrality)
             if results.betweenness_centrality
             else 0
         )
         max_betweenness = (
-            max(results.betweenness_centrality.values()) if results.betweenness_centrality else 0
+            max(results.betweenness_centrality.values())
+            if results.betweenness_centrality
+            else 0
         )
 
         cli.info(f"• Average path length:        {results.avg_path_length:.2f} hops")

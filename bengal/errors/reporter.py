@@ -65,19 +65,19 @@ if TYPE_CHECKING:
 def format_error_report(stats: BuildStats, verbose: bool = False) -> str:
     """
     Format comprehensive error report from BuildStats.
-    
+
     Args:
         stats: BuildStats instance with collected errors
         verbose: If True, include detailed file paths and suggestions
-    
+
     Returns:
         Formatted error report string
-    
+
     Example:
             >>> from bengal.errors import format_error_report
             >>> report = format_error_report(stats, verbose=True)
             >>> print(report)
-        
+
     """
     summary = stats.get_error_summary()
 
@@ -88,7 +88,9 @@ def format_error_report(stats: BuildStats, verbose: bool = False) -> str:
         return f"{icons.success} No errors or warnings"
 
     lines: list[str] = []
-    lines.append(f"Errors: {summary['total_errors']}, Warnings: {summary['total_warnings']}")
+    lines.append(
+        f"Errors: {summary['total_errors']}, Warnings: {summary['total_warnings']}"
+    )
 
     # Report by category
     for category_name, category in stats.errors_by_category.items():
@@ -111,8 +113,7 @@ def format_error_report(stats: BuildStats, verbose: bool = False) -> str:
                     lines.append(f"     Tip: {error.suggestion}")
 
         # Report warnings
-        for warning in category.warnings:
-            lines.append(f"  ⚠️  {warning}")
+        lines.extend(f"  ⚠️  {warning}" for warning in category.warnings)
 
     # Also report template_errors for backward compatibility
     if stats.template_errors:
@@ -138,8 +139,9 @@ def format_error_report(stats: BuildStats, verbose: bool = False) -> str:
     ):
         if "general" not in stats.errors_by_category:
             lines.append("\nGENERAL:")
-        for warning in stats.warnings:
-            lines.append(f"  ⚠️  {warning.file_path}: {warning.message}")
+        lines.extend(
+            f"  ⚠️  {warning.file_path}: {warning.message}" for warning in stats.warnings
+        )
 
     return "\n".join(lines)
 
@@ -147,26 +149,23 @@ def format_error_report(stats: BuildStats, verbose: bool = False) -> str:
 def _get_error_message(error: Any) -> str:
     """
     Extract error message from an error object.
-    
+
     Handles both BengalError instances (which have a ``message`` attribute)
     and standard exceptions (which use ``str()``).
-    
+
     Special handling for Kida TemplateRuntimeError which may have empty messages
     but include location info in the formatted output.
-    
+
     Args:
         error: Error object to extract message from.
-    
+
     Returns:
         Human-readable error message string.
-        
+
     """
     msg = ""
-    if hasattr(error, "message"):
-        msg = str(error.message)
-    else:
-        msg = str(error)
-    
+    msg = str(error.message) if hasattr(error, "message") else str(error)
+
     # Handle Kida's empty-message TemplateRuntimeError format
     # Format: "Runtime Error: \n  Location: template.html:37\n  ..."
     # When message is empty, we get "Runtime Error: " followed by location
@@ -185,7 +184,7 @@ def _get_error_message(error: Any) -> str:
                     location = stripped[9:].strip()  # Remove "Location:" prefix
                 elif stripped.startswith("Expression:"):
                     source_line = stripped[11:].strip()  # Remove "Expression:" prefix
-            
+
             # Construct a more informative message
             if location:
                 msg = f"Runtime Error in {location}"
@@ -193,20 +192,20 @@ def _get_error_message(error: Any) -> str:
                     msg += f": {source_line}"
             else:
                 msg = "Runtime Error (no details available)"
-    
+
     return msg
 
 
 def format_error_summary(stats: BuildStats) -> str:
     """
     Format brief error summary (one line).
-    
+
     Args:
         stats: BuildStats instance
-    
+
     Returns:
         Brief summary string
-        
+
     """
     icons = get_icon_set(should_use_emoji())
     summary = stats.get_error_summary()

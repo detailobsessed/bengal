@@ -2,8 +2,6 @@
 Integration tests for link checker with mock HTTP server.
 """
 
-from __future__ import annotations
-
 import asyncio
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
@@ -20,7 +18,6 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
 
     def log_message(self, format, *args):
         """Suppress log messages."""
-        pass
 
     def do_HEAD(self):
         """Handle HEAD requests."""

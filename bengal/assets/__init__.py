@@ -45,5 +45,3 @@ See Also:
 - architecture/assets.md: Asset pipeline architecture
 
 """
-
-from __future__ import annotations

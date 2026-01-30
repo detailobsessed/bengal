@@ -53,17 +53,17 @@ logger = get_logger(__name__)
 class FontVariant:
     """
     Represents a specific font variant (family + weight + style combination).
-    
+
     Each FontVariant corresponds to a single downloadable font file from
     Google Fonts. The variant includes all metadata needed to generate
     @font-face CSS rules.
-    
+
     Attributes:
         family: Font family name as displayed (e.g., "Inter", "Playfair Display").
         weight: Numeric font weight (100-900, typically 400 for regular, 700 for bold).
         style: Font style, either "normal" or "italic".
         url: Direct URL to the font file on Google's CDN (.woff2 or .ttf).
-    
+
     Example:
             >>> variant = FontVariant("Inter", 400, "normal", "https://fonts.gstatic.com/...")
             >>> print(variant.filename)
@@ -71,7 +71,7 @@ class FontVariant:
             >>> variant_italic = FontVariant("Inter", 400, "italic", "https://...")
             >>> print(variant_italic.filename)
         inter-400-italic.woff2
-        
+
     """
 
     family: str
@@ -94,30 +94,36 @@ class FontVariant:
         style_suffix = "-italic" if self.style == "italic" else ""
         safe_name = self.family.lower().replace(" ", "-")
         # Preserve original file extension from URL
-        ext = ".woff2" if ".woff2" in self.url else ".ttf" if ".ttf" in self.url else ".woff2"
+        ext = (
+            ".woff2"
+            if ".woff2" in self.url
+            else ".ttf"
+            if ".ttf" in self.url
+            else ".woff2"
+        )
         return f"{safe_name}-{self.weight}{style_suffix}{ext}"
 
 
 class GoogleFontsDownloader:
     """
     Downloads font files from Google Fonts for self-hosting.
-    
+
     Uses the Google Fonts CSS2 API to discover font file URLs, then downloads
     the actual .woff2 (or .ttf) files. No API key is required—the CSS API is
     public and the User-Agent header determines the returned font format.
-    
+
     The downloader handles:
         - Building properly formatted CSS API URLs
         - Parsing CSS to extract font file URLs
         - SSL certificate issues on macOS (automatic fallback)
         - Atomic file writes to prevent corruption
         - Both WOFF2 (for web) and TTF (for image generation) formats
-    
+
     Attributes:
         BASE_URL: Google Fonts CSS2 API endpoint.
         USER_AGENT_WOFF2: Modern browser user-agent that requests woff2 format.
         USER_AGENT_TTF: Legacy user-agent that requests ttf format.
-    
+
     Example:
             >>> downloader = GoogleFontsDownloader()
             >>> variants = downloader.download_font(
@@ -128,11 +134,11 @@ class GoogleFontsDownloader:
             ... )
             >>> len(variants)
         6
-    
+
     Note:
         The User-Agent string determines the font format Google returns.
         Modern browsers get WOFF2, legacy browsers get TTF.
-        
+
     """
 
     BASE_URL = "https://fonts.googleapis.com/css2"
@@ -195,7 +201,9 @@ class GoogleFontsDownloader:
 
             cli = CLIOutput()
             for variant in cached_variants:
-                cli.detail(f"Cached: {variant.filename}", indent=2, icon=cli.icons.success)
+                cli.detail(
+                    f"Cached: {variant.filename}", indent=2, icon=cli.icons.success
+                )
             return cached_variants
 
         # Build Google Fonts CSS URL
@@ -236,14 +244,18 @@ class GoogleFontsDownloader:
 
                             cli = CLIOutput()
                             cli.detail(
-                                f"Downloaded: {variant.filename}", indent=2, icon=cli.icons.success
+                                f"Downloaded: {variant.filename}",
+                                indent=2,
+                                icon=cli.icons.success,
                             )
                         else:
                             from bengal.output import CLIOutput
 
                             cli = CLIOutput()
                             cli.detail(
-                                f"Cached: {variant.filename}", indent=2, icon=cli.icons.success
+                                f"Cached: {variant.filename}",
+                                indent=2,
+                                icon=cli.icons.success,
                             )
 
                         variants.append(variant)
@@ -309,7 +321,9 @@ class GoogleFontsDownloader:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Check if all expected TTF font files are already cached (avoid network request)
-        cached_variants = self._check_cached_ttf_fonts(family, weights, styles, output_dir)
+        cached_variants = self._check_cached_ttf_fonts(
+            family, weights, styles, output_dir
+        )
         if cached_variants is not None:
             # All fonts already cached - no network request needed
             for variant in cached_variants:
@@ -354,7 +368,9 @@ class GoogleFontsDownloader:
                         # Download the font file
                         output_path = output_dir / variant.filename
                         if not output_path.exists():
-                            self._download_file(url, output_path, user_agent=self.USER_AGENT_TTF)
+                            self._download_file(
+                                url, output_path, user_agent=self.USER_AGENT_TTF
+                            )
                             logger.debug(
                                 "ttf_font_downloaded",
                                 family=family,
@@ -426,10 +442,14 @@ class GoogleFontsDownloader:
 
                 if woff2_path.exists():
                     # Create variant with placeholder URL (not needed for cached files)
-                    variant = FontVariant(family, weight, style, f"cached://{woff2_filename}")
+                    variant = FontVariant(
+                        family, weight, style, f"cached://{woff2_filename}"
+                    )
                     cached_variants.append(variant)
                 elif ttf_path.exists():
-                    variant = FontVariant(family, weight, style, f"cached://{ttf_filename}")
+                    variant = FontVariant(
+                        family, weight, style, f"cached://{ttf_filename}"
+                    )
                     cached_variants.append(variant)
                 else:
                     # At least one font is missing - need network request
@@ -469,7 +489,9 @@ class GoogleFontsDownloader:
                 ttf_path = output_dir / ttf_filename
 
                 if ttf_path.exists():
-                    variant = FontVariant(family, weight, style, f"cached://{ttf_filename}")
+                    variant = FontVariant(
+                        family, weight, style, f"cached://{ttf_filename}"
+                    )
                     cached_variants.append(variant)
                 else:
                     # At least one TTF font is missing - need network request
@@ -511,7 +533,9 @@ class GoogleFontsDownloader:
 
         return url
 
-    def _extract_font_urls(self, css_url: str, user_agent: str | None = None) -> dict[str, str]:
+    def _extract_font_urls(
+        self, css_url: str, user_agent: str | None = None
+    ) -> dict[str, str]:
         """
         Fetch CSS from Google Fonts and extract font file URLs.
 
@@ -542,7 +566,9 @@ class GoogleFontsDownloader:
             # macOS certificate issue - retry with unverified context
             if "certificate verify failed" in str(e) or "SSL" in str(e):
                 ssl_context = ssl._create_unverified_context()
-                with urllib.request.urlopen(req, timeout=10, context=ssl_context) as response:
+                with urllib.request.urlopen(
+                    req, timeout=10, context=ssl_context
+                ) as response:
                     css_content = response.read().decode("utf-8")
             else:
                 raise
@@ -579,7 +605,9 @@ class GoogleFontsDownloader:
 
         return font_urls
 
-    def _download_file(self, url: str, output_path: Path, user_agent: str | None = None) -> None:
+    def _download_file(
+        self, url: str, output_path: Path, user_agent: str | None = None
+    ) -> None:
         """
         Download a file from URL and save it atomically.
 
@@ -607,7 +635,9 @@ class GoogleFontsDownloader:
             # macOS certificate issue - retry with unverified context
             if "certificate verify failed" in str(e) or "SSL" in str(e):
                 ssl_context = ssl._create_unverified_context()
-                with urllib.request.urlopen(req, timeout=30, context=ssl_context) as response:
+                with urllib.request.urlopen(
+                    req, timeout=30, context=ssl_context
+                ) as response:
                     data = response.read()
             else:
                 raise

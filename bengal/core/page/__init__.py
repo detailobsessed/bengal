@@ -58,6 +58,11 @@ if TYPE_CHECKING:
     from bengal.core.site import Site
     from bengal.parsing.ast.types import ASTNode
 
+# Import PageOperationsMixin from rendering layer where it logically belongs.
+# This is an intentional cross-layer import - the mixin contains rendering logic
+# that is mixed into the Page class for API convenience.
+from bengal.rendering.page_operations import PageOperationsMixin
+
 from .bundle import BundleType, PageBundleMixin, PageResource, PageResources
 from .computed import PageComputedMixin
 from .content import PageContentMixin
@@ -67,11 +72,6 @@ from .navigation import PageNavigationMixin
 from .page_core import PageCore
 from .proxy import PageProxy
 from .relationships import PageRelationshipsMixin
-
-# Import PageOperationsMixin from rendering layer where it logically belongs.
-# This is an intentional cross-layer import - the mixin contains rendering logic
-# that is mixed into the Page class for API convenience.
-from bengal.rendering.page_operations import PageOperationsMixin
 
 
 @dataclass
@@ -86,7 +86,7 @@ class Page(
 ):
     """
     Represents a single content page.
-    
+
     HASHABILITY:
     ============
     Pages are hashable based on their source_path, allowing them to be stored
@@ -95,12 +95,12 @@ class Page(
     - Automatic deduplication with sets
     - Set operations for page analysis
     - Direct use as dictionary keys
-    
+
     Two pages with the same source_path are considered equal, even if their
     content differs. The hash is stable throughout the page lifecycle because
     source_path is immutable. Mutable fields (content, rendered_html, etc.)
     do not affect the hash or equality.
-    
+
     VIRTUAL PAGES:
     ==============
     Virtual pages represent dynamically-generated content (e.g., API docs)
@@ -109,27 +109,27 @@ class Page(
     - Are created via Page.create_virtual() factory
     - Don't read from disk (content provided directly)
     - Integrate with site's page collection and navigation
-    
+
     BUILD LIFECYCLE:
     ================
     Pages progress through distinct build phases. Properties have different
     availability depending on the current phase:
-    
+
     1. Discovery (content_discovery.py)
        ✅ Available: source_path, content, metadata, title, slug, date
        ❌ Not available: toc, parsed_ast, toc_items, rendered_html
-    
+
     2. Parsing (pipeline.py)
        ✅ Available: All Stage 1 + toc, parsed_ast
        ✅ toc_items can be accessed (will extract from toc)
-    
+
     3. Rendering (pipeline.py)
        ✅ Available: All previous + rendered_html, output_path
        ✅ All properties fully populated
-    
+
     Note: Some properties like toc_items can be accessed early (returning [])
     but won't cache empty results, allowing proper extraction after parsing.
-    
+
     Attributes:
         source_path: Path to the source content file (synthetic for virtual pages)
         content: Raw content (Markdown, etc.)
@@ -144,7 +144,7 @@ class Page(
         toc_items: Structured TOC data for custom rendering
         related_posts: Related pages (pre-computed during build based on tag overlap)
         _virtual: True if this is a virtual page (not backed by a disk file)
-        
+
     """
 
     # Class-level warning counter (shared across all Page instances)
@@ -208,7 +208,9 @@ class Page(
     _SECTION_NOT_FOUND: ClassVar[object] = object()
 
     # Private cache for lazy toc_items property
-    _toc_items_cache: list[dict[str, Any]] | None = field(default=None, repr=False, init=False)
+    _toc_items_cache: list[dict[str, Any]] | None = field(
+        default=None, repr=False, init=False
+    )
 
     # Private cache for lazy frontmatter property
     _frontmatter: Frontmatter | None = field(default=None, init=False, repr=False)
@@ -249,7 +251,9 @@ class Page(
         # Separate standard fields from custom props (Component Model)
         from bengal.core.page.utils import separate_standard_and_custom_fields
 
-        standard_fields, custom_props = separate_standard_and_custom_fields(self.metadata)
+        standard_fields, custom_props = separate_standard_and_custom_fields(
+            self.metadata
+        )
 
         # Component Model: variant (normalized from layout/hero_style)
         variant = standard_fields.get("variant")
@@ -541,7 +545,7 @@ class Page(
             section = self._site.get_section_by_path(self._section_path)
         else:
             # Virtual section: URL-based lookup
-            section = self._site.get_section_by_url(self._section_url)
+            section = self._site.get_section_by_url(str(self._section_url))
 
         if section is None:
             # Counter-gated warning to prevent log spam (class-level counter)
@@ -585,7 +589,9 @@ class Page(
 
         # Cache both hits and misses (misses use a sentinel).
         self._section_obj_cache_key = cache_key
-        self._section_obj_cache = section if section is not None else self._SECTION_NOT_FOUND
+        self._section_obj_cache = (
+            section if section is not None else self._SECTION_NOT_FOUND
+        )
         return section
 
     @_section.setter

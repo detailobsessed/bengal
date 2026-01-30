@@ -52,16 +52,16 @@ from bengal.output import CLIOutput
 def upgrade(dry_run: bool, yes: bool, force: bool) -> None:
     """
     Upgrade Bengal to the latest version.
-    
+
     Automatically detects how Bengal was installed (uv, pip, pipx, conda)
     and runs the appropriate upgrade command.
-    
+
     Examples:
         bengal upgrade           # Interactive upgrade
         bengal upgrade -y        # Skip confirmation
         bengal upgrade --dry-run # Show command without running
         bengal upgrade --force   # Force upgrade even if on latest
-        
+
     """
     cli = CLIOutput()
 
@@ -87,7 +87,9 @@ def upgrade(dry_run: bool, yes: bool, force: bool) -> None:
     command_line = f"Command:  {installer.display_command}"
 
     # Find max content width
-    max_width = max(len(current_line), len(latest_line), len(detected_line), len(command_line))
+    max_width = max(
+        len(current_line), len(latest_line), len(detected_line), len(command_line)
+    )
     box_width = max_width + 4  # Add padding
 
     click.echo()
@@ -120,7 +122,7 @@ def upgrade(dry_run: bool, yes: bool, force: bool) -> None:
     cli.info("Upgrading bengal...")
 
     try:
-        result = subprocess.run(
+        subprocess.run(
             installer.command,
             check=True,
             capture_output=True,
@@ -137,13 +139,13 @@ def upgrade(dry_run: bool, yes: bool, force: bool) -> None:
         if e.stderr:
             click.echo(e.stderr, err=True)
         cli.tip(f"Try running manually: {installer.display_command}")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 def show_upgrade_notification() -> None:
     """
     Show upgrade notification if available (non-blocking).
-    
+
     Called after CLI commands complete to display a non-intrusive banner
     when a newer version is available. Designed to never fail or slow
     down the CLI.
@@ -154,7 +156,9 @@ def show_upgrade_notification() -> None:
         info = check_for_upgrade()
         if info and info.is_outdated:
             # Calculate padding for box alignment
-            version_text = f"Bengal v{info.latest} is available (you have v{info.current})"
+            version_text = (
+                f"Bengal v{info.latest} is available (you have v{info.current})"
+            )
             run_text = "Run: bengal upgrade"
             max_width = max(len(version_text), len(run_text)) + 2
             box_width = max_width + 2

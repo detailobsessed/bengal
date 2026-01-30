@@ -27,13 +27,13 @@ logger = get_logger(__name__)
 def normalize_and_validate_asset_path(raw_path: str) -> str:
     """
     Normalize and validate the provided asset path to prevent traversal/absolute paths.
-    
+
     Args:
         raw_path: Raw asset path from template
-    
+
     Returns:
         Sanitized asset path, or empty string if invalid
-        
+
     """
     # Convert Windows-style separators and trim whitespace
     candidate = (raw_path or "").replace("\\", "/").strip()
@@ -68,22 +68,30 @@ def compute_relative_asset_path(
 ) -> str | None:
     """
     Compute relative path from page to asset for file:// protocol.
-    
+
     Args:
         asset_path: Asset path (e.g., 'assets/css/style.css')
         page_context: Page context with output_path
         output_dir: Site output directory
-    
+
     Returns:
         Relative path string, or None if cannot compute
-        
+
     """
-    if not page_context or not hasattr(page_context, "output_path") or not page_context.output_path:
+    if (
+        not page_context
+        or not hasattr(page_context, "output_path")
+        or not page_context.output_path
+    ):
         return None
 
     try:
         page_rel_to_root = page_context.output_path.relative_to(output_dir)
-        depth = len(page_rel_to_root.parent.parts) if page_rel_to_root.parent != Path(".") else 0
+        depth = (
+            len(page_rel_to_root.parent.parts)
+            if page_rel_to_root.parent != Path(".")
+            else 0
+        )
         if depth > 0:
             relative_prefix = "/".join([".."] * depth)
             return f"{relative_prefix}/{asset_path}"
@@ -96,15 +104,15 @@ def compute_relative_asset_path(
 class AssetURLMixin:
     """
     Mixin providing asset URL generation for TemplateEngine.
-    
+
     Requires these attributes on the host class:
         - site: Site instance
         - _asset_manifest_path: Path
-    
+
     Requires these methods from ManifestHelpersMixin (must come BEFORE this mixin in MRO):
         - _get_manifest_entry(logical_path: str) -> AssetManifestEntry | None
         - _warn_manifest_fallback(logical_path: str) -> None
-        
+
     """
 
     site: Any
@@ -157,13 +165,18 @@ class AssetURLMixin:
             )
 
         # Use manifest for fingerprinted asset resolution
-        manifest_entry = self._get_manifest_entry(safe_asset_path)
-        if manifest_entry:
-            return with_baseurl(f"/{manifest_entry.output_path}", self.site)
+        # Methods come from ManifestHelpersMixin via MRO
+        get_manifest_entry = getattr(self, "_get_manifest_entry", None)
+        if get_manifest_entry is not None:
+            manifest_entry = get_manifest_entry(safe_asset_path)
+            if manifest_entry:
+                return with_baseurl(f"/{manifest_entry.output_path}", self.site)
 
         # Warn if manifest exists but entry missing
         if getattr(self, "_asset_manifest_present", False):
-            self._warn_manifest_fallback(safe_asset_path)
+            warn_fallback = getattr(self, "_warn_manifest_fallback", None)
+            if warn_fallback is not None:
+                warn_fallback(safe_asset_path)
 
         # Fallback: check output directory for fingerprinted files
         fingerprinted = self._find_fingerprinted_asset(safe_asset_path)

@@ -5,8 +5,6 @@ These methods simplify common template patterns by providing
 intuitive method calls instead of verbose filter chains.
 """
 
-from __future__ import annotations
-
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock

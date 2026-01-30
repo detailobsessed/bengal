@@ -32,7 +32,9 @@ def parse_rfc_status(file_path: Path) -> str | None:
         return None
 
     # Try table format: | **Status** | Implemented |
-    table_match = re.search(r"\|\s*\*\*Status\*\*\s*\|\s*([^|]+)\s*\|", content, re.IGNORECASE)
+    table_match = re.search(
+        r"\|\s*\*\*Status\*\*\s*\|\s*([^|]+)\s*\|", content, re.IGNORECASE
+    )
     if table_match:
         return table_match.group(1).strip()
 
@@ -42,7 +44,9 @@ def parse_rfc_status(file_path: Path) -> str | None:
         return markdown_match.group(1).strip()
 
     # Try simple: Status: Implemented
-    simple_match = re.search(r"^Status:\s*([^\n]+)", content, re.MULTILINE | re.IGNORECASE)
+    simple_match = re.search(
+        r"^Status:\s*([^\n]+)", content, re.MULTILINE | re.IGNORECASE
+    )
     if simple_match:
         return simple_match.group(1).strip()
 
@@ -88,7 +92,9 @@ def find_duplicates(rfc_files: list[Path]) -> dict[str, list[Path]]:
 def analyze_rfcs() -> list[RFCStatus]:
     """Analyze all RFCs in plan directory."""
     rfc_files = [
-        f for f in PLAN_DIR.rglob("*.md") if "archived" not in str(f.relative_to(PLAN_DIR))
+        f
+        for f in PLAN_DIR.rglob("*.md")
+        if "archived" not in str(f.relative_to(PLAN_DIR))
     ]
 
     # Find duplicates
@@ -109,7 +115,9 @@ def analyze_rfcs() -> list[RFCStatus]:
                 # Prefer ready > evaluated > drafted
                 priority = {"ready": 3, "evaluated": 2, "drafted": 1}
                 dup_paths_sorted = sorted(
-                    dup_paths, key=lambda p: priority.get(p.parent.name, 0), reverse=True
+                    dup_paths,
+                    key=lambda p: priority.get(p.parent.name, 0),
+                    reverse=True,
                 )
                 if rfc_file != dup_paths_sorted[0]:
                     dup_of = dup_paths_sorted[0]
@@ -131,10 +139,15 @@ def main():
     """Main cleanup script."""
     parser = argparse.ArgumentParser(description="Clean up completed RFCs")
     parser.add_argument(
-        "--yes", "-y", action="store_true", help="Skip confirmation prompt (non-interactive mode)"
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Skip confirmation prompt (non-interactive mode)",
     )
     parser.add_argument(
-        "--dry-run", action="store_true", help="Show what would be done without making changes"
+        "--dry-run",
+        action="store_true",
+        help="Show what would be done without making changes",
     )
     args = parser.parse_args()
 
@@ -168,7 +181,9 @@ def main():
                 seen_names.add(rfc.path.name)
                 rel_path = rfc.path.relative_to(PLAN_DIR.parent)
                 dup_rel = (
-                    rfc.duplicate_of.relative_to(PLAN_DIR.parent) if rfc.duplicate_of else None
+                    rfc.duplicate_of.relative_to(PLAN_DIR.parent)
+                    if rfc.duplicate_of
+                    else None
                 )
                 print(f"  - {rel_path}")
                 if dup_rel:
@@ -210,7 +225,9 @@ def main():
                 archive_path = ARCHIVE_DIR / rfc.path.name
                 if archive_path.exists():
                     # Add parent directory name to avoid conflicts
-                    archive_path = ARCHIVE_DIR / f"{rfc.path.parent.name}_{rfc.path.name}"
+                    archive_path = (
+                        ARCHIVE_DIR / f"{rfc.path.parent.name}_{rfc.path.name}"
+                    )
 
                 rfc.path.rename(archive_path)
                 archived_count += 1

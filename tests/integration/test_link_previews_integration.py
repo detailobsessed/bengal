@@ -7,8 +7,6 @@ template output, and JavaScript inclusion.
 See: plan/drafted/rfc-link-previews.md
 """
 
-from __future__ import annotations
-
 
 class TestLinkPreviewsTemplateRendering:
     """Test that link previews config is rendered correctly in templates."""

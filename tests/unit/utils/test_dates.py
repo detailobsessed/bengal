@@ -376,12 +376,16 @@ class TestDateRangeOverlap:
 
     def test_string_inputs(self):
         """Test string inputs."""
-        result = date_range_overlap("2025-01-01", "2025-01-10", "2025-01-05", "2025-01-15")
+        result = date_range_overlap(
+            "2025-01-01", "2025-01-10", "2025-01-05", "2025-01-15"
+        )
         assert result is True
 
     def test_invalid_dates_return_false(self):
         """Test invalid dates return False."""
-        result = date_range_overlap("not a date", "2025-01-10", "2025-01-05", "2025-01-15")
+        result = date_range_overlap(
+            "not a date", "2025-01-10", "2025-01-05", "2025-01-15"
+        )
         assert result is False
 
     def test_none_returns_false(self):

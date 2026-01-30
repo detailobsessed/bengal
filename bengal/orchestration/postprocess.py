@@ -28,14 +28,15 @@ from __future__ import annotations
 import concurrent.futures
 from collections.abc import Callable
 from threading import Lock
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from bengal.protocols import ProgressReporter
 
 if TYPE_CHECKING:
     from bengal.core.output import OutputCollector
-    from bengal.orchestration.types import ProgressManagerProtocol
     from bengal.orchestration.build_context import BuildContext
+    from bengal.orchestration.types import ProgressManagerProtocol
+    from bengal.protocols.core import SiteLike
     from bengal.utils.observability.cli_progress import LiveProgressManager
 
 from bengal.postprocess.output_formats import OutputFormatsGenerator
@@ -62,34 +63,34 @@ _print_lock = Lock()
 class PostprocessOrchestrator:
     """
     Orchestrates post-processing tasks after page rendering.
-    
+
     Handles sitemap generation, RSS feeds, link validation, special pages,
     and output format generation. Supports parallel execution for performance
     and incremental build optimization.
-    
+
     Creation:
         Direct instantiation: PostprocessOrchestrator(site)
             - Created by BuildOrchestrator during build
             - Requires Site instance with rendered pages
-    
+
     Attributes:
         site: Site instance with rendered pages and configuration
-    
+
     Relationships:
         - Uses: SitemapGenerator for sitemap generation
         - Uses: RSSGenerator for RSS feed generation
         - Uses: OutputFormatsGenerator for JSON/TXT/LLM output
         - Uses: SpecialPagesGenerator for 404 and other special pages
         - Used by: BuildOrchestrator for post-processing phase
-    
+
     Thread Safety:
         Thread-safe for parallel task execution. Uses thread-safe locks
         for output operations.
-    
+
     Examples:
         orchestrator = PostprocessOrchestrator(site)
         orchestrator.run(parallel=True, incremental=False)
-        
+
     """
 
     def __init__(self, site: Site):
@@ -141,7 +142,9 @@ class PostprocessOrchestrator:
         tasks = []
 
         # Always generate special pages (404, etc.) - important for deployment
-        tasks.append(("special pages", lambda: self._generate_special_pages(build_context)))
+        tasks.append(
+            ("special pages", lambda: self._generate_special_pages(build_context))
+        )
 
         # CRITICAL: Always generate output formats (index.json, llm-full.txt)
         # These are essential for search functionality and must reflect current site state
@@ -149,10 +152,15 @@ class PostprocessOrchestrator:
         if output_formats_config.get("enabled", True):
             # Build graph first if we want to include graph data in page JSON
             graph_data = None
-            if output_formats_config.get("options", {}).get("include_graph_connections", True):
+            if output_formats_config.get("options", {}).get(
+                "include_graph_connections", True
+            ):
                 graph_data = self._build_graph_data(build_context)
             tasks.append(
-                ("output formats", lambda: self._generate_output_formats(graph_data, build_context))
+                (
+                    "output formats",
+                    lambda: self._generate_output_formats(graph_data, build_context),
+                )
             )
 
         # OPTIMIZATION: For incremental builds, skip expensive post-processing
@@ -168,7 +176,7 @@ class PostprocessOrchestrator:
         # - Social cards: Only needed for production (OG images don't change during dev)
         # - RSS: Regenerated on content rebuild (not layout changes)
         # - Redirects: Regenerated on full builds (aliases rarely change)
-        
+
         # Sitemap: Always regenerate for correctness (fast: ~10ms for 1K pages)
         if self.site.config.get("generate_sitemap", True):
             tasks.append(("sitemap", self._generate_sitemap))
@@ -190,7 +198,7 @@ class PostprocessOrchestrator:
                 tasks.append(("redirects", self._generate_redirects))
 
             # Generate xref.json for cross-project linking (RFC: External References)
-            if should_export_xref_index(self.site):
+            if should_export_xref_index(cast("SiteLike", self.site)):
                 tasks.append(("xref index", self._generate_xref_index))
         else:
             # Incremental: skip expensive tasks for dev server responsiveness
@@ -297,7 +305,9 @@ class PostprocessOrchestrator:
         lock = Lock()
 
         try:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=len(tasks)) as executor:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=len(tasks)
+            ) as executor:
                 futures = {executor.submit(task_fn): name for name, task_fn in tasks}
 
                 for future in concurrent.futures.as_completed(futures):
@@ -310,7 +320,9 @@ class PostprocessOrchestrator:
                             with lock:
                                 completed_count += 1
                                 progress_manager.update_phase(
-                                    "postprocess", current=completed_count, current_item=task_name
+                                    "postprocess",
+                                    current=completed_count,
+                                    current_item=task_name,
                                 )
                     except Exception as e:
                         # Error handling outside lock
@@ -382,7 +394,9 @@ class PostprocessOrchestrator:
                     for task_name, error in errors:
                         print(f"    • {task_name}: {error}")
 
-    def _generate_special_pages(self, build_context: BuildContext | None = None) -> None:
+    def _generate_special_pages(
+        self, build_context: BuildContext | None = None
+    ) -> None:
         """
         Generate special pages like 404 (extracted for parallel execution).
 
@@ -392,7 +406,7 @@ class PostprocessOrchestrator:
         Raises:
             Exception: If special page generation fails
         """
-        generator = SpecialPagesGenerator(self.site)
+        generator = SpecialPagesGenerator(cast("SiteLike", self.site))
         generator.generate(build_context=build_context)
 
     def _generate_sitemap(self) -> None:
@@ -403,7 +417,7 @@ class PostprocessOrchestrator:
             Exception: If sitemap generation fails
         """
         collector = getattr(self, "_collector", None)
-        generator = SitemapGenerator(self.site, collector=collector)
+        generator = SitemapGenerator(cast("SiteLike", self.site), collector=collector)
         generator.generate()
 
     def _generate_rss(self) -> None:
@@ -414,7 +428,7 @@ class PostprocessOrchestrator:
             Exception: If RSS generation fails
         """
         collector = getattr(self, "_collector", None)
-        generator = RSSGenerator(self.site, collector=collector)
+        generator = RSSGenerator(cast("SiteLike", self.site), collector=collector)
         generator.generate()
 
     def _generate_redirects(self) -> None:
@@ -427,7 +441,7 @@ class PostprocessOrchestrator:
         Raises:
             Exception: If redirect generation fails
         """
-        generator = RedirectGenerator(self.site)
+        generator = RedirectGenerator(cast("SiteLike", self.site))
         generator.generate()
 
     def _generate_social_cards(self) -> None:
@@ -447,7 +461,7 @@ class PostprocessOrchestrator:
         if not social_config.enabled:
             return
 
-        generator = SocialCardGenerator(self.site, social_config)
+        generator = SocialCardGenerator(cast("SiteLike", self.site), social_config)
         output_dir = self.site.output_dir / social_config.output_dir
 
         generated, cached = generator.generate_all(self.site.pages, output_dir)
@@ -494,13 +508,13 @@ class PostprocessOrchestrator:
                 from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
                 logger.debug("building_knowledge_graph_for_output_formats")
-                graph = KnowledgeGraph(self.site)
+                graph = KnowledgeGraph(cast("SiteLike", self.site))
                 graph.build()
             else:
                 logger.debug("using_cached_knowledge_graph_for_output_formats")
 
             # Generate graph data
-            visualizer = GraphVisualizer(self.site, graph)
+            visualizer = GraphVisualizer(cast("SiteLike", self.site), graph)
             return visualizer.generate_graph_data()
         except Exception as e:
             logger.warning(
@@ -527,7 +541,10 @@ class PostprocessOrchestrator:
         """
         config = self.site.config.get("output_formats", {})
         generator = OutputFormatsGenerator(
-            self.site, config, graph_data=graph_data, build_context=build_context
+            cast("SiteLike", self.site),
+            config,
+            graph_data=graph_data,
+            build_context=build_context,
         )
         generator.generate()
 
@@ -545,5 +562,5 @@ class PostprocessOrchestrator:
         Raises:
             Exception: If xref index generation fails
         """
-        generator = XRefIndexGenerator(self.site)
+        generator = XRefIndexGenerator(cast("SiteLike", self.site))
         generator.generate()

@@ -292,7 +292,10 @@ title = "Broken TOML"
             Site.from_config(tmp_path, config_path=config_file)
 
         # Error should be about config parsing
-        assert "toml" in str(exc_info.value).lower() or "config" in str(exc_info.value).lower()
+        assert (
+            "toml" in str(exc_info.value).lower()
+            or "config" in str(exc_info.value).lower()
+        )
 
     def test_missing_required_config(self, tmp_path):
         """Test handling of missing required configuration."""

@@ -53,12 +53,16 @@ import re
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import yaml
 
 from bengal.errors import ErrorCode, create_dev_error, get_dev_server_state
-from bengal.orchestration.stats import display_build_stats, show_building_indicator, show_error
+from bengal.orchestration.stats import (
+    display_build_stats,
+    show_building_indicator,
+    show_error,
+)
 from bengal.output import CLIOutput
 from bengal.server.build_executor import BuildExecutor, BuildRequest, BuildResult
 from bengal.server.build_hooks import run_post_build_hooks, run_pre_build_hooks
@@ -72,12 +76,12 @@ logger = get_logger(__name__)
 class BuildTrigger:
     """
     Triggers builds when file changes are detected.
-    
+
     All builds are executed via BuildExecutor in a subprocess for:
     - Crash resilience (build crash doesn't kill server)
     - Clean isolation (no stale state between builds)
     - Future-ready (supports free-threaded Python)
-    
+
     Features:
         - Pre/post build hooks
         - Incremental vs full rebuild detection
@@ -85,20 +89,20 @@ class BuildTrigger:
         - Template change detection (with directory caching)
         - Autodoc source change detection
         - Live reload notification
-    
+
     Caching:
         - Frontmatter cache: (path, mtime) -> has_nav_keys (avoids re-parsing)
         - Template dirs cache: Resolved template directories (avoids exists() calls)
-    
+
     Example:
             >>> trigger = BuildTrigger(site, host="localhost", port=5173)
             >>> trigger.trigger_build(changed_paths, event_types)
-        
+
     """
 
     # Class-level caches (shared across instances for efficiency)
     # Frontmatter cache: path -> (mtime, has_nav_keys)
-    _frontmatter_cache: dict[Path, tuple[float, bool]] = {}
+    _frontmatter_cache: ClassVar[dict[Path, tuple[float, bool]]] = {}
     _frontmatter_cache_max = 500
 
     # Template directories cache (per-instance, set to None to invalidate)
@@ -222,7 +226,9 @@ class BuildTrigger:
 
             # Determine build strategy
             needs_full_rebuild = self._needs_full_rebuild(changed_paths, event_types)
-            nav_changed_files = self._detect_nav_changes(changed_paths, needs_full_rebuild)
+            nav_changed_files = self._detect_nav_changes(
+                changed_paths, needs_full_rebuild
+            )
             structural_changed = bool({"created", "deleted", "moved"} & event_types)
 
             logger.info(
@@ -247,7 +253,10 @@ class BuildTrigger:
             # Run pre-build hooks
             config = getattr(self.site, "config", {}) or {}
             # run_pre_build_hooks expects a dict, use .raw for serialization
-            config_dict = config.raw if hasattr(config, "raw") else config
+            raw_config = getattr(config, "raw", None)
+            config_dict: dict[str, Any] = (
+                raw_config if isinstance(raw_config, dict) else {}
+            )
             if not run_pre_build_hooks(config_dict, self.site.root_path):
                 show_error("Pre-build hook failed - skipping build", show_art=False)
                 cli.request_log_header()
@@ -359,7 +368,10 @@ class BuildTrigger:
 
             # Show auto-fix suggestion if available
             if context.auto_fix_command:
-                show_error(f"Build failed: {e}\n\nTry: {context.auto_fix_command}", show_art=False)
+                show_error(
+                    f"Build failed: {e}\n\nTry: {context.auto_fix_command}",
+                    show_art=False,
+                )
         finally:
             self._set_build_in_progress(False)
 
@@ -586,7 +598,9 @@ class BuildTrigger:
                     else:
                         from bengal.orchestration.constants import NAV_AFFECTING_KEYS
 
-                        result = any(str(key).lower() in NAV_AFFECTING_KEYS for key in fm)
+                        result = any(
+                            str(key).lower() in NAV_AFFECTING_KEYS for key in fm
+                        )
                 except yaml.YAMLError:
                     result = False
 
@@ -731,7 +745,9 @@ class BuildTrigger:
                 continue
         return False
 
-    def _can_use_incremental_template_update(self, template_path: Path, cache: Any) -> bool:
+    def _can_use_incremental_template_update(
+        self, template_path: Path, cache: Any
+    ) -> bool:
         """
         Check if incremental template update is possible.
 
@@ -748,8 +764,8 @@ class BuildTrigger:
             True if incremental update is possible
         """
         try:
-            from bengal.rendering.engines import create_engine
             from bengal.protocols import EngineCapability
+            from bengal.rendering.engines import create_engine
 
             # Check if template engine supports block-level detection via capability
             engine = create_engine(self.site)
@@ -757,9 +773,12 @@ class BuildTrigger:
                 return False
 
             # Check if we have block cache support
-            from bengal.orchestration.incremental.template_detector import (
-                TemplateChangeDetector,
-            )
+            try:
+                from bengal.orchestration.incremental.template_detector import (  # type: ignore[import-not-found]
+                    TemplateChangeDetector,
+                )
+            except ImportError:
+                return False
 
             detector = TemplateChangeDetector(self.site, cache, block_cache=None)
             return detector._can_use_block_detection()
@@ -828,7 +847,9 @@ class BuildTrigger:
         if changed_files:
             try:
                 lower = [p.lower() for p in changed_files]
-                src_only = [p for p in lower if "/public/" not in p and "\\public\\" not in p]
+                src_only = [
+                    p for p in lower if "/public/" not in p and "\\public\\" not in p
+                ]
 
                 has_svg_icons = any(
                     "/themes/" in p and "/assets/icons/" in p and p.endswith(".svg")
@@ -844,7 +865,11 @@ class BuildTrigger:
                 if css_only:
                     # Use typed outputs to get CSS paths
                     css_paths = (
-                        [path for path, type_val, _phase in changed_outputs if type_val == "css"]
+                        [
+                            path
+                            for path, type_val, _phase in changed_outputs
+                            if type_val == "css"
+                        ]
                         if changed_outputs
                         else []
                     )
@@ -891,7 +916,9 @@ class BuildTrigger:
 
         # Default: suppress reload
         if decision is None:
-            decision = ReloadDecision(action="none", reason="no-source-change", changed_paths=[])
+            decision = ReloadDecision(
+                action="none", reason="no-source-change", changed_paths=[]
+            )
             decision_source = "suppressed"
 
         # RFC: Output Cache Architecture - Use content-hash detection to filter aggregate-only changes
@@ -945,7 +972,9 @@ class BuildTrigger:
                 reason=decision.reason,
                 source=decision_source,
             )
-            send_reload_payload(decision.action, decision.reason, decision.changed_paths)
+            send_reload_payload(
+                decision.action, decision.reason, decision.changed_paths
+            )
 
     def _set_build_in_progress(self, building: bool) -> None:
         """Signal build state to request handler."""

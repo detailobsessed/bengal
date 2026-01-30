@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock
@@ -112,4 +110,6 @@ def test_custom_favicon_override(mock_site):
     assert '<link rel="icon" type="image/png" href="' in html_output
     assert "/assets/custom-favicon.png" in html_output
     # Default favicons should not be present when custom is specified
-    assert "favicon.ico" not in html_output or "/assets/custom-favicon.png" in html_output
+    assert (
+        "favicon.ico" not in html_output or "/assets/custom-favicon.png" in html_output
+    )

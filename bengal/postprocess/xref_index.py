@@ -72,8 +72,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from bengal import __version__
-from bengal.utils.io.atomic_write import AtomicFile
 from bengal.utils.autodoc import is_autodoc_page
+from bengal.utils.io.atomic_write import AtomicFile
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
@@ -88,18 +88,18 @@ XREF_INDEX_VERSION = "1"
 class XRefIndexGenerator:
     """
     Generates xref.json for cross-project documentation linking.
-    
+
     Creates a JSON index that other Bengal sites can import to resolve
     [[ext:project:target]] references to pages, API docs, and CLI commands.
-    
+
     Creation:
         Direct instantiation: XRefIndexGenerator(site)
             - Requires Site instance with rendered pages
             - Called during post-processing phase
-    
+
     Attributes:
         site: Site instance with pages and configuration
-    
+
     Entry Types:
         - page: Regular content pages
         - class: Python classes from autodoc
@@ -108,11 +108,11 @@ class XRefIndexGenerator:
         - module: Python modules from autodoc
         - cli: CLI commands from autodoc
         - endpoint: REST API endpoints from autodoc
-    
+
     Example:
             >>> generator = XRefIndexGenerator(site)
             >>> path = generator.generate()  # Returns Path to xref.json
-        
+
     """
 
     def __init__(self, site: SiteLike) -> None:
@@ -161,8 +161,12 @@ class XRefIndexGenerator:
         logger.info(
             "xref_index_entries_collected",
             total_entries=entry_count,
-            page_entries=sum(1 for e in index_data["entries"].values() if e["type"] == "page"),
-            autodoc_entries=sum(1 for e in index_data["entries"].values() if e["type"] != "page"),
+            page_entries=sum(
+                1 for e in index_data["entries"].values() if e["type"] == "page"
+            ),
+            autodoc_entries=sum(
+                1 for e in index_data["entries"].values() if e["type"] != "page"
+            ),
         )
 
         # Write to output directory
@@ -181,7 +185,7 @@ class XRefIndexGenerator:
 
         return output_path
 
-    def _add_page_entries(self, entries: dict[str, Any], page: Page) -> None:
+    def _add_page_entries(self, entries: dict[str, Any], page: PageLike) -> None:
         """
         Add entries for a page to the index.
 
@@ -212,7 +216,9 @@ class XRefIndexGenerator:
         else:
             self._add_content_page_entry(entries, page, page_url)
 
-    def _add_content_page_entry(self, entries: dict[str, Any], page: Page, page_url: str) -> None:
+    def _add_content_page_entry(
+        self, entries: dict[str, Any], page: PageLike, page_url: str
+    ) -> None:
         """
         Add a content page entry to the index.
 
@@ -222,9 +228,10 @@ class XRefIndexGenerator:
             page_url: URL for the page
         """
         # Use slug as primary key, fallback to path-based key
-        entry_key = page.slug if hasattr(page, "slug") and page.slug else None
-
-        if not entry_key:
+        slug = getattr(page, "slug", None)
+        if slug and isinstance(slug, str):
+            entry_key = slug
+        else:
             # Generate key from URL path
             entry_key = page_url.strip("/").replace("/", "-") or "index"
 
@@ -237,18 +244,23 @@ class XRefIndexGenerator:
 
         # Add summary from description or excerpt
         description = page.metadata.get("description", "")
-        if description:
+        if description and isinstance(description, str):
             entry["summary"] = description[:200]
-        elif hasattr(page, "excerpt") and page.excerpt:
-            entry["summary"] = page.excerpt[:200]
+        else:
+            excerpt = getattr(page, "excerpt", None)
+            if excerpt and isinstance(excerpt, str):
+                entry["summary"] = excerpt[:200]
 
         entries[entry_key] = entry
 
         # Also add by custom ID if present
-        if (custom_id := page.metadata.get("id")) and custom_id != entry_key:
+        custom_id = page.metadata.get("id")
+        if custom_id and isinstance(custom_id, str) and custom_id != entry_key:
             entries[custom_id] = entry
 
-    def _add_autodoc_entries(self, entries: dict[str, Any], page: Page, page_url: str) -> None:
+    def _add_autodoc_entries(
+        self, entries: dict[str, Any], page: PageLike, page_url: str
+    ) -> None:
         """
         Add autodoc entries from a page to the index.
 
@@ -274,7 +286,7 @@ class XRefIndexGenerator:
             self._add_content_page_entry(entries, page, page_url)
 
     def _add_python_autodoc_entries(
-        self, entries: dict[str, Any], page: Page, page_url: str
+        self, entries: dict[str, Any], page: PageLike, page_url: str
     ) -> None:
         """
         Add Python autodoc entries (classes, functions, methods).
@@ -331,7 +343,9 @@ class XRefIndexGenerator:
                     "summary": page.metadata.get("description", "")[:200] or None,
                 }
 
-    def _add_cli_autodoc_entries(self, entries: dict[str, Any], page: Page, page_url: str) -> None:
+    def _add_cli_autodoc_entries(
+        self, entries: dict[str, Any], page: PageLike, page_url: str
+    ) -> None:
         """
         Add CLI autodoc entries (commands, subcommands).
 
@@ -365,7 +379,7 @@ class XRefIndexGenerator:
                 entries[page.title.lower().replace(" ", "-")] = entry
 
     def _add_openapi_autodoc_entries(
-        self, entries: dict[str, Any], page: Page, page_url: str
+        self, entries: dict[str, Any], page: PageLike, page_url: str
     ) -> None:
         """
         Add OpenAPI autodoc entries (endpoints).
@@ -402,13 +416,13 @@ class XRefIndexGenerator:
 def should_export_xref_index(site: SiteLike) -> bool:
     """
     Check if xref.json export is enabled.
-    
+
     Args:
         site: Site instance
-    
+
     Returns:
         True if external_refs.export_index is True
-        
+
     """
     external_refs = site.config.get("external_refs", {})
     if isinstance(external_refs, bool):

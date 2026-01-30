@@ -8,8 +8,6 @@ Tests cover:
 - Autodoc template environment menu caching
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 from bengal.rendering.context import MenusContext
@@ -214,7 +212,9 @@ class TestSiteVersionsCaching:
         # Second access - should return cached
         result2 = site.versions
         assert result2 is result1
-        assert site.version_config.versions[0].to_dict_call_count == 1  # Not called again
+        assert (
+            site.version_config.versions[0].to_dict_call_count == 1
+        )  # Not called again
         assert site.version_config.versions[1].to_dict_call_count == 1
 
     def test_versions_empty_when_disabled(self) -> None:

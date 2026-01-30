@@ -1,7 +1,5 @@
 """Tests for author view filters (AuthorView, author_view filter)."""
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 from bengal.rendering.template_functions.authors import (

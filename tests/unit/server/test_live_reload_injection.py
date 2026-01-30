@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 pytest.skip(
@@ -8,11 +6,15 @@ pytest.skip(
 )
 """Tests for HTML live reload injection and SSE notify flow."""
 
-import io
-from pathlib import Path
+import io  # noqa: E402
+from pathlib import Path  # noqa: E402
 
-from bengal.server.live_reload import LIVE_RELOAD_SCRIPT, notify_clients_reload, set_reload_action
-from bengal.server.request_handler import BengalRequestHandler
+from bengal.server.live_reload import (  # noqa: E402
+    LIVE_RELOAD_SCRIPT,
+    notify_clients_reload,
+    set_reload_action,
+)
+from bengal.server.request_handler import BengalRequestHandler  # noqa: E402
 
 
 class DummyHandler(BengalRequestHandler):
@@ -32,15 +34,12 @@ class DummyHandler(BengalRequestHandler):
     # Stub HTTP response methods for testing
     def send_response(self, code: int) -> None:
         """Stub - we're testing content, not HTTP mechanics."""
-        pass
 
     def send_header(self, keyword: str, value: str) -> None:
         """Stub - we're testing content, not HTTP mechanics."""
-        pass
 
     def end_headers(self) -> None:
         """Stub - we're testing content, not HTTP mechanics."""
-        pass
 
 
 def test_live_reload_injects_script(tmp_path: Path) -> None:

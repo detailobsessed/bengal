@@ -11,8 +11,6 @@ Uses the new separated templates:
 - partials/page-hero/section.html for section-index pages
 """
 
-from __future__ import annotations
-
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -33,10 +31,10 @@ from bengal.rendering.template_functions.autodoc import get_element_stats
 class MockDocElement:
     """
     Mock DocElement for template testing.
-    
+
     Simulates the bengal.autodoc.base.DocElement dataclass with the attributes
     accessed by page-hero/element.html template.
-    
+
     Attributes:
         name: Element name
         qualified_name: Full qualified name (e.g., 'bengal.core.Site')
@@ -45,7 +43,7 @@ class MockDocElement:
         source_file: Path to source file
         line_number: Line number in source
         children: Child elements (classes, functions, options, etc.)
-        
+
     """
 
     name: str = "test_element"
@@ -109,7 +107,9 @@ class MockDocElement:
         )
 
     @classmethod
-    def create_command_group_child(cls, name: str, description: str = "") -> MockDocElement:
+    def create_command_group_child(
+        cls, name: str, description: str = ""
+    ) -> MockDocElement:
         """Create a mock CLI command-group child element."""
         return cls(
             name=name,
@@ -152,7 +152,9 @@ class AttrDict(dict):
         try:
             return self[key]
         except KeyError:
-            return ""  # Return empty string for missing keys (ChainableUndefined behavior)
+            return (
+                ""  # Return empty string for missing keys (ChainableUndefined behavior)
+            )
 
     def __setattr__(self, key: str, value: Any) -> None:
         self[key] = value
@@ -162,10 +164,10 @@ class AttrDict(dict):
 class MockSection:
     """
     Mock section object for template testing.
-    
+
     Simulates bengal.core.section.Section with attributes accessed
     by page-hero/section.html template for section-index pages.
-        
+
     """
 
     name: str = "test_section"
@@ -322,11 +324,11 @@ def render_page_hero(
 ) -> str:
     """
     Render page-hero element or section template with given context.
-    
+
     Uses the new separated templates:
     - partials/page-hero/element.html for element pages
     - partials/page-hero/section.html for section-index pages
-    
+
     Args:
         engine: Template engine instance
         element: DocElement for element pages (may be None for section-index)
@@ -334,10 +336,10 @@ def render_page_hero(
         page: Page object (required)
         config: Autodoc config
         site: Site object
-    
+
     Returns:
         Rendered HTML string
-        
+
     """
     if page is None:
         page = MockPage()
@@ -382,9 +384,9 @@ def _render_section_hero(
 ) -> str:
     """
     Render section hero template for section-index pages.
-    
+
     Uses the new partials/page-hero/section.html template.
-    
+
     Args:
         engine: Template engine instance
         section: Section for section-index pages (required)
@@ -392,10 +394,10 @@ def _render_section_hero(
         config: Autodoc config
         site: Site object
         hero_context: Optional dict with explicit flags (e.g., is_cli)
-    
+
     Returns:
         Rendered HTML string
-        
+
     """
     if page is None:
         page = MockPage()
@@ -425,10 +427,10 @@ def _render_section_hero(
 def normalize_html(html: str) -> str:
     """
     Normalize HTML for comparison.
-    
+
     Removes extra whitespace and normalizes line endings to make
     HTML comparison more robust.
-        
+
     """
     # Normalize whitespace
     html = re.sub(r"\s+", " ", html)
@@ -550,7 +552,9 @@ class TestAPIModulePageHero:
         )
         page = MockPage(title="Test Module")
 
-        html = render_page_hero(template_engine, element=element, page=page, config=config)
+        html = render_page_hero(
+            template_engine, element=element, page=page, config=config
+        )
 
         assert_contains(html, "View source")
         assert_contains(html, "#L42")
@@ -582,15 +586,15 @@ class TestAPIModulePageHero:
 class TestAPISectionIndexPageHero:
     """
     Test page-hero/section.html for API section-index pages.
-    
+
     Uses the dedicated section.html template for section-index pages.
-    
+
     This is the exact behavior documented in the RFC as "Jinja Gotchas".
     For section-index pages in production, element is NOT passed at all,
     making `element is defined` return False.
-    
+
     In tests, we must NOT pass element at all to trigger the section-index branch.
-        
+
     """
 
     def test_renders_section_title(self, template_engine) -> None:
@@ -633,9 +637,13 @@ class TestAPISectionIndexPageHero:
                 MockSection(name="rendering", title="Rendering"),
             ],
             pages=[
-                MockPage(title="utils", href="/api/utils/", source_path=Path("utils.md")),
+                MockPage(
+                    title="utils", href="/api/utils/", source_path=Path("utils.md")
+                ),
                 MockPage(title="cli", href="/api/cli/", source_path=Path("cli.md")),
-                MockPage(title="config", href="/api/config/", source_path=Path("config.md")),
+                MockPage(
+                    title="config", href="/api/config/", source_path=Path("config.md")
+                ),
             ],
         )
         page = MockPage(title="Bengal API", href="/api/")
@@ -750,9 +758,9 @@ class TestCLICommandPageHero:
 class TestCLISectionIndexPageHero:
     """
     Test page-hero/section.html for CLI section-index pages with CLI labels.
-    
+
     Uses the _render_section_hero helper to render section-index pages.
-        
+
     """
 
     def test_renders_groups_not_packages_label(self, template_engine) -> None:
@@ -957,9 +965,9 @@ def _render_new_element_hero(
 ) -> str:
     """
     Render the NEW page-hero/element.html template.
-    
+
     This uses the new separated template for element pages.
-        
+
     """
     if page is None:
         page = MockPage()
@@ -997,9 +1005,9 @@ def _render_new_section_hero(
 ) -> str:
     """
     Render the NEW page-hero/section.html template.
-    
+
     This uses the new separated template for section-index pages.
-        
+
     """
     if page is None:
         page = MockPage()
@@ -1133,7 +1141,11 @@ class TestNewSectionTemplate:
             name="api",
             title="API Reference",
             subsections=[MockSection(name="core", title="Core")],
-            pages=[MockPage(title="utils", href="/api/utils/", source_path=Path("utils.md"))],
+            pages=[
+                MockPage(
+                    title="utils", href="/api/utils/", source_path=Path("utils.md")
+                )
+            ],
         )
         page = MockPage(title="API Reference", href="/api/")
 
@@ -1148,7 +1160,11 @@ class TestNewSectionTemplate:
             name="cli",
             title="CLI Reference",
             subsections=[MockSection(name="site", title="Site")],
-            pages=[MockPage(title="build", href="/cli/build/", source_path=Path("build.md"))],
+            pages=[
+                MockPage(
+                    title="build", href="/cli/build/", source_path=Path("build.md")
+                )
+            ],
         )
         page = MockPage(title="CLI Reference", href="/cli/")
 

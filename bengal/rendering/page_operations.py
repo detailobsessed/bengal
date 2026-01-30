@@ -23,29 +23,30 @@ See Also:
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from bengal.core.page import Page
     from bengal.rendering.template_engine import TemplateEngine
 
 
 class PageOperationsMixin:
     """
     Mixin providing operations for pages.
-    
+
     This mixin handles:
     - Rendering with templates
     - Link validation and extraction
     - Template application
-    
+
     Attributes:
         content: Raw page content (markdown)
         rendered_html: Rendered HTML output
         links: List of links extracted from the page
         source_path: Path to the source content file
-        
+
     """
 
     # Declare attributes that will be provided by the dataclass this mixin is mixed into
@@ -67,7 +68,7 @@ class PageOperationsMixin:
         from bengal.rendering.renderer import Renderer
 
         renderer = Renderer(template_engine)
-        self.rendered_html = renderer.render_page(self)
+        self.rendered_html = renderer.render_page(cast("Page", self))
         return self.rendered_html
 
     def validate_links(self) -> list[str]:
@@ -80,10 +81,12 @@ class PageOperationsMixin:
         from bengal.health.validators.links import LinkValidator
 
         validator = LinkValidator()
-        broken_links = validator.validate_page_links(self)
+        broken_links = validator.validate_page_links(cast("Page", self))
         return broken_links
 
-    def apply_template(self, template_name: str, context: dict[str, object] | None = None) -> str:
+    def apply_template(
+        self, template_name: str, context: dict[str, object] | None = None
+    ) -> str:
         """
         Apply a specific template to this page.
 
@@ -111,7 +114,7 @@ class PageOperationsMixin:
         # Regex-based extraction from raw markdown source
         # Remove fenced code blocks before extracting links
         # Process larger fences first (4+ backticks) to handle nested code blocks
-        content_without_code = self._source
+        content_without_code: str = getattr(self, "_source", "")
 
         # Remove 4+ backtick fences first (handles nested 3-backtick blocks)
         content_without_code = re.sub(
@@ -130,7 +133,9 @@ class PageOperationsMixin:
         markdown_links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content_without_code)
 
         # Extract HTML links <a href="url">
-        html_links = re.findall(r'<a\s+[^>]*href=["\']([^"\']+)["\']', content_without_code)
+        html_links = re.findall(
+            r'<a\s+[^>]*href=["\']([^"\']+)["\']', content_without_code
+        )
 
         self.links = [url for _, url in markdown_links] + html_links
         return self.links

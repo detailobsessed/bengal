@@ -9,7 +9,7 @@ Supports badge colors that map to Bengal's design system.
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, ClassVar
 
 from bengal.utils.observability.logger import get_logger
 
@@ -21,7 +21,7 @@ __all__ = ["BadgePlugin"]
 class BadgePlugin:
     """
     Mistune plugin for inline badge syntax.
-    
+
     Syntax:
         {bdg-primary}`text`      -> Primary color badge
         {bdg-secondary}`text`    -> Secondary/muted badge
@@ -31,7 +31,7 @@ class BadgePlugin:
         {bdg-info}`text`         -> Info/blue badge
         {bdg-light}`text`        -> Light badge
         {bdg-dark}`text`         -> Dark badge
-    
+
     Maps to Bengal's CSS color system:
         bdg-primary   -> badge-primary (blue)
         bdg-secondary -> badge-secondary (gray)
@@ -41,13 +41,13 @@ class BadgePlugin:
         bdg-info      -> badge-info (blue)
         bdg-light     -> badge-light (light gray)
         bdg-dark      -> badge-dark (dark gray)
-    
+
     Compatibility: Full support for bdg-* roles.
-        
+
     """
 
     # Badge color mapping (legacy -> Bengal CSS classes)
-    COLOR_MAP = {
+    COLOR_MAP: ClassVar[dict[str, str]] = {
         "primary": "primary",
         "secondary": "secondary",
         "success": "success",
@@ -109,7 +109,10 @@ class BadgePlugin:
             # Validate color
             if color not in self.COLOR_MAP:
                 logger.debug(
-                    "badge_unknown_color", color=color, text=badge_text, using_fallback="secondary"
+                    "badge_unknown_color",
+                    color=color,
+                    text=badge_text,
+                    using_fallback="secondary",
                 )
 
             # Note: badge_text is already HTML-escaped by Mistune's <code> renderer

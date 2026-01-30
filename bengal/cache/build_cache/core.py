@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -60,24 +60,24 @@ class BuildCache(
 ):
     """
     Tracks file hashes and dependencies between builds.
-    
+
     IMPORTANT PERSISTENCE CONTRACT:
     - This cache must NEVER contain object references (Page, Section, Asset objects)
     - All data must be JSON-serializable (paths, strings, numbers, lists, dicts, sets)
     - Object relationships are rebuilt each build from cached paths
-    
+
     NOTE: BuildCache intentionally does NOT implement the Cacheable protocol.
     Rationale:
     - Uses pickle for performance (faster than JSON for sets/complex structures)
     - Has tolerant loader with custom version handling logic
     - Contains many specialized fields (dependencies, hashes, etc.)
     - Designed for internal build state, not type-safe caching contracts
-    
+
     For type-safe caching, use types that implement the Cacheable protocol:
     - PageCore (bengal/core/page/page_core.py)
     - TagEntry (bengal/cache/taxonomy_index.py)
     - AssetDependencyEntry (bengal/cache/asset_dependency_map.py)
-    
+
     Attributes:
         file_fingerprints: Mapping of file paths to {mtime, size, hash} dicts
         dependencies: Mapping of pages to their dependencies (templates, partials, etc.)
@@ -92,7 +92,7 @@ class BuildCache(
         validation_results: Cached validation results per file/validator
         config_hash: Hash of resolved configuration (for auto-invalidation)
         last_build: Timestamp of last successful build
-        
+
     """
 
     # Serialized schema version (persisted in cache JSON). Tolerant loader accepts missing/older.
@@ -128,7 +128,9 @@ class BuildCache(
 
     # Validation result cache: file_path → validator_name → [CheckResult dicts]
     # Structure: {file_path: {validator_name: [CheckResult.to_cache_dict(), ...]}}
-    validation_results: dict[str, dict[str, list[dict[str, Any]]]] = field(default_factory=dict)
+    validation_results: dict[str, dict[str, list[dict[str, Any]]]] = field(
+        default_factory=dict
+    )
 
     # Autodoc dependency tracking: source_file → set[autodoc_page_paths]
     # Enables selective rebuilding of autodoc pages when their sources change
@@ -137,8 +139,10 @@ class BuildCache(
     # Autodoc source metadata: source_file → (content_hash, mtime, {page_path: doc_hash})
     # Enables fine-grained incremental builds and self-validation.
     # See: plan/rfc-autodoc-incremental-caching.md
-    autodoc_source_metadata: dict[str, tuple[str, float, dict[str, str]]] = field(default_factory=dict)
-    
+    autodoc_source_metadata: dict[str, tuple[str, float, dict[str, str]]] = field(
+        default_factory=dict
+    )
+
     # Autodoc content cache: source_file → CachedModuleInfo
     # RFC: rfc-build-performance-optimizations Phase 3
     # Caches parsed module data to skip AST parsing for unchanged sources
@@ -163,15 +167,18 @@ class BuildCache(
         """Convert sets from lists after JSON deserialization."""
         # Convert dependency lists back to sets
         self.dependencies = {
-            k: set(v) if isinstance(v, list) else v for k, v in self.dependencies.items()
+            k: set(v) if isinstance(v, list) else v
+            for k, v in self.dependencies.items()
         }
         # Convert reverse_dependencies lists back to sets (RFC: Cache Algorithm Optimization)
         self.reverse_dependencies = {
-            k: set(v) if isinstance(v, list) else v for k, v in self.reverse_dependencies.items()
+            k: set(v) if isinstance(v, list) else v
+            for k, v in self.reverse_dependencies.items()
         }
         # Convert taxonomy dependency lists back to sets
         self.taxonomy_deps = {
-            k: set(v) if isinstance(v, list) else v for k, v in self.taxonomy_deps.items()
+            k: set(v) if isinstance(v, list) else v
+            for k, v in self.taxonomy_deps.items()
         }
         # Convert page tags lists back to sets
         self.page_tags = {
@@ -179,14 +186,16 @@ class BuildCache(
         }
         # Convert tag_to_pages lists back to sets
         self.tag_to_pages = {
-            k: set(v) if isinstance(v, list) else v for k, v in self.tag_to_pages.items()
+            k: set(v) if isinstance(v, list) else v
+            for k, v in self.tag_to_pages.items()
         }
         # Convert known_tags list back to set
         if isinstance(self.known_tags, list):
             self.known_tags = set(self.known_tags)
         # Convert autodoc_dependencies lists back to sets
         self.autodoc_dependencies = {
-            k: set(v) if isinstance(v, list) else v for k, v in self.autodoc_dependencies.items()
+            k: set(v) if isinstance(v, list) else v
+            for k, v in self.autodoc_dependencies.items()
         }
         # Parsed content is already in dict format (no conversion needed)
         # Synthetic pages is already in dict format (no conversion needed)
@@ -274,7 +283,9 @@ class BuildCache(
 
             # Convert lists back to sets in dependencies
             if "dependencies" in data:
-                data["dependencies"] = {k: set(v) for k, v in data["dependencies"].items()}
+                data["dependencies"] = {
+                    k: set(v) for k, v in data["dependencies"].items()
+                }
 
             # Convert lists back to sets in reverse_dependencies
             if "reverse_dependencies" in data:
@@ -286,14 +297,18 @@ class BuildCache(
 
             # Convert lists back to sets in tag_to_pages
             if "tag_to_pages" in data:
-                data["tag_to_pages"] = {k: set(v) for k, v in data["tag_to_pages"].items()}
+                data["tag_to_pages"] = {
+                    k: set(v) for k, v in data["tag_to_pages"].items()
+                }
 
             # Convert list back to set in known_tags
             if "known_tags" in data and isinstance(data["known_tags"], list):
                 data["known_tags"] = set(data["known_tags"])
 
             if "taxonomy_deps" in data:
-                data["taxonomy_deps"] = {k: set(v) for k, v in data["taxonomy_deps"].items()}
+                data["taxonomy_deps"] = {
+                    k: set(v) for k, v in data["taxonomy_deps"].items()
+                }
 
             if "page_tags" in data:
                 data["page_tags"] = {k: set(v) for k, v in data["page_tags"].items()}
@@ -345,11 +360,15 @@ class BuildCache(
                 data["autodoc_source_metadata"] = normalized
 
             # Rendered output cache (tolerate missing - Optimization #3)
-            if "rendered_output" not in data or not isinstance(data["rendered_output"], dict):
+            if "rendered_output" not in data or not isinstance(
+                data["rendered_output"], dict
+            ):
                 data["rendered_output"] = {}
 
             # Synthetic pages cache (tolerate missing)
-            if "synthetic_pages" not in data or not isinstance(data["synthetic_pages"], dict):
+            if "synthetic_pages" not in data or not isinstance(
+                data["synthetic_pages"], dict
+            ):
                 data["synthetic_pages"] = {}
 
             # URL claims (new, tolerate missing)
@@ -357,7 +376,9 @@ class BuildCache(
                 data["url_claims"] = {}
 
             # Discovered assets (tolerate missing)
-            if "discovered_assets" not in data or not isinstance(data["discovered_assets"], dict):
+            if "discovered_assets" not in data or not isinstance(
+                data["discovered_assets"], dict
+            ):
                 data["discovered_assets"] = {}
 
             # Autodoc content cache (tolerate missing, reconstruct CachedModuleInfo)
@@ -367,14 +388,18 @@ class BuildCache(
                 data["autodoc_content_cache"] = {}
             else:
                 # Reconstruct CachedModuleInfo from serialized dicts
-                from bengal.cache.build_cache.autodoc_content_cache import CachedModuleInfo
+                from bengal.cache.build_cache.autodoc_content_cache import (
+                    CachedModuleInfo,
+                )
 
                 reconstructed: dict[str, Any] = {}
                 for source_path, info_dict in data["autodoc_content_cache"].items():
                     if isinstance(info_dict, dict) and "source_hash" in info_dict:
                         reconstructed[source_path] = CachedModuleInfo(
                             source_hash=info_dict["source_hash"],
-                            module_element_dict=info_dict.get("module_element_dict", {}),
+                            module_element_dict=info_dict.get(
+                                "module_element_dict", {}
+                            ),
                         )
                     # Skip malformed entries
                 data["autodoc_content_cache"] = reconstructed
@@ -540,7 +565,9 @@ class BuildCache(
             "output_sources": self.output_sources,
             "taxonomy_deps": {k: list(v) for k, v in self.taxonomy_deps.items()},
             "page_tags": {k: list(v) for k, v in self.page_tags.items()},
-            "tag_to_pages": {k: list(v) for k, v in self.tag_to_pages.items()},  # Save tag index
+            "tag_to_pages": {
+                k: list(v) for k, v in self.tag_to_pages.items()
+            },  # Save tag index
             "known_tags": list(self.known_tags),  # Save known tags
             "parsed_content": self.parsed_content,  # Already in dict format
             "rendered_output": self.rendered_output,  # Already in dict format (Optimization #3)
@@ -559,7 +586,7 @@ class BuildCache(
             "url_claims": self.url_claims,  # URL ownership claims (already dict format)
             "discovered_assets": self.discovered_assets,  # Discovered assets
             "config_hash": self.config_hash,  # Config hash for auto-invalidation
-            "last_build": datetime.now(timezone.utc).isoformat(),
+            "last_build": datetime.now(UTC).isoformat(),
         }
 
         if compress:

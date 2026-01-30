@@ -351,7 +351,10 @@ class TestPerformance:
 
         # Create a document with many headings and paragraphs
         content = "\n\n".join(
-            [f"## Section {i}\n\nParagraph {i} with some **bold** text." for i in range(100)]
+            [
+                f"## Section {i}\n\nParagraph {i} with some **bold** text."
+                for i in range(100)
+            ]
         )
 
         result = parser.parse(content, {})
@@ -365,7 +368,7 @@ class TestPerformance:
 
         content = "\n\n".join([f"## Heading {i}" for i in range(50)])
 
-        html, toc = parser.parse_with_toc(content, {})
+        _html, toc = parser.parse_with_toc(content, {})
 
         assert "Heading 0" in toc
         assert "Heading 49" in toc
@@ -382,14 +385,14 @@ class TestHeadingAnchors:
     def test_heading_ids_injected(self, parser):
         """Test that heading IDs are properly injected."""
         content = "## Test Heading\n\nSome content."
-        html, toc = parser.parse_with_toc(content, {})
+        html, _toc = parser.parse_with_toc(content, {})
 
         assert 'id="test-heading"' in html
 
     def test_headerlink_not_injected(self, parser):
         """Test that headerlink anchors (¶) are not injected by parser."""
         content = "## Test Heading\n\nSome content."
-        html, toc = parser.parse_with_toc(content, {})
+        html, _toc = parser.parse_with_toc(content, {})
 
         assert 'class="headerlink"' not in html
         assert 'href="#test-heading"' not in html
@@ -411,7 +414,7 @@ More content.
 Final content.
         """
 
-        html, toc = parser.parse_with_toc(content, {})
+        _html, toc = parser.parse_with_toc(content, {})
 
         # Check TOC structure
         assert '<div class="toc">' in toc
@@ -462,20 +465,26 @@ Final content.
         id_match = re.search(r'id="([^"]+)"', html)
         assert id_match, "Should have a heading ID"
         heading_id = id_match.group(1)
-        assert len(heading_id) <= 100, f"Slug should be <= 100 chars, got {len(heading_id)}"
+        assert len(heading_id) <= 100, (
+            f"Slug should be <= 100 chars, got {len(heading_id)}"
+        )
 
         # TOC title should be truncated to 80 characters with ellipsis
         toc_title_match = re.search(r'<a href="#[^"]+">([^<]+)</a>', toc)
         assert toc_title_match, "Should have TOC title"
         toc_title = toc_title_match.group(1)
-        assert len(toc_title) <= 50, f"TOC title should be <= 50 chars, got {len(toc_title)}"
+        assert len(toc_title) <= 50, (
+            f"TOC title should be <= 50 chars, got {len(toc_title)}"
+        )
         if len(toc_title) == 50:
             assert toc_title.endswith("..."), "Long titles should end with ellipsis"
 
     def test_header_with_long_inline_code(self, parser):
         """Test that headers with long inline code are handled properly."""
         # Header with inline code that's very long
-        long_function = "very_long_function_name_that_goes_on_and_on_and_on_and_on_and_on"
+        long_function = (
+            "very_long_function_name_that_goes_on_and_on_and_on_and_on_and_on"
+        )
         content = f"## Calling `{long_function}` and `another_very_long_function_name`\n\nContent."
         html, toc = parser.parse_with_toc(content, {})
 
@@ -485,13 +494,17 @@ Final content.
         id_match = re.search(r'id="([^"]+)"', html)
         assert id_match, "Should have a heading ID"
         heading_id = id_match.group(1)
-        assert len(heading_id) <= 100, f"Slug should be <= 100 chars, got {len(heading_id)}"
+        assert len(heading_id) <= 100, (
+            f"Slug should be <= 100 chars, got {len(heading_id)}"
+        )
 
         # TOC should have truncated title
         toc_title_match = re.search(r'<a href="#[^"]+">([^<]+)</a>', toc)
         assert toc_title_match, "Should have TOC title"
         toc_title = toc_title_match.group(1)
-        assert len(toc_title) <= 50, f"TOC title should be <= 50 chars, got {len(toc_title)}"
+        assert len(toc_title) <= 50, (
+            f"TOC title should be <= 50 chars, got {len(toc_title)}"
+        )
 
     def test_multiple_long_headers(self, parser):
         """Test that multiple headers with long code are all handled correctly."""
@@ -522,7 +535,9 @@ Final content.
         # All TOC titles should be <= 50 chars (for 280px sidebar)
         titles = re.findall(r'<a href="#[^"]+">([^<]+)</a>', toc)
         for title in titles:
-            assert len(title) <= 50, f"TOC title '{title}' should be <= 50 chars, got {len(title)}"
+            assert len(title) <= 50, (
+                f"TOC title '{title}' should be <= 50 chars, got {len(title)}"
+            )
 
     def test_multiple_heading_levels(self, parser):
         """Test h2, h3, h4 all get anchors."""
@@ -556,7 +571,7 @@ Final content.
         """Test that if Mistune adds IDs, we don't duplicate."""
         # This is future-proofing in case Mistune starts adding IDs
         content = "## Test Heading"
-        html, toc = parser.parse_with_toc(content, {})
+        html, _toc = parser.parse_with_toc(content, {})
 
         # Should have exactly one ID per heading
         assert html.count('id="test-heading"') == 1
@@ -569,11 +584,11 @@ Final content.
 ## H2 Second
         """
 
-        html, toc = parser.parse_with_toc(content, {})
+        _html, toc = parser.parse_with_toc(content, {})
 
         # h3 should be indented (2 spaces)
         lines = toc.split("\n")
-        h3_line = [line for line in lines if "H3 Nested" in line][0]
+        h3_line = next(line for line in lines if "H3 Nested" in line)
         assert h3_line.startswith("  <li>")  # 2 space indent
 
 
@@ -588,7 +603,7 @@ class TestExplicitAnchorSyntax:
     def test_explicit_id_creates_custom_anchor(self, parser):
         """Test that {#custom-id} syntax creates custom anchor ID."""
         content = "## Installation {#install}\n\nContent here."
-        html, toc = parser.parse_with_toc(content, {})
+        html, _toc = parser.parse_with_toc(content, {})
 
         # Should have custom ID, not auto-generated
         assert 'id="install"' in html
@@ -597,7 +612,7 @@ class TestExplicitAnchorSyntax:
     def test_explicit_id_stripped_from_display(self, parser):
         """Test that {#id} is removed from displayed heading text."""
         content = "## Installation {#install}\n\nContent here."
-        html, toc = parser.parse_with_toc(content, {})
+        html, _toc = parser.parse_with_toc(content, {})
 
         # {#install} should not appear in visible content
         assert "{#install}" not in html
@@ -607,7 +622,7 @@ class TestExplicitAnchorSyntax:
     def test_explicit_id_stripped_from_toc(self, parser):
         """Test that {#id} is removed from TOC display."""
         content = "## Installation {#install}\n\nContent here."
-        html, toc = parser.parse_with_toc(content, {})
+        _html, toc = parser.parse_with_toc(content, {})
 
         # TOC should show "Installation" without {#install}
         assert "{#install}" not in toc
@@ -639,7 +654,7 @@ More content.
 
 Final content.
         """
-        html, toc = parser.parse_with_toc(content, {})
+        html, _toc = parser.parse_with_toc(content, {})
 
         # Explicit IDs used where specified
         assert 'id="explicit"' in html
@@ -655,7 +670,7 @@ Final content.
     def test_explicit_id_preserves_heading_content(self, parser):
         """Test that heading content with code and formatting is preserved."""
         content = "## Using `config.yaml` for Setup {#config-setup}\n\nContent."
-        html, toc = parser.parse_with_toc(content, {})
+        html, _toc = parser.parse_with_toc(content, {})
 
         assert 'id="config-setup"' in html
         assert "<code>config.yaml</code>" in html
@@ -691,13 +706,13 @@ Final content.
         """Test that ID must start with letter."""
         # Valid: starts with letter
         content = "## Valid {#a123}\n\nContent."
-        html, toc = parser.parse_with_toc(content, {})
+        html, _toc = parser.parse_with_toc(content, {})
         assert 'id="a123"' in html
 
         # The pattern requires ID to start with letter, so {#123abc} won't match
         # and falls back to auto-generated slug
         content2 = "## Invalid Start {#123abc}\n\nContent."
-        html2, toc2 = parser.parse_with_toc(content2, {})
+        html2, _toc2 = parser.parse_with_toc(content2, {})
         # Should fall back to auto-generated since pattern doesn't match
         # The {#123abc} stays in content and auto-slug is generated
         assert 'id="invalid-start-123abc"' in html2 or "{#123abc}" in html2

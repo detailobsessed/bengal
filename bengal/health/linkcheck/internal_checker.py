@@ -36,26 +36,26 @@ logger = get_logger(__name__)
 class InternalLinkChecker:
     """
     Validates internal links within a built site.
-    
+
     Scans the output directory for HTML files and builds an index of valid
     URLs. Checks links against this index and validates anchors when present.
-    
+
     Validation Coverage:
         - Page-to-page links (absolute site paths)
         - Anchor links (#section-id)
         - Handles baseurl stripping
         - Filters source file references (autodoc)
-    
+
     Attributes:
         site: Site instance with output_dir
         ignore_policy: IgnorePolicy for filtering certain links
         output_dir: Path to built HTML files
         baseurl_path: Base URL path to strip from links
-    
+
     Note:
         Relative links are currently passed as OK with a metadata note,
         as full resolution requires tracking the referencing page context.
-        
+
     """
 
     def __init__(
@@ -100,7 +100,9 @@ class InternalLinkChecker:
                 # Convert path/index.html -> /path/
                 # Convert path.html -> /path
                 if rel_path.name == "index.html":
-                    url = "/" if rel_path.parent == Path(".") else f"/{rel_path.parent}/"
+                    url = (
+                        "/" if rel_path.parent == Path(".") else f"/{rel_path.parent}/"
+                    )
                 else:
                     url = f"/{rel_path.with_suffix('')}"
 
@@ -231,7 +233,9 @@ class InternalLinkChecker:
             )
 
         # Check if page exists (with or without trailing slash)
-        page_exists = path in self._output_paths or path.rstrip("/") in self._output_paths
+        page_exists = (
+            path in self._output_paths or path.rstrip("/") in self._output_paths
+        )
 
         if not page_exists:
             logger.debug("internal_link_broken_page_not_found", url=url, path=path)

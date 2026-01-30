@@ -8,8 +8,6 @@ Tests:
 
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.server.file_watcher import (

@@ -29,7 +29,7 @@ __all__ = ["CardDirective", "CardOptions"]
 class CardOptions(DirectiveOptions):
     """
     Options for individual card directive.
-    
+
     Attributes:
         icon: Icon name
         link: URL or page reference
@@ -40,7 +40,7 @@ class CardOptions(DirectiveOptions):
         footer: Footer content
         pull: Fields to pull from linked page (comma-separated)
         layout: Layout override (default, horizontal, portrait, compact)
-    
+
     Example:
         :::{card} Getting Started
         :icon: rocket
@@ -49,7 +49,7 @@ class CardOptions(DirectiveOptions):
         :badge: Updated
         Detailed content here.
         :::{/card}
-        
+
     """
 
     icon: str = ""
@@ -62,16 +62,16 @@ class CardOptions(DirectiveOptions):
     pull: str = ""
     layout: str = ""
 
-    _allowed_values: ClassVar[dict[str, list[str]]] = {
+    _allowed_values: ClassVar[dict[str, list[str | int]]] = {
         "color": list(VALID_COLORS),
-        "layout": [""] + list(VALID_LAYOUTS),  # Empty string allowed
+        "layout": ["", *list(VALID_LAYOUTS)],  # Empty string allowed
     }
 
 
 class CardDirective(BengalDirective):
     """
     Individual card directive (nested in cards).
-    
+
     Syntax:
         :::{card} Card Title
         :icon: book
@@ -80,20 +80,20 @@ class CardDirective(BengalDirective):
         :image: /hero.jpg
         :footer: Updated 2025
         :pull: title, description
-    
+
         Card content with **markdown** support.
         :::
-    
+
     Footer separator:
         :::{card} Title
         Body content
         +++
         Footer content
         :::
-    
+
     Contract:
         Typically nested inside :::{cards}, but can be standalone.
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["card"]
@@ -101,14 +101,14 @@ class CardDirective(BengalDirective):
     OPTIONS_CLASS: ClassVar[type[DirectiveOptions]] = CardOptions
 
     # Contract: card should be inside cards_grid (soft validation)
-    CONTRACT: ClassVar[DirectiveContract] = CARD_CONTRACT
+    CONTRACT: ClassVar[DirectiveContract | None] = CARD_CONTRACT
 
     DIRECTIVE_NAMES: ClassVar[list[str]] = ["card"]
 
     def parse_directive(
         self,
         title: str,
-        options: CardOptions,  # type: ignore[override]
+        options: CardOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -209,14 +209,20 @@ class CardDirective(BengalDirective):
                     parts.append(rendered_icon)
                     parts.append("    </span>")
             if title:
-                parts.append(f'    <div class="card-title">{self.escape_html(title)}</div>')
+                parts.append(
+                    f'    <div class="card-title">{self.escape_html(title)}</div>'
+                )
             if badge:
-                parts.append(f'    <span class="card-badge">{self.escape_html(badge)}</span>')
+                parts.append(
+                    f'    <span class="card-badge">{self.escape_html(badge)}</span>'
+                )
             parts.append("  </div>")
 
         # Description (brief summary below header)
         if description:
-            parts.append(f'  <div class="card-description">{self.escape_html(description)}</div>')
+            parts.append(
+                f'  <div class="card-description">{self.escape_html(description)}</div>'
+            )
 
         # Card content
         if text:

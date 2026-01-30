@@ -1,6 +1,6 @@
 """Tests for Jinja2 utility functions."""
 
-from __future__ import annotations
+from typing import ClassVar
 
 import pytest
 from jinja2 import Undefined
@@ -328,8 +328,12 @@ class TestIntegrationScenarios:
 
         # All should work safely
         assert safe_get_attr(page1, "metadata", "author", default="Unknown") == "Alice"
-        assert safe_get_attr(page2, "metadata", "author", default="Unknown") == "Unknown"
-        assert safe_get_attr(page3, "metadata", "author", default="Unknown") == "Unknown"
+        assert (
+            safe_get_attr(page2, "metadata", "author", default="Unknown") == "Unknown"
+        )
+        assert (
+            safe_get_attr(page3, "metadata", "author", default="Unknown") == "Unknown"
+        )
 
     def test_checking_optional_fields(self):
         """Test checking if optional fields have values."""
@@ -337,7 +341,7 @@ class TestIntegrationScenarios:
         class Page:
             title = "Hello"
             description = ""
-            tags = []
+            tags: ClassVar[list[str]] = []
             draft = False
             featured = None
 
@@ -381,7 +385,9 @@ class TestIntegrationScenarios:
         page = Page()
 
         # Get nested attribute, ensure it's defined, check if it has value
-        author = ensure_defined(safe_get_attr(page, "metadata", "author", default=None), "Unknown")
+        author = ensure_defined(
+            safe_get_attr(page, "metadata", "author", default=None), "Unknown"
+        )
         assert author == "Unknown"
         assert has_value(author) is True
 

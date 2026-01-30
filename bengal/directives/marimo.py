@@ -7,7 +7,7 @@ reactive notebook system.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from mistune.directives import DirectivePlugin
 
@@ -21,39 +21,39 @@ logger = get_logger(__name__)
 class MarimoCellDirective(DirectivePlugin):
     """
     Marimo cell directive for executable Python code blocks.
-    
+
     Syntax:
             ```{marimo}
             import pandas as pd
             pd.DataFrame({"x": [1, 2, 3]})
             ```
-    
+
     Options:
         :show-code: true/false - Display source code (default: true)
         :cache: true/false - Cache execution results (default: true)
         :label: str - Cell identifier for caching and cross-references
-    
+
     Features:
     - Execute Python code at build time
     - Render outputs (text, tables, plots, etc.)
     - Cache results for fast rebuilds
     - Show/hide source code
     - Graceful error handling
-    
+
     Example:
             ```{marimo}
             :show-code: false
             :label: sales-data
-    
+
             import pandas as pd
             data = pd.read_csv("sales.csv")
             data.head()
             ```
-        
+
     """
 
     # Directive names this class registers (for health check introspection)
-    DIRECTIVE_NAMES = ["marimo"]
+    DIRECTIVE_NAMES: ClassVar[list[str]] = ["marimo"]
 
     def __init__(self) -> None:
         """Initialize Marimo directive."""
@@ -102,7 +102,11 @@ class MarimoCellDirective(DirectivePlugin):
 
         # Execute cell and get HTML
         html = self._execute_cell(
-            code=code, show_code=show_code, page_id=page_id, use_cache=use_cache, label=label
+            code=code,
+            show_code=show_code,
+            page_id=page_id,
+            use_cache=use_cache,
+            label=label,
         )
 
         self.cell_counter += 1
@@ -117,7 +121,12 @@ class MarimoCellDirective(DirectivePlugin):
         }
 
     def _execute_cell(
-        self, code: str, show_code: bool, page_id: str, use_cache: bool = True, label: str = ""
+        self,
+        code: str,
+        show_code: bool,
+        page_id: str,
+        use_cache: bool = True,
+        label: str = "",
     ) -> str:
         """
         Execute Python code using Marimo and return HTML output.
@@ -147,7 +156,7 @@ class MarimoCellDirective(DirectivePlugin):
         #         return cached
 
         try:
-            from marimo import MarimoIslandGenerator
+            from marimo import MarimoIslandGenerator  # type: ignore[attr-defined]
 
             # Get or create generator for this page
             # Each page gets its own generator to maintain execution context
@@ -233,16 +242,16 @@ class MarimoCellDirective(DirectivePlugin):
 def render_marimo_cell(renderer: Any, html: str, cell_id: int, label: str = "") -> str:
     """
     Render Marimo cell HTML output.
-    
+
     Args:
         renderer: Mistune HTML renderer
         html: Cell HTML content
         cell_id: Numeric cell identifier
         label: Optional cell label
-    
+
     Returns:
         Wrapped HTML with cell container
-        
+
     """
     label_attr = f' data-label="{label}"' if label else ""
     return f'<div class="marimo-cell" data-cell-id="{cell_id}"{label_attr}>\n{html}\n</div>'

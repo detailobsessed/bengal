@@ -42,13 +42,13 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-from bengal.core.page import Page, PageProxy
-from bengal.core.section import Section
 from bengal.content.discovery.content_parser import ContentParser
 from bengal.content.discovery.directory_walker import DirectoryWalker
 from bengal.content.discovery.section_builder import SectionBuilder
-from bengal.utils.observability.logger import get_logger
+from bengal.core.page import Page, PageProxy
+from bengal.core.section import Section
 from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
+from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -60,10 +60,10 @@ if TYPE_CHECKING:
 class ContentDiscovery:
     """
     Discovers and organizes content files into Page and Section hierarchies.
-    
+
     This class walks the content directory, parses markdown files with frontmatter,
     and builds a structured representation of the site's content.
-    
+
     Key Behaviors:
         - YAML errors in frontmatter are downgraded to debug level; content is
           preserved with synthesized minimal metadata to keep builds progressing.
@@ -76,13 +76,13 @@ class ContentDiscovery:
         - Symlink loops are detected via inode tracking to prevent infinite recursion.
         - Content collections: When collections.py is present, frontmatter is
           validated against schemas during discovery (fail fast).
-    
+
     Attributes:
         content_dir: Root content directory to scan
         site: Optional Site reference for configuration access
         sections: List of discovered Section objects (populated after discover())
         pages: List of discovered Page objects (populated after discover())
-    
+
     Example:
             >>> from bengal.content.discovery import ContentDiscovery
             >>> from pathlib import Path
@@ -95,7 +95,7 @@ class ContentDiscovery:
             >>> # With caching for incremental builds
             >>> discovery = ContentDiscovery(Path("content"), site=site)
             >>> sections, pages = discovery.discover(use_cache=True, cache=page_cache)
-        
+
     """
 
     def __init__(
@@ -176,10 +176,12 @@ class ContentDiscovery:
         else:
             return self._discover_full()
 
-    def _discover_surgical(self, cache: Any) -> tuple[list[Section], list[Page | PageProxy]]:
+    def _discover_surgical(
+        self, cache: Any
+    ) -> tuple[list[Section], list[Page | PageProxy]]:
         """
         Surgical discovery - use cache to skip parsing unchanged files.
-        
+
         This is the FAST path for incremental builds and hot reloads.
         Instead of parsing all files and then converting to proxies,
         it checks the cache during the walk and creates proxies immediately.
@@ -220,7 +222,9 @@ class ContentDiscovery:
                 # Detect language-root directories for i18n
                 if self._is_language_root(item, i18n_config):
                     for sub in sorted(item.iterdir()):
-                        self._process_top_level_item_surgical(sub, cache, current_lang=item.name)
+                        self._process_top_level_item_surgical(
+                            sub, cache, current_lang=item.name
+                        )
                     continue
 
                 current_lang = (
@@ -228,7 +232,9 @@ class ContentDiscovery:
                     if i18n_config.get("strategy") == "prefix"
                     else None
                 )
-                self._process_top_level_item_surgical(item, cache, current_lang=current_lang)
+                self._process_top_level_item_surgical(
+                    item, cache, current_lang=current_lang
+                )
         finally:
             if self._executor:
                 self._executor.shutdown(wait=True)
@@ -260,7 +266,9 @@ class ContentDiscovery:
             return
 
         if item_path.is_file() and self._walker.is_content_file(item_path):
-            page = self._create_page_surgical(item_path, cache, current_lang=current_lang)
+            page = self._create_page_surgical(
+                item_path, cache, current_lang=current_lang
+            )
             if page is not None:
                 # Cache hit: got a PageProxy
                 self._section_builder.pages.append(page)
@@ -273,22 +281,32 @@ class ContentDiscovery:
                 self._resolve_page_futures([future])
             else:
                 # No executor, parse synchronously
-                full_page = self._create_page(item_path, current_lang=current_lang, section=None)
+                full_page = self._create_page(
+                    item_path, current_lang=current_lang, section=None
+                )
                 self._section_builder.pages.append(full_page)
 
         elif item_path.is_dir():
             if self._walker.is_versioning_infrastructure(item_path):
                 section = self._section_builder.create_section(item_path)
-                self._walk_directory_surgical(item_path, section, cache, current_lang=current_lang)
+                self._walk_directory_surgical(
+                    item_path, section, cache, current_lang=current_lang
+                )
                 self._section_builder.add_versioned_sections_recursive(section)
                 return
 
             section = self._section_builder.create_section(item_path)
-            self._walk_directory_surgical(item_path, section, cache, current_lang=current_lang)
+            self._walk_directory_surgical(
+                item_path, section, cache, current_lang=current_lang
+            )
             self._section_builder.add_section(section)
 
     def _walk_directory_surgical(
-        self, directory: Path, parent_section: Section, cache: Any, current_lang: str | None = None
+        self,
+        directory: Path,
+        parent_section: Section,
+        cache: Any,
+        current_lang: str | None = None,
     ) -> None:
         """Recursively walk a directory surgically using cache."""
         if not directory.exists():
@@ -320,13 +338,17 @@ class ContentDiscovery:
                     )
                 else:
                     # No executor available, parse synchronously
-                    full_page = self._create_page(item, current_lang=current_lang, section=parent_section)
+                    full_page = self._create_page(
+                        item, current_lang=current_lang, section=parent_section
+                    )
                     parent_section.add_page(full_page)
                     self._section_builder.pages.append(full_page)
 
             elif item.is_dir():
                 section = self._section_builder.create_section(item)
-                self._walk_directory_surgical(item, section, cache, current_lang=current_lang)
+                self._walk_directory_surgical(
+                    item, section, cache, current_lang=current_lang
+                )
                 if section.pages or section.subsections:
                     parent_section.add_subsection(section)
 
@@ -343,7 +365,7 @@ class ContentDiscovery:
     ) -> Page | PageProxy | None:
         """
         Create a Page object surgically: try cache first, then signal for full parse.
-        
+
         Returns:
             PageProxy on cache hit (use directly)
             None on cache miss (caller should parse via executor or synchronously)
@@ -355,20 +377,26 @@ class ContentDiscovery:
                 cache_lookup_path = file_path.relative_to(self.site.root_path)
 
         cached_metadata = cache.get_metadata(cache_lookup_path)
-        
+
         if cached_metadata:
             # Validate cache entry using mtime (fastest disk check)
             try:
                 # Check if this file is explicitly marked as changed in the orchestrator
-                options = getattr(self.site, "_last_build_options", None) if self.site else None
+                options = (
+                    getattr(self.site, "_last_build_options", None)
+                    if self.site
+                    else None
+                )
                 changed_sources = getattr(options, "changed_sources", None)
-                
+
                 is_explicitly_changed = False
                 if changed_sources:
                     # Normalize paths for comparison
                     try:
                         resolved_file = file_path.resolve()
-                        is_explicitly_changed = any(s.resolve() == resolved_file for s in changed_sources)
+                        is_explicitly_changed = any(
+                            s.resolve() == resolved_file for s in changed_sources
+                        )
                     except (OSError, ValueError):
                         is_explicitly_changed = file_path in changed_sources
 
@@ -381,13 +409,18 @@ class ContentDiscovery:
                             sec = None
                             if section_path and self.site is not None:
                                 sec = self.site.get_section_by_path(section_path)
-                            return self._create_page(source_path, current_lang=lang, section=sec)
+                            return self._create_page(
+                                source_path, current_lang=lang, section=sec
+                            )
+
                         return loader
 
                     proxy = PageProxy(
                         source_path=file_path,
                         metadata=cached_metadata,
-                        loader=make_loader(file_path, current_lang, section.path if section else None),
+                        loader=make_loader(
+                            file_path, current_lang, section.path if section else None
+                        ),
                     )
                     if section:
                         proxy._section = section
@@ -487,7 +520,7 @@ class ContentDiscovery:
     def _check_yaml_extensions(self) -> None:
         """Check for PyYAML C extensions (performance hint)."""
         try:
-            import yaml  # type: ignore[import-untyped]  # noqa: F401
+            import yaml
 
             has_libyaml = getattr(yaml, "__with_libyaml__", False)
             if not has_libyaml:
@@ -536,7 +569,9 @@ class ContentDiscovery:
             and item.name in i18n_config.get("language_codes", [])
         )
 
-    def _process_top_level_item(self, item_path: Path, current_lang: str | None) -> list[Page]:
+    def _process_top_level_item(
+        self, item_path: Path, current_lang: str | None
+    ) -> list[Page]:
         """Process a top-level item (file or directory)."""
         produced_pages: list[Page] = []
         pending_pages: list[Any] = []
@@ -547,10 +582,14 @@ class ContentDiscovery:
         if item_path.is_file() and self._walker.is_content_file(item_path):
             if self._executor:
                 pending_pages.append(
-                    self._executor.submit(self._create_page, item_path, current_lang, None)
+                    self._executor.submit(
+                        self._create_page, item_path, current_lang, None
+                    )
                 )
             else:
-                page = self._create_page(item_path, current_lang=current_lang, section=None)
+                page = self._create_page(
+                    item_path, current_lang=current_lang, section=None
+                )
                 self._section_builder.pages.append(page)
                 produced_pages.append(page)
 
@@ -587,7 +626,9 @@ class ContentDiscovery:
             if item.is_file() and self._walker.is_content_file(item):
                 if self._executor:
                     file_futures.append(
-                        self._executor.submit(self._create_page, item, current_lang, parent_section)
+                        self._executor.submit(
+                            self._create_page, item, current_lang, parent_section
+                        )
                     )
                 else:
                     page = self._create_page(
@@ -634,7 +675,10 @@ class ContentDiscovery:
         return pages
 
     def _create_page(
-        self, file_path: Path, current_lang: str | None = None, section: Section | None = None
+        self,
+        file_path: Path,
+        current_lang: str | None = None,
+        section: Section | None = None,
     ) -> Page:
         """Create a Page object from a file with robust error handling."""
         try:
@@ -688,7 +732,11 @@ class ContentDiscovery:
             raise
 
     def _enrich_page_i18n(
-        self, page: Page, file_path: Path, current_lang: str | None, metadata: dict[str, Any]
+        self,
+        page: Page,
+        file_path: Path,
+        current_lang: str | None,
+        metadata: dict[str, Any],
     ) -> None:
         """Enrich page with i18n attributes."""
         try:
@@ -705,7 +753,11 @@ class ContentDiscovery:
                 i18n = self.site.config.get("i18n", {}) or {}
                 strategy = i18n.get("strategy", "none")
                 content_structure = i18n.get("content_structure", "dir")
-                if not page.translation_key and strategy == "prefix" and content_structure == "dir":
+                if (
+                    not page.translation_key
+                    and strategy == "prefix"
+                    and content_structure == "dir"
+                ):
                     try:
                         rel = file_path.relative_to(self.content_dir)
                     except ValueError:

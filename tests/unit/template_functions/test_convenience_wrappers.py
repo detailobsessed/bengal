@@ -9,8 +9,6 @@ Tests the convenience functions added to simplify common template operations:
 See RFC: plan/active/rfc-template-function-improvements.md
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -58,7 +56,9 @@ output_dir = "public"
     # Create docs section with pages
     docs_dir = content_dir / "docs"
     docs_dir.mkdir()
-    (docs_dir / "_index.md").write_text("---\ntitle: Documentation\nweight: 10\n---\n# Docs")
+    (docs_dir / "_index.md").write_text(
+        "---\ntitle: Documentation\nweight: 10\n---\n# Docs"
+    )
     (docs_dir / "getting-started.md").write_text(
         "---\ntitle: Getting Started\nweight: 1\n---\n# Getting Started"
     )
@@ -69,8 +69,12 @@ output_dir = "public"
     # Create subsection in docs
     guides_dir = docs_dir / "guides"
     guides_dir.mkdir()
-    (guides_dir / "_index.md").write_text("---\ntitle: Guides\nweight: 100\n---\n# Guides")
-    (guides_dir / "advanced.md").write_text("---\ntitle: Advanced Guide\n---\n# Advanced")
+    (guides_dir / "_index.md").write_text(
+        "---\ntitle: Guides\nweight: 100\n---\n# Guides"
+    )
+    (guides_dir / "advanced.md").write_text(
+        "---\ntitle: Advanced Guide\n---\n# Advanced"
+    )
 
     # Create blog section
     blog_dir = content_dir / "blog"
@@ -215,7 +219,9 @@ class TestPageExists:
 
     def test_strips_content_prefix(self, site_with_sections: Site):
         """Test that page_exists strips 'content/' prefix if present."""
-        assert page_exists("content/docs/getting-started.md", site_with_sections) is True
+        assert (
+            page_exists("content/docs/getting-started.md", site_with_sections) is True
+        )
 
     def test_does_not_load_page(self, site_with_sections: Site):
         """Test that page_exists uses cached maps without loading page."""
@@ -284,7 +290,9 @@ class TestWordCount:
         """Test that word_count is registered as a filter."""
         from jinja2 import Environment
 
-        from bengal.rendering.template_functions.strings import register as register_strings
+        from bengal.rendering.template_functions.strings import (
+            register as register_strings,
+        )
 
         env = Environment()
         register_strings(env, site_with_sections)

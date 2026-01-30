@@ -2,8 +2,8 @@
 Unit tests for DependencyTracker.
 """
 
-from bengal.cache.build_cache import BuildCache
 from bengal.build.tracking import DependencyTracker
+from bengal.cache.build_cache import BuildCache
 
 
 class TestDependencyTracker:
@@ -254,9 +254,9 @@ class TestDependencyTracker:
 class TestCrossVersionDependencies:
     """
     Test suite for cross-version link dependency tracking.
-    
+
     RFC: rfc-versioned-docs-pipeline-integration (Phase 2)
-        
+
     """
 
     def test_track_cross_version_link(self, tmp_path):
@@ -298,13 +298,19 @@ class TestCrossVersionDependencies:
         tracker.track_cross_version_link(source_page, "v3", "docs/guide")
 
         # Verify each dependency
-        assert source_page in tracker.get_cross_version_dependents("v2", "docs/reference")
+        assert source_page in tracker.get_cross_version_dependents(
+            "v2", "docs/reference"
+        )
         assert source_page in tracker.get_cross_version_dependents("v2", "docs/api")
         assert source_page in tracker.get_cross_version_dependents("v3", "docs/guide")
 
         # Verify no false positives
-        assert source_page not in tracker.get_cross_version_dependents("v1", "docs/reference")
-        assert source_page not in tracker.get_cross_version_dependents("v2", "docs/guide")
+        assert source_page not in tracker.get_cross_version_dependents(
+            "v1", "docs/reference"
+        )
+        assert source_page not in tracker.get_cross_version_dependents(
+            "v2", "docs/guide"
+        )
 
     def test_multiple_sources_same_target(self, tmp_path):
         """Test multiple source pages linking to the same cross-version target."""

@@ -62,11 +62,21 @@ class PathRegistry:
             site: Site instance for path resolution
         """
         self.site = site
-        self._content_dir = site.paths.content_dir if hasattr(site, "paths") else site.root_path / "content"
-        self._generated_dir = (
-            site.paths.generated_dir if hasattr(site, "paths") else site.root_path / ".bengal" / "generated"
+        self._content_dir = (
+            site.paths.content_dir
+            if hasattr(site, "paths")
+            else site.root_path / "content"
         )
-        self._output_dir = site.output_dir if hasattr(site, "output_dir") else site.root_path / "public"
+        self._generated_dir = (
+            site.paths.generated_dir
+            if hasattr(site, "paths")
+            else site.root_path / ".bengal" / "generated"
+        )
+        self._output_dir = (
+            site.output_dir
+            if hasattr(site, "output_dir")
+            else site.root_path / "public"
+        )
 
     def canonical_source(self, page: Page) -> Path:
         """
@@ -95,7 +105,9 @@ class PathRegistry:
             except ValueError:
                 # Not in generated dir - use raw source path (e.g. for autodoc sources)
                 try:
-                    return Path("autodoc") / page.source_path.relative_to(self.site.root_path)
+                    return Path("autodoc") / page.source_path.relative_to(
+                        self.site.root_path
+                    )
                 except ValueError:
                     return page.source_path
 
@@ -132,7 +144,7 @@ class PathRegistry:
         """
         path_str = str(path)
         generated_str = str(self._generated_dir)
-        return path_str.startswith(generated_str) or path_str.startswith(".bengal/generated")
+        return path_str.startswith((generated_str, ".bengal/generated"))
 
     def virtual_path_for_taxonomy(self, taxonomy: str, term: str) -> Path:
         """

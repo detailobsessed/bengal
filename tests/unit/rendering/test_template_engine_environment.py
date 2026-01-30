@@ -4,8 +4,6 @@ Tests for bengal.rendering.template_engine.environment module.
 Tests Jinja2 environment configuration including bytecode caching behavior.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -41,7 +39,7 @@ class TestBytecodeCache:
         mock_engine._asset_url = MagicMock(return_value="/assets/test.css")
 
         # Create environment
-        env, template_dirs = create_jinja_environment(mock_site, mock_engine)
+        env, _template_dirs = create_jinja_environment(mock_site, mock_engine)
 
         # Verify bytecode cache is None (disabled)
         assert env.bytecode_cache is None, (
@@ -83,7 +81,7 @@ class TestBytecodeCache:
         mock_engine._asset_url = MagicMock(return_value="/assets/test.css")
 
         # Create environment
-        env, template_dirs = create_jinja_environment(mock_site, mock_engine)
+        env, _template_dirs = create_jinja_environment(mock_site, mock_engine)
 
         # Verify bytecode cache is enabled
         assert env.bytecode_cache is not None, (
@@ -91,9 +89,13 @@ class TestBytecodeCache:
         )
 
         # Verify auto_reload is disabled
-        assert env.auto_reload is False, "auto_reload should be False in production mode"
+        assert env.auto_reload is False, (
+            "auto_reload should be False in production mode"
+        )
 
-    def test_bytecode_cache_disabled_when_cache_templates_false(self, tmp_path: Path) -> None:
+    def test_bytecode_cache_disabled_when_cache_templates_false(
+        self, tmp_path: Path
+    ) -> None:
         """Test that bytecode cache is disabled when cache_templates=False."""
         # Create mock site with cache_templates=False
         mock_site = MagicMock()
@@ -115,7 +117,7 @@ class TestBytecodeCache:
         mock_engine._asset_url = MagicMock(return_value="/assets/test.css")
 
         # Create environment
-        env, template_dirs = create_jinja_environment(mock_site, mock_engine)
+        env, _template_dirs = create_jinja_environment(mock_site, mock_engine)
 
         # Verify bytecode cache is None (disabled)
         assert env.bytecode_cache is None, (

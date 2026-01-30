@@ -87,7 +87,10 @@ class TestStripHtml:
 
     def test_nested_tags(self):
         """Test nested HTML tags."""
-        assert strip_html("<div><p>Hello <strong>World</strong></p></div>") == "Hello World"
+        assert (
+            strip_html("<div><p>Hello <strong>World</strong></p></div>")
+            == "Hello World"
+        )
 
     def test_self_closing_tags(self):
         """Test self-closing tags."""

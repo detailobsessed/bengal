@@ -221,7 +221,9 @@ def test_large_section_tree_performance(tmp_path, test_progress):
     pages_per_section = 10
 
     # Create 100 sections with 10 pages each
-    with test_progress.phase(f"Creating {num_sections} sections", total=num_sections) as update:
+    with test_progress.phase(
+        f"Creating {num_sections} sections", total=num_sections
+    ) as update:
         for i in range(num_sections):
             section_dir = content_dir / f"section_{i}"
             section_dir.mkdir()

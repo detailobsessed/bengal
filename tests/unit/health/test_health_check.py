@@ -4,8 +4,6 @@ Tests for health check orchestrator.
 Tests parallel execution, error isolation, threshold behavior, and observability.
 """
 
-from __future__ import annotations
-
 import time
 from pathlib import Path
 from typing import Any
@@ -86,7 +84,9 @@ class TestHealthCheckParallelExecution:
     def test_parallel_execution_faster_than_sequential(self, mock_site):
         """Test that parallel execution is faster than sequential for slow validators."""
         # Create 4 validators that each take 50ms
-        validators = [MockValidator(f"SlowValidator{i}", sleep_time=0.05) for i in range(4)]
+        validators = [
+            MockValidator(f"SlowValidator{i}", sleep_time=0.05) for i in range(4)
+        ]
 
         health_check = HealthCheck(mock_site, auto_register=False)
         for v in validators:
@@ -99,7 +99,9 @@ class TestHealthCheckParallelExecution:
         # Sequential would take ~200ms (4 * 50ms)
         # Parallel with 4 workers should take ~50-100ms
         # Allow some overhead, but should be less than 150ms
-        assert duration < 0.15, f"Parallel execution took {duration:.3f}s, expected < 0.15s"
+        assert duration < 0.15, (
+            f"Parallel execution took {duration:.3f}s, expected < 0.15s"
+        )
         assert len(report.validator_reports) == 4
 
     def test_error_isolation_one_validator_crashes(self, mock_site):
@@ -121,12 +123,16 @@ class TestHealthCheckParallelExecution:
         assert len(report.validator_reports) == 4
 
         # Find the bad validator's report
-        bad_report = next(r for r in report.validator_reports if r.validator_name == "Bad")
+        bad_report = next(
+            r for r in report.validator_reports if r.validator_name == "Bad"
+        )
         assert bad_report.error_count == 1
         assert "crashed" in bad_report.results[0].message.lower()
 
         # Good validators should have succeeded
-        good_reports = [r for r in report.validator_reports if r.validator_name.startswith("Good")]
+        good_reports = [
+            r for r in report.validator_reports if r.validator_name.startswith("Good")
+        ]
         for gr in good_reports:
             assert gr.error_count == 0
 
@@ -181,14 +187,18 @@ class TestHealthCheckParallelExecution:
         ]
 
         # Run with parallel (4 validators)
-        validators_parallel = [MockValidator(f"V{i}", results=results_data[i]) for i in range(4)]
+        validators_parallel = [
+            MockValidator(f"V{i}", results=results_data[i]) for i in range(4)
+        ]
         health_check_parallel = HealthCheck(mock_site, auto_register=False)
         for v in validators_parallel:
             health_check_parallel.register(v)
         report_parallel = health_check_parallel.run()
 
         # Run with sequential (2 validators, below threshold)
-        validators_sequential = [MockValidator(f"V{i}", results=results_data[i]) for i in range(2)]
+        validators_sequential = [
+            MockValidator(f"V{i}", results=results_data[i]) for i in range(2)
+        ]
         health_check_sequential = HealthCheck(mock_site, auto_register=False)
         for v in validators_sequential:
             health_check_sequential.register(v)
@@ -198,10 +208,14 @@ class TestHealthCheckParallelExecution:
         # Note: Order may differ in parallel, so compare by validator name
         for i in range(2):
             seq_report = next(
-                r for r in report_sequential.validator_reports if r.validator_name == f"V{i}"
+                r
+                for r in report_sequential.validator_reports
+                if r.validator_name == f"V{i}"
             )
             par_report = next(
-                r for r in report_parallel.validator_reports if r.validator_name == f"V{i}"
+                r
+                for r in report_parallel.validator_reports
+                if r.validator_name == f"V{i}"
             )
 
             assert len(seq_report.results) == len(par_report.results)
@@ -442,7 +456,9 @@ class TestHealthCheckIntegration:
             name = "ContextChecker"
             received_context = None
 
-            def validate(self, site: Any, build_context: Any = None) -> list[CheckResult]:
+            def validate(
+                self, site: Any, build_context: Any = None
+            ) -> list[CheckResult]:
                 ContextCheckingValidator.received_context = build_context
                 return [CheckResult.success("OK")]
 

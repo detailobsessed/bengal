@@ -4,8 +4,6 @@ Unit tests for bengal.build.contracts.protocol.
 Tests DetectionContext and ChangeDetector protocol.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
@@ -24,8 +22,7 @@ from bengal.build.contracts.results import (
 )
 
 if TYPE_CHECKING:
-    from bengal.cache import BuildCache
-    from bengal.core.site import Site
+    pass
 
 
 # =============================================================================
@@ -54,9 +51,7 @@ class TestDetectionContext:
         assert ctx.cache is mock_cache
         assert ctx.site is mock_site
 
-    def test_default_values(
-        self, mock_cache: MagicMock, mock_site: MagicMock
-    ) -> None:
+    def test_default_values(self, mock_cache: MagicMock, mock_site: MagicMock) -> None:
         """DetectionContext has expected default values."""
         ctx = DetectionContext(cache=mock_cache, site=mock_site)
         assert ctx.tracker is None
@@ -151,9 +146,7 @@ class TestDetectionContext:
         assert new_ctx.verbose is True
         assert new_ctx.forced_changed == forced
 
-    def test_is_frozen(
-        self, mock_cache: MagicMock, mock_site: MagicMock
-    ) -> None:
+    def test_is_frozen(self, mock_cache: MagicMock, mock_site: MagicMock) -> None:
         """DetectionContext is immutable (frozen)."""
         ctx = DetectionContext(cache=mock_cache, site=mock_site)
         with pytest.raises(AttributeError):
@@ -170,6 +163,7 @@ class TestChangeDetectorProtocol:
 
     def test_protocol_is_runtime_checkable(self) -> None:
         """ChangeDetector protocol is runtime checkable."""
+
         @dataclass
         class ValidDetector:
             def detect(self, ctx: DetectionContext) -> ChangeDetectionResult:
@@ -180,6 +174,7 @@ class TestChangeDetectorProtocol:
 
     def test_invalid_detector_not_instance(self) -> None:
         """Invalid detector is not instance of ChangeDetector."""
+
         @dataclass
         class InvalidDetector:
             def check(self, ctx: DetectionContext) -> ChangeDetectionResult:
@@ -190,12 +185,13 @@ class TestChangeDetectorProtocol:
 
     def test_detector_with_different_signature_not_instance(self) -> None:
         """Detector with wrong signature is not instance."""
+
         @dataclass
         class WrongSignatureDetector:
             def detect(self) -> ChangeDetectionResult:  # Missing ctx parameter
                 return ChangeDetectionResult.empty()
 
-        detector = WrongSignatureDetector()
+        WrongSignatureDetector()
         # Note: runtime_checkable only checks for method presence, not signature
         # This will still pass isinstance check
         # The type checker will catch this error

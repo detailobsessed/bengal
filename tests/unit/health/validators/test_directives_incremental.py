@@ -2,19 +2,19 @@
 Tests for incremental behavior of Directives validator analysis.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.health.validators.directives.analysis import DirectiveAnalyzer
 from bengal.orchestration.build_context import BuildContext
 
 
-def test_directive_analyzer_skips_unchanged_pages_in_incremental_mode(tmp_path: Path) -> None:
+def test_directive_analyzer_skips_unchanged_pages_in_incremental_mode(
+    tmp_path: Path,
+) -> None:
     """
     When incremental mode is enabled and changed_page_paths is empty, directive analysis should
     skip all pages (no disk reads / parsing work).
-        
+
     """
     # Arrange: create 2 content files and fake pages pointing at them
     a = tmp_path / "a.md"

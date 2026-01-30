@@ -9,8 +9,6 @@ Usage:
     python -m benchmarks.directive_cache_real_site
 """
 
-from __future__ import annotations
-
 import statistics
 import time
 from pathlib import Path
@@ -125,7 +123,7 @@ def main():
     get_cache().clear()
 
     baseline_times = []
-    for filename, content in files:
+    for _filename, content in files:
         _, elapsed = render_baseline(content)
         baseline_times.append(elapsed)
 
@@ -146,7 +144,7 @@ def main():
     cache.reset_stats()
 
     cached_times = []
-    for filename, content in files:
+    for _filename, content in files:
         _, elapsed = render_with_cache(content)
         cached_times.append(elapsed)
 
@@ -169,7 +167,9 @@ def main():
     print("=" * 70)
     print(f"\n{'Metric':<30} {'Baseline':>15} {'With Cache':>15}")
     print("-" * 60)
-    print(f"{'Total render time':<30} {baseline_total:>14.2f}ms {cached_total:>14.2f}ms")
+    print(
+        f"{'Total render time':<30} {baseline_total:>14.2f}ms {cached_total:>14.2f}ms"
+    )
     print(f"{'Mean per file':<30} {baseline_mean:>14.2f}ms {cached_mean:>14.2f}ms")
     print(f"{'Speedup':<30} {'-':>15} {speedup:>14.2f}x")
     print(f"{'Cache hit rate':<30} {'-':>15} {hit_rate:>14.1%}")
@@ -184,7 +184,9 @@ def main():
     elif speedup > 1.0:
         print("⚠️ Recommendation: Marginal speedup. Consider if complexity is worth it.")
     else:
-        print("❌ Recommendation: No speedup. DirectiveCache adds overhead without benefit.")
+        print(
+            "❌ Recommendation: No speedup. DirectiveCache adds overhead without benefit."
+        )
     print("=" * 70)
 
 

@@ -31,16 +31,16 @@ from threading import Lock
 from typing import TYPE_CHECKING, Any
 
 from bengal.assets.manifest import AssetManifest
-from bengal.utils.observability.logger import get_logger
 from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
+from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from bengal.utils.observability.cli_progress import LiveProgressManager
     from bengal.core.asset import Asset
     from bengal.core.output import OutputCollector
     from bengal.core.site import Site
+    from bengal.utils.observability.cli_progress import LiveProgressManager
 
 # Thread-safe output lock for parallel processing
 _print_lock = Lock()
@@ -49,37 +49,37 @@ _print_lock = Lock()
 class AssetOrchestrator:
     """
     Orchestrates asset processing for static files.
-    
+
     Handles asset copying, minification, optimization, and fingerprinting.
     Supports parallel processing for performance and maintains CSS entry point
     cache for efficient incremental builds.
-    
+
     Creation:
         Direct instantiation: AssetOrchestrator(site)
             - Created by BuildOrchestrator during build
             - Requires Site instance with assets populated
-    
+
     Attributes:
         site: Site instance containing assets and configuration
         logger: Logger instance for asset processing events
         _cached_css_entry_points: Cached CSS entry points (invalidated on asset changes)
         _cached_assets_id: Asset list identity for cache invalidation
         _cached_assets_len: Asset list length for cache invalidation
-    
+
     Relationships:
         - Uses: Asset class for asset representation and processing
         - Uses: AssetManifest for cache-busting manifest generation
         - Used by: BuildOrchestrator for asset processing phase
         - Uses: ThreadPoolExecutor for parallel asset processing
-    
+
     Thread Safety:
         Thread-safe for parallel asset processing. Uses thread-safe locks
         for output operations and maintains thread-local state where needed.
-    
+
     Examples:
         orchestrator = AssetOrchestrator(site)
         orchestrator.process(site.assets, parallel=True, progress_manager=progress)
-        
+
     """
 
     def __init__(self, site: Site):
@@ -209,7 +209,9 @@ class AssetOrchestrator:
         except Exception as e:
             # Fail build on pipeline error if in strict mode, otherwise log warning
             # The asset pipeline is often critical for theme appearance/functionality.
-            strict = getattr(self.site, "config", {}).get("build", {}).get("strict", False)
+            strict = (
+                getattr(self.site, "config", {}).get("build", {}).get("strict", False)
+            )
             if strict:
                 from bengal.errors import BengalAssetError, ErrorCode
 
@@ -285,14 +287,17 @@ class AssetOrchestrator:
 
             cli = CLIOutput()
             cli.section("Assets")
-            cli.detail(f"{cli.icons.tree_end} Discovered: {total_discovered} files", indent=1)
+            cli.detail(
+                f"{cli.icons.tree_end} Discovered: {total_discovered} files", indent=1
+            )
             if css_modules:
                 cli.detail(
                     f"{cli.icons.tree_end} CSS bundling: {len(css_entries)} entry point(s), {len(css_modules)} module(s) bundled",
                     indent=1,
                 )
             cli.detail(
-                f"{cli.icons.tree_end} Output: {total_output} files {cli.icons.success}", indent=1
+                f"{cli.icons.tree_end} Output: {total_output} files {cli.icons.success}",
+                indent=1,
             )
 
         minify = self.site.config.get("minify_assets", True)
@@ -405,7 +410,12 @@ class AssetOrchestrator:
             # Submit other assets
             for asset in other_assets:
                 future = executor.submit(
-                    self._process_single_asset, asset, assets_output, minify, optimize, fingerprint
+                    self._process_single_asset,
+                    asset,
+                    assets_output,
+                    minify,
+                    optimize,
+                    fingerprint,
                 )
                 futures.append((future, asset, False))  # False = not css_entry
 
@@ -424,7 +434,8 @@ class AssetOrchestrator:
                     pending_updates += 1
                     now = time.time()
                     should_update = progress_manager and (
-                        pending_updates >= 10 or (now - last_update_time) >= update_interval
+                        pending_updates >= 10
+                        or (now - last_update_time) >= update_interval
                     )
 
                     if should_update and progress_manager is not None:
@@ -435,7 +446,9 @@ class AssetOrchestrator:
                                 current=completed_count,
                                 current_item=item_name,
                                 minified=minify if is_css_entry else None,
-                                bundled_modules=css_modules_count if is_css_entry else None,
+                                bundled_modules=css_modules_count
+                                if is_css_entry
+                                else None,
                             )
                             pending_updates = 0
                             last_update_time = now
@@ -444,7 +457,9 @@ class AssetOrchestrator:
                     from bengal.errors import BengalError, ErrorContext, enrich_error
 
                     # Enrich error with context
-                    asset_path = asset.source_path if hasattr(asset, "source_path") else None
+                    asset_path = (
+                        asset.source_path if hasattr(asset, "source_path") else None
+                    )
                     context = ErrorContext(
                         file_path=asset_path,
                         operation="processing asset",
@@ -454,10 +469,13 @@ class AssetOrchestrator:
                     enriched = enrich_error(e, context, BengalError)
                     errors.append(str(enriched))
                     # Collect error in build stats if available
-                    if hasattr(self, "site") and hasattr(self.site, "_last_build_stats"):
-                        stats = self.site._last_build_stats
-                        if stats:
-                            stats.add_error(enriched, category="assets")
+                    if hasattr(self, "site") and hasattr(
+                        self.site, "_last_build_stats"
+                    ):
+                        build_stats = self.site._last_build_stats
+                        add_error_fn = getattr(build_stats, "add_error", None)
+                        if build_stats and add_error_fn is not None:
+                            add_error_fn(enriched, category="assets")
 
         # Final progress update for any remaining pending updates
         if progress_manager and pending_updates > 0:
@@ -509,7 +527,9 @@ class AssetOrchestrator:
                 if is_css_entry:
                     self._process_css_entry(asset, minify, optimize, fingerprint)
                 else:
-                    self._process_single_asset(asset, assets_output, minify, optimize, fingerprint)
+                    self._process_single_asset(
+                        asset, assets_output, minify, optimize, fingerprint
+                    )
 
                 completed += 1
                 if progress_manager:
@@ -533,7 +553,8 @@ class AssetOrchestrator:
                 error_context = ErrorContext(
                     file_path=asset.source_path,
                     operation="processing asset",
-                    suggestion=suggestion or "Check file permissions, encoding, and format",
+                    suggestion=suggestion
+                    or "Check file permissions, encoding, and format",
                     original_error=e,
                 )
                 enriched = enrich_error(e, error_context, BengalError)
@@ -547,7 +568,9 @@ class AssetOrchestrator:
 
                 # Only log individual error if below threshold or first samples
                 threshold = 5
-                if aggregator.should_log_individual(e, context, threshold=threshold, max_samples=3):
+                if aggregator.should_log_individual(
+                    e, context, threshold=threshold, max_samples=3
+                ):
                     logger.error(
                         "asset_processing_failed",
                         asset_path=str(asset.source_path),
@@ -562,9 +585,10 @@ class AssetOrchestrator:
 
                 # Collect error in build stats if available
                 if hasattr(self, "site") and hasattr(self.site, "_last_build_stats"):
-                    stats = self.site._last_build_stats
-                    if stats:
-                        stats.add_error(enriched, category="assets")
+                    build_stats = self.site._last_build_stats
+                    add_error_fn = getattr(build_stats, "add_error", None)
+                    if build_stats and add_error_fn is not None:
+                        add_error_fn(enriched, category="assets")
 
         # Process CSS
         for entry in css_entries:
@@ -593,12 +617,12 @@ class AssetOrchestrator:
         Returns:
             Asset representing the bundle.js file, or None if bundling fails
         """
-        from bengal.core.asset import Asset
         from bengal.assets.js_bundler import (
             bundle_js_files,
             get_theme_js_bundle_order,
             get_theme_js_excluded,
         )
+        from bengal.core.asset import Asset
 
         try:
             # Get configuration
@@ -624,7 +648,9 @@ class AssetOrchestrator:
                 if js_dir:
                     # Get relative path from js_dir (e.g., "core/theme.js" or "utils.js")
                     rel_path = a.source_path.relative_to(js_dir)
-                    rel_path_str = str(rel_path).replace("\\", "/")  # Normalize Windows paths
+                    rel_path_str = str(rel_path).replace(
+                        "\\", "/"
+                    )  # Normalize Windows paths
                     module_map[rel_path_str] = a.source_path
                     # Also index by filename
                     if rel_path_str != a.source_path.name:
@@ -639,7 +665,11 @@ class AssetOrchestrator:
                 if name in module_map:
                     target_file = module_map[name]
                     # Canonicalize for exclusion check
-                    rel_path_str = str(target_file.relative_to(js_dir)).replace("\\", "/") if js_dir else target_file.name
+                    rel_path_str = (
+                        str(target_file.relative_to(js_dir)).replace("\\", "/")
+                        if js_dir
+                        else target_file.name
+                    )
                     if rel_path_str not in excluded:
                         ordered_files.append(target_file)
 
@@ -774,7 +804,12 @@ class AssetOrchestrator:
             raise enriched from e
 
     def _process_single_asset(
-        self, asset: Asset, assets_output: Path, minify: bool, optimize: bool, fingerprint: bool
+        self,
+        asset: Asset,
+        assets_output: Path,
+        minify: bool,
+        optimize: bool,
+        fingerprint: bool,
     ) -> None:
         """
         Process a single asset (called in parallel).
@@ -837,7 +872,9 @@ class AssetOrchestrator:
 
             logical = asset.logical_path or Path(asset.source_path.name)
             logical_str = (
-                logical.as_posix() if isinstance(logical, Path) else Path(str(logical)).as_posix()
+                logical.as_posix()
+                if isinstance(logical, Path)
+                else Path(str(logical)).as_posix()
             )
 
             stat = final_path.stat()

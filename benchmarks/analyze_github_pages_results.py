@@ -71,7 +71,7 @@ def analyze_results(results: dict[str, Any]) -> dict[str, Any]:
 
     for bench in benchmarks:
         test_name = bench.get("name", "")
-        site_fixture, page_count, config_str = parse_test_name(test_name, bench)
+        _site_fixture, page_count, config_str = parse_test_name(test_name, bench)
 
         if page_count > 0:
             bench_data = {
@@ -95,10 +95,14 @@ def analyze_results(results: dict[str, Any]) -> dict[str, Any]:
     # Calculate speedups vs baseline
     speedups: dict[int, dict[str, float]] = {}
     for page_count, configs in by_size.items():
-        baseline = next((c for c in configs if "default" in c["config"] or c["config"] == ""), None)
+        baseline = next(
+            (c for c in configs if "default" in c["config"] or c["config"] == ""), None
+        )
         if baseline:
             baseline_time = baseline["mean"]
-            speedups[page_count] = {c["config"]: baseline_time / c["mean"] for c in configs}
+            speedups[page_count] = {
+                c["config"]: baseline_time / c["mean"] for c in configs
+            }
 
     return {
         "by_size": by_size,
@@ -221,7 +225,9 @@ def print_analysis(analysis: dict[str, Any]) -> None:
             (
                 c
                 for c in configs
-                if "fast" in c["config"] and "strict" in c["config"] and "clean" in c["config"]
+                if "fast" in c["config"]
+                and "strict" in c["config"]
+                and "clean" in c["config"]
             ),
             None,
         )

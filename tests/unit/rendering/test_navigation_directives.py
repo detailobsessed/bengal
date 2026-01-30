@@ -23,7 +23,9 @@ class TestBreadcrumbsDirective:
     def test_breadcrumbs_renders_ancestors(self, parser):
         """Test breadcrumbs renders ancestor sections."""
 
-        section1 = self._create_mock_section("Content", "/docs/content/", "docs/content")
+        section1 = self._create_mock_section(
+            "Content", "/docs/content/", "docs/content"
+        )
         section2 = self._create_mock_section("Docs", "/docs/", "docs")
 
         current_page = Mock()

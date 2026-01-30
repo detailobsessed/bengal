@@ -229,7 +229,9 @@ def main():
     print("\n" + "=" * 60)
     print("SUMMARY - BENGAL WITH TAGS")
     print("=" * 60)
-    print(f"\n{'Files':<10} {'Avg Time':<12} {'Min Time':<12} {'Max Time':<12} {'ms/file':<10}")
+    print(
+        f"\n{'Files':<10} {'Avg Time':<12} {'Min Time':<12} {'Max Time':<12} {'ms/file':<10}"
+    )
     print("-" * 60)
 
     for r in results:
@@ -239,7 +241,9 @@ def main():
         )
 
     # Save results
-    output_file = Path(__file__).parent.parent.parent / "plan" / "benchmark_tagged_results.json"
+    output_file = (
+        Path(__file__).parent.parent.parent / "plan" / "benchmark_tagged_results.json"
+    )
     with open(output_file, "w") as f:
         json.dump(results, f, indent=2)
 
@@ -260,7 +264,9 @@ def main():
             efficiency = (file_factor / time_factor) * 100
 
             print(f"{prev['files']} → {curr['files']} files ({file_factor:.1f}x):")
-            print(f"  Time: {prev['avg_time']:.3f}s → {curr['avg_time']:.3f}s ({time_factor:.2f}x)")
+            print(
+                f"  Time: {prev['avg_time']:.3f}s → {curr['avg_time']:.3f}s ({time_factor:.2f}x)"
+            )
             print(f"  Efficiency: {efficiency:.1f}% (100% = linear scaling)")
             print()
 

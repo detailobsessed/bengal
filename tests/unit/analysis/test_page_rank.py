@@ -7,7 +7,11 @@ from unittest.mock import Mock
 
 import pytest
 
-from bengal.analysis.graph.page_rank import PageRankCalculator, PageRankResults, analyze_page_importance
+from bengal.analysis.graph.page_rank import (
+    PageRankCalculator,
+    PageRankResults,
+    analyze_page_importance,
+)
 from bengal.errors import BengalError
 
 
@@ -38,7 +42,9 @@ class TestPageRankResults:
             pages[4]: 0.6,
         }
 
-        results = PageRankResults(scores=scores, iterations=10, converged=True, damping_factor=0.85)
+        results = PageRankResults(
+            scores=scores, iterations=10, converged=True, damping_factor=0.85
+        )
 
         # Get top 3
         top_pages = results.get_top_pages(3)
@@ -53,7 +59,9 @@ class TestPageRankResults:
 
     def test_get_top_pages_empty(self):
         """Test getting top pages from empty results."""
-        results = PageRankResults(scores={}, iterations=0, converged=True, damping_factor=0.85)
+        results = PageRankResults(
+            scores={}, iterations=0, converged=True, damping_factor=0.85
+        )
 
         top_pages = results.get_top_pages(10)
         assert len(top_pages) == 0
@@ -65,7 +73,9 @@ class TestPageRankResults:
         # Create results with scores 0.1 to 1.0
         scores = {pages[i]: (i + 1) * 0.1 for i in range(10)}
 
-        results = PageRankResults(scores=scores, iterations=10, converged=True, damping_factor=0.85)
+        results = PageRankResults(
+            scores=scores, iterations=10, converged=True, damping_factor=0.85
+        )
 
         # Get top 20% (should be top 2 pages: 0.9, 1.0)
         top_20_percent = results.get_pages_above_percentile(80)
@@ -76,7 +86,9 @@ class TestPageRankResults:
 
     def test_get_pages_above_percentile_empty(self):
         """Test percentile on empty results."""
-        results = PageRankResults(scores={}, iterations=0, converged=True, damping_factor=0.85)
+        results = PageRankResults(
+            scores={}, iterations=0, converged=True, damping_factor=0.85
+        )
 
         top_pages = results.get_pages_above_percentile(90)
         assert len(top_pages) == 0
@@ -92,7 +104,9 @@ class TestPageRankResults:
             page2: 0.3,
         }
 
-        results = PageRankResults(scores=scores, iterations=10, converged=True, damping_factor=0.85)
+        results = PageRankResults(
+            scores=scores, iterations=10, converged=True, damping_factor=0.85
+        )
 
         assert results.get_score(page1) == 0.5
         assert results.get_score(page2) == 0.3

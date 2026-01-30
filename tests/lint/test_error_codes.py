@@ -17,8 +17,6 @@ See Also:
 
 """
 
-from __future__ import annotations
-
 import re
 from pathlib import Path
 
@@ -36,10 +34,10 @@ EXEMPT_DIRS = {
 def find_bengal_error_raises(file_path: Path) -> list[tuple[int, str]]:
     """
     Find all BengalError raises in a Python file.
-    
+
     Returns list of (line_number, line_content) tuples for raises
     that don't include code= parameter.
-        
+
     """
     violations = []
 
@@ -84,12 +82,12 @@ def find_bengal_error_raises(file_path: Path) -> list[tuple[int, str]]:
 def test_all_bengal_errors_have_codes() -> None:
     """
     Ensure all BengalError raises include code= parameter.
-    
+
     This test enforces that all BengalError exceptions should include error codes for:
     - User-friendly CLI output
     - Documentation links
     - Searchability and debugging
-        
+
     """
     violations: list[str] = []
 
@@ -106,7 +104,9 @@ def test_all_bengal_errors_have_codes() -> None:
             violations.append(f"{rel_path}:{line_num}: {line_content[:60]}...")
 
     if violations:
-        msg = f"Found {len(violations)} BengalError raise(s) missing code= parameter:\n\n"
+        msg = (
+            f"Found {len(violations)} BengalError raise(s) missing code= parameter:\n\n"
+        )
         msg += "\n".join(f"  • {v}" for v in violations[:20])  # Show first 20
         if len(violations) > 20:
             msg += f"\n  ... and {len(violations) - 20} more"
@@ -119,10 +119,10 @@ def test_all_bengal_errors_have_codes() -> None:
 def test_error_code_coverage_report() -> None:
     """
     Generate a report of error code coverage across the codebase.
-    
+
     This is an informational test that doesn't fail but prints statistics
     about error code usage.
-        
+
     """
     from bengal.errors.codes import ErrorCode
 

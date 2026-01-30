@@ -45,8 +45,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bengal.content_types.registry import detect_content_type, get_strategy
 from bengal.content.discovery.page_factory import PageInitializer
+from bengal.content_types.registry import detect_content_type, get_strategy
 from bengal.utils.observability.logger import get_logger
 from bengal.utils.paths.url_strategy import URLStrategy
 
@@ -61,16 +61,16 @@ if TYPE_CHECKING:
 class SectionOrchestrator:
     """
     Handles section structure and completeness.
-    
+
     Responsibilities:
     - Ensure all sections have index pages (explicit or auto-generated)
     - Generate archive pages for sections without _index.md
     - Validate section structure
     - Maintain section hierarchy integrity
-    
+
     This orchestrator implements the "structural" concerns of sections,
     separate from cross-cutting concerns like taxonomies (tags, categories).
-        
+
     """
 
     def __init__(self, site: Site):
@@ -125,9 +125,14 @@ class SectionOrchestrator:
                     section=section.name,
                     reason="missing_index_page",
                 )
-            elif affected_sections is not None and str(section.path) not in affected_sections:
+            elif (
+                affected_sections is not None
+                and str(section.path) not in affected_sections
+            ):
                 # Incremental mode: section not affected and has indexes - selective finalization
-                archives_created = self._finalize_recursive_filtered(section, affected_sections)
+                archives_created = self._finalize_recursive_filtered(
+                    section, affected_sections
+                )
             else:
                 # Full build or affected section - finalize normally
                 archives_created = self._finalize_recursive(section)
@@ -141,7 +146,9 @@ class SectionOrchestrator:
 
         logger.info("section_finalization_complete", archives_created=archive_count)
 
-    def _finalize_recursive_filtered(self, section: Section, affected_sections: set[str]) -> int:
+    def _finalize_recursive_filtered(
+        self, section: Section, affected_sections: set[str]
+    ) -> int:
         """
         Recursively finalize only affected sections (incremental optimization).
 
@@ -197,14 +204,19 @@ class SectionOrchestrator:
         # Skip root section (doesn't need index)
         if section.name == "root":
             # Check subsections
-            return any(self._needs_finalization(subsection) for subsection in section.subsections)
+            return any(
+                self._needs_finalization(subsection)
+                for subsection in section.subsections
+            )
 
         # Check if this section lacks an index
         if not section.index_page:
             return True
 
         # Recursively check subsections
-        return any(self._needs_finalization(subsection) for subsection in section.subsections)
+        return any(
+            self._needs_finalization(subsection) for subsection in section.subsections
+        )
 
     def _finalize_recursive(self, section: Section) -> int:
         """
@@ -318,7 +330,8 @@ class SectionOrchestrator:
 
         # Filter out index page (for auto-generated, index_page may not exist yet)
         filtered_pages = strategy.filter_display_pages(
-            section.regular_pages, section.index_page if hasattr(section, "index_page") else None
+            section.regular_pages,
+            section.index_page if hasattr(section, "index_page") else None,
         )
 
         # Sort according to content type
@@ -351,7 +364,9 @@ class SectionOrchestrator:
         from bengal.utils.pagination import Paginator
 
         # Create virtual path for generated archive (delegate to utility)
-        virtual_path = self.url_strategy.make_virtual_path(self.site, "archives", section.name)
+        virtual_path = self.url_strategy.make_virtual_path(
+            self.site, "archives", section.name
+        )
 
         # Detect content type
         content_type = self._detect_content_type(section)
@@ -387,7 +402,9 @@ class SectionOrchestrator:
             )
 
         # Create archive page
-        archive_page = Page(source_path=virtual_path, _raw_content="", metadata=metadata)
+        archive_page = Page(
+            source_path=virtual_path, _raw_content="", metadata=metadata
+        )
 
         # Compute output path using centralized logic
         archive_page.output_path = self.url_strategy.compute_archive_output_path(
@@ -398,7 +415,9 @@ class SectionOrchestrator:
         # Priority 50 = section indexes (structural authority)
         if hasattr(self.site, "url_registry") and self.site.url_registry:
             try:
-                url = self.url_strategy.url_from_output_path(archive_page.output_path, self.site)
+                url = self.url_strategy.url_from_output_path(
+                    archive_page.output_path, self.site
+                )
                 source = str(archive_page.source_path)
                 self.site.url_registry.claim(
                     url=url,

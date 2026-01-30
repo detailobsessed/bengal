@@ -10,10 +10,6 @@ immediately noticeable by users.
 See: plan/rfc-warm-build-test-expansion.md
 """
 
-from __future__ import annotations
-
-import pytest
-
 from tests.integration.warm_build.conftest import WarmBuildTestSite
 
 
@@ -137,9 +133,7 @@ menu:
         # Build should succeed
         assert stats2.total_pages >= 1
 
-    def test_new_section_appears_in_nav(
-        self, site_with_nav: WarmBuildTestSite
-    ) -> None:
+    def test_new_section_appears_in_nav(self, site_with_nav: WarmBuildTestSite) -> None:
         """
         When new section is created, it appears in nav if configured.
 
@@ -300,7 +294,6 @@ Updated documentation section.
         site_with_nav.assert_output_exists("docs/guides/intro/index.html")
 
         # Change parent title
-        original_title = "Documentation"
         new_title = "Docs Hub"
         site_with_nav.modify_file(
             "content/docs/_index.md",
@@ -332,9 +325,7 @@ menu:
 class TestWarmBuildNavEdgeCases:
     """Edge cases for navigation warm builds."""
 
-    def test_menu_item_url_change(
-        self, site_with_nav: WarmBuildTestSite
-    ) -> None:
+    def test_menu_item_url_change(self, site_with_nav: WarmBuildTestSite) -> None:
         """
         Test that menu item URL changes are detected.
 
@@ -384,9 +375,7 @@ weight = 3
         stats2 = site_with_nav.full_build()
         assert stats2.total_pages >= 1
 
-    def test_empty_menu_section(
-        self, site_with_nav: WarmBuildTestSite
-    ) -> None:
+    def test_empty_menu_section(self, site_with_nav: WarmBuildTestSite) -> None:
         """
         Test handling of empty menu sections.
 

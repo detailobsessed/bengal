@@ -124,7 +124,9 @@ def format_field(key: str, value: Any) -> str:
         return f"{key}: {value}"
     elif isinstance(value, str):
         # Quote if contains special chars or starts with number
-        if ":" in value or value.startswith(("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")):
+        if ":" in value or value.startswith(
+            ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+        ):
             return f'{key}: "{value}"'
         return f"{key}: {value}"
     elif isinstance(value, list):
@@ -136,8 +138,7 @@ def format_field(key: str, value: Any) -> str:
             return f"{key}: [{items}]"
         else:
             lines = [f"{key}:"]
-            for item in value:
-                lines.append(f"  - {format_value(item)}")
+            lines.extend(f"  - {format_value(item)}" for item in value)
             return "\n".join(lines)
     elif isinstance(value, dict):
         lines = [f"{key}:"]

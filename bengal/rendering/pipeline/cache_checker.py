@@ -29,17 +29,17 @@ logger = get_logger(__name__)
 class CacheChecker:
     """
     Handles cache operations for the rendering pipeline.
-    
+
     Manages both rendered output cache (final HTML) and parsed content cache
     (parsed AST before template rendering) for incremental builds.
-    
+
     Attributes:
         dependency_tracker: DependencyTracker with cache access
         site: Site instance for configuration
         renderer: Renderer for template rendering
         build_stats: Optional BuildStats for metrics
         output_collector: Optional collector for hot reload tracking
-    
+
     Example:
             >>> checker = CacheChecker(
             ...     dependency_tracker=tracker,
@@ -49,7 +49,7 @@ class CacheChecker:
             ... )
             >>> if checker.try_rendered_cache(page, template):
             ...     return  # Cache hit, page already written
-        
+
     """
 
     def __init__(
@@ -118,10 +118,13 @@ class CacheChecker:
         # Ensure output_path is set before writing (required by write_output)
         if not page.output_path:
             from bengal.rendering.pipeline.output import determine_output_path
+
             page.output_path = determine_output_path(page, self.site)
 
         write_output(
-            page, self.site, self.dependency_tracker,
+            page,
+            self.site,
+            self.dependency_tracker,
             collector=self.output_collector,
             write_behind=self.write_behind,
         )
@@ -153,7 +156,9 @@ class CacheChecker:
         if not cache or page.metadata.get("_generated"):
             return False
 
-        cached = cache.get_parsed_content(page.source_path, page.metadata, template, parser_version)
+        cached = cache.get_parsed_content(
+            page.source_path, page.metadata, template, parser_version
+        )
         if not cached or is_missing(cached):
             return False
 
@@ -170,7 +175,7 @@ class CacheChecker:
             self.build_stats.parsed_cache_hits += 1
 
         parsed_content = cached["html"]
-        
+
         # Validate cached content is not empty
         if not parsed_content:
             logger.warning(
@@ -204,7 +209,7 @@ class CacheChecker:
         html_content = self.renderer.render_content(parsed_content)
         page.rendered_html = self.renderer.render_page(page, html_content)
         page.rendered_html = format_html(page.rendered_html, page, self.site)
-        
+
         # Validate rendered HTML is not empty
         if not page.rendered_html:
             logger.warning(
@@ -218,10 +223,13 @@ class CacheChecker:
         # Ensure output_path is set before writing (required by write_output)
         if not page.output_path:
             from bengal.rendering.pipeline.output import determine_output_path
+
             page.output_path = determine_output_path(page, self.site)
 
         write_output(
-            page, self.site, self.dependency_tracker,
+            page,
+            self.site,
+            self.dependency_tracker,
             collector=self.output_collector,
             write_behind=self.write_behind,
         )
@@ -231,7 +239,9 @@ class CacheChecker:
 
         return True
 
-    def cache_parsed_content(self, page: Page, template: str, parser_version: str) -> None:
+    def cache_parsed_content(
+        self, page: Page, template: str, parser_version: str
+    ) -> None:
         """
         Store parsed content in cache for next build.
 

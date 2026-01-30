@@ -4,8 +4,6 @@ Unit tests for CollectionConfig and define_collection.
 Tests collection definition API, configuration options, and error handling.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path

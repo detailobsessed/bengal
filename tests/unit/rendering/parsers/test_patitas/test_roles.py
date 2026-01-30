@@ -1,11 +1,9 @@
 """Tests for patitas role system."""
 
-from __future__ import annotations
-
 import pytest
+from patitas.nodes import Paragraph, Role, Text
 
 from bengal.parsing.backends.patitas import parse, parse_to_ast
-from patitas.nodes import Paragraph, Role, Text
 from bengal.parsing.backends.patitas.roles import (
     RoleRegistryBuilder,
     create_default_registry,

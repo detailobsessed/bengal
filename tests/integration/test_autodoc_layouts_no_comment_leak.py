@@ -1,17 +1,17 @@
-from __future__ import annotations
-
 import pytest
 
 
 @pytest.mark.bengal(testroot="test-autodoc-layouts")
-def test_autodoc_layout_does_not_leak_template_comment_closers(site, build_site) -> None:
+def test_autodoc_layout_does_not_leak_template_comment_closers(
+    site, build_site
+) -> None:
     """
     Ensure API/CLI reference layouts do not leak template doc-comment fragments.
-    
+
     Regression test for a real-world failure mode where a Jinja doc comment
     contained nested `{# ... #}` examples, causing `#}` and stray `</div>` to
     be emitted into output HTML and breaking `.docs-main` layout containment.
-        
+
     """
     build_site()
 

@@ -56,7 +56,9 @@ output_dir = "public"
 
     guides_dir = docs_dir / "guides"
     guides_dir.mkdir()
-    (guides_dir / "content-workflow.md").write_text("---\ntitle: Content Workflow\n---\n# Workflow")
+    (guides_dir / "content-workflow.md").write_text(
+        "---\ntitle: Content Workflow\n---\n# Workflow"
+    )
 
     # Create site and discover content
     site = Site.from_config(site_dir, config_path=config_path)
@@ -227,7 +229,9 @@ class TestGetPageFunction:
         # Should be HTML, not markdown (Patitas adds id attributes: <h1 id="...">)
         assert "</h1>" in page.parsed_ast or "</h2>" in page.parsed_ast
 
-    def test_get_page_does_not_reparse_already_parsed_pages(self, site_with_content: Site):
+    def test_get_page_does_not_reparse_already_parsed_pages(
+        self, site_with_content: Site
+    ):
         """Test that get_page doesn't reparse pages that are already parsed."""
         from jinja2 import Environment
 
@@ -265,7 +269,10 @@ class TestCacheKeyNormalization:
     def test_normalizes_backslashes(self):
         """Test Windows path separator normalization."""
         assert _normalize_cache_key("content\\foo.md") == "foo.md"
-        assert _normalize_cache_key("guides\\setup\\install.md") == "guides/setup/install.md"
+        assert (
+            _normalize_cache_key("guides\\setup\\install.md")
+            == "guides/setup/install.md"
+        )
         assert _normalize_cache_key(".\\foo.md") == "foo.md"
 
     def test_preserves_simple_path(self):
@@ -344,7 +351,9 @@ class TestPerRenderCache:
         assert cache_key in cache
         assert cache[cache_key] is None
 
-    def test_different_path_variants_hit_same_cache_entry(self, site_with_content: Site):
+    def test_different_path_variants_hit_same_cache_entry(
+        self, site_with_content: Site
+    ):
         """Test that different path formats resolve to same cache entry."""
         from jinja2 import Environment
 
@@ -403,7 +412,9 @@ class TestCacheThreadSafety:
 
         # Each thread should have its own value
         for i in range(5):
-            assert results[i] == f"thread-{i}", f"Thread {i} got wrong value: {results[i]}"
+            assert results[i] == f"thread-{i}", (
+                f"Thread {i} got wrong value: {results[i]}"
+            )
 
     def test_cache_clearing_is_thread_local(self):
         """Test that clearing cache in one thread doesn't affect others."""

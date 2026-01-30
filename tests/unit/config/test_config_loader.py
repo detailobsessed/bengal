@@ -203,7 +203,10 @@ class TestDefaultConfig:
         config = loader._default_config()
 
         # Should have key sections from DEFAULTS
-        assert config["output_formats"]["site_wide"] == DEFAULTS["output_formats"]["site_wide"]
+        assert (
+            config["output_formats"]["site_wide"]
+            == DEFAULTS["output_formats"]["site_wide"]
+        )
         assert config["search"]["enabled"] == DEFAULTS["search"]["enabled"]
         assert config["theme"]["name"] == DEFAULTS["theme"]["name"]
         assert config["build"]["parallel"] == DEFAULTS["build"]["parallel"]
@@ -224,7 +227,9 @@ class TestDefaultConfig:
         assert "index_json" in config["output_formats"]["site_wide"]
         assert config["search"]["enabled"] is True
 
-    def test_default_config_consistency_with_directory_loader(self, tmp_path, monkeypatch):
+    def test_default_config_consistency_with_directory_loader(
+        self, tmp_path, monkeypatch
+    ):
         """Ensure ConfigLoader._default_config() is consistent with ConfigDirectoryLoader."""
         from bengal.config.directory_loader import ConfigDirectoryLoader
 

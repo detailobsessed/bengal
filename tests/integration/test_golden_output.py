@@ -18,8 +18,6 @@ Usage:
     pytest tests/integration/test_golden_output.py -k simple_site
 """
 
-from __future__ import annotations
-
 import re
 import shutil
 from pathlib import Path
@@ -88,9 +86,7 @@ def _get_golden_scenarios() -> list[str]:
     if not GOLDEN_DIR.exists():
         return []
     return [
-        d.name
-        for d in GOLDEN_DIR.iterdir()
-        if d.is_dir() and (d / "input").exists()
+        d.name for d in GOLDEN_DIR.iterdir() if d.is_dir() and (d / "input").exists()
     ]
 
 
@@ -108,7 +104,7 @@ class TestGoldenOutput:
         self,
         tmp_path: Path,
         request: pytest.FixtureRequest,
-    ) -> Generator[tuple[Path, Path, Path], None, None]:
+    ) -> Generator[tuple[Path, Path, Path]]:
         """
         Set up a golden test site.
 
@@ -163,8 +159,7 @@ class TestGoldenOutput:
 
         if not expected_dir.exists():
             pytest.skip(
-                f"No expected/ directory for this scenario. "
-                f"Run with --update-golden to generate."
+                "No expected/ directory for this scenario. Run with --update-golden to generate."
             )
 
         mismatches = []
@@ -182,7 +177,9 @@ class TestGoldenOutput:
                 continue
 
             # Normalize and compare
-            expected_content = _normalize_html(expected_file.read_text(encoding="utf-8"))
+            expected_content = _normalize_html(
+                expected_file.read_text(encoding="utf-8")
+            )
             actual_content = _normalize_html(actual_file.read_text(encoding="utf-8"))
 
             if expected_content != actual_content:

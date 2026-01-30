@@ -18,8 +18,6 @@ Usage:
 Results are saved to: tests/performance/benchmark_results/worker_scaling/
 """
 
-from __future__ import annotations
-
 import argparse
 import gc
 import json
@@ -103,7 +101,11 @@ class WorkloadResult:
                 result._efficiency = 0.0
 
         # Find optimal
-        best = max(self.worker_results.items(), key=lambda x: x[1].pages_per_sec, default=(0, None))
+        best = max(
+            self.worker_results.items(),
+            key=lambda x: x[1].pages_per_sec,
+            default=(0, None),
+        )
         if best[1]:
             self.optimal_workers = best[0]
             self.peak_throughput = best[1].pages_per_sec
@@ -129,7 +131,16 @@ def create_code_heavy_site(temp_dir: Path, num_pages: int = 50) -> Path:
     content_dir.mkdir(parents=True)
 
     # Languages to cycle through
-    languages = ["python", "javascript", "typescript", "rust", "go", "bash", "yaml", "json"]
+    languages = [
+        "python",
+        "javascript",
+        "typescript",
+        "rust",
+        "go",
+        "bash",
+        "yaml",
+        "json",
+    ]
 
     for i in range(num_pages):
         lang = languages[i % len(languages)]
@@ -350,13 +361,15 @@ validate_build = false
 # =============================================================================
 
 
-def run_build_with_workers(site_dir: Path, max_workers: int) -> tuple[float, int, float]:
+def run_build_with_workers(
+    site_dir: Path, max_workers: int
+) -> tuple[float, int, float]:
     """
     Run a build with specific worker count.
-    
+
     Returns:
         Tuple of (build_time_seconds, pages_rendered, init_overhead_ms)
-        
+
     """
     # Import here to get fresh state
     from bengal.core.site import Site
@@ -408,7 +421,9 @@ def benchmark_workload(
     iterations: int = 3,
 ) -> WorkloadResult:
     """Run benchmark for a specific workload type."""
-    result = WorkloadResult(workload_name=workload_name, workload_description=workload_desc)
+    result = WorkloadResult(
+        workload_name=workload_name, workload_description=workload_desc
+    )
 
     for workers in worker_counts:
         print(f"    Testing {workers} worker(s)...", end=" ", flush=True)
@@ -419,7 +434,9 @@ def benchmark_workload(
             temp_dir = Path(tempfile.mkdtemp())
             try:
                 site_dir = site_generator(temp_dir, num_pages)
-                build_time, pages, init_overhead = run_build_with_workers(site_dir, workers)
+                build_time, pages, init_overhead = run_build_with_workers(
+                    site_dir, workers
+                )
 
                 worker_result.times.append(build_time)
                 worker_result.pages_rendered = pages
@@ -430,7 +447,9 @@ def benchmark_workload(
             finally:
                 shutil.rmtree(temp_dir, ignore_errors=True)
 
-        print(f"→ {worker_result.mean_time:.2f}s ({worker_result.pages_per_sec:.0f} pages/sec)")
+        print(
+            f"→ {worker_result.mean_time:.2f}s ({worker_result.pages_per_sec:.0f} pages/sec)"
+        )
         result.worker_results[workers] = worker_result
 
     result.calculate_efficiency()
@@ -506,8 +525,12 @@ def save_results(results: list[WorkloadResult], output_dir: Path) -> Path:
         "python_version": sys.version,
         "workloads": [w.to_dict() for w in results],
         "summary": {
-            "optimal_workers_by_workload": {w.workload_name: w.optimal_workers for w in results},
-            "peak_throughput_by_workload": {w.workload_name: w.peak_throughput for w in results},
+            "optimal_workers_by_workload": {
+                w.workload_name: w.optimal_workers for w in results
+            },
+            "peak_throughput_by_workload": {
+                w.workload_name: w.peak_throughput for w in results
+            },
         },
     }
 
@@ -546,11 +569,16 @@ def print_summary(results: list[WorkloadResult]) -> None:
             # Check if more workers = worse performance
             for i in range(len(sorted_workers) - 1):
                 w1, w2 = sorted_workers[i], sorted_workers[i + 1]
-                if w.worker_results[w2].mean_time > w.worker_results[w1].mean_time * 1.05:
+                if (
+                    w.worker_results[w2].mean_time
+                    > w.worker_results[w1].mean_time * 1.05
+                ):
                     if not contention_detected:
                         print("\n  ⚠️  Contention indicators detected:")
                         contention_detected = True
-                    print(f"    • {w.workload_name}: {w2} workers slower than {w1} workers")
+                    print(
+                        f"    • {w.workload_name}: {w2} workers slower than {w1} workers"
+                    )
 
     if not contention_detected:
         print("\n  ✅ No obvious contention detected (performance scales with workers)")
@@ -566,7 +594,9 @@ def print_summary(results: list[WorkloadResult]) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Worker scaling analysis benchmark")
     parser.add_argument(
-        "--quick", action="store_true", help="Run fewer iterations (faster but less accurate)"
+        "--quick",
+        action="store_true",
+        help="Run fewer iterations (faster but less accurate)",
     )
     parser.add_argument(
         "--workers",
@@ -574,9 +604,14 @@ def main():
         default="1,2,4,6,8",
         help="Comma-separated worker counts to test (default: 1,2,4,6,8)",
     )
-    parser.add_argument("--pages", type=int, default=50, help="Pages per test site (default: 50)")
     parser.add_argument(
-        "--iterations", type=int, default=3, help="Iterations per worker count (default: 3)"
+        "--pages", type=int, default=50, help="Pages per test site (default: 50)"
+    )
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=3,
+        help="Iterations per worker count (default: 3)",
     )
     parser.add_argument(
         "--workload",

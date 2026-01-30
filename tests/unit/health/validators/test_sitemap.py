@@ -112,7 +112,9 @@ def test_sitemap_validator_no_urls(mock_site, tmp_path):
     results = validator.validate(mock_site)
 
     assert any(r.status == CheckStatus.WARNING for r in results)
-    assert any("no" in r.message.lower() and "url" in r.message.lower() for r in results)
+    assert any(
+        "no" in r.message.lower() and "url" in r.message.lower() for r in results
+    )
 
 
 def test_sitemap_validator_relative_urls(mock_site, tmp_path):
@@ -169,7 +171,9 @@ def test_sitemap_validator_missing_loc(mock_site, tmp_path):
     results = validator.validate(mock_site)
 
     assert any(r.status == CheckStatus.ERROR for r in results)
-    assert any("missing" in r.message.lower() and "loc" in r.message.lower() for r in results)
+    assert any(
+        "missing" in r.message.lower() and "loc" in r.message.lower() for r in results
+    )
 
 
 def test_sitemap_validator_coverage_warning(mock_site, tmp_path):
@@ -190,7 +194,8 @@ def test_sitemap_validator_coverage_warning(mock_site, tmp_path):
     # Should warn about missing pages
     assert any(r.status == CheckStatus.WARNING for r in results)
     assert any(
-        "missing" in r.message.lower() or "publishable" in r.message.lower() for r in results
+        "missing" in r.message.lower() or "publishable" in r.message.lower()
+        for r in results
     )
 
 

@@ -23,6 +23,7 @@ RFC: rfc-dashboard-api-integration
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -45,25 +46,25 @@ class PhaseInfo:
 class PhaseProgress(Vertical):
     """
     Real-time streaming build phase progress display.
-    
+
     Extends BuildPhasePlan with:
     - Live phase updates via callbacks
     - Phase details display (item counts, etc.)
     - Total elapsed time tracking
     - Current phase highlighting
-    
+
     Default phases match Bengal build pipeline:
     - Discovery → Content → Assets → Rendering → Finalization → Health
-    
+
     Example:
         progress = PhaseProgress(id="build-progress")
-    
+
         # Set as build callbacks
         orchestrator.build(
             on_phase_start=progress.start_phase,
             on_phase_complete=progress.complete_phase,
         )
-        
+
     """
 
     DEFAULT_CSS = """
@@ -92,7 +93,7 @@ class PhaseProgress(Vertical):
     """
 
     # Phase names matching BuildOrchestrator callbacks
-    PHASE_NAMES: list[str] = [
+    PHASE_NAMES: ClassVar[list[str]] = [
         "discovery",
         "content",
         "assets",
@@ -260,7 +261,8 @@ class PhaseProgress(Vertical):
     def is_complete(self) -> bool:
         """Check if all phases are complete."""
         return all(
-            self._phases.get(name, PhaseInfo(name=name, status="pending")).status == "complete"
+            self._phases.get(name, PhaseInfo(name=name, status="pending")).status
+            == "complete"
             for name in self.PHASE_NAMES
         )
 
@@ -268,6 +270,7 @@ class PhaseProgress(Vertical):
     def has_errors(self) -> bool:
         """Check if any phase has errors."""
         return any(
-            self._phases.get(name, PhaseInfo(name=name, status="pending")).status == "error"
+            self._phases.get(name, PhaseInfo(name=name, status="pending")).status
+            == "error"
             for name in self.PHASE_NAMES
         )

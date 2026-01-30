@@ -4,8 +4,6 @@ Tests for renderer tag context handling.
 Verifies proper resolution of tag pages, fallback behavior, and pagination context.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -41,8 +39,12 @@ class TestTagContextRobustness:
 
     def test_tag_context_with_empty_taxonomies(self, renderer, site):
         """When taxonomies are empty, should fallback to _posts metadata."""
-        page1 = Page(Path("content/p1.md"), "", metadata={"title": "P1", "tags": ["t1"]})
-        page2 = Page(Path("content/p2.md"), "", metadata={"title": "P2", "tags": ["t1"]})
+        page1 = Page(
+            Path("content/p1.md"), "", metadata={"title": "P1", "tags": ["t1"]}
+        )
+        page2 = Page(
+            Path("content/p2.md"), "", metadata={"title": "P2", "tags": ["t1"]}
+        )
         site.pages = [page1, page2]
 
         tag_page = Page(
@@ -68,8 +70,12 @@ class TestTagContextRobustness:
 
     def test_tag_context_with_stale_taxonomy_pages(self, renderer, site):
         """When resolution fails, should fallback to original taxonomy items."""
-        page1 = Page(Path("content/p1.md"), "", metadata={"title": "P1", "tags": ["t1"]})
-        page2 = Page(Path("content/p2.md"), "", metadata={"title": "P2", "tags": ["t1"]})
+        page1 = Page(
+            Path("content/p1.md"), "", metadata={"title": "P1", "tags": ["t1"]}
+        )
+        page2 = Page(
+            Path("content/p2.md"), "", metadata={"title": "P2", "tags": ["t1"]}
+        )
 
         tag_page = Page(
             Path("tags/t1/index.html"),
@@ -104,7 +110,9 @@ class TestTagContextResolution:
 
     def test_resolution_returns_fresh_pages(self, renderer, site):
         """When resolution succeeds, should return fresh page objects."""
-        fresh_page = Page(Path("content/p1.md"), "", metadata={"title": "P1 Fresh", "tags": ["t1"]})
+        fresh_page = Page(
+            Path("content/p1.md"), "", metadata={"title": "P1 Fresh", "tags": ["t1"]}
+        )
         site.pages = [fresh_page]
 
         # Stale page in taxonomy
@@ -114,7 +122,12 @@ class TestTagContextResolution:
         tag_page = Page(
             Path("tags/t1/index.html"),
             "",
-            metadata={"type": "tag", "_tag": "t1", "_tag_slug": "t1", "_generated": True},
+            metadata={
+                "type": "tag",
+                "_tag": "t1",
+                "_tag_slug": "t1",
+                "_generated": True,
+            },
         )
 
         context = {}
@@ -131,8 +144,12 @@ class TestTagContextPagination:
 
     def test_pagination_context_from_paginator(self, renderer, site):
         """Pagination context should come from the paginator."""
-        page1 = Page(Path("content/p1.md"), "", metadata={"title": "P1 Fresh", "tags": ["t1"]})
-        page2 = Page(Path("content/p2.md"), "", metadata={"title": "P2 Fresh", "tags": ["t1"]})
+        page1 = Page(
+            Path("content/p1.md"), "", metadata={"title": "P1 Fresh", "tags": ["t1"]}
+        )
+        page2 = Page(
+            Path("content/p2.md"), "", metadata={"title": "P2 Fresh", "tags": ["t1"]}
+        )
         site.pages = [page1, page2]
 
         site.taxonomies = {"tags": {"t1": {"name": "t1", "pages": [page1, page2]}}}

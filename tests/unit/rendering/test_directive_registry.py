@@ -10,8 +10,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 import pytest
 
 
@@ -22,10 +20,11 @@ class TestDirectiveNamesConsistency:
         """Every class in DIRECTIVE_CLASSES has DIRECTIVE_NAMES attribute."""
         from bengal.directives import DIRECTIVE_CLASSES
 
-        missing = []
-        for cls in DIRECTIVE_CLASSES:
-            if not hasattr(cls, "DIRECTIVE_NAMES"):
-                missing.append(cls.__name__)
+        missing = [
+            cls.__name__
+            for cls in DIRECTIVE_CLASSES
+            if not hasattr(cls, "DIRECTIVE_NAMES")
+        ]
 
         assert not missing, f"Classes missing DIRECTIVE_NAMES: {missing}"
 
@@ -33,10 +32,11 @@ class TestDirectiveNamesConsistency:
         """Every DIRECTIVE_NAMES attribute is non-empty."""
         from bengal.directives import DIRECTIVE_CLASSES
 
-        empty = []
-        for cls in DIRECTIVE_CLASSES:
-            if hasattr(cls, "DIRECTIVE_NAMES") and not cls.DIRECTIVE_NAMES:
-                empty.append(cls.__name__)
+        empty = [
+            cls.__name__
+            for cls in DIRECTIVE_CLASSES
+            if hasattr(cls, "DIRECTIVE_NAMES") and not cls.DIRECTIVE_NAMES
+        ]
 
         assert not empty, f"Classes with empty DIRECTIVE_NAMES: {empty}"
 
@@ -150,9 +150,13 @@ class TestDirectiveRegistration:
             registered = mock.registered
 
             if declared != registered:
-                mismatches.append(f"{cls.__name__}: declared {declared} != registered {registered}")
+                mismatches.append(
+                    f"{cls.__name__}: declared {declared} != registered {registered}"
+                )
 
-        assert not mismatches, "DIRECTIVE_NAMES mismatches:\n  " + "\n  ".join(mismatches)
+        assert not mismatches, "DIRECTIVE_NAMES mismatches:\n  " + "\n  ".join(
+            mismatches
+        )
 
 
 class TestDirectiveClassesCompleteness:

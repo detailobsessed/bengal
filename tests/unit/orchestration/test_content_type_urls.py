@@ -57,7 +57,8 @@ class TestBlogContentTypeURLs:
         blog_posts = [
             p
             for p in blog_site.pages
-            if "blog" in str(p.source_path) and p.source_path.stem not in ("_index", "index")
+            if "blog" in str(p.source_path)
+            and p.source_path.stem not in ("_index", "index")
         ]
 
         assert len(blog_posts) >= 2, "Should have at least 2 blog posts"
@@ -126,8 +127,12 @@ class TestTutorialContentTypeURLs:
         (python_dir / "_index.md").write_text("---\ntitle: Python Tutorials\n---")
 
         # Tutorial lessons
-        (python_dir / "basics.md").write_text("---\ntitle: Python Basics\nweight: 10\n---")
-        (python_dir / "advanced.md").write_text("---\ntitle: Advanced Python\nweight: 20\n---")
+        (python_dir / "basics.md").write_text(
+            "---\ntitle: Python Basics\nweight: 10\n---"
+        )
+        (python_dir / "advanced.md").write_text(
+            "---\ntitle: Advanced Python\nweight: 20\n---"
+        )
 
         site = Site(root_path=root, config={})
         return site
@@ -175,8 +180,12 @@ class TestAPIReferenceURLs:
         (api_core / "_index.md").write_text("---\ntitle: Core Module\n---")
 
         # API pages
-        (api_core / "utils.md").write_text("---\ntitle: utils\ntype: python-module\n---")
-        (api_core / "helpers.md").write_text("---\ntitle: helpers\ntype: python-module\n---")
+        (api_core / "utils.md").write_text(
+            "---\ntitle: utils\ntype: python-module\n---"
+        )
+        (api_core / "helpers.md").write_text(
+            "---\ntitle: helpers\ntype: python-module\n---"
+        )
 
         site = Site(root_path=root, config={})
         return site
@@ -221,8 +230,12 @@ class TestChangelogURLs:
         )
 
         # Version entries
-        (v1_dir / "release.md").write_text("---\ntitle: v1.0 Release\ndate: 2024-01-01\n---")
-        (v1_dir / "hotfix.md").write_text("---\ntitle: v1.0.1 Hotfix\ndate: 2024-01-15\n---")
+        (v1_dir / "release.md").write_text(
+            "---\ntitle: v1.0 Release\ndate: 2024-01-01\n---"
+        )
+        (v1_dir / "hotfix.md").write_text(
+            "---\ntitle: v1.0.1 Hotfix\ndate: 2024-01-15\n---"
+        )
 
         site = Site(root_path=root, config={})
         return site
@@ -292,7 +305,9 @@ class TestMixedContentTypes:
         # Find pages by type
         doc_pages = [p for p in mixed_site.pages if "docs" in str(p.source_path)]
         blog_pages = [p for p in mixed_site.pages if "blog" in str(p.source_path)]
-        tutorial_pages = [p for p in mixed_site.pages if "tutorials" in str(p.source_path)]
+        tutorial_pages = [
+            p for p in mixed_site.pages if "tutorials" in str(p.source_path)
+        ]
 
         # Verify each type has correct prefix
         for page in doc_pages:
@@ -302,7 +317,9 @@ class TestMixedContentTypes:
             assert page.href.startswith("/blog/"), f"Blog page wrong URL: {page.href}"
 
         for page in tutorial_pages:
-            assert page.href.startswith("/tutorials/"), f"Tutorial page wrong URL: {page.href}"
+            assert page.href.startswith("/tutorials/"), (
+                f"Tutorial page wrong URL: {page.href}"
+            )
 
     def test_no_url_collisions_between_types(self, mixed_site):
         """Different content types should not have URL collisions."""
@@ -336,7 +353,7 @@ class TestContentTypeURLConsistency:
 
         # Discover and get page
         orchestrator.discover()
-        page = [p for p in site.pages if p.source_path.stem == "page"][0]
+        page = next(p for p in site.pages if p.source_path.stem == "page")
 
         # URL should be correct after full discovery
         assert page.href == "/docs/page/", f"URL wrong after cascade: {page.href}"

@@ -40,7 +40,9 @@ class TestCheckResult:
 
     def test_create_suggestion(self):
         """Test creating suggestion result."""
-        result = CheckResult.suggestion("Quality improvement", recommendation="Consider this")
+        result = CheckResult.suggestion(
+            "Quality improvement", recommendation="Consider this"
+        )
         assert result.status == CheckStatus.SUGGESTION
         assert result.message == "Quality improvement"
         assert result.recommendation == "Consider this"
@@ -49,7 +51,9 @@ class TestCheckResult:
         """Test is_problem method."""
         assert not CheckResult.success("OK").is_problem()
         assert not CheckResult.info("Info").is_problem()
-        assert not CheckResult.suggestion("Suggestion").is_problem()  # Suggestions are not problems
+        assert not CheckResult.suggestion(
+            "Suggestion"
+        ).is_problem()  # Suggestions are not problems
         assert CheckResult.warning("Warning").is_problem()
         assert CheckResult.error("Error").is_problem()
 
@@ -63,7 +67,9 @@ class TestCheckResult:
 
     def test_to_cache_dict(self):
         """Test serialization to cache dict."""
-        result = CheckResult.warning("Test", recommendation="Fix it", details=["detail1"])
+        result = CheckResult.warning(
+            "Test", recommendation="Fix it", details=["detail1"]
+        )
         data = result.to_cache_dict()
 
         assert data["status"] == "warning"
@@ -475,7 +481,8 @@ class TestHealthReportFormatting:
         vr = ValidatorReport("Validator")
         vr.results = [
             CheckResult.warning(
-                "Many issues", details=["issue1", "issue2", "issue3", "issue4", "issue5"]
+                "Many issues",
+                details=["issue1", "issue2", "issue3", "issue4", "issue5"],
             )
         ]
         report.validator_reports = [vr]

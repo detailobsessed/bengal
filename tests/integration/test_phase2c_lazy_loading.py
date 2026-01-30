@@ -14,9 +14,9 @@ from tempfile import TemporaryDirectory
 import pytest
 
 from bengal.cache.page_discovery_cache import PageDiscoveryCache, PageMetadata
+from bengal.content.discovery.content_discovery import ContentDiscovery
 from bengal.core.page import Page, PageProxy
 from bengal.core.site import Site
-from bengal.content.discovery.content_discovery import ContentDiscovery
 from bengal.orchestration import BuildOrchestrator
 
 
@@ -103,7 +103,7 @@ class TestLazyLoadingDiscovery:
         site, tmpdir_path = temp_site_with_content
 
         discovery = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections, pages = discovery.discover(use_cache=False)
+        _sections, pages = discovery.discover(use_cache=False)
 
         # All should be full Page objects
         assert len(pages) > 0
@@ -115,7 +115,7 @@ class TestLazyLoadingDiscovery:
 
         # First discovery - full
         discovery = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections, full_pages = discovery.discover(use_cache=False)
+        _sections, full_pages = discovery.discover(use_cache=False)
 
         # Build cache from discovered pages
         # Use RELATIVE paths (discovery converts absolute to relative for cache lookup)
@@ -136,7 +136,7 @@ class TestLazyLoadingDiscovery:
 
         # Second discovery - with cache
         discovery2 = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
+        _sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
 
         # Should have mix of Page and PageProxy
         proxy_count = sum(1 for p in pages2 if isinstance(p, PageProxy))
@@ -178,10 +178,12 @@ class TestLazyLoadingDiscovery:
 
         # Second discovery with cache
         discovery2 = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
+        _sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
 
         # Find corresponding proxy page
-        proxy_page = next((p for p in pages2 if p.source_path == page.source_path), None)
+        proxy_page = next(
+            (p for p in pages2 if p.source_path == page.source_path), None
+        )
         assert proxy_page is not None
         assert isinstance(proxy_page, PageProxy)
 
@@ -196,7 +198,7 @@ class TestLazyLoadingIntegration:
 
     def test_full_build_creates_full_pages(self, temp_site_with_content):
         """Verify full build creates only Page objects."""
-        site, tmpdir_path = temp_site_with_content
+        site, _tmpdir_path = temp_site_with_content
 
         orchestrator = BuildOrchestrator(site)
         # Simulate discovery with incremental=False (full build)
@@ -204,7 +206,9 @@ class TestLazyLoadingIntegration:
 
         # All pages should be full Page objects
         assert len(site.pages) > 0
-        assert all(isinstance(p, Page) and not isinstance(p, PageProxy) for p in site.pages)
+        assert all(
+            isinstance(p, Page) and not isinstance(p, PageProxy) for p in site.pages
+        )
 
     def test_incremental_build_uses_cache(self, temp_site_with_content):
         """Verify incremental build uses PageProxy when cache available."""
@@ -246,7 +250,7 @@ class TestLazyLoadingIntegration:
 
         # Full discovery
         discovery = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections, pages = discovery.discover(use_cache=False)
+        _sections, pages = discovery.discover(use_cache=False)
 
         # Create cache (use RELATIVE paths for cache storage)
         cache = PageDiscoveryCache(tmpdir_path / ".bengal" / "page_metadata.json")
@@ -266,7 +270,7 @@ class TestLazyLoadingIntegration:
         # Lazy discovery
         site2 = Site.from_config(tmpdir_path)
         discovery2 = ContentDiscovery(tmpdir_path / "content", site=site2)
-        sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
+        _sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
 
         # Test that mixed list is hashable and comparable
         page_set = set(pages2)
@@ -290,7 +294,7 @@ class TestLazyLoadingPerformance:
 
         # Create cache (use RELATIVE paths for cache storage)
         discovery = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections, pages = discovery.discover(use_cache=False)
+        _sections, pages = discovery.discover(use_cache=False)
 
         cache = PageDiscoveryCache(tmpdir_path / ".bengal" / "page_metadata.json")
         for page in pages:
@@ -308,7 +312,7 @@ class TestLazyLoadingPerformance:
 
         # Lazy discovery
         discovery2 = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
+        _sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
 
         # Get a proxy page
         proxy = next((p for p in pages2 if isinstance(p, PageProxy)), None)
@@ -328,7 +332,7 @@ class TestLazyLoadingPerformance:
 
         # Create cache (use RELATIVE paths for cache storage)
         discovery = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections, pages = discovery.discover(use_cache=False)
+        _sections, pages = discovery.discover(use_cache=False)
 
         cache = PageDiscoveryCache(tmpdir_path / ".bengal" / "page_metadata.json")
         for page in pages:
@@ -346,7 +350,7 @@ class TestLazyLoadingPerformance:
 
         # Lazy discovery
         discovery2 = ContentDiscovery(tmpdir_path / "content", site=site)
-        sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
+        _sections2, pages2 = discovery2.discover(use_cache=True, cache=cache)
 
         # Get a proxy page
         proxy = next((p for p in pages2 if isinstance(p, PageProxy)), None)

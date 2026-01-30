@@ -7,7 +7,7 @@ Ensures all autodoc sections have HTML output files with correct page types.
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any, ClassVar, override
 
 from bengal.health.base import BaseValidator
 from bengal.health.report import CheckResult, CheckStatus, ValidatorStats
@@ -19,15 +19,15 @@ if TYPE_CHECKING:
 class AutodocValidator(BaseValidator):
     """
     Validates autodoc HTML page generation.
-    
+
     Checks:
     - All autodoc directories have index.html files
     - HTML and TXT file counts match (1:1 parity)
     - Page types are correctly set for nav tree
     - No orphan TXT files without corresponding HTML
-    
+
     Implements HasStats protocol for observability.
-        
+
     """
 
     name = "Autodoc"
@@ -35,7 +35,7 @@ class AutodocValidator(BaseValidator):
     enabled_by_default = True
 
     # Expected page types for each autodoc prefix
-    EXPECTED_TYPES = {
+    EXPECTED_TYPES: ClassVar[dict[str, str]] = {
         "api": "autodoc-python",
         "cli": "autodoc-cli",
     }
@@ -119,7 +119,9 @@ class AutodocValidator(BaseValidator):
 
         return results
 
-    def _check_html_parity(self, site: SiteLike, prefixes: list[str]) -> list[CheckResult]:
+    def _check_html_parity(
+        self, site: SiteLike, prefixes: list[str]
+    ) -> list[CheckResult]:
         """Check HTML and TXT file count parity."""
         results: list[CheckResult] = []
 
@@ -135,7 +137,9 @@ class AutodocValidator(BaseValidator):
             orphans = txt_dirs - html_dirs
 
             if orphans:
-                orphan_list = [str(p.relative_to(site.output_dir)) for p in list(orphans)[:5]]
+                orphan_list = [
+                    str(p.relative_to(site.output_dir)) for p in list(orphans)[:5]
+                ]
                 results.append(
                     CheckResult(
                         status=CheckStatus.ERROR,
@@ -150,7 +154,9 @@ class AutodocValidator(BaseValidator):
 
         return results
 
-    def _check_missing_html(self, site: SiteLike, prefixes: list[str]) -> list[CheckResult]:
+    def _check_missing_html(
+        self, site: SiteLike, prefixes: list[str]
+    ) -> list[CheckResult]:
         """Check for directories missing index.html."""
         results: list[CheckResult] = []
 
@@ -159,10 +165,11 @@ class AutodocValidator(BaseValidator):
             if not prefix_dir.exists():
                 continue
 
-            missing: list[str] = []
-            for dir_path in prefix_dir.rglob("*"):
-                if dir_path.is_dir() and not (dir_path / "index.html").exists():
-                    missing.append(str(dir_path.relative_to(site.output_dir)))
+            missing: list[str] = [
+                str(dir_path.relative_to(site.output_dir))
+                for dir_path in prefix_dir.rglob("*")
+                if dir_path.is_dir() and not (dir_path / "index.html").exists()
+            ]
 
             if missing:
                 results.append(
@@ -179,7 +186,9 @@ class AutodocValidator(BaseValidator):
 
         return results
 
-    def _check_page_types(self, site: SiteLike, prefixes: list[str]) -> list[CheckResult]:
+    def _check_page_types(
+        self, site: SiteLike, prefixes: list[str]
+    ) -> list[CheckResult]:
         """Check page types are correctly set."""
         results: list[CheckResult] = []
 

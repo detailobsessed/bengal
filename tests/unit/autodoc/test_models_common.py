@@ -2,8 +2,6 @@
 Unit tests for common autodoc models (QualifiedName, SourceLocation).
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest

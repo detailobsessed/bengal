@@ -141,7 +141,9 @@ def analyze_file_metrics(target: Path) -> list[FileMetrics]:
             try:
                 tree = ast.parse(content)
 
-                classes = [node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+                classes = [
+                    node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)
+                ]
                 num_classes = len(classes)
 
                 # Find max methods in any class
@@ -184,7 +186,9 @@ def analyze_file_metrics(target: Path) -> list[FileMetrics]:
     return metrics
 
 
-def check_file_sizes(metrics: list[FileMetrics], threshold: int = 400) -> list[ArchViolation]:
+def check_file_sizes(
+    metrics: list[FileMetrics], threshold: int = 400
+) -> list[ArchViolation]:
     """Check for files exceeding line threshold."""
     violations = []
 

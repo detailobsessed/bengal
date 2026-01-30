@@ -33,12 +33,12 @@ if TYPE_CHECKING:
 class PageRelationshipsMixin:
     """
     Mixin providing relationship checking for pages.
-    
+
     This mixin handles:
     - Page equality checking
     - Section membership
     - Ancestor/descendant relationships
-        
+
     """
 
     # Declare attributes that will be provided by the dataclass this mixin is mixed into
@@ -104,7 +104,10 @@ class PageRelationshipsMixin:
             return False
 
         # Check if other page is in this section or subsections
-        return other._section in self.walk() if hasattr(self, "walk") else False
+        walk_method = getattr(self, "walk", None)
+        if walk_method is not None and callable(walk_method):
+            return other._section in walk_method()
+        return False
 
     def is_descendant(self, other: Page) -> bool:
         """

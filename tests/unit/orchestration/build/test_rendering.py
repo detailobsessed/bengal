@@ -95,7 +95,9 @@ class TestRewriteFontsCssUrls:
         assets_dir.mkdir(parents=True)
 
         # Create fonts.css
-        (assets_dir / "fonts.css").write_text('@font-face { src: url("fonts/outfit.woff2"); }')
+        (assets_dir / "fonts.css").write_text(
+            '@font-face { src: url("fonts/outfit.woff2"); }'
+        )
 
         # Create manifest
         manifest = {
@@ -139,7 +141,11 @@ class TestPhaseAssets:
         assets = [MagicMock(), MagicMock()]
 
         result = phase_assets(
-            orchestrator, cli, incremental=False, parallel=True, assets_to_process=assets
+            orchestrator,
+            cli,
+            incremental=False,
+            parallel=True,
+            assets_to_process=assets,
         )
 
         orchestrator.assets.process.assert_called_once_with(
@@ -154,8 +160,16 @@ class TestPhaseAssets:
         )
         cli = MockPhaseContext.create_cli()
 
-        with patch("bengal.orchestration.build.rendering._rewrite_fonts_css_urls") as mock_rewrite:
-            phase_assets(orchestrator, cli, incremental=False, parallel=False, assets_to_process=[])
+        with patch(
+            "bengal.orchestration.build.rendering._rewrite_fonts_css_urls"
+        ) as mock_rewrite:
+            phase_assets(
+                orchestrator,
+                cli,
+                incremental=False,
+                parallel=False,
+                assets_to_process=[],
+            )
 
         mock_rewrite.assert_called_once()
 
@@ -164,7 +178,9 @@ class TestPhaseAssets:
         orchestrator = MockPhaseContext.create_orchestrator(tmp_path)
         cli = MockPhaseContext.create_cli()
 
-        phase_assets(orchestrator, cli, incremental=False, parallel=False, assets_to_process=[])
+        phase_assets(
+            orchestrator, cli, incremental=False, parallel=False, assets_to_process=[]
+        )
 
         assert orchestrator.stats.assets_time_ms >= 0
 
@@ -180,7 +196,9 @@ class TestPhaseAssets:
         mock_theme_dir.mkdir(parents=True)
 
         # Mock theme service function
-        with patch("bengal.orchestration.build.rendering.get_theme_assets_dir") as mock_get_theme:
+        with patch(
+            "bengal.orchestration.build.rendering.get_theme_assets_dir"
+        ) as mock_get_theme:
             mock_get_theme.return_value = mock_theme_dir
 
             result = phase_assets(
@@ -231,7 +249,9 @@ class TestPhaseRender:
         cli = MockPhaseContext.create_cli()
 
         with (
-            patch("bengal.orchestration.streaming.StreamingRenderOrchestrator") as MockStreaming,
+            patch(
+                "bengal.orchestration.streaming.StreamingRenderOrchestrator"
+            ) as MockStreaming,
             patch("bengal.orchestration.build_context.BuildContext"),
         ):
             mock_streaming = MagicMock()
@@ -362,7 +382,9 @@ class TestPhaseUpdateSitePages:
         rendered.source_path = Path("test.md")
         pages_to_build = [rendered]
 
-        phase_update_site_pages(orchestrator, incremental=True, pages_to_build=pages_to_build)
+        phase_update_site_pages(
+            orchestrator, incremental=True, pages_to_build=pages_to_build
+        )
 
         # Site.pages should now contain rendered page
         assert orchestrator.site.pages[0] is rendered
@@ -386,7 +408,9 @@ class TestPhaseUpdateSitePages:
         changed_new.source_path = Path("changed.md")
         pages_to_build = [changed_new]
 
-        phase_update_site_pages(orchestrator, incremental=True, pages_to_build=pages_to_build)
+        phase_update_site_pages(
+            orchestrator, incremental=True, pages_to_build=pages_to_build
+        )
 
         # Unchanged should remain, changed should be replaced
         assert orchestrator.site.pages[0] is unchanged

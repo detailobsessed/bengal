@@ -4,8 +4,6 @@ Tests that the LPT scheduling optimization is correctly integrated with
 the RenderOrchestrator and produces correct builds.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -46,7 +44,9 @@ def uniform_site(tmp_path: Path) -> Path:
     # Create 50 similar pages
     for i in range(50):
         page = content_dir / f"page-{i}.md"
-        page.write_text(f"# Page {i}\n\nSome standard content here.\n\n```python\nprint('hi')\n```")
+        page.write_text(
+            f"# Page {i}\n\nSome standard content here.\n\n```python\nprint('hi')\n```"
+        )
 
     config = tmp_path / "bengal.toml"
     config.write_text('[site]\ntitle = "Uniform Site"\n')
@@ -57,7 +57,9 @@ def uniform_site(tmp_path: Path) -> Path:
 class TestComplexityOrderingIntegration:
     """Integration tests for complexity ordering in builds."""
 
-    def test_build_completes_with_ordering_enabled(self, high_variance_site: Path) -> None:
+    def test_build_completes_with_ordering_enabled(
+        self, high_variance_site: Path
+    ) -> None:
         """Build should complete successfully with complexity ordering."""
         from bengal.core.site import Site
         from bengal.orchestration import BuildOrchestrator
@@ -76,7 +78,9 @@ class TestComplexityOrderingIntegration:
         # Should have processed all 100 pages
         assert stats.total_pages >= 100
 
-    def test_build_completes_with_ordering_disabled(self, high_variance_site: Path) -> None:
+    def test_build_completes_with_ordering_disabled(
+        self, high_variance_site: Path
+    ) -> None:
         """Build should complete with complexity ordering disabled."""
         from bengal.core.site import Site
         from bengal.orchestration import BuildOrchestrator

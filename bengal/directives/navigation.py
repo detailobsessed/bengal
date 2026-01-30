@@ -31,12 +31,12 @@ logger = get_logger(__name__)
 __all__ = [
     "BreadcrumbsDirective",
     "BreadcrumbsOptions",
-    "SiblingsDirective",
-    "SiblingsOptions",
     "PrevNextDirective",
     "PrevNextOptions",
     "RelatedDirective",
     "RelatedOptions",
+    "SiblingsDirective",
+    "SiblingsOptions",
 ]
 
 
@@ -49,13 +49,13 @@ __all__ = [
 class BreadcrumbsOptions(DirectiveOptions):
     """
     Options for breadcrumbs directive.
-    
+
     Attributes:
         separator: Separator character between items (default: ›)
         show_home: Whether to show home link (default: true)
         home_text: Text for home link (default: Home)
         home_url: URL for home link (default: /)
-        
+
     """
 
     separator: str = "›"
@@ -73,14 +73,14 @@ class BreadcrumbsOptions(DirectiveOptions):
 class BreadcrumbsDirective(BengalDirective):
     """
     Auto-generate breadcrumb navigation from page ancestors.
-    
+
     Syntax:
         :::{breadcrumbs}
         :separator: /
         :show-home: true
         :home-text: Home
         :::
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["breadcrumbs"]
@@ -146,7 +146,9 @@ class BreadcrumbsDirective(BengalDirective):
                 f"{self.escape_html(page_title)}</span>"
             )
 
-        sep_html = f'<span class="breadcrumb-separator">{self.escape_html(separator)}</span>'
+        sep_html = (
+            f'<span class="breadcrumb-separator">{self.escape_html(separator)}</span>'
+        )
         content = sep_html.join(items)
 
         return f'<nav class="breadcrumbs" aria-label="Breadcrumb">{content}</nav>\n'
@@ -161,12 +163,12 @@ class BreadcrumbsDirective(BengalDirective):
 class SiblingsOptions(DirectiveOptions):
     """
     Options for siblings directive.
-    
+
     Attributes:
         limit: Maximum number of siblings to show (0 = no limit)
         exclude_current: Whether to exclude current page
         show_description: Whether to show page descriptions
-        
+
     """
 
     limit: int = 0
@@ -182,14 +184,14 @@ class SiblingsOptions(DirectiveOptions):
 class SiblingsDirective(BengalDirective):
     """
     Show other pages in the same section.
-    
+
     Syntax:
         :::{siblings}
         :limit: 10
         :exclude-current: true
         :show-description: true
         :::
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["siblings"]
@@ -237,7 +239,7 @@ class SiblingsDirective(BengalDirective):
         siblings = []
         for page in pages:
             source_str = str(getattr(page, "source_path", ""))
-            if source_str.endswith("_index.md") or source_str.endswith("index.md"):
+            if source_str.endswith(("_index.md", "index.md")):
                 continue
             if (
                 exclude_current
@@ -264,7 +266,9 @@ class SiblingsDirective(BengalDirective):
                 description = page.metadata.get("description", "")
 
             parts.append("  <li>")
-            parts.append(f'    <a href="{self.escape_html(url)}">{self.escape_html(title)}</a>')
+            parts.append(
+                f'    <a href="{self.escape_html(url)}">{self.escape_html(title)}</a>'
+            )
             if description:
                 parts.append(
                     f'    <span class="sibling-description">{self.escape_html(description)}</span>'
@@ -286,11 +290,11 @@ class SiblingsDirective(BengalDirective):
 class PrevNextOptions(DirectiveOptions):
     """
     Options for prev-next directive.
-    
+
     Attributes:
         show_title: Whether to show page titles
         show_section: Whether to show section names
-        
+
     """
 
     show_title: bool = True
@@ -305,13 +309,13 @@ class PrevNextOptions(DirectiveOptions):
 class PrevNextDirective(BengalDirective):
     """
     Section-aware previous/next navigation.
-    
+
     Syntax:
         :::{prev-next}
         :show-title: true
         :show-section: false
         :::
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["prev-next"]
@@ -358,7 +362,9 @@ class PrevNextDirective(BengalDirective):
 
         if prev_page:
             prev_url = getattr(prev_page, "href", "/")
-            prev_title = getattr(prev_page, "title", "Previous") if show_title else "Previous"
+            prev_title = (
+                getattr(prev_page, "title", "Previous") if show_title else "Previous"
+            )
             parts.append(
                 f'  <a class="prev-next-link prev-link" href="{self.escape_html(prev_url)}">'
             )
@@ -400,12 +406,12 @@ class PrevNextDirective(BengalDirective):
 class RelatedOptions(DirectiveOptions):
     """
     Options for related directive.
-    
+
     Attributes:
         limit: Maximum number of related items (default: 5)
         title: Section title (default: Related Articles)
         show_tags: Whether to show tags
-        
+
     """
 
     limit: int = 5
@@ -420,14 +426,14 @@ class RelatedOptions(DirectiveOptions):
 class RelatedDirective(BengalDirective):
     """
     Show related content based on tags.
-    
+
     Syntax:
         :::{related}
         :limit: 5
         :title: Related Articles
         :show-tags: true
         :::
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["related"]

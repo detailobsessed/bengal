@@ -1,7 +1,5 @@
 """Tests for bengal.utils.lru_cache.LRUCache."""
 
-from __future__ import annotations
-
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -346,7 +344,9 @@ class TestThreadSafety:
             return 42
 
         with ThreadPoolExecutor(max_workers=4) as executor:
-            futures = [executor.submit(cache.get_or_set, "key", slow_factory) for _ in range(4)]
+            futures = [
+                executor.submit(cache.get_or_set, "key", slow_factory) for _ in range(4)
+            ]
             results = [f.result() for f in futures]
 
         assert all(r == 42 for r in results)

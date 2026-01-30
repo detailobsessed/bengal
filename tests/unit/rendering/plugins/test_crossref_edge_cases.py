@@ -5,12 +5,8 @@ These tests verify graceful handling of malformed xref_index entries
 and boundary conditions in cross-reference resolution.
 """
 
-from __future__ import annotations
-
 from types import SimpleNamespace
 from typing import Any
-
-import pytest
 
 from bengal.rendering.plugins.cross_references import CrossReferencePlugin
 
@@ -131,7 +127,9 @@ class TestCrossRefMalformedEntries:
         page = make_mock_page(title="Two Element", href="/two/")
         xref_index: dict[str, Any] = {
             "by_anchor": {
-                "two-element": [(page, "two-element")]  # 2 elements - valid legacy format
+                "two-element": [
+                    (page, "two-element")
+                ]  # 2 elements - valid legacy format
             },
             "by_path": {},
             "by_id": {},
@@ -150,7 +148,9 @@ class TestCrossRefMalformedEntries:
         page = make_mock_page(title="Three Element", href="/three/")
         xref_index: dict[str, Any] = {
             "by_anchor": {
-                "three-element": [(page, "three-element", "v1")]  # 3 elements - full format
+                "three-element": [
+                    (page, "three-element", "v1")
+                ]  # 3 elements - full format
             },
             "by_path": {},
             "by_id": {},

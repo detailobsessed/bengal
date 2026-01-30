@@ -27,8 +27,8 @@ import httpx
 
 from bengal.health.linkcheck.ignore_policy import IgnorePolicy
 from bengal.health.linkcheck.models import LinkCheckResult, LinkKind, LinkStatus
-from bengal.utils.observability.logger import get_logger
 from bengal.utils.concurrency.retry import calculate_backoff
+from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -36,16 +36,16 @@ logger = get_logger(__name__)
 class AsyncLinkChecker:
     """
     Async HTTP link checker with retries, backoff, and concurrency control.
-    
+
     Uses httpx AsyncClient with connection pooling for efficient concurrent
     requests. Implements two-tier concurrency limiting (global and per-host)
     to balance throughput against rate limiting risks.
-    
+
     Request Strategy:
         1. Send HEAD request (lightweight)
         2. On 405/501, fallback to GET
         3. Retry on timeout/network errors with exponential backoff
-    
+
     Attributes:
         max_concurrency: Global concurrent request limit
         per_host_limit: Per-host concurrent request limit
@@ -54,12 +54,12 @@ class AsyncLinkChecker:
         retry_backoff: Base delay for exponential backoff
         ignore_policy: IgnorePolicy for filtering URLs/statuses
         user_agent: User-Agent header sent with requests
-    
+
     Example:
             >>> checker = AsyncLinkChecker(max_concurrency=10, timeout=5.0)
             >>> urls = [("https://example.com", "index.html")]
             >>> results = await checker.check_links(urls)
-        
+
     """
 
     def __init__(
@@ -98,7 +98,9 @@ class AsyncLinkChecker:
         # Per-host semaphores
         self._host_semaphores: dict[str, asyncio.Semaphore] = {}
 
-    async def check_links(self, urls: list[tuple[str, str]]) -> dict[str, LinkCheckResult]:
+    async def check_links(
+        self, urls: list[tuple[str, str]]
+    ) -> dict[str, LinkCheckResult]:
         """
         Check multiple external URLs concurrently.
 
@@ -133,7 +135,9 @@ class AsyncLinkChecker:
             headers={"User-Agent": self.user_agent},
         ) as client:
             # Check all URLs concurrently
-            tasks = [self._check_url(client, url, refs) for url, refs in url_refs.items()]
+            tasks = [
+                self._check_url(client, url, refs) for url, refs in url_refs.items()
+            ]
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Build result dict
@@ -264,13 +268,16 @@ class AsyncLinkChecker:
                 is_success = 200 <= status_code < 400
 
                 # Check if status should be ignored
-                should_ignore_status, ignore_reason = self.ignore_policy.should_ignore_status(
-                    status_code
+                should_ignore_status, ignore_reason = (
+                    self.ignore_policy.should_ignore_status(status_code)
                 )
 
                 if should_ignore_status:
                     logger.debug(
-                        "ignoring_status", url=url, status=status_code, reason=ignore_reason
+                        "ignoring_status",
+                        url=url,
+                        status=status_code,
+                        reason=ignore_reason,
                     )
                     return LinkCheckResult(
                         url=url,

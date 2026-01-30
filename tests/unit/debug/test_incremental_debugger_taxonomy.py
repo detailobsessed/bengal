@@ -5,9 +5,6 @@ Verifies that simulate_change correctly identifies which pages would rebuild
 based on taxonomy relationships, without over-reporting unrelated pages.
 """
 
-from __future__ import annotations
-
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -33,7 +30,11 @@ class TestSimulateChangeTaxonomy:
         # post-c has "rust" tag
         # post-d has both "python" and "rust" tags
         cache.taxonomy_deps = {
-            "tags/python": ["content/post-a.md", "content/post-b.md", "content/post-d.md"],
+            "tags/python": [
+                "content/post-a.md",
+                "content/post-b.md",
+                "content/post-d.md",
+            ],
             "tags/rust": ["content/post-c.md", "content/post-d.md"],
         }
         return cache
@@ -43,7 +44,7 @@ class TestSimulateChangeTaxonomy:
         mock_cache_with_taxonomy: MagicMock,
     ) -> None:
         """Changing a page should only affect pages sharing its taxonomy terms.
-        
+
         This test would have failed with the buggy implementation that added
         ALL pages from ALL taxonomy terms unconditionally.
         """
@@ -60,7 +61,9 @@ class TestSimulateChangeTaxonomy:
         assert "content/post-a.md" in affected, "Changed file should rebuild"
         assert "content/post-b.md" in affected, "post-b shares 'python' tag"
         assert "content/post-d.md" in affected, "post-d shares 'python' tag"
-        assert "content/post-c.md" not in affected, "post-c has no shared tags with post-a"
+        assert "content/post-c.md" not in affected, (
+            "post-c has no shared tags with post-a"
+        )
 
     def test_changing_rust_page_only_affects_rust_pages(
         self,
@@ -118,7 +121,7 @@ class TestSimulateChangeNonContentFiles:
         mock_cache_with_template_deps: MagicMock,
     ) -> None:
         """Changing a template should NOT trigger taxonomy-based rebuilds.
-        
+
         Only content files should trigger taxonomy-related rebuilds.
         Templates affect pages through direct dependencies.
         """

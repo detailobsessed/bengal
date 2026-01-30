@@ -32,7 +32,7 @@ try:
 
     CACHETOOLS_AVAILABLE = True
 except ImportError:
-    TTLCache = None  # type: ignore[misc, assignment]
+    TTLCache = None
     CACHETOOLS_AVAILABLE = False
 
 from bengal.content.sources.entry import ContentEntry
@@ -45,10 +45,10 @@ logger = get_logger(__name__)
 class NotionSource(ContentSource):
     """
     Content source for Notion databases.
-    
+
     Fetches pages from a Notion database and converts them to markdown.
     Requires a Notion integration token with read access to the database.
-    
+
     Configuration:
         database_id: str - Notion database ID (required)
         token: str - Notion integration token (or NOTION_TOKEN env var)
@@ -56,17 +56,17 @@ class NotionSource(ContentSource):
             Defaults: {"title": "Name", "date": "Date", "tags": "Tags"}
         filter: dict - Notion filter object (optional)
         sorts: list - Notion sorts array (optional)
-    
+
     Performance:
         Pages are processed in parallel with a configurable concurrency limit.
         Block content is cached in-memory with TTL to reduce API calls.
         Results are streamed as they complete (order is non-deterministic).
-    
+
     Setup:
         1. Create a Notion integration at https://www.notion.so/my-integrations
         2. Share your database with the integration
         3. Set NOTION_TOKEN environment variable or pass token in config
-    
+
     Example:
             >>> source = NotionSource("blog", {
             ...     "database_id": "abc123...",
@@ -77,7 +77,7 @@ class NotionSource(ContentSource):
             ...         "author": "Author",
             ...     },
             ... })
-        
+
     """
 
     source_type = "notion"
@@ -180,7 +180,11 @@ class NotionSource(ContentSource):
 
                 async with session.post(url, json=body) as resp:
                     if resp.status == 404:
-                        from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                        from bengal.errors import (
+                            BengalDiscoveryError,
+                            ErrorCode,
+                            record_error,
+                        )
 
                         not_found_error = BengalDiscoveryError(
                             f"Notion database not found: {self.database_id}",
@@ -190,7 +194,11 @@ class NotionSource(ContentSource):
                         record_error(not_found_error)
                         raise not_found_error
                     if resp.status == 401:
-                        from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                        from bengal.errors import (
+                            BengalDiscoveryError,
+                            ErrorCode,
+                            record_error,
+                        )
 
                         auth_error = BengalDiscoveryError(
                             "Invalid Notion token or database not shared with integration",
@@ -200,7 +208,11 @@ class NotionSource(ContentSource):
                         record_error(auth_error)
                         raise auth_error
                     if resp.status == 403:
-                        from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                        from bengal.errors import (
+                            BengalDiscoveryError,
+                            ErrorCode,
+                            record_error,
+                        )
 
                         access_error = BengalDiscoveryError(
                             f"Access denied to Notion database: {self.database_id}",
@@ -239,7 +251,11 @@ class NotionSource(ContentSource):
                     if entry:
                         yield entry
                 except Exception as e:
-                    from bengal.errors import BengalContentError, ErrorCode, record_error
+                    from bengal.errors import (
+                        BengalContentError,
+                        ErrorCode,
+                        record_error,
+                    )
 
                     failed_count += 1
                     process_error = BengalContentError(
@@ -252,7 +268,9 @@ class NotionSource(ContentSource):
                     logger.error(f"Failed to process page: {e}")
 
             if failed_count > 0:
-                logger.warning(f"Failed to process {failed_count}/{len(all_pages)} pages")
+                logger.warning(
+                    f"Failed to process {failed_count}/{len(all_pages)} pages"
+                )
 
     async def fetch_one(self, id: str) -> ContentEntry | None:
         """
@@ -305,7 +323,9 @@ class NotionSource(ContentSource):
         # Parse last edited time
         last_modified = None
         if page.get("last_edited_time"):
-            last_modified = datetime.fromisoformat(page["last_edited_time"].replace("Z", "+00:00"))
+            last_modified = datetime.fromisoformat(
+                page["last_edited_time"].replace("Z", "+00:00")
+            )
 
         return ContentEntry(
             id=page_id,
@@ -461,9 +481,9 @@ class NotionSource(ContentSource):
 
             elif block_type == "image":
                 image_data = block_data
-                url = image_data.get("external", {}).get("url") or image_data.get("file", {}).get(
-                    "url"
-                )
+                url = image_data.get("external", {}).get("url") or image_data.get(
+                    "file", {}
+                ).get("url")
                 caption = self._rich_text_to_md(image_data.get("caption", []))
                 if url:
                     lines.append(f"![{caption}]({url})")
@@ -551,7 +571,9 @@ class NotionSource(ContentSource):
                     frontmatter[fm_key] = date_obj.get("start")
 
             elif prop_type == "multi_select":
-                frontmatter[fm_key] = [opt["name"] for opt in prop.get("multi_select", [])]
+                frontmatter[fm_key] = [
+                    opt["name"] for opt in prop.get("multi_select", [])
+                ]
 
             elif prop_type == "select":
                 select_obj = prop.get("select")
@@ -581,7 +603,9 @@ class NotionSource(ContentSource):
                 files = prop.get("files", [])
                 urls = []
                 for f in files:
-                    url = f.get("external", {}).get("url") or f.get("file", {}).get("url")
+                    url = f.get("external", {}).get("url") or f.get("file", {}).get(
+                        "url"
+                    )
                     if url:
                         urls.append(url)
                 frontmatter[fm_key] = urls

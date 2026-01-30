@@ -83,11 +83,11 @@ parallel = false
 def fresh_logger_state():
     """
     Reset logger state before each test.
-    
+
     With LazyLogger, we can simply call reset_loggers() and all module-level
     logger references will automatically refresh on next access. No need for
     importlib.reload() hacks.
-        
+
     """
     # Clean reset before test
     reset_loggers()
@@ -132,7 +132,9 @@ class TestLoggingIntegration:
         build_start = build_start_events[0]
         assert "force_sequential" in build_start.context
         assert "incremental" in build_start.context
-        assert build_start.context["force_sequential"]  # We passed force_sequential=True
+        assert build_start.context[
+            "force_sequential"
+        ]  # We passed force_sequential=True
         assert not build_start.context["incremental"]
 
         # Verify build_complete has stats
@@ -242,7 +244,9 @@ class TestLoggingIntegration:
         for event in nested_events:
             if event.phase:
                 # Events inside a phase should have depth 1
-                assert event.phase_depth == 1, f"Event {event.message} should have depth 1"
+                assert event.phase_depth == 1, (
+                    f"Event {event.message} should have depth 1"
+                )
 
     def test_logging_with_incremental_build(self, temp_site):
         """Test logging during incremental builds."""
@@ -311,7 +315,9 @@ title: Invalid Page
         # Check if file has content
         content = log_file.read_text()
         if not content.strip():
-            pytest.skip("Log file is empty - logging might be disabled in test environment")
+            pytest.skip(
+                "Log file is empty - logging might be disabled in test environment"
+            )
 
         # Parse each line as JSON
         with open(log_file) as f:
@@ -428,4 +434,6 @@ class TestLoggingPerformance:
 
         # Logging overhead should be minimal (< 20%)
         overhead = (duration2 - duration1) / duration1 if duration1 > 0 else 0
-        assert overhead < 0.5, f"Logging overhead should be < 50%, got {overhead * 100:.1f}%"
+        assert overhead < 0.5, (
+            f"Logging overhead should be < 50%, got {overhead * 100:.1f}%"
+        )

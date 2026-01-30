@@ -92,19 +92,21 @@ def generate_random_title() -> str:
         "Discovery",
         "Insight",
     ]
-    return f"{random.choice(adjectives)} {random.choice(nouns)} {random.randint(1, 10000)}"
+    return (
+        f"{random.choice(adjectives)} {random.choice(nouns)} {random.randint(1, 10000)}"
+    )
 
 
 def create_minimal_site(num_files: int) -> Path:
     """
     Create a minimal test site matching CSS-Tricks methodology.
-    
+
     Args:
         num_files: Number of markdown files to generate
-    
+
     Returns:
         Path to temporary site directory
-        
+
     """
     temp_dir = Path(tempfile.mkdtemp())
 
@@ -161,14 +163,14 @@ generate_rss = false
 def benchmark_build(num_files: int, runs: int = 3) -> dict:
     """
     Benchmark Bengal build time for a given number of files.
-    
+
     Args:
         num_files: Number of files to build
         runs: Number of runs to average
-    
+
     Returns:
         Dictionary with timing information
-        
+
     """
     print(f"\n{'=' * 60}")
     print(f"Benchmarking {num_files:,} files")
@@ -201,7 +203,9 @@ def benchmark_build(num_files: int, runs: int = 3) -> dict:
             else:
                 parallel = site.config.get("build", {}).get("parallel", True)
             site.build(
-                BuildOptions(force_sequential=not parallel, incremental=False, verbose=False)
+                BuildOptions(
+                    force_sequential=not parallel, incremental=False, verbose=False
+                )
             )
 
             elapsed = time.time() - start
@@ -243,7 +247,9 @@ def run_ssg_comparison_benchmark():
     print("BENGAL SSG - CSS-TRICKS COMPARISON BENCHMARK")
     print("=" * 80)
     print()
-    print("Methodology: https://css-tricks.com/comparing-static-site-generator-build-times/")
+    print(
+        "Methodology: https://css-tricks.com/comparing-static-site-generator-build-times/"
+    )
     print()
     print("Test Configuration:")
     print("  - Minimal markdown (title + 3 paragraphs)")
@@ -272,7 +278,9 @@ def run_ssg_comparison_benchmark():
     print("BENCHMARK SUMMARY")
     print("=" * 80)
     print()
-    print(f"{'Files':<10} {'Avg Time':<12} {'Min Time':<12} {'Max Time':<12} {'Pages/sec':<12}")
+    print(
+        f"{'Files':<10} {'Avg Time':<12} {'Min Time':<12} {'Max Time':<12} {'Pages/sec':<12}"
+    )
     print("-" * 80)
 
     for r in results:
@@ -330,7 +338,9 @@ def run_ssg_comparison_benchmark():
             print("Scaling Analysis (1 file → 1,024 files):")
             print(f"  Time increased: {growth_factor:.1f}x")
             print(f"  Linear scaling: {theoretical_linear}x")
-            print(f"  Efficiency:     {(theoretical_linear / growth_factor * 100):.1f}% ")
+            print(
+                f"  Efficiency:     {(theoretical_linear / growth_factor * 100):.1f}% "
+            )
 
             if growth_factor < theoretical_linear * 1.1:
                 print("  ✅ EXCELLENT: Near-linear scaling!")
@@ -345,12 +355,16 @@ def run_ssg_comparison_benchmark():
     for r in results:
         if r["files"] <= 100:
             if r["avg"] < 1.0:
-                print(f"  ✅ {r['files']:,} files: {r['avg']:.3f}s - Excellent for small sites")
+                print(
+                    f"  ✅ {r['files']:,} files: {r['avg']:.3f}s - Excellent for small sites"
+                )
         elif r["files"] <= 1000:
             if r["avg"] < 5.0:
                 print(f"  ✅ {r['files']:,} files: {r['avg']:.3f}s - Great for blogs")
         elif r["files"] <= 5000 and r["avg"] < 30.0:
-            print(f"  ✅ {r['files']:,} files: {r['avg']:.3f}s - Viable for large sites")
+            print(
+                f"  ✅ {r['files']:,} files: {r['avg']:.3f}s - Viable for large sites"
+            )
 
     print()
     print("=" * 80)

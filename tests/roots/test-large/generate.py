@@ -16,8 +16,6 @@ Or from the test suite:
     generate_large_site(target_dir)
 """
 
-from __future__ import annotations
-
 import random
 from pathlib import Path
 
@@ -161,11 +159,11 @@ This section contains generated pages for performance testing.
 def generate_large_site(target_dir: Path, pages_per_section: int = 20) -> None:
     """
     Generate a large test site with 100+ pages.
-    
+
     Args:
         target_dir: Directory to generate content in (should be test-large root)
         pages_per_section: Number of pages per section (default: 20 = 100 total)
-        
+
     """
     content_dir = target_dir / "content"
     content_dir.mkdir(parents=True, exist_ok=True)

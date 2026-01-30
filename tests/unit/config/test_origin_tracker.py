@@ -33,7 +33,8 @@ class TestConfigWithOrigin:
 
         # Second merge: environment override
         tracker.merge(
-            {"site": {"baseurl": "https://prod.example.com"}}, "environments/production.yaml"
+            {"site": {"baseurl": "https://prod.example.com"}},
+            "environments/production.yaml",
         )
 
         assert tracker.config["site"]["title"] == "Default Title"
@@ -60,7 +61,9 @@ class TestConfigWithOrigin:
         tracker = ConfigWithOrigin()
 
         # Base config
-        tracker.merge({"theme": {"name": "default", "appearance": "light"}}, "_default/theme.yaml")
+        tracker.merge(
+            {"theme": {"name": "default", "appearance": "light"}}, "_default/theme.yaml"
+        )
 
         # Override some nested keys
         tracker.merge({"theme": {"appearance": "dark"}}, "profiles/dev.yaml")
@@ -96,7 +99,9 @@ class TestConfigWithOrigin:
         tracker = ConfigWithOrigin()
 
         tracker.merge({"site": {"title": "Test"}}, "_default/site.yaml")
-        tracker.merge({"site": {"baseurl": "https://example.com"}}, "environments/production.yaml")
+        tracker.merge(
+            {"site": {"baseurl": "https://example.com"}}, "environments/production.yaml"
+        )
 
         output = tracker.show_with_origin()
 

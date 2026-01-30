@@ -12,8 +12,6 @@ Run with:
 Note: These tests are marked @pytest.mark.slow and should be run in nightly CI.
 """
 
-from __future__ import annotations
-
 import time
 import tracemalloc
 from pathlib import Path
@@ -120,7 +118,9 @@ def test_10k_site_discovery_performance(tmp_path: Path) -> None:
     print(f"   Rate: {actual_count / duration:.0f} pages/sec")
 
     # Assertions
-    assert actual_count == expected_count, f"Expected {expected_count} pages, found {actual_count}"
+    assert actual_count == expected_count, (
+        f"Expected {expected_count} pages, found {actual_count}"
+    )
 
     # Performance gate: <30s
     assert duration < 30.0, f"Discovery took {duration:.2f}s, expected <30s"
@@ -197,7 +197,9 @@ def test_1k_site_discovery_performance(tmp_path: Path) -> None:
     print(f"   Rate: {actual_count / duration:.0f} pages/sec")
 
     # Assertions
-    assert actual_count == expected_count, f"Expected {expected_count} pages, found {actual_count}"
+    assert actual_count == expected_count, (
+        f"Expected {expected_count} pages, found {actual_count}"
+    )
 
     # Performance gate: <5s
     assert duration < 5.0, f"Discovery took {duration:.2f}s, expected <5s"
@@ -223,7 +225,9 @@ def test_discovery_scaling(tmp_path: Path) -> None:
         sections = max(1, size // 100)
         pages_per_section = size // sections
 
-        generate_large_site(site_dir, sections=sections, pages_per_section=pages_per_section)
+        generate_large_site(
+            site_dir, sections=sections, pages_per_section=pages_per_section
+        )
         create_site_config(site_dir)
 
         site = Site.from_config(site_dir)

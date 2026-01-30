@@ -57,9 +57,9 @@ if TYPE_CHECKING:
 class BuildSnapshot:
     """
     Snapshot of a build state for comparison.
-    
+
     Captures key metrics and file lists from a build for delta analysis.
-    
+
     Attributes:
         timestamp: When the build occurred
         build_time_ms: Total build time
@@ -70,7 +70,7 @@ class BuildSnapshot:
         phase_times: Timing by phase (discovery, rendering, etc.)
         config_hash: Hash of configuration at build time
         metadata: Additional build metadata
-        
+
     """
 
     timestamp: datetime
@@ -127,7 +127,9 @@ class BuildSnapshot:
         """
         # Extract content pages from cache
         pages = {
-            path for path in cache.file_fingerprints if path.endswith((".md", ".markdown", ".rst"))
+            path
+            for path in cache.file_fingerprints
+            if path.endswith((".md", ".markdown", ".rst"))
         }
 
         # Parse last build timestamp
@@ -194,10 +196,10 @@ class BuildSnapshot:
 class BuildDelta:
     """
     Difference between two builds.
-    
+
     Captures what changed between builds including added/removed pages,
     timing changes, and configuration differences.
-    
+
     Attributes:
         before: The earlier build snapshot
         after: The later build snapshot
@@ -207,7 +209,7 @@ class BuildDelta:
         time_change_pct: Percentage change in build time
         phase_changes: Changes in phase timings
         config_changed: Whether configuration hash changed
-        
+
     """
 
     before: BuildSnapshot
@@ -277,7 +279,11 @@ class BuildDelta:
         Returns:
             True if changes are significant enough to report.
         """
-        return self.page_change_count > 0 or abs(self.time_change_pct) > 10 or self.config_changed
+        return (
+            self.page_change_count > 0
+            or abs(self.time_change_pct) > 10
+            or self.config_changed
+        )
 
     def format_summary(self) -> str:
         """
@@ -331,14 +337,12 @@ class BuildDelta:
             lines.append("📄 Page Changes:")
             if self.added_pages:
                 lines.append(f"   Added:   +{len(self.added_pages)}")
-                for page in list(self.added_pages)[:5]:
-                    lines.append(f"      • {page}")
+                lines.extend(f"      • {page}" for page in list(self.added_pages)[:5])
                 if len(self.added_pages) > 5:
                     lines.append(f"      ... and {len(self.added_pages) - 5} more")
             if self.removed_pages:
                 lines.append(f"   Removed: -{len(self.removed_pages)}")
-                for page in list(self.removed_pages)[:5]:
-                    lines.append(f"      • {page}")
+                lines.extend(f"      • {page}" for page in list(self.removed_pages)[:5])
                 if len(self.removed_pages) > 5:
                     lines.append(f"      ... and {len(self.removed_pages) - 5} more")
             lines.append("")
@@ -351,11 +355,15 @@ class BuildDelta:
             )
 
             if self.phase_changes:
-                for phase, change in sorted(self.phase_changes.items(), key=lambda x: -abs(x[1])):
+                for phase, change in sorted(
+                    self.phase_changes.items(), key=lambda x: -abs(x[1])
+                ):
                     if abs(change) > 10:  # Only show meaningful changes
                         before_time = self.before.phase_times.get(phase, 0)
                         pct = (change / before_time * 100) if before_time > 0 else 0
-                        lines.append(f"   {phase.title()}: {self._format_time_change(change, pct)}")
+                        lines.append(
+                            f"   {phase.title()}: {self._format_time_change(change, pct)}"
+                        )
             lines.append("")
 
         # Config changes
@@ -390,23 +398,23 @@ class BuildDelta:
 class BuildHistory:
     """
     Tracks build history for trend analysis.
-    
+
     Stores snapshots of builds over time to enable trend analysis,
     baseline comparisons, and performance regression detection.
     History is persisted to disk and automatically pruned to
     max_snapshots.
-    
+
     Attributes:
         storage_path: Path to JSON file storing history.
         max_snapshots: Maximum number of snapshots to retain.
         snapshots: List of BuildSnapshot in chronological order.
-    
+
     Example:
             >>> history = BuildHistory(max_snapshots=100)
             >>> history.add(current_snapshot)
             >>> trend = history.compute_trend()
             >>> print(f"Avg build time: {trend['avg_build_time_ms']:.0f}ms")
-        
+
     """
 
     def __init__(self, storage_path: Path | None = None, max_snapshots: int = 50):
@@ -429,7 +437,9 @@ class BuildHistory:
         if self.storage_path.exists():
             try:
                 data = json.loads(self.storage_path.read_text())
-                self.snapshots = [BuildSnapshot.from_dict(s) for s in data.get("snapshots", [])]
+                self.snapshots = [
+                    BuildSnapshot.from_dict(s) for s in data.get("snapshots", [])
+                ]
             except (json.JSONDecodeError, KeyError):
                 self.snapshots = []
 
@@ -510,20 +520,20 @@ class BuildHistory:
 class BuildDeltaAnalyzer(DebugTool):
     """
     Debug tool for comparing builds and explaining changes.
-    
+
     Helps understand what changed between builds, why build times
     changed, and track build evolution over time.
-    
+
     Creation:
         Direct instantiation or via DebugRegistry:
             analyzer = BuildDeltaAnalyzer(site=site, cache=cache)
-    
+
     Example:
             >>> analyzer = BuildDeltaAnalyzer(cache=cache)
             >>> # Compare current build to previous
             >>> delta = analyzer.compare_to_previous()
             >>> print(delta.format_detailed())
-        
+
     """
 
     name = "delta"
@@ -649,7 +659,9 @@ class BuildDeltaAnalyzer(DebugTool):
 
         return report
 
-    def compare_snapshots(self, before: BuildSnapshot, after: BuildSnapshot) -> BuildDelta:
+    def compare_snapshots(
+        self, before: BuildSnapshot, after: BuildSnapshot
+    ) -> BuildDelta:
         """
         Compare two specific snapshots.
 
@@ -734,12 +746,17 @@ class BuildDeltaAnalyzer(DebugTool):
         recommendations: list[str] = []
 
         for finding in report.findings:
-            if finding.category == "performance" and finding.severity == Severity.WARNING:
+            if (
+                finding.category == "performance"
+                and finding.severity == Severity.WARNING
+            ):
                 recommendations.append("Investigate build performance regression")
                 break
 
         if report.statistics.get("pages_removed", 0) > 10:
-            recommendations.append("Review removed content to ensure it was intentional")
+            recommendations.append(
+                "Review removed content to ensure it was intentional"
+            )
 
         trend_builds = report.statistics.get("trend_builds", 0)
         if trend_builds < 5:

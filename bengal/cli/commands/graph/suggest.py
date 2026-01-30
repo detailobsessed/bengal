@@ -13,7 +13,11 @@ from bengal.cli.helpers import (
     handle_cli_errors,
     load_site_from_cli,
 )
-from bengal.utils.observability.logger import LogLevel, close_all_loggers, configure_logging
+from bengal.utils.observability.logger import (
+    LogLevel,
+    close_all_loggers,
+    configure_logging,
+)
 
 
 @click.command(cls=BengalCommand)
@@ -30,10 +34,18 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
 )
 @handle_cli_errors(show_art=False)
 @click.option(
-    "--top-n", "-n", default=50, type=int, help="Number of suggestions to show (default: 50)"
+    "--top-n",
+    "-n",
+    default=50,
+    type=int,
+    help="Number of suggestions to show (default: 50)",
 )
 @click.option(
-    "--min-score", "-s", default=0.3, type=float, help="Minimum score threshold (default: 0.3)"
+    "--min-score",
+    "-s",
+    default=0.3,
+    type=float,
+    help="Minimum score threshold (default: 0.3)",
 )
 @click.option(
     "--format",
@@ -43,38 +55,42 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
     help="Output format (default: table)",
 )
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
-def suggest(top_n: int, min_score: float, format: str, config: str, source: str) -> None:
+def suggest(
+    top_n: int, min_score: float, format: str, config: str, source: str
+) -> None:
     """
     Generate smart link suggestions to improve internal linking.
-    
+
     Analyzes your content to recommend links based on:
     - Topic similarity (shared tags/categories)
     - Page importance (PageRank scores)
     - Navigation value (bridge pages)
     - Link gaps (underlinked content)
-    
+
     Use link suggestions to:
     - Improve internal linking structure
     - Boost SEO through better connectivity
     - Increase content discoverability
     - Fill navigation gaps
-    
+
     Examples:
         # Show top 50 link suggestions
         bengal suggest
-    
+
         # Show only high-confidence suggestions
         bengal suggest --min-score 0.5
-    
+
         # Export as JSON
         bengal suggest --format json > suggestions.json
-    
+
         # Generate markdown checklist
         bengal suggest --format markdown > TODO.md
-        
+
     """
     from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
@@ -82,7 +98,9 @@ def suggest(top_n: int, min_score: float, format: str, config: str, source: str)
     configure_logging(level=LogLevel.WARNING)
 
     # Load site using helper
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     try:
         cli.info("🔍 Discovering site content...")
@@ -92,7 +110,7 @@ def suggest(top_n: int, min_score: float, format: str, config: str, source: str)
         content_orch.discover()
 
         cli.header(f"Building knowledge graph from {len(site.pages)} pages...")
-        graph_obj = KnowledgeGraph(site)
+        graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
         graph_obj.build()
 
         cli.info("💡 Generating link suggestions...")
@@ -107,8 +125,14 @@ def suggest(top_n: int, min_score: float, format: str, config: str, source: str)
                 "min_score": min_score,
                 "suggestions": [
                     {
-                        "source": {"title": s.source.title, "path": str(s.source.source_path)},
-                        "target": {"title": s.target.title, "path": str(s.target.source_path)},
+                        "source": {
+                            "title": s.source.title,
+                            "path": str(s.source.source_path),
+                        },
+                        "target": {
+                            "title": s.target.title,
+                            "path": str(s.target.source_path),
+                        },
                         "score": s.score,
                         "reasons": s.reasons,
                     }
@@ -125,7 +149,9 @@ def suggest(top_n: int, min_score: float, format: str, config: str, source: str)
             cli.info(f"## Top {len(top_suggestions)} Suggestions\n")
 
             for i, suggestion in enumerate(top_suggestions, 1):
-                cli.info(f"### {i}. {suggestion.source.title} → {suggestion.target.title}")
+                cli.info(
+                    f"### {i}. {suggestion.source.title} → {suggestion.target.title}"
+                )
                 cli.info(f"**Score:** {suggestion.score:.3f}\n")
                 cli.info("**Reasons:**")
                 for reason in suggestion.reasons:

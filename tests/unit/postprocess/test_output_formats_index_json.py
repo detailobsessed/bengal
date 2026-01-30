@@ -289,7 +289,9 @@ class TestSiteIndexJsonGeneration:
         output_dir = tmp_path / "public"
         output_dir.mkdir()
 
-        mock_site = self._create_mock_site(tmp_path, output_dir, baseurl="https://example.com")
+        mock_site = self._create_mock_site(
+            tmp_path, output_dir, baseurl="https://example.com"
+        )
         page = self._create_mock_page(
             title="Test Page",
             url="/test/",
@@ -362,15 +364,19 @@ class TestSiteIndexJsonGeneration:
 
     # Helper methods
 
-    def _create_mock_site(self, site_dir: Path, output_dir: Path, baseurl: str = "") -> Mock:
+    def _create_mock_site(
+        self, site_dir: Path, output_dir: Path, baseurl: str = ""
+    ) -> Mock:
         """Create a mock Site instance."""
         from datetime import datetime
-        
+
         site = Mock()
         site.site_dir = site_dir
         site.output_dir = output_dir
         site.dev_mode = False  # Ensure build_time is included in index.json
-        site.versioning_enabled = False  # Prevent Mock auto-creation (bool(Mock) is True)
+        site.versioning_enabled = (
+            False  # Prevent Mock auto-creation (bool(Mock) is True)
+        )
         # Set a real datetime for build_time (required for JSON serialization)
         site.build_time = datetime(2024, 1, 1, 12, 0, 0)
         site.config = {
@@ -512,7 +518,9 @@ class TestSiteIndexJsonGeneration:
         assert by_version["v2"][0].version == "v2"
         assert by_version[None][0].version is None
 
-    def test_index_generator_generates_per_version_indexes_when_versioning_enabled(self, tmp_path):
+    def test_index_generator_generates_per_version_indexes_when_versioning_enabled(
+        self, tmp_path
+    ):
         """Test that generate() returns list of paths when versioning is enabled."""
         from bengal.core.version import Version, VersionConfig
         from bengal.postprocess.output_formats.index_generator import SiteIndexGenerator
@@ -564,9 +572,9 @@ class TestSiteIndexJsonGeneration:
 
         # Check that indexes exist
         index_paths = [Path(p) for p in result]
-        assert any(p.name == "index.json" and p.parent == output_dir for p in index_paths), (
-            "Latest version index should be at root"
-        )
-        assert any(p.name == "index.json" and "docs/v1" in str(p) for p in index_paths), (
-            "v1 index should be in docs/v1/"
-        )
+        assert any(
+            p.name == "index.json" and p.parent == output_dir for p in index_paths
+        ), "Latest version index should be at root"
+        assert any(
+            p.name == "index.json" and "docs/v1" in str(p) for p in index_paths
+        ), "v1 index should be in docs/v1/"

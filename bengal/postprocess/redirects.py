@@ -66,24 +66,24 @@ logger = get_logger(__name__)
 class RedirectGenerator:
     """
     Generates redirect HTML pages for page aliases.
-    
+
     For each page with aliases defined in frontmatter, creates lightweight
     HTML files at the alias paths that redirect to the canonical URL.
     Includes proper SEO signals (canonical link, noindex, meta refresh).
-    
+
     Creation:
         Direct instantiation: RedirectGenerator(site)
             - Created by PostprocessOrchestrator for redirect generation
             - Requires Site instance with rendered pages
-    
+
     Attributes:
         site: Site instance with pages containing aliases
         logger: Logger instance for redirect generation events
-    
+
     Relationships:
         - Used by: PostprocessOrchestrator for redirect generation
         - Uses: Site for page access, URLRegistry for conflict detection
-    
+
     Features:
         - HTML meta refresh with 0-second delay (immediate redirect)
         - Canonical link tag pointing to target URL
@@ -92,12 +92,12 @@ class RedirectGenerator:
         - Conflict detection when multiple pages claim same alias
         - URL registry integration (priority 5 = lowest, never shadows content)
         - Optional _redirects file for Netlify/Vercel server-side redirects
-    
+
     Example:
             >>> generator = RedirectGenerator(site)
             >>> count = generator.generate()
             >>> print(f"Generated {count} redirect pages")
-        
+
     """
 
     def __init__(self, site: SiteLike) -> None:
@@ -124,7 +124,9 @@ class RedirectGenerator:
         conflicts = 0
 
         # Collect all aliases to detect conflicts
-        alias_map: dict[str, list[tuple[str, str]]] = {}  # alias -> [(page_url, page_title), ...]
+        alias_map: dict[
+            str, list[tuple[str, str]]
+        ] = {}  # alias -> [(page_url, page_title), ...]
 
         for page in self.site.pages:
             aliases = getattr(page, "aliases", None) or []
@@ -132,7 +134,9 @@ class RedirectGenerator:
                 continue
 
             # Ensure page_url is always a string (never None)
-            page_url: str = getattr(page, "href", None) or getattr(page, "permalink", None) or "/"
+            page_url: str = (
+                getattr(page, "href", None) or getattr(page, "permalink", None) or "/"
+            )
             page_title: str = str(getattr(page, "title", None) or "Untitled")
 
             for alias in aliases:
@@ -195,9 +199,10 @@ class RedirectGenerator:
 
         # Claim URL in registry before writing (claim-before-write pattern)
         # Priority 5 = redirects (lowest, should never shadow actual content)
-        if hasattr(self.site, "url_registry") and self.site.url_registry:
+        url_registry = getattr(self.site, "url_registry", None)
+        if url_registry is not None:
             try:
-                self.site.url_registry.claim_output_path(
+                url_registry.claim_output_path(
                     output_path=output_path,
                     site=self.site,
                     owner="redirect",
@@ -277,7 +282,9 @@ class RedirectGenerator:
 </body>
 </html>'''
 
-    def _generate_redirects_file(self, alias_map: dict[str, list[tuple[str, str]]]) -> None:
+    def _generate_redirects_file(
+        self, alias_map: dict[str, list[tuple[str, str]]]
+    ) -> None:
         """
         Generate _redirects file for Netlify/Vercel.
 

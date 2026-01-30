@@ -30,12 +30,12 @@ logger = get_logger(__name__)
 class RESTSource(ContentSource):
     """
     Content source for REST APIs.
-    
+
     Fetches content from any REST API that returns JSON. Supports:
     - Custom headers (with environment variable expansion)
     - Configurable field mappings for content and frontmatter
     - Pagination (link header or cursor-based)
-    
+
     Configuration:
         url: str - API endpoint URL (required)
         headers: dict - Request headers (optional, supports ${ENV_VAR})
@@ -46,7 +46,7 @@ class RESTSource(ContentSource):
         pagination: dict - Pagination config (optional)
             strategy: str - "link_header" or "cursor"
             cursor_field: str - Field containing next cursor
-    
+
     Example:
             >>> source = RESTSource("blog", {
             ...     "url": "https://api.example.com/posts",
@@ -58,7 +58,7 @@ class RESTSource(ContentSource):
             ...         "tags": "categories",
             ...     },
             ... })
-        
+
     """
 
     source_type = "rest"
@@ -108,7 +108,11 @@ class RESTSource(ContentSource):
             while url:
                 async with session.get(url) as resp:
                     if resp.status == 404:
-                        from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                        from bengal.errors import (
+                            BengalDiscoveryError,
+                            ErrorCode,
+                            record_error,
+                        )
 
                         error = BengalDiscoveryError(
                             f"REST API endpoint not found: {url}",
@@ -118,7 +122,11 @@ class RESTSource(ContentSource):
                         record_error(error)
                         raise error
                     if resp.status == 401:
-                        from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                        from bengal.errors import (
+                            BengalDiscoveryError,
+                            ErrorCode,
+                            record_error,
+                        )
 
                         error = BengalDiscoveryError(
                             f"Authentication failed for REST API: {url}",
@@ -128,7 +136,11 @@ class RESTSource(ContentSource):
                         record_error(error)
                         raise error
                     if resp.status == 403:
-                        from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                        from bengal.errors import (
+                            BengalDiscoveryError,
+                            ErrorCode,
+                            record_error,
+                        )
 
                         error = BengalDiscoveryError(
                             f"Access denied to REST API: {url}",

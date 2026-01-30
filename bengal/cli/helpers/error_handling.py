@@ -42,19 +42,19 @@ def handle_cli_errors(
 ) -> Callable[[F], F]:
     """
     Decorator for unified CLI error handling.
-    
+
     Args:
         show_art: Whether to show ASCII art in error messages
         preserve_chain: Whether to preserve exception chain (raise ... from e)
         show_traceback: Whether to show traceback (None = auto-detect from config)
-    
+
     Example:
         @click.command()
         @handle_cli_errors()
         def my_command():
             # ... command logic ...
             pass
-        
+
     """
 
     def decorator(func: F) -> F:
@@ -90,10 +90,14 @@ def handle_cli_errors(
                                 renderer.display_exception(e)
                     elif show_traceback:
                         with contextlib.suppress(Exception):
-                            TracebackConfig.from_environment().get_renderer().display_exception(e)
+                            TracebackConfig.from_environment().get_renderer().display_exception(
+                                e
+                            )
                 else:
                     # Try to beautify common exceptions
-                    from bengal.cli.helpers.error_display import beautify_common_exception
+                    from bengal.cli.helpers.error_display import (
+                        beautify_common_exception,
+                    )
 
                     beautified = beautify_common_exception(e)
                     if beautified:
@@ -106,7 +110,9 @@ def handle_cli_errors(
                         if suggestion:
                             cli.console.print()
                             if cli.use_rich:
-                                cli.console.print(f"  [bold cyan]Tip:[/bold cyan] {suggestion}")
+                                cli.console.print(
+                                    f"  [bold cyan]Tip:[/bold cyan] {suggestion}"
+                                )
                             else:
                                 cli.console.print(f"  Tip: {suggestion}")
                         cli.console.print()
@@ -125,7 +131,9 @@ def handle_cli_errors(
                                 renderer.display_exception(e)
                     elif show_traceback:
                         with contextlib.suppress(Exception):
-                            TracebackConfig.from_environment().get_renderer().display_exception(e)
+                            TracebackConfig.from_environment().get_renderer().display_exception(
+                                e
+                            )
 
                 if preserve_chain:
                     raise click.Abort() from e
@@ -145,17 +153,17 @@ def cli_error_context(
 ) -> Generator[None]:
     """
     Context manager for error handling within command functions.
-    
+
     Args:
         operation: Description of the operation being performed
         show_art: Whether to show ASCII art in error messages
         show_traceback: Whether to show traceback (None = auto-detect)
-    
+
     Example:
         def my_command():
             with cli_error_context("loading site"):
                 site = Site.from_config(...)
-        
+
     """
     try:
         yield
@@ -184,7 +192,9 @@ def cli_error_context(
                         renderer.display_exception(e)
             elif show_traceback:
                 with contextlib.suppress(Exception):
-                    TracebackConfig.from_environment().get_renderer().display_exception(e)
+                    TracebackConfig.from_environment().get_renderer().display_exception(
+                        e
+                    )
         else:
             # Try to beautify common exceptions
             from bengal.cli.helpers.error_display import beautify_common_exception
@@ -217,6 +227,8 @@ def cli_error_context(
                         renderer.display_exception(e)
             elif show_traceback:
                 with contextlib.suppress(Exception):
-                    TracebackConfig.from_environment().get_renderer().display_exception(e)
+                    TracebackConfig.from_environment().get_renderer().display_exception(
+                        e
+                    )
 
         raise click.Abort() from e

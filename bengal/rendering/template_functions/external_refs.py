@@ -39,7 +39,7 @@ See: plan/rfc-external-references.md
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from kida import Markup
 
@@ -53,22 +53,25 @@ logger = get_logger(__name__)
 
 
 def register(
-    env: TemplateEnvironment, site: SiteLike, resolver: ExternalRefResolver | None = None
+    env: TemplateEnvironment,
+    site: SiteLike,
+    resolver: ExternalRefResolver | None = None,
 ) -> None:
     """
     Register external reference template functions.
-    
+
     Args:
         env: Kida template environment
         site: Site instance
         resolver: Optional pre-created resolver (creates one if not provided)
-        
+
     """
     # Create resolver if not provided
     if resolver is None:
         from bengal.rendering.external_refs import ExternalRefResolver
 
-        resolver = ExternalRefResolver(site.config)
+        config_dict = cast(dict[str, Any], dict(site.config))
+        resolver = ExternalRefResolver(config_dict)
 
     def ext(project: str, target: str, text: str | None = None) -> Markup:
         """

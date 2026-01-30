@@ -95,7 +95,7 @@ class TestIncrementalOrchestrator:
         mock_cache = Mock()
         mock_load.return_value = mock_cache
 
-        cache, tracker = orchestrator.initialize(enabled=True)
+        cache, _tracker = orchestrator.initialize(enabled=True)
 
         # Should load existing cache from .bengal/cache.json
         mock_load.assert_called_once_with(mock_site.paths.build_cache)
@@ -184,8 +184,12 @@ class TestIncrementalOrchestrator:
 
         nav_meta = extract_nav_metadata(metadata)
         cache.parsed_content[str(nav_path)] = {
-            "metadata_hash": hash_str(json.dumps(metadata, sort_keys=True, default=str)),
-            "nav_metadata_hash": hash_str(json.dumps(nav_meta, sort_keys=True, default=str)),
+            "metadata_hash": hash_str(
+                json.dumps(metadata, sort_keys=True, default=str)
+            ),
+            "nav_metadata_hash": hash_str(
+                json.dumps(nav_meta, sort_keys=True, default=str)
+            ),
         }
         # nav_path IS changed (from file watcher), but nav metadata hash matches
         # so section rebuild should be skipped
@@ -356,7 +360,9 @@ class TestIncrementalOrchestrator:
             orchestrator._cache_manager, "_get_theme_templates_dir", return_value=None
         ):
             # Test
-            pages_to_build, assets_to_process, change_summary = orchestrator.find_work_early()
+            pages_to_build, assets_to_process, change_summary = (
+                orchestrator.find_work_early()
+            )
 
         # Should return empty lists
         assert len(pages_to_build) == 0
@@ -382,8 +388,8 @@ class TestIncrementalOrchestrator:
             orchestrator._cache_manager, "_get_theme_templates_dir", return_value=None
         ):
             # Test
-            pages_to_build, assets_to_process, change_summary = orchestrator.find_work_early(
-                verbose=True
+            pages_to_build, _assets_to_process, change_summary = (
+                orchestrator.find_work_early(verbose=True)
             )
 
         # Should find page1.md
@@ -430,8 +436,8 @@ class TestIncrementalOrchestrator:
             orchestrator._cache_manager, "_get_theme_templates_dir", return_value=None
         ):
             # Test
-            pages_to_build, assets_to_process, change_summary = orchestrator.find_work_early(
-                verbose=True
+            _pages_to_build, assets_to_process, change_summary = (
+                orchestrator.find_work_early(verbose=True)
             )
 
         # Should find style.css
@@ -461,14 +467,18 @@ class TestIncrementalOrchestrator:
             return str(path).endswith("page.html")
 
         orchestrator.cache.is_changed.side_effect = is_changed
-        orchestrator.cache.get_affected_pages.return_value = [str(mock_site.pages[0].source_path)]
+        orchestrator.cache.get_affected_pages.return_value = [
+            str(mock_site.pages[0].source_path)
+        ]
 
         with patch.object(
             orchestrator._cache_manager,
             "_get_theme_templates_dir",
             return_value=Path("/fake/theme/templates"),
         ):
-            pages_to_build, _, change_summary = orchestrator.find_work_early(verbose=True)
+            pages_to_build, _, change_summary = orchestrator.find_work_early(
+                verbose=True
+            )
 
         # Should rebuild page1.md due to template change
         assert len(pages_to_build) == 1
@@ -478,7 +488,9 @@ class TestIncrementalOrchestrator:
 class TestPhaseOrderingOptimization:
     """Test suite for phase ordering optimization."""
 
-    def test_find_work_early_returns_pages_without_generated(self, orchestrator, mock_site):
+    def test_find_work_early_returns_pages_without_generated(
+        self, orchestrator, mock_site
+    ):
         """Test that find_work_early returns only real pages, not generated ones."""
         # Setup
         orchestrator.cache = Mock()
@@ -516,7 +528,7 @@ class TestPhaseOrderingOptimization:
             orchestrator._cache_manager, "_get_theme_templates_dir", return_value=None
         ):
             # Test
-            pages_to_build, _, _ = orchestrator.find_work_early()
+            _pages_to_build, _, _ = orchestrator.find_work_early()
 
         # Should track taxonomy for the changed page
         orchestrator.tracker.track_taxonomy.assert_called_once()
@@ -527,7 +539,9 @@ class TestPhaseOrderingOptimization:
 class TestCascadeDependencyTracking:
     """Test suite for cascade dependency tracking in incremental builds."""
 
-    def test_cascade_change_marks_descendants_for_rebuild(self, orchestrator, mock_site):
+    def test_cascade_change_marks_descendants_for_rebuild(
+        self, orchestrator, mock_site
+    ):
         """When section _index.md with cascade changes, mark all descendants."""
         # Setup - Create a section with an index page that has cascade
         from bengal.core.section import Section
@@ -538,7 +552,10 @@ class TestCascadeDependencyTracking:
         index_page = Page(
             source_path=Path("/fake/site/content/docs/_index.md"),
             _raw_content="Section index",
-            metadata={"title": "Docs", "cascade": {"type": "doc", "layout": "doc-page"}},
+            metadata={
+                "title": "Docs",
+                "cascade": {"type": "doc", "layout": "doc-page"},
+            },
         )
         section.index_page = index_page
         section.pages.append(index_page)
@@ -578,7 +595,9 @@ class TestCascadeDependencyTracking:
             orchestrator._cache_manager, "_get_theme_templates_dir", return_value=None
         ):
             # Test
-            pages_to_build, _, change_summary = orchestrator.find_work_early(verbose=True)
+            pages_to_build, _, change_summary = orchestrator.find_work_early(
+                verbose=True
+            )
 
         # Should rebuild all 3 pages: _index.md + 2 children
         assert len(pages_to_build) == 3
@@ -605,7 +624,9 @@ class TestCascadeDependencyTracking:
         parent_section.pages.append(parent_index)
 
         # Create child section with cascade
-        child_section = Section(name="advanced", path=Path("/fake/site/content/docs/advanced"))
+        child_section = Section(
+            name="advanced", path=Path("/fake/site/content/docs/advanced")
+        )
         child_section.parent = parent_section
         child_index = Page(
             source_path=Path("/fake/site/content/docs/advanced/_index.md"),
@@ -758,7 +779,9 @@ class TestCascadeDependencyTracking:
             orchestrator._cache_manager, "_get_theme_templates_dir", return_value=None
         ):
             # Test
-            pages_to_build, _, change_summary = orchestrator.find_work_early(verbose=True)
+            pages_to_build, _, change_summary = orchestrator.find_work_early(
+                verbose=True
+            )
 
         # Should only rebuild _index.md, not the child (no cascade)
         assert len(pages_to_build) == 1
@@ -767,7 +790,8 @@ class TestCascadeDependencyTracking:
 
         # Should NOT have cascade change info
         assert (
-            "Cascade changes" not in change_summary or len(change_summary["Cascade changes"]) == 0
+            "Cascade changes" not in change_summary
+            or len(change_summary["Cascade changes"]) == 0
         )
 
 

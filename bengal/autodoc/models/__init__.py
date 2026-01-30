@@ -18,8 +18,6 @@ Architecture:
 
 """
 
-from __future__ import annotations
-
 from bengal.autodoc.models.cli import (
     CLICommandMetadata,
     CLIGroupMetadata,
@@ -60,9 +58,19 @@ type DocMetadata = (
 )
 
 __all__ = [
-    # Common
-    "QualifiedName",
-    "SourceLocation",
+    # CLI
+    "CLICommandMetadata",
+    "CLIGroupMetadata",
+    "CLIOptionMetadata",
+    # Union
+    "DocMetadata",
+    # OpenAPI
+    "OpenAPIEndpointMetadata",
+    "OpenAPIOverviewMetadata",
+    "OpenAPIParameterMetadata",
+    "OpenAPIRequestBodyMetadata",
+    "OpenAPIResponseMetadata",
+    "OpenAPISchemaMetadata",
     # Python
     "ParameterInfo",
     "ParsedDocstring",
@@ -71,17 +79,7 @@ __all__ = [
     "PythonClassMetadata",
     "PythonFunctionMetadata",
     "PythonModuleMetadata",
-    # CLI
-    "CLICommandMetadata",
-    "CLIGroupMetadata",
-    "CLIOptionMetadata",
-    # OpenAPI
-    "OpenAPIEndpointMetadata",
-    "OpenAPIOverviewMetadata",
-    "OpenAPIParameterMetadata",
-    "OpenAPIRequestBodyMetadata",
-    "OpenAPIResponseMetadata",
-    "OpenAPISchemaMetadata",
-    # Union
-    "DocMetadata",
+    # Common
+    "QualifiedName",
+    "SourceLocation",
 ]

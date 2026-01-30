@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from re import Match
-from typing import Any
+from typing import Any, ClassVar
 
 from mistune.directives import DirectivePlugin
 
@@ -23,12 +23,12 @@ logger = get_logger(__name__)
 class ListTableDirective(DirectivePlugin):
     """
     List table directive using MyST syntax.
-    
+
     Syntax:
         :::{list-table}
         :header-rows: 1
         :widths: 20 30 50
-    
+
         * - Header 1
           - Header 2
           - Header 3
@@ -39,16 +39,16 @@ class ListTableDirective(DirectivePlugin):
           - Row 2, Col 2
           - Row 2, Col 3
         :::
-    
+
     Supports:
     - :header-rows: number - Number of header rows (default: 0)
     - :widths: space-separated percentages - Column widths
     - :class: CSS class for the table
-        
+
     """
 
     # Directive names this class registers (for health check introspection)
-    DIRECTIVE_NAMES = ["list-table"]
+    DIRECTIVE_NAMES: ClassVar[list[str]] = ["list-table"]
 
     def parse(self, block: Any, m: Match[str], state: Any) -> dict[str, Any]:
         """
@@ -192,15 +192,15 @@ class ListTableDirective(DirectivePlugin):
 def render_list_table(renderer: Any, text: str, **attrs: Any) -> str:
     """
     Render list table to HTML.
-    
+
     Args:
         renderer: Mistune renderer
         text: Rendered children content (unused for list tables)
         **attrs: Table attributes from directive
-    
+
     Returns:
         HTML string for list table
-        
+
     """
     import html as html_lib
 
@@ -244,15 +244,16 @@ def render_list_table(renderer: Any, text: str, **attrs: Any) -> str:
 
     # Start table
     table_class = (
-        f'class="bengal-list-table {css_class}"' if css_class else 'class="bengal-list-table"'
+        f'class="bengal-list-table {css_class}"'
+        if css_class
+        else 'class="bengal-list-table"'
     )
     html_parts.append(f"<table {table_class}>")
 
     # Add colgroup if widths specified
     if widths:
         html_parts.append("  <colgroup>")
-        for width in widths:
-            html_parts.append(f'    <col style="width: {width}%;">')
+        html_parts.extend(f'    <col style="width: {width}%;">' for width in widths)
         html_parts.append("  </colgroup>")
 
     # Render header rows
@@ -288,7 +289,9 @@ def render_list_table(renderer: Any, text: str, **attrs: Any) -> str:
                 cell_html = render_cell(cell)
                 if header_labels and col_idx < len(header_labels):
                     data_label = html_lib.escape(header_labels[col_idx], quote=True)
-                    html_parts.append(f'      <td data-label="{data_label}">{cell_html}</td>')
+                    html_parts.append(
+                        f'      <td data-label="{data_label}">{cell_html}</td>'
+                    )
                 else:
                     html_parts.append(f"      <td>{cell_html}</td>")
             html_parts.append("    </tr>")

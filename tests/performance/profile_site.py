@@ -85,7 +85,9 @@ def profile_build(site_path, parallel=True, max_workers=None):
 
     # Save full profile for detailed analysis using organized directory structure
     site_path_obj = Path(site_path).resolve()
-    profile_file = BengalPaths.get_profile_path(site_path_obj, filename="build_profile.stats")
+    profile_file = BengalPaths.get_profile_path(
+        site_path_obj, filename="build_profile.stats"
+    )
     profiler.dump_stats(profile_file)
     print(f"\n✓ Full profile saved to: {profile_file}")
     print(f"  Analyze with: python -m pstats {profile_file}")
@@ -102,7 +104,7 @@ def compare_parallel_vs_sequential(site_path):
 
     # Sequential build
     print("Running SEQUENTIAL build...")
-    seq_time, pages = profile_build(site_path, parallel=False)
+    seq_time, _pages = profile_build(site_path, parallel=False)
 
     # Parallel build with different worker counts
     for workers in [2, 4, 8]:

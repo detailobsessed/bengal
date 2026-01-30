@@ -13,7 +13,11 @@ from bengal.cli.helpers import (
     handle_cli_errors,
     load_site_from_cli,
 )
-from bengal.utils.observability.logger import LogLevel, close_all_loggers, configure_logging
+from bengal.utils.observability.logger import (
+    LogLevel,
+    close_all_loggers,
+    configure_logging,
+)
 
 
 @click.command(cls=BengalCommand)
@@ -30,10 +34,18 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
 )
 @handle_cli_errors(show_art=False)
 @click.option(
-    "--top-n", "-n", default=20, type=int, help="Number of top pages to show (default: 20)"
+    "--top-n",
+    "-n",
+    default=20,
+    type=int,
+    help="Number of top pages to show (default: 20)",
 )
 @click.option(
-    "--damping", "-d", default=0.85, type=float, help="PageRank damping factor (default: 0.85)"
+    "--damping",
+    "-d",
+    default=0.85,
+    type=float,
+    help="PageRank damping factor (default: 0.85)",
 )
 @click.option(
     "--format",
@@ -43,32 +55,34 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
     help="Output format (default: table)",
 )
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
 def pagerank(top_n: int, damping: float, format: str, config: str, source: str) -> None:
     """
     🏆 Analyze page importance using PageRank algorithm.
-    
+
     Computes PageRank scores for all pages based on their link structure.
     Pages that are linked to by many important pages receive high scores.
-    
+
     Use PageRank to:
     - Identify your most important content
     - Prioritize content updates
     - Guide navigation and sitemap design
     - Find underlinked valuable content
-    
+
     Examples:
         # Show top 20 most important pages
         bengal pagerank
-    
+
         # Show top 50 pages
         bengal pagerank --top-n 50
-    
+
         # Export scores as JSON
         bengal pagerank --format json > pagerank.json
-        
+
     """
     from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
@@ -81,18 +95,24 @@ def pagerank(top_n: int, damping: float, format: str, config: str, source: str) 
         raise click.Abort()
 
     # Load site using helper
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     # Discover content and compute PageRank with status indicator
     if cli.use_rich:
-        with cli.console.status("[info]Discovering site content...", spinner="dots") as status:
+        with cli.console.status(
+            "[info]Discovering site content...", spinner="dots"
+        ) as status:
             from bengal.orchestration.content import ContentOrchestrator
 
             content_orch = ContentOrchestrator(site)
             content_orch.discover()
 
-            status.update(f"[info]Building knowledge graph from {len(site.pages)} pages...")
-            graph_obj = KnowledgeGraph(site)
+            status.update(
+                f"[info]Building knowledge graph from {len(site.pages)} pages..."
+            )
+            graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
             graph_obj.build()
 
             status.update(f"[info]Computing PageRank (damping={damping})...")
@@ -105,7 +125,7 @@ def pagerank(top_n: int, damping: float, format: str, config: str, source: str) 
         content_orch.discover()
 
         cli.info(f"📊 Building knowledge graph from {len(site.pages)} pages...")
-        graph_obj = KnowledgeGraph(site)
+        graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
         graph_obj.build()
 
         cli.info(f"🏆 Computing PageRank (damping={damping})...")
@@ -122,7 +142,14 @@ def pagerank(top_n: int, damping: float, format: str, config: str, source: str) 
 
         writer = csv.writer(sys.stdout)
         writer.writerow(
-            ["Rank", "Title", "URL", "PageRank Score", "Incoming Links", "Outgoing Links"]
+            [
+                "Rank",
+                "Title",
+                "URL",
+                "PageRank Score",
+                "Incoming Links",
+                "Outgoing Links",
+            ]
         )
 
         for i, (page, score) in enumerate(top_pages, 1):
@@ -160,7 +187,9 @@ def pagerank(top_n: int, damping: float, format: str, config: str, source: str) 
         cli.info("=" * 60)
         cli.info(f"Total pages analyzed:    {len(results.scores)}")
         cli.info(f"Iterations to converge:  {results.iterations}")
-        cli.info(f"Converged:               {'✅ Yes' if results.converged else '⚠️  No'}")
+        cli.info(
+            f"Converged:               {'✅ Yes' if results.converged else '⚠️  No'}"
+        )
         cli.info(f"Damping factor:          {results.damping_factor}")
         cli.blank()
         cli.info(f"Top {min(top_n, len(top_pages))} pages by importance:")

@@ -35,15 +35,14 @@ from bengal.output import CLIOutput
 def config_cli() -> None:
     """
     Configuration management and introspection.
-    
+
     Commands:
         show     Display merged configuration
         doctor   Validate and lint configuration
         diff     Compare configurations
         init     Initialize config structure
-        
+
     """
-    pass
 
 
 @config_cli.command()
@@ -98,23 +97,23 @@ def show(
 ) -> None:
     """
     📋 Display merged configuration.
-    
+
     Shows the effective configuration after merging defaults, environment,
     and profile settings.
-    
+
     Use --origin to see which file contributed each config key, useful
     for debugging configuration issues.
-    
+
     Examples:
         bengal config show
         bengal config show --environment production
         bengal config show --profile dev --origin
         bengal config show --section site
-    
+
     See also:
         bengal config doctor - Validate configuration
         bengal config diff - Compare configurations
-        
+
     """
     cli = get_cli_output()
 
@@ -202,7 +201,7 @@ def doctor(
 ) -> None:
     """
     Validate and lint configuration.
-    
+
     Checks for:
     - Valid YAML syntax
     - Type errors (bool, int, str)
@@ -210,18 +209,18 @@ def doctor(
     - Required fields
     - Value ranges
     - Deprecated keys
-    
+
     Run this before deploying to catch configuration errors early.
     Exits with non-zero code if errors are found (useful for CI/CD).
-    
+
     Examples:
         bengal config doctor
         bengal config doctor --environment production
-    
+
     See also:
         bengal config show - View merged configuration
         bengal config diff - Compare configurations
-        
+
     """
     cli = get_cli_output()
 
@@ -246,7 +245,9 @@ def doctor(
     # Load and validate config
     environments = [environment] if environment else ["local", "production"]
 
-    with cli_progress("Checking environments...", total=len(environments), cli=cli) as update:
+    with cli_progress(
+        "Checking environments...", total=len(environments), cli=cli
+    ) as update:
         for env in environments:
             try:
                 loader = UnifiedConfigLoader()
@@ -311,18 +312,18 @@ def diff(
 ) -> None:
     """
     Compare configurations.
-    
+
     Shows differences between two configurations (environments, profiles, or files).
     Useful for verifying that production settings differ correctly from local/preview.
-    
+
     Examples:
         bengal config diff --against production
         bengal config diff --environment local --against production
-    
+
     See also:
         bengal config show - View merged configuration
         bengal config doctor - Validate configuration
-        
+
     """
     cli = get_cli_output()
 
@@ -379,7 +380,7 @@ def _compute_diff(
     all_keys = set(config1.keys()) | set(config2.keys())
 
     for key in sorted(all_keys):
-        key_path = ".".join(path + [key])
+        key_path = ".".join([*path, key])
 
         if key not in config1:
             # Added in config2
@@ -391,7 +392,7 @@ def _compute_diff(
             # Changed
             if isinstance(config1[key], dict) and isinstance(config2[key], dict):
                 # Recurse into nested dicts
-                diffs.extend(_compute_diff(config1[key], config2[key], path + [key]))
+                diffs.extend(_compute_diff(config1[key], config2[key], [*path, key]))
             else:
                 diffs.append(
                     {
@@ -445,19 +446,19 @@ def init(
 ) -> None:
     """
     Initialize configuration structure.
-    
+
     Creates config directory with examples, or a single config file.
     Use --template to choose a preset (docs, blog, minimal).
-    
+
     Examples:
         bengal config init
         bengal config init --type file
         bengal config init --template blog
-    
+
     See also:
         bengal config show - View configuration
         bengal config doctor - Validate configuration
-        
+
     """
     cli = get_cli_output()
 
@@ -484,7 +485,9 @@ def init(
     cli.info("  3. Build: bengal build")
 
 
-def _create_directory_structure(config_dir: Path, template: str, cli: CLIOutput) -> None:
+def _create_directory_structure(
+    config_dir: Path, template: str, cli: CLIOutput
+) -> None:
     """Create config directory structure."""
     import yaml
 
@@ -516,7 +519,13 @@ def _create_directory_structure(config_dir: Path, template: str, cli: CLIOutput)
     }
 
     features_config = {
-        "features": {"rss": True, "sitemap": True, "search": True, "json": True, "llm_txt": True}
+        "features": {
+            "rss": True,
+            "sitemap": True,
+            "search": True,
+            "json": True,
+            "llm_txt": True,
+        }
     }
 
     # Write default configs
@@ -532,11 +541,16 @@ def _create_directory_structure(config_dir: Path, template: str, cli: CLIOutput)
 
     # Create environment configs
     (envs / "local.yaml").write_text(
-        yaml.dump({"build": {"debug": True, "strict_mode": False}}, default_flow_style=False)
+        yaml.dump(
+            {"build": {"debug": True, "strict_mode": False}}, default_flow_style=False
+        )
     )
     (envs / "production.yaml").write_text(
         yaml.dump(
-            {"site": {"baseurl": "https://example.com"}, "build": {"strict_mode": True}},
+            {
+                "site": {"baseurl": "https://example.com"},
+                "build": {"strict_mode": True},
+            },
             default_flow_style=False,
         )
     )

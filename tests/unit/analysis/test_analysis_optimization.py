@@ -408,10 +408,14 @@ class TestKnowledgeGraphIncomingEdges:
 
         # Create pages with related posts (simulates links)
         page_a = Page(
-            source_path=tmp_path / "a.md", _raw_content="# A", metadata={"title": "Page A"}
+            source_path=tmp_path / "a.md",
+            _raw_content="# A",
+            metadata={"title": "Page A"},
         )
         page_b = Page(
-            source_path=tmp_path / "b.md", _raw_content="# B", metadata={"title": "Page B"}
+            source_path=tmp_path / "b.md",
+            _raw_content="# B",
+            metadata={"title": "Page B"},
         )
 
         # A has B as related post (simulates A -> B link)

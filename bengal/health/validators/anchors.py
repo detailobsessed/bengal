@@ -38,23 +38,23 @@ if TYPE_CHECKING:
 class AnchorValidator(BaseValidator):
     """
     Validates explicit anchors and [[#anchor]] cross-references.
-    
+
     Performs two main validations:
     1. Duplicate anchors: Scans rendered HTML for duplicate id="..." attributes
     2. Broken references: Validates [[#anchor]] syntax against known anchors
-    
+
     Creation:
         health_check.register(AnchorValidator())
-    
+
     Configuration:
         In bengal.yaml:
         health_check:
           validators:
             anchors: true  # Enable/disable anchor validation
-    
+
     Attributes:
         strict: If True, treat warnings as errors (for CI builds)
-        
+
     """
 
     name = "anchors"
@@ -77,7 +77,9 @@ class AnchorValidator(BaseValidator):
         super().__init__()
         self.strict = strict
 
-    def validate(self, site: SiteLike, build_context: Any | None = None) -> list[CheckResult]:
+    def validate(
+        self, site: SiteLike, build_context: Any | None = None
+    ) -> list[CheckResult]:
         """
         Validate anchors across all site pages.
 
@@ -186,7 +188,9 @@ class AnchorValidator(BaseValidator):
 
         return results
 
-    def _validate_anchor_references(self, page: Any, valid_anchors: set[str]) -> list[CheckResult]:
+    def _validate_anchor_references(
+        self, page: Any, valid_anchors: set[str]
+    ) -> list[CheckResult]:
         """
         Check that all [[#anchor]] references resolve to existing anchors.
 
@@ -271,12 +275,12 @@ class AnchorValidator(BaseValidator):
 def create_anchor_validator(strict: bool = False) -> AnchorValidator:
     """
     Factory function to create an AnchorValidator.
-    
+
     Args:
         strict: If True, report duplicate anchors as errors
-    
+
     Returns:
         Configured AnchorValidator
-        
+
     """
     return AnchorValidator(strict=strict)

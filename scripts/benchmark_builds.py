@@ -78,7 +78,9 @@ def run_build(site_dir: Path, name: str, *args: str) -> BuildResult:
     pages_rendered = None
     output_lines = result.stdout.splitlines()
     for line in output_lines:
-        if "pages" in line.lower() and ("rendered" in line.lower() or "built" in line.lower()):
+        if "pages" in line.lower() and (
+            "rendered" in line.lower() or "built" in line.lower()
+        ):
             import re
 
             match = re.search(r"(\d+)\s*pages", line, re.IGNORECASE)
@@ -201,7 +203,9 @@ def print_summary(results: list[BuildResult]) -> None:
                     f"  {s['mode']:<28} {s['avg']:>8.2f}s {s['min']:>8.2f}s {s['max']:>8.2f}s {speedup_str:>10}"
                 )
             else:
-                print(f"  {s['mode']:<28} {s['avg']:>8.2f}s {'—':>10} {'—':>10} {speedup_str:>10}")
+                print(
+                    f"  {s['mode']:<28} {s['avg']:>8.2f}s {'—':>10} {'—':>10} {speedup_str:>10}"
+                )
         else:
             print(f"❌ {s['mode']:<28} {'FAILED':>10}")
 
@@ -210,7 +214,9 @@ def print_summary(results: list[BuildResult]) -> None:
     # Winner announcement
     winner = stats[0]
     if winner["success"]:
-        print(f"\n🏆 FASTEST: {winner['mode']} at {winner['avg']:.2f}s ({winner['pages']} pages)")
+        print(
+            f"\n🏆 FASTEST: {winner['mode']} at {winner['avg']:.2f}s ({winner['pages']} pages)"
+        )
 
     print("\n")
     print("📋 Build Mode Descriptions:")

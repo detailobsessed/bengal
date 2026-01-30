@@ -7,8 +7,6 @@ handles them gracefully.
 See: plan/rfc-patitas-commonmark-compliance.md (Phase 4: Fuzz Testing)
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.parsing.backends.patitas import parse

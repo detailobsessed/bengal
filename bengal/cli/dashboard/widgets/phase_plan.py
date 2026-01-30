@@ -19,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 from textual.app import ComposeResult
 from textual.containers import Grid
@@ -30,12 +31,12 @@ from textual.widgets import Static
 class BuildPhase:
     """
     Represents a build phase with status.
-    
+
     Attributes:
         name: Phase name (e.g., "Discovery", "Rendering")
         status: Phase status (pending, running, complete, error)
         duration_ms: Duration in milliseconds (None if not complete)
-        
+
     """
 
     name: str
@@ -46,16 +47,16 @@ class BuildPhase:
 class BuildPhasePlan(Grid):
     """
     Visual build phase tracker.
-    
+
     Displays build phases in a grid with status icons, names, and durations.
     Automatically recomposes when phases are updated.
-    
+
     Status icons:
         ○ pending (gray)
         ● running (orange, animated)
         ✓ complete (green)
         ✗ error (red)
-    
+
     Example:
         plan = BuildPhasePlan(id="build-phases")
         plan.phases = [
@@ -63,7 +64,7 @@ class BuildPhasePlan(Grid):
             BuildPhase("Taxonomies", "running"),
             BuildPhase("Rendering", "pending"),
         ]
-        
+
     """
 
     DEFAULT_CSS = """
@@ -98,14 +99,14 @@ class BuildPhasePlan(Grid):
     }
     """
 
-    STATUS_ICONS: dict[str, str] = {
+    STATUS_ICONS: ClassVar[dict[str, str]] = {
         "pending": "○",
         "running": "●",
         "complete": "✓",
         "error": "✗",
     }
 
-    phases: reactive[list[BuildPhase]] = reactive(list, recompose=True)
+    phases: reactive[list[BuildPhase]] = reactive(list, recompose=True)  # type: ignore[assignment]
 
     def compose(self) -> ComposeResult:
         """Compose the phase grid."""
@@ -126,7 +127,9 @@ class BuildPhasePlan(Grid):
                 classes=f"phase-time {status_class}",
             )
 
-    def update_phase(self, name: str, status: str, duration_ms: int | None = None) -> None:
+    def update_phase(
+        self, name: str, status: str, duration_ms: int | None = None
+    ) -> None:
         """
         Update a specific phase's status.
 

@@ -11,8 +11,6 @@ Tests:
 
 """
 
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 
@@ -252,7 +250,9 @@ class TestHookEdgeCases:
         """Test that stderr output is captured (for logging)."""
         # This hook writes to stderr but exits 0
         result = run_hooks(
-            [f"{sys.executable} -c \"import sys; sys.stderr.write('warning'); exit(0)\""],
+            [
+                f"{sys.executable} -c \"import sys; sys.stderr.write('warning'); exit(0)\""
+            ],
             "pre_build",
             tmp_path,
         )
@@ -264,7 +264,9 @@ class TestHookEdgeCases:
         "hook_type",
         ["pre_build", "post_build", "custom_type"],
     )
-    def test_hook_type_is_used_for_logging(self, tmp_path: Path, hook_type: str) -> None:
+    def test_hook_type_is_used_for_logging(
+        self, tmp_path: Path, hook_type: str
+    ) -> None:
         """Test that different hook types work correctly."""
         result = run_hooks(
             ["echo test"],

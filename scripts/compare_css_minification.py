@@ -28,13 +28,17 @@ def find_breaking_patterns(original: str, minified: str) -> list[str]:
         # Check if it became .a.b (no space) in minified
         no_space_version = desc.replace(" ", "")
         if no_space_version in minified and desc not in minified:
-            issues.append(f"Descendant selector lost space: {desc} → {no_space_version}")
+            issues.append(
+                f"Descendant selector lost space: {desc} → {no_space_version}"
+            )
 
     # Pattern 2: Check calc() functions - spaces around operators might be required
     original_calcs = re.findall(r"calc\s*\([^)]+\)", original)
     minified_calcs = re.findall(r"calc\s*\([^)]+\)", minified)
 
-    for orig_calc, min_calc in zip(original_calcs[:20], minified_calcs[:20], strict=True):
+    for orig_calc, min_calc in zip(
+        original_calcs[:20], minified_calcs[:20], strict=True
+    ):
         # Check if spaces around operators were removed incorrectly
         # calc(100% - 20px) needs spaces, calc(100%-20px) might work but calc(100% -20px) might not
         if (
@@ -42,23 +46,31 @@ def find_breaking_patterns(original: str, minified: str) -> list[str]:
             and not re.search(r"\d+\s+-\s+\d+", min_calc)
             and re.search(r"\d+-\d+", min_calc)  # No space at all
         ):
-            issues.append(f"calc() lost spaces around operator: {orig_calc[:60]} → {min_calc[:60]}")
+            issues.append(
+                f"calc() lost spaces around operator: {orig_calc[:60]} → {min_calc[:60]}"
+            )
 
     # Pattern 3: Check color-mix() - spaces before % are critical
     original_colormix = re.findall(r"color-mix\s*\([^)]+\)", original)
     minified_colormix = re.findall(r"color-mix\s*\([^)]+\)", minified)
 
-    for orig_cm, min_cm in zip(original_colormix[:20], minified_colormix[:20], strict=True):
+    for orig_cm, min_cm in zip(
+        original_colormix[:20], minified_colormix[:20], strict=True
+    ):
         # Check if space before % was removed
         if re.search(r"\w+\s+\d+%", orig_cm) and not re.search(r"\w+\s+\d+%", min_cm):
-            issues.append(f"color-mix() lost space before %: {orig_cm[:80]} → {min_cm[:80]}")
+            issues.append(
+                f"color-mix() lost space before %: {orig_cm[:80]} → {min_cm[:80]}"
+            )
 
     # Pattern 4: Check @layer syntax
     original_layers = re.findall(r"@layer\s+[^{;]+", original)
     minified_layers = re.findall(r"@layer\s+[^{;]+", minified)
 
     # @layer tokens { should stay @layer tokens {, not @layer tokens{
-    for orig_layer, min_layer in zip(original_layers[:10], minified_layers[:10], strict=True):
+    for orig_layer, min_layer in zip(
+        original_layers[:10], minified_layers[:10], strict=True
+    ):
         if "{" in orig_layer and "{" in min_layer:
             orig_before_brace = orig_layer.split("{")[0]
             min_before_brace = min_layer.split("{")[0]

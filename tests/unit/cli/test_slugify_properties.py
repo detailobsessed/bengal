@@ -19,10 +19,10 @@ from bengal.cli.commands.new import slugify
 class TestSlugifyProperties:
     """
     Property-based tests for slugify function.
-    
+
     Each test runs 100+ times with randomly generated inputs
     to discover edge cases automatically.
-        
+
     """
 
     @pytest.mark.hypothesis
@@ -35,7 +35,9 @@ class TestSlugifyProperties:
         and always use lowercase for predictability.
         """
         result = slugify(text)
-        assert result == result.lower(), f"Slug '{result}' contains uppercase characters"
+        assert result == result.lower(), (
+            f"Slug '{result}' contains uppercase characters"
+        )
 
     @pytest.mark.hypothesis
     @given(text=st.text())
@@ -129,7 +131,9 @@ class TestSlugifyProperties:
 
         if not has_valid_chars:
             # No valid characters → empty slug
-            assert result == "", f"Input '{repr(text)}' has no valid chars but produced '{result}'"
+            assert result == "", (
+                f"Input '{text!r}' has no valid chars but produced '{result}'"
+            )
 
     @pytest.mark.hypothesis
     @given(text=st.text())
@@ -175,7 +179,9 @@ class TestSlugifyProperties:
     @pytest.mark.hypothesis
     @given(
         words=st.lists(
-            st.text(alphabet=string.ascii_letters, min_size=1, max_size=10), min_size=1, max_size=5
+            st.text(alphabet=string.ascii_letters, min_size=1, max_size=10),
+            min_size=1,
+            max_size=5,
         )
     )
     def testslugify_word_lists(self, words):
@@ -224,7 +230,9 @@ class TestSlugifyProperties:
         valid_slug = f"{prefix}-{suffix}"
         result = slugify(valid_slug)
 
-        assert result == valid_slug, f"Valid slug '{valid_slug}' was changed to '{result}'"
+        assert result == valid_slug, (
+            f"Valid slug '{valid_slug}' was changed to '{result}'"
+        )
 
     @pytest.mark.hypothesis
     @given(text=st.text())
@@ -240,7 +248,7 @@ class TestSlugifyProperties:
         result3 = slugify(text)
 
         assert result1 == result2 == result3, (
-            f"Non-deterministic: {repr(text)} produced {repr(result1)}, {repr(result2)}, {repr(result3)}"
+            f"Non-deterministic: {text!r} produced {result1!r}, {result2!r}, {result3!r}"
         )
 
     @pytest.mark.hypothesis
@@ -253,7 +261,7 @@ class TestSlugifyProperties:
         """
         result = slugify(text)
         assert result == "", (
-            f"Whitespace-only input {repr(text)} produced non-empty slug '{result}'"
+            f"Whitespace-only input {text!r} produced non-empty slug '{result}'"
         )
 
     @pytest.mark.hypothesis
@@ -267,7 +275,9 @@ class TestSlugifyProperties:
         result = slugify(char)
 
         # Result should be either empty or a single valid char
-        assert len(result) <= 1, f"Single char '{char}' produced multi-char slug '{result}'"
+        assert len(result) <= 1, (
+            f"Single char '{char}' produced multi-char slug '{result}'"
+        )
 
         if result:
             # Current implementation uses \w which matches unicode word characters
@@ -279,7 +289,9 @@ class TestSlugifyProperties:
             # - Unicode letter/digit that passed through \w
 
             # At minimum, check it's not whitespace or common punctuation
-            is_valid = not result.isspace() and result not in "!@#$%^&*()+=[]{}|;:,.<>?/~`\"' "
+            is_valid = (
+                not result.isspace() and result not in "!@#$%^&*()+=[]{}|;:,.<>?/~`\"' "
+            )
             assert is_valid, (
                 f"Single char '{char}' (ord={ord(char)}) produced invalid slug '{result}' (ord={ord(result)})"
             )
@@ -288,7 +300,7 @@ class TestSlugifyProperties:
 class TestSlugifyEdgeCases:
     """
     Targeted property tests for specific edge cases.
-        
+
     """
 
     @pytest.mark.hypothesis
@@ -303,7 +315,9 @@ class TestSlugifyEdgeCases:
         result = slugify(text)
 
         # Should collapse to "a-b"
-        assert result == "a-b", f"{n} hyphens between a and b should collapse to 1: got '{result}'"
+        assert result == "a-b", (
+            f"{n} hyphens between a and b should collapse to 1: got '{result}'"
+        )
 
     @pytest.mark.hypothesis
     @given(n=st.integers(min_value=1, max_value=100))
@@ -322,7 +336,9 @@ class TestSlugifyEdgeCases:
         )
 
     @pytest.mark.hypothesis
-    @given(text=st.text(alphabet="!@#$%^&*()+=[]{}|;:,.<>?/~`", min_size=1, max_size=50))
+    @given(
+        text=st.text(alphabet="!@#$%^&*()+=[]{}|;:,.<>?/~`", min_size=1, max_size=50)
+    )
     def testslugify_special_chars_only_empty(self, text):
         """
         Property: Input with only special characters produces empty slug.
@@ -331,13 +347,15 @@ class TestSlugifyEdgeCases:
         """
         result = slugify(text)
         assert result == "", (
-            f"Special chars only {repr(text)} should produce empty slug, got '{result}'"
+            f"Special chars only {text!r} should produce empty slug, got '{result}'"
         )
 
     @pytest.mark.hypothesis
     @given(
         text=st.text(
-            alphabet=string.ascii_uppercase + string.ascii_lowercase, min_size=1, max_size=20
+            alphabet=string.ascii_uppercase + string.ascii_lowercase,
+            min_size=1,
+            max_size=20,
         )
     )
     def testslugify_mixed_case_lowercase(self, text):
@@ -351,7 +369,9 @@ class TestSlugifyEdgeCases:
 
         result = slugify(text)
 
-        assert result.islower(), f"Mixed case '{text}' should be all lowercase, got '{result}'"
+        assert result.islower(), (
+            f"Mixed case '{text}' should be all lowercase, got '{result}'"
+        )
 
         # Should equal lowercase version
         assert result == text.lower(), (

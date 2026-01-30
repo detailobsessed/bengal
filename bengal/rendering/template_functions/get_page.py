@@ -36,10 +36,10 @@ _render_cache = threading.local()
 def _get_render_cache() -> dict[str, Page | None]:
     """
     Get per-render cache for get_page() results (thread-safe).
-    
+
     Returns:
         Thread-local dict mapping normalized paths to Page objects (or None for misses).
-        
+
     """
     if not hasattr(_render_cache, "pages"):
         _render_cache.pages = {}
@@ -49,13 +49,13 @@ def _get_render_cache() -> dict[str, Page | None]:
 def clear_get_page_cache() -> None:
     """
     Clear per-render cache for get_page() results.
-    
+
     Called at the start of each page render by RenderingPipeline.process_page().
     Thread-safe: only clears the cache for the current thread.
-    
+
     See Also:
         bengal/rendering/pipeline/core.py: RenderingPipeline.process_page()
-        
+
     """
     if hasattr(_render_cache, "pages"):
         _render_cache.pages.clear()
@@ -64,19 +64,19 @@ def clear_get_page_cache() -> None:
 def _normalize_cache_key(path: str) -> str:
     """
     Normalize path to canonical form for cache key.
-    
+
     Ensures all path variants resolve to the same cache entry:
     - "./foo.md" -> "foo.md"
     - "content/foo.md" -> "foo.md"
     - "foo\bar.md" -> "foo/bar.md" (Windows paths)
     - "foo.md" -> "foo.md"
-    
+
     Args:
         path: Raw path from template
-    
+
     Returns:
         Normalized path suitable for cache key
-        
+
     """
     # Normalize path separators (Windows -> Unix)
     normalized = path.replace("\\", "/")
@@ -95,14 +95,14 @@ def _normalize_cache_key(path: str) -> str:
 def _ensure_page_parsed(page: Page, site: SiteLike) -> None:
     """
     Ensure a page is parsed if it hasn't been parsed yet.
-    
+
     This is used when pages are accessed via get_page() from templates
     (e.g., track item pages) and need to be parsed on-demand.
-    
+
     Args:
         page: Page to parse if needed
         site: Site instance for parser access
-        
+
     """
     # Skip if already parsed
     if hasattr(page, "parsed_ast") and page.parsed_ast is not None:
@@ -141,7 +141,11 @@ def _ensure_page_parsed(page: Page, site: SiteLike) -> None:
             # See: plan/rfc-external-references.md
             external_ref_resolver = None
             external_refs_config = site.config.get("external_refs", {})
-            if external_refs_config and isinstance(external_refs_config, dict) and external_refs_config.get("enabled", True):
+            if (
+                external_refs_config
+                and isinstance(external_refs_config, dict)
+                and external_refs_config.get("enabled", True)
+            ):
                 from bengal.rendering.external_refs import ExternalRefResolver
 
                 # Cast SiteConfig to dict[str, Any] for compatibility
@@ -151,7 +155,9 @@ def _ensure_page_parsed(page: Page, site: SiteLike) -> None:
             # Type narrowing: check if method is callable
             enable_method = getattr(template_parser, "enable_cross_references", None)
             if callable(enable_method):
-                enable_method(site.xref_index, version_config, None, external_ref_resolver)
+                enable_method(
+                    site.xref_index, version_config, None, external_ref_resolver
+                )
 
     parser = template_parser
 
@@ -162,7 +168,9 @@ def _ensure_page_parsed(page: Page, site: SiteLike) -> None:
     else:
         # Quick heuristic: only generate TOC if markdown likely contains headings
         content_text = page._source or ""
-        likely_has_atx = re.search(r"^(?:\s{0,3})(?:##|###|####)\s+.+", content_text, re.MULTILINE)
+        likely_has_atx = re.search(
+            r"^(?:\s{0,3})(?:##|###|####)\s+.+", content_text, re.MULTILINE
+        )
         if not likely_has_atx:
             likely_has_setext = re.search(
                 r"^.+\n\s{0,3}(?:===+|---+)\s*$", content_text, re.MULTILINE
@@ -180,7 +188,9 @@ def _ensure_page_parsed(page: Page, site: SiteLike) -> None:
             if page.metadata.get("preprocess") is False:
                 # Parse without variable substitution
                 if need_toc:
-                    parsed_content, toc = parser.parse_with_toc(page._source, page.metadata)
+                    parsed_content, toc = parser.parse_with_toc(
+                        page._source, page.metadata
+                    )
                 else:
                     parsed_content = parser.parse(page._source, page.metadata)
                     toc = ""
@@ -193,14 +203,18 @@ def _ensure_page_parsed(page: Page, site: SiteLike) -> None:
                 if need_toc:
                     parse_method = getattr(parser, "parse_with_toc_and_context", None)
                     if callable(parse_method):
-                        parsed_content, toc = parse_method(page._source, page.metadata, context)
+                        parsed_content, toc = parse_method(
+                            page._source, page.metadata, context
+                        )
                     else:
                         parsed_content = page._source
                         toc = ""
                 else:
                     parse_method = getattr(parser, "parse_with_context", None)
                     if callable(parse_method):
-                        parsed_content = parse_method(page._source, page.metadata, context)
+                        parsed_content = parse_method(
+                            page._source, page.metadata, context
+                        )
                     else:
                         parsed_content = page._source
                     toc = ""
@@ -237,12 +251,14 @@ def _ensure_page_parsed(page: Page, site: SiteLike) -> None:
         except Exception as e:
             logger.debug(
                 "page_enhancement_failed",
-                page_path=str(page.source_path) if hasattr(page, "source_path") else None,
+                page_path=str(page.source_path)
+                if hasattr(page, "source_path")
+                else None,
                 error=str(e),
                 error_type=type(e).__name__,
                 action="skipping_enhancement",
             )
-            pass  # Enhancement is optional, don't fail if it errors
+            # Enhancement is optional, don't fail if it errors
 
     except Exception as e:
         logger.warning(
@@ -258,14 +274,14 @@ def _ensure_page_parsed(page: Page, site: SiteLike) -> None:
 def _build_lookup_maps(site: SiteLike) -> None:
     """
     Build page lookup maps on the site object if not already built.
-    
+
     Creates two maps for O(1) page lookups:
     - 'full': Full source path (str) -> Page
     - 'relative': Content-relative path (str) -> Page
-    
+
     Args:
         site: Site instance to build maps on
-        
+
     """
     # Type narrowing: _page_lookup_maps may not be on SiteLike protocol
     page_lookup_maps = getattr(site, "_page_lookup_maps", None)
@@ -274,6 +290,7 @@ def _build_lookup_maps(site: SiteLike) -> None:
 
     # Use PageLike since site.pages returns PageLike
     from bengal.protocols import PageLike
+
     by_full_path: dict[str, PageLike] = {}
     by_content_relative: dict[str, PageLike] = {}
 
@@ -301,22 +318,22 @@ def _build_lookup_maps(site: SiteLike) -> None:
 def page_exists(path: str, site: SiteLike) -> bool:
     """
     Check if a page exists without loading it.
-    
+
     Uses cached lookup maps for O(1) existence check.
     More efficient than get_page() when you only need existence.
-    
+
     Args:
         path: Page path (e.g., 'guides/setup.md' or 'guides/setup')
         site: Site instance
-    
+
     Returns:
         True if page exists, False otherwise
-    
+
     Example:
         {% if page_exists('guides/advanced') %}
           <a href="/guides/advanced/">Advanced Guide</a>
         {% endif %}
-        
+
     """
     if not path:
         return False
@@ -386,14 +403,18 @@ def register(env: TemplateEnvironment, site: SiteLike) -> None:
 
         # Reject absolute paths (security)
         if path_obj.is_absolute():
-            logger.debug("get_page_absolute_path_rejected", path=path, caller="template")
+            logger.debug(
+                "get_page_absolute_path_rejected", path=path, caller="template"
+            )
             cache[cache_key] = None  # Cache the rejection
             return None
 
         # Reject path traversal attempts (security)
         normalized_path = path.replace("\\", "/")
         if "../" in normalized_path or normalized_path.startswith("../"):
-            logger.debug("get_page_path_traversal_rejected", path=path, caller="template")
+            logger.debug(
+                "get_page_path_traversal_rejected", path=path, caller="template"
+            )
             cache[cache_key] = None  # Cache the rejection
             return None
 
@@ -412,7 +433,9 @@ def register(env: TemplateEnvironment, site: SiteLike) -> None:
         # Strategy 2: Try adding .md extension
         if not page:
             path_with_ext = (
-                f"{normalized_path}.md" if not normalized_path.endswith(".md") else normalized_path
+                f"{normalized_path}.md"
+                if not normalized_path.endswith(".md")
+                else normalized_path
             )
             if path_with_ext in maps["relative"]:
                 page = maps["relative"][path_with_ext]
@@ -428,7 +451,9 @@ def register(env: TemplateEnvironment, site: SiteLike) -> None:
                 page = maps["relative"][stripped]
             else:
                 # Also try with .md extension
-                stripped_with_ext = f"{stripped}.md" if not stripped.endswith(".md") else stripped
+                stripped_with_ext = (
+                    f"{stripped}.md" if not stripped.endswith(".md") else stripped
+                )
                 if stripped_with_ext in maps["relative"]:
                     page = maps["relative"][stripped_with_ext]
 

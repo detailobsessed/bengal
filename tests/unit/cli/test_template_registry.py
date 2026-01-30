@@ -213,7 +213,10 @@ class TestTemplateObjects:
         template = get_template("portfolio")
 
         assert template.id == "portfolio"
-        assert "portfolio" in template.description.lower() or "portfolio" in template.name.lower()
+        assert (
+            "portfolio" in template.description.lower()
+            or "portfolio" in template.name.lower()
+        )
 
 
 class TestTemplateFiles:
@@ -266,7 +269,7 @@ class TestRegistrySingleton:
 
         # Should return same data
         assert len(list1) == len(list2)
-        assert set(t[0] for t in list1) == set(t[0] for t in list2)
+        assert {t[0] for t in list1} == {t[0] for t in list2}
 
 
 class TestTemplateDiscovery:
@@ -278,7 +281,14 @@ class TestTemplateDiscovery:
         template_ids = [t[0] for t in templates]
 
         # Check for known templates
-        expected_templates = ["default", "blog", "docs", "portfolio", "landing", "resume"]
+        expected_templates = [
+            "default",
+            "blog",
+            "docs",
+            "portfolio",
+            "landing",
+            "resume",
+        ]
 
         for expected in expected_templates:
             assert expected in template_ids, f"Expected template '{expected}' not found"
@@ -321,9 +331,13 @@ class TestEdgeCases:
         """Test registering template with duplicate ID."""
         from bengal.scaffolds.base import SiteTemplate
 
-        custom1 = SiteTemplate(id="duplicate_test", name="First", description="First", files=[])
+        custom1 = SiteTemplate(
+            id="duplicate_test", name="First", description="First", files=[]
+        )
 
-        custom2 = SiteTemplate(id="duplicate_test", name="Second", description="Second", files=[])
+        custom2 = SiteTemplate(
+            id="duplicate_test", name="Second", description="Second", files=[]
+        )
 
         register_template(custom1)
         register_template(custom2)
@@ -442,7 +456,10 @@ class TestSkeletonManifestSupport:
         docs_template = get_template("docs")
 
         # Blog should have posts section
-        assert "posts" in blog_template.menu_sections or "index" in blog_template.menu_sections
+        assert (
+            "posts" in blog_template.menu_sections
+            or "index" in blog_template.menu_sections
+        )
 
         # Docs should have multiple sections
         assert len(docs_template.menu_sections) >= 3

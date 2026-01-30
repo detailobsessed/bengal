@@ -25,7 +25,7 @@ class TestIncrementalSequence:
     """
     Integration tests for full-to-incremental build sequences.
     Marked slow due to multiple full builds and file watching simulation.
-        
+
     """
 
     @pytest.fixture(autouse=True)
@@ -149,7 +149,9 @@ Modified content (updated).""")
             bump_mtime(base_html)
         elif change_type == "config":
             config_path.write_text(
-                config_content.replace('title = "Test Incremental"', 'title = "Updated Title"')
+                config_content.replace(
+                    'title = "Test Incremental"', 'title = "Updated Title"'
+                )
             )
             bump_mtime(config_path)
 
@@ -189,9 +191,9 @@ Modified content (updated).""")
 @pytest.mark.slow
 class TestIncrementalBuildRegression:
     """Regression tests for specific incremental build bugs.
-    
+
     Marked slow due to multiple full + incremental build sequences.
-        
+
     """
 
     def test_bug_cache_not_saved_after_full_build(self, tmp_path):
@@ -220,14 +222,18 @@ class TestIncrementalBuildRegression:
         # Step 2: Check cache exists (this would fail with the bug) - new location since v0.1.2
         # Note: Cache is now compressed with Zstandard (.json.zst)
         cache_file = site_root / ".bengal" / "cache.json.zst"
-        assert cache_file.exists(), "BUG: Cache not saved after full build with incremental=False"
+        assert cache_file.exists(), (
+            "BUG: Cache not saved after full build with incremental=False"
+        )
 
         # Step 3: Incremental build should use cache
         time.sleep(0.15)
         stats2 = site.build(BuildOptions(force_sequential=True, incremental=True))
 
         # Should use cache (1 page, 1 cache hit, 0 misses)
-        assert stats2.cache_hits == 1, f"BUG: Should have 1 cache hit, got {stats2.cache_hits}"
+        assert stats2.cache_hits == 1, (
+            f"BUG: Should have 1 cache hit, got {stats2.cache_hits}"
+        )
         assert stats2.cache_misses == 0, (
             f"BUG: Should have 0 cache misses, got {stats2.cache_misses}"
         )

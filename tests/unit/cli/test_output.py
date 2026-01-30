@@ -8,11 +8,15 @@ Tests cover:
 - TTY detection and rich/plain fallback
 """
 
-from __future__ import annotations
-
 import pytest
 
-from bengal.output import CLIOutput, MessageLevel, OutputStyle, get_cli_output, init_cli_output
+from bengal.output import (
+    CLIOutput,
+    MessageLevel,
+    OutputStyle,
+    get_cli_output,
+    init_cli_output,
+)
 
 
 class TestCLIOutputInit:

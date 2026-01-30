@@ -26,26 +26,26 @@ if TYPE_CHECKING:
 class URLCollisionValidator(BaseValidator):
     """
     Validates that no two pages output to the same URL.
-    
+
     URL collisions cause silent overwrites where the last page to render
     wins, resulting in broken navigation and lost content. This was the
     root cause of the CLI navigation bug where the root command page
     overwrote the section index.
-    
+
     Checks:
     - No duplicate URLs among site.pages
     - Reports all collisions with source file information
     - Provides actionable fix recommendations
-    
+
     Example collision:
         URL collision: /cli/
           Page 1: __virtual__/cli/section-index.md
           Page 2: cli.md
-    
+
     Priority:
         This validator runs during health checks and catches collisions
         that may have occurred if proactive validation was bypassed.
-        
+
     """
 
     name = "URL Collisions"
@@ -63,7 +63,8 @@ class URLCollisionValidator(BaseValidator):
         urls_seen: dict[str, list[str]] = {}  # url -> [source1, source2, ...]
 
         for page in site.pages:
-            url = page._path
+            # Use href as URL since _path may not exist on PageLike protocol
+            url = getattr(page, "_path", None) or page.href
             source = str(getattr(page, "source_path", page.title))
 
             if url not in urls_seen:
@@ -71,7 +72,9 @@ class URLCollisionValidator(BaseValidator):
             urls_seen[url].append(source)
 
         # Report collisions
-        collisions = {url: sources for url, sources in urls_seen.items() if len(sources) > 1}
+        collisions = {
+            url: sources for url, sources in urls_seen.items() if len(sources) > 1
+        }
 
         if collisions:
             # Format collision details with ownership context from registry
@@ -81,8 +84,9 @@ class URLCollisionValidator(BaseValidator):
 
                 # Get ownership context from registry if available
                 claim = None
-                if hasattr(site, "url_registry") and site.url_registry:
-                    claim = site.url_registry.get_claim(url)
+                url_registry = getattr(site, "url_registry", None)
+                if url_registry:
+                    claim = url_registry.get_claim(url)
 
                 for i, src in enumerate(sources):
                     owner_info = ""
@@ -122,17 +126,18 @@ class URLCollisionValidator(BaseValidator):
         """
         results: list[CheckResult] = []
 
-        # Build set of section URLs
-        section_urls = {s._path for s in site.sections}
+        # Build set of section URLs (use href since _path may not exist on SectionLike)
+        section_urls = {getattr(s, "_path", None) or s.href for s in site.sections}
 
         # Find pages that conflict with sections
         conflicts = []
         for page in site.pages:
-            url = page._path
+            # Use href as URL since _path may not exist on PageLike protocol
+            url = getattr(page, "_path", None) or page.href
             source = str(getattr(page, "source_path", page.title))
 
             # Skip index pages - they're supposed to be at section URLs
-            if source.endswith("_index.md") or source.endswith("section-index.md"):
+            if source.endswith(("_index.md", "section-index.md")):
                 continue
 
             if url in section_urls:

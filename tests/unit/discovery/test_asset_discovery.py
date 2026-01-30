@@ -21,7 +21,9 @@ def temp_assets_dir():
     # Create test assets
     (assets_dir / "style.css").write_text("body { color: blue; }")
     (assets_dir / "script.js").write_text("console.log('test');")
-    (assets_dir / "image.png").write_bytes(b"\x89PNG\r\n\x1a\n" + b"\x00" * 100)  # Minimal PNG
+    (assets_dir / "image.png").write_bytes(
+        b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
+    )  # Minimal PNG
     (assets_dir / "logo.svg").write_text("<svg></svg>")
     (assets_dir / "font.woff2").write_bytes(b"WOFF2" + b"\x00" * 50)
 
@@ -113,7 +115,9 @@ class TestAssetDiscovery:
         # Create deeply nested assets
         (temp_assets_dir / "level1").mkdir()
         (temp_assets_dir / "level1" / "level2").mkdir()
-        (temp_assets_dir / "level1" / "level2" / "nested.css").write_text("div { margin: 0; }")
+        (temp_assets_dir / "level1" / "level2" / "nested.css").write_text(
+            "div { margin: 0; }"
+        )
 
         discovery = AssetDiscovery(temp_assets_dir)
         assets = discovery.discover()
@@ -149,7 +153,9 @@ class TestAssetDiscovery:
             # Output path should be relative
             assert not asset.output_path.is_absolute()
             # Should not start with assets directory name
-            assert str(asset.output_path) == str(asset.source_path.relative_to(temp_assets_dir))
+            assert str(asset.output_path) == str(
+                asset.source_path.relative_to(temp_assets_dir)
+            )
 
     def test_handles_multiple_extensions(self, temp_assets_dir):
         """Test that files with multiple extensions are handled correctly."""
@@ -182,9 +188,9 @@ class TestAssetDiscovery:
 @pytest.mark.parallel_unsafe
 class TestAssetDiscoveryPathsWithDots:
     """Test asset discovery in paths containing dots (e.g., .venv).
-    
+
     Regression tests for: Theme assets skipped when Bengal installed in .venv
-        
+
     """
 
     def test_discovers_assets_in_dotted_parent_path(self):
@@ -267,10 +273,10 @@ class TestAssetDiscoveryPathsWithDots:
 @pytest.mark.parallel_unsafe
 class TestAssetDiscoveryWithRaceConditions:
     """Test asset discovery behavior during parallel operations.
-    
+
     Marked parallel_unsafe: Uses ThreadPoolExecutor internally, which conflicts
     with pytest-xdist's parallel test execution (nested parallelism causes worker crashes).
-        
+
     """
 
     def test_ignores_temp_files_during_parallel_processing(self):
@@ -310,7 +316,9 @@ class TestAssetDiscoveryWithRaceConditions:
         # Should only find the 3 real PNG files, not the temp files
         assert len(assets) == 3
         asset_names = {asset.source_path.name for asset in assets}
-        assert all(name.startswith("image") and name.endswith(".png") for name in asset_names)
+        assert all(
+            name.startswith("image") and name.endswith(".png") for name in asset_names
+        )
         assert not any(".tmp" in name for name in asset_names)
 
         shutil.rmtree(temp_dir)

@@ -11,8 +11,6 @@ Also includes regression tests for edge cases in fence parsing (e.g., null point
 safety when code_block_fence is None).
 """
 
-from __future__ import annotations
-
 from bengal.directives.validator import DirectiveSyntaxValidator
 from bengal.health.report import CheckStatus
 from bengal.health.validators.directives import DirectiveValidator
@@ -133,7 +131,7 @@ print("hello")
 
 class TestDirectiveSyntaxValidatorEdgeCases:
     """Regression tests for edge cases in DirectiveSyntaxValidator.
-    
+
     These tests ensure the validator handles malformed input gracefully,
     particularly around code fence state tracking where null pointer bugs
     could occur.
@@ -213,13 +211,13 @@ This is inside a code block
             content += ":" * (3 + i) + "{note}\n"
         for i in range(19, -1, -1):
             content += ":" * (3 + i) + "\n"
-        
+
         errors = DirectiveSyntaxValidator.validate_nested_fences(content)
         assert isinstance(errors, list)
 
     def test_code_fence_with_special_characters_no_crash(self):
         """Code fences with special characters in info string should not crash."""
-        content = '''
+        content = """
 ```python!@#$%^&*()
 code
 ```
@@ -227,7 +225,7 @@ code
 ```go-html-template[special]
 template
 ```
-'''
+"""
         errors = DirectiveSyntaxValidator.validate_nested_fences(content)
         assert isinstance(errors, list)
 

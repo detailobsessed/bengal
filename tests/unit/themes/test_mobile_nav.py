@@ -7,8 +7,6 @@ Tests the native dialog-based mobile navigation including:
 - Fallback to classic drawer when disabled
 """
 
-from __future__ import annotations
-
 import pytest
 
 

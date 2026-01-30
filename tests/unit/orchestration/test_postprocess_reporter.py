@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from types import SimpleNamespace
 
 from bengal.orchestration.postprocess import PostprocessOrchestrator
@@ -29,7 +27,7 @@ def test_postprocess_reports_errors_via_reporter(tmp_path, monkeypatch):
 
     monkeypatch.setenv("PYTHONHASHSEED", "0")
 
-    class FakeLinkValidator:  # noqa: N801
+    class FakeLinkValidator:
         def validate_site(self, site):
             return {"/broken": "not found"}
 
@@ -44,7 +42,9 @@ def test_postprocess_reports_errors_via_reporter(tmp_path, monkeypatch):
 
     orch.run(parallel=False, progress_manager=None, build_context=ctx)
 
-    assert any("post-processing" in msg for msg in reporter.messages) or reporter.messages
+    assert (
+        any("post-processing" in msg for msg in reporter.messages) or reporter.messages
+    )
 
 
 def test_postprocess_parallel_errors_use_reporter(tmp_path, monkeypatch):
@@ -74,12 +74,14 @@ def test_postprocess_parallel_errors_use_reporter(tmp_path, monkeypatch):
     )
 
     # Stub link validator to avoid actual scanning
-    class FakeLinkValidator:  # noqa: N801
+    class FakeLinkValidator:
         def validate_site(self, site):
             return {}
 
     monkeypatch.setattr(
-        "bengal.orchestration.postprocess.LinkValidator", FakeLinkValidator, raising=False
+        "bengal.orchestration.postprocess.LinkValidator",
+        FakeLinkValidator,
+        raising=False,
     )
 
     reporter = CapturingReporter()

@@ -14,8 +14,6 @@ RFC: Page-dependent directives must not be cached because their output depends
 on the current page's position in the site tree.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock
@@ -117,11 +115,11 @@ class TestPageDependentDirectiveSet:
 
 class TestChildCardsNotCachedAcrossPages:
     """Test that child-cards are NOT cached and reused across different pages.
-    
+
     This is the critical bug fix test: if page A has child-cards showing
     [Section1, Section2] and page B has child-cards showing [Section3, Section4],
     they must render their own children, not share cached output.
-        
+
     """
 
     @pytest.fixture
@@ -134,14 +132,18 @@ class TestChildCardsNotCachedAcrossPages:
         """Clear directive cache before each test."""
         clear_cache()
 
-    def test_child_cards_different_output_per_page(self, patitas: PatitasParser) -> None:
+    def test_child_cards_different_output_per_page(
+        self, patitas: PatitasParser
+    ) -> None:
         """Two pages with identical child-cards syntax get different output based on their section."""
         # Page A: /docs/guide/ with subsections [Getting Started, Installation]
         section_a = create_mock_section(
             name="guide",
             subsections=[
                 create_mock_subsection(
-                    "getting-started", "Getting Started", url="/docs/guide/getting-started/"
+                    "getting-started",
+                    "Getting Started",
+                    url="/docs/guide/getting-started/",
                 ),
                 create_mock_subsection(
                     "installation", "Installation", url="/docs/guide/installation/"
@@ -155,11 +157,17 @@ class TestChildCardsNotCachedAcrossPages:
         section_b = create_mock_section(
             name="reference",
             subsections=[
-                create_mock_subsection("api", "API Reference", url="/docs/reference/api/"),
-                create_mock_subsection("cli", "CLI Reference", url="/docs/reference/cli/"),
+                create_mock_subsection(
+                    "api", "API Reference", url="/docs/reference/api/"
+                ),
+                create_mock_subsection(
+                    "cli", "CLI Reference", url="/docs/reference/cli/"
+                ),
             ],
         )
-        page_b = create_mock_page(title="Reference", source_path="docs/reference/_index.md")
+        page_b = create_mock_page(
+            title="Reference", source_path="docs/reference/_index.md"
+        )
         page_b._section = section_b
 
         # SAME directive syntax on both pages
@@ -230,7 +238,9 @@ class TestNonPageDependentDirectivesCached:
         """Clear directive cache before each test."""
         clear_cache()
 
-    def test_note_directive_same_output_regardless_of_page(self, patitas: PatitasParser) -> None:
+    def test_note_directive_same_output_regardless_of_page(
+        self, patitas: PatitasParser
+    ) -> None:
         """Note directive should produce identical output regardless of page context."""
         page_a = create_mock_page(title="Page A", source_path="a.md")
         page_b = create_mock_page(title="Page B", source_path="b.md")

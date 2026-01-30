@@ -1,7 +1,5 @@
 """Tests for data table directive."""
 
-from __future__ import annotations
-
 import csv
 import json
 from pathlib import Path
@@ -361,7 +359,10 @@ class TestRenderDataTable:
         attrs = {
             "table_id": "data-table-abc123",
             "path": "data/test.yaml",
-            "columns": [{"title": "Name", "field": "name"}, {"title": "Age", "field": "age"}],
+            "columns": [
+                {"title": "Name", "field": "name"},
+                {"title": "Age", "field": "age"},
+            ],
             "data": [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}],
             "search": True,
             "filter": True,

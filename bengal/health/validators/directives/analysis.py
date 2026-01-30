@@ -35,16 +35,16 @@ logger = get_logger(__name__)
 class CodeBlockRange:
     """
     Represents a fenced code block's line range for O(1) containment checks.
-    
+
     Used by DirectiveAnalyzer to pre-compute code block boundaries in a single
     O(L) pass, enabling O(R) lookups instead of O(L) per-position checks.
-    
+
     Attributes:
         start_line: Opening fence line number (1-indexed)
         end_line: Closing fence line number (1-indexed)
             fence_type: "backtick" (```) or "tilde" (~~~)
             fence_depth: Number of fence characters (3+)
-        
+
     """
 
     start_line: int
@@ -57,16 +57,16 @@ class CodeBlockRange:
 class ColonDirectiveRange:
     """
     Represents a colon directive's line range for O(1) containment checks.
-    
+
     Used by DirectiveAnalyzer to pre-compute colon directive boundaries in a
     single O(L) pass, enabling O(R) lookups instead of O(L) per-position checks.
-    
+
     Attributes:
         start_line: Opening fence line number (1-indexed)
         end_line: Closing fence line number (1-indexed)
         fence_depth: Number of colon characters (3+)
         directive_type: Directive name (e.g., "note", "warning")
-        
+
     """
 
     start_line: int
@@ -83,14 +83,14 @@ if TYPE_CHECKING:
 class DirectiveAnalyzer:
     """
     Analyzes directive usage across a site.
-    
+
     Extracts directives from markdown content, validates their structure,
     and collects statistics for reporting.
-    
+
     Build-Integrated Validation:
         When analyze_from_context() is used with cached content, the analyzer
         avoids disk I/O entirely, reducing health check time from ~4.6s to <100ms.
-        
+
     """
 
     def analyze(
@@ -231,7 +231,6 @@ class DirectiveAnalyzer:
                     error=str(e),
                     error_type=type(e).__name__,
                 )
-                pass
 
         # Check for performance issues
         for page_path, directives in data["by_page"].items():
@@ -341,7 +340,9 @@ class DirectiveAnalyzer:
 
         return sorted(ranges, key=lambda r: r.start_line)
 
-    def _build_colon_directive_index(self, lines: list[str]) -> list[ColonDirectiveRange]:
+    def _build_colon_directive_index(
+        self, lines: list[str]
+    ) -> list[ColonDirectiveRange]:
         """
         Build index of colon directive ranges in single O(L) pass.
 
@@ -415,7 +416,9 @@ class DirectiveAnalyzer:
         """
         return any(r.start_line < line_number < r.end_line for r in ranges)
 
-    def _check_code_block_nesting(self, content: str, file_path: Path) -> list[dict[str, Any]]:
+    def _check_code_block_nesting(
+        self, content: str, file_path: Path
+    ) -> list[dict[str, Any]]:
         """
         Check for markdown code blocks that contain nested code blocks with the same fence length.
 
@@ -450,7 +453,11 @@ class DirectiveAnalyzer:
                 language = match.group(3)
                 fence_length = len(fence_marker)
 
-                if not language and directive_stack and fence_length == directive_stack[-1]:
+                if (
+                    not language
+                    and directive_stack
+                    and fence_length == directive_stack[-1]
+                ):
                     directive_stack.pop()
                     continue
 
@@ -521,7 +528,9 @@ class DirectiveAnalyzer:
         backticks_before = prefix.count("`")
         return backticks_before % 2 == 1
 
-    def _extract_directives(self, content: str, file_path: Path) -> list[dict[str, Any]]:
+    def _extract_directives(
+        self, content: str, file_path: Path
+    ) -> list[dict[str, Any]]:
         """
         Extract all directive blocks from markdown content (colon fences only).
 
@@ -600,7 +609,9 @@ class DirectiveAnalyzer:
                 # Patitas lexer handles this correctly. See: rfc-patitas-structural-validation.md
 
                 if directive_type not in KNOWN_DIRECTIVES:
-                    directive_info["syntax_error"] = f"Unknown directive type: {directive_type}"
+                    directive_info["syntax_error"] = (
+                        f"Unknown directive type: {directive_type}"
+                    )
 
                 if directive_type == "tabs":
                     self._validate_tabs_directive(directive_info)
@@ -701,7 +712,9 @@ class DirectiveAnalyzer:
             if inner_line_offset is not None:
                 # Calculate actual line number in source file
                 # directive_line is where the directive starts, content starts after opening fence
-                inner_line = directive_line + inner_line_offset + 1  # +1 for the opening fence line
+                inner_line = (
+                    directive_line + inner_line_offset + 1
+                )  # +1 for the opening fence line
                 directive["fence_nesting_warning"] = (
                     f"Outer directive at line {directive_line} uses ``` but inner code block "
                     f"at line {inner_line} also uses ```. Use 4+ backticks for outer."

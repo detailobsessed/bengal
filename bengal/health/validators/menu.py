@@ -19,13 +19,13 @@ if TYPE_CHECKING:
 class MenuValidator(BaseValidator):
     """
     Validates navigation menu structure.
-    
+
     Checks:
     - Menu items exist and have valid URLs
     - No orphaned menu items (parent doesn't exist)
     - No circular references
     - Menu weights are sensible
-        
+
     """
 
     name = "Navigation Menus"
@@ -55,7 +55,9 @@ class MenuValidator(BaseValidator):
 
         return results
 
-    def _validate_menu(self, site: SiteLike, menu_name: str, items: list[Any]) -> list[CheckResult]:
+    def _validate_menu(
+        self, site: SiteLike, menu_name: str, items: list[Any]
+    ) -> list[CheckResult]:
         """Validate a single menu."""
         results = []
 
@@ -71,7 +73,9 @@ class MenuValidator(BaseValidator):
 
         # Count items (handles nested children)
         total_items = self._count_menu_items(items)
-        results.append(CheckResult.success(f"Menu '{menu_name}' has {total_items} item(s)"))
+        results.append(
+            CheckResult.success(f"Menu '{menu_name}' has {total_items} item(s)")
+        )
 
         # Validate menu item URLs
         broken_links = self._check_menu_urls(site, items)
@@ -101,17 +105,17 @@ class MenuValidator(BaseValidator):
         for item in items:
             # Check if URL points to a page
             url = getattr(item, "_path", None) or getattr(item, "href", None)
-            if url:
-                # Skip external URLs (but still check children below)
-                if not url.startswith(("http://", "https://", "//")):
-                    # Check if any page has this URL (use _path for internal comparison)
-                    found = any(
-                        (getattr(page, "_path", None) == url) or (getattr(page, "href", None) == url)
-                        for page in site.pages
-                    )
+            # Skip external URLs (but still check children below)
+            if url and not url.startswith(("http://", "https://", "//")):
+                # Check if any page has this URL (use _path for internal comparison)
+                found = any(
+                    (getattr(page, "_path", None) == url)
+                    or (getattr(page, "href", None) == url)
+                    for page in site.pages
+                )
 
-                    if not found:
-                        broken.append(f"{item.name} → {url}")
+                if not found:
+                    broken.append(f"{item.name} → {url}")
 
             # Recurse into children (always, even if parent URL is external)
             if hasattr(item, "children") and item.children:

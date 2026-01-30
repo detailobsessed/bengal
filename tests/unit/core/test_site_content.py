@@ -7,8 +7,6 @@ Tests the SiteContent mutable container for site content
 See: plan/drafted/rfc-site-responsibility-separation.md
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -187,7 +185,9 @@ class TestDerivedPageLists:
         page.in_listings = False
         return page
 
-    def test_regular_pages(self, regular_page: MagicMock, generated_page: MagicMock) -> None:
+    def test_regular_pages(
+        self, regular_page: MagicMock, generated_page: MagicMock
+    ) -> None:
         """regular_pages excludes generated pages."""
         content = SiteContent()
         content.pages = [regular_page, generated_page]
@@ -198,7 +198,9 @@ class TestDerivedPageLists:
         assert regular_page in result
         assert generated_page not in result
 
-    def test_generated_pages(self, regular_page: MagicMock, generated_page: MagicMock) -> None:
+    def test_generated_pages(
+        self, regular_page: MagicMock, generated_page: MagicMock
+    ) -> None:
         """generated_pages returns only generated pages."""
         content = SiteContent()
         content.pages = [regular_page, generated_page]

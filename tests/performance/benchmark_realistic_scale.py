@@ -160,7 +160,9 @@ def benchmark_build(num_files: int, runs: int = 3) -> dict:
             start = time.time()
             parallel = site.config.get("parallel", True)
             site.build(
-                BuildOptions(force_sequential=not parallel, incremental=False, verbose=False)
+                BuildOptions(
+                    force_sequential=not parallel, incremental=False, verbose=False
+                )
             )
             elapsed = time.time() - start
 
@@ -225,7 +227,9 @@ def run_realistic_scale_benchmark():
     print("BENCHMARK SUMMARY - REALISTIC CONTENT")
     print("=" * 80)
     print()
-    print(f"{'Files':<10} {'Avg Time':<12} {'Min Time':<12} {'Max Time':<12} {'Pages/sec':<12}")
+    print(
+        f"{'Files':<10} {'Avg Time':<12} {'Min Time':<12} {'Max Time':<12} {'Pages/sec':<12}"
+    )
     print("-" * 80)
 
     for r in results:
@@ -250,7 +254,9 @@ def run_realistic_scale_benchmark():
             minimal = minimal_times[r["files"]]
             realistic = r["avg"]
             overhead = (realistic - minimal) / minimal * 100
-            print(f"{r['files']:<12,} {minimal:>8.3f}s    {realistic:>8.3f}s    {overhead:>8.1f}%")
+            print(
+                f"{r['files']:<12,} {minimal:>8.3f}s    {realistic:>8.3f}s    {overhead:>8.1f}%"
+            )
 
     # Scaling analysis
     print("\n" + "=" * 80)

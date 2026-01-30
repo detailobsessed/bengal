@@ -47,20 +47,20 @@ from bengal.core.version import VersionConfig
 class SiteData:
     """
     Immutable site configuration and paths.
-    
+
     Created once from config, never modified. Enables caching and
     thread-safe access without locks.
-    
+
     Immutability Guarantees:
         - frozen=True prevents attribute assignment
         - MappingProxyType wraps config dict for read-only access
         - All Path attributes are computed at construction time
-    
+
     Thread Safety:
         - Fully thread-safe for reads (immutable)
         - No locks required
         - Safe to share across parallel rendering threads
-    
+
     Attributes:
         root_path: Site root directory (absolute path)
         output_dir: Output directory for built site (absolute path)
@@ -71,7 +71,7 @@ class SiteData:
         assets_dir: Assets directory path
         data_dir: Data directory path
         cache_dir: Cache directory path (.bengal)
-        
+
     """
 
     root_path: Path
@@ -111,9 +111,12 @@ class SiteData:
             theme_name = str(theme_section) if theme_section else "default"
 
         # Resolve output directory (support both Config and dict)
+        output_dir_str: str | None = None
         if hasattr(config, "build"):
-            output_dir_str = config.build.output_dir
-        else:
+            build_obj = getattr(config, "build", None)
+            if build_obj is not None:
+                output_dir_str = getattr(build_obj, "output_dir", None)
+        if output_dir_str is None:
             output_dir_str = config.get("build", {}).get("output_dir") or config.get(
                 "output_dir", "public"
             )
@@ -122,9 +125,12 @@ class SiteData:
             output_dir = root / output_dir
 
         # Resolve content directory (support both Config and dict)
+        content_dir_str: str | None = None
         if hasattr(config, "build"):
-            content_dir_str = config.build.content_dir
-        else:
+            build_obj = getattr(config, "build", None)
+            if build_obj is not None:
+                content_dir_str = getattr(build_obj, "content_dir", None)
+        if content_dir_str is None:
             content_dir_str = config.get("build", {}).get("content_dir") or config.get(
                 "content_dir", "content"
             )
@@ -133,7 +139,10 @@ class SiteData:
             content_dir = root / content_dir
 
         # Use raw dict for MappingProxyType (Config supports dict-like access)
-        config_dict = config.raw if hasattr(config, "raw") else config
+        raw_config = getattr(config, "raw", None) if hasattr(config, "raw") else None
+        config_dict: dict[str, Any] = (
+            raw_config if isinstance(raw_config, dict) else config
+        )
 
         return cls(
             root_path=root,

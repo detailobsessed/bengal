@@ -13,18 +13,20 @@ from bengal.cli.helpers import get_cli_output
 from .presets import PRESETS
 
 
-def should_run_init_wizard(template: str, no_init: bool, init_preset: str | None) -> bool:
+def should_run_init_wizard(
+    template: str, no_init: bool, init_preset: str | None
+) -> bool:
     """
     Determine if we should run the initialization wizard.
-    
+
     Args:
         template: Selected template name
         no_init: Whether user explicitly said no to wizard
         init_preset: Preset name if provided via flag
-    
+
     Returns:
         True if wizard should run
-        
+
     """
     # Skip if user explicitly said no
     if no_init:
@@ -42,24 +44,28 @@ def should_run_init_wizard(template: str, no_init: bool, init_preset: str | None
 def run_init_wizard(preset: str | None = None) -> str | None:
     """
     Run the site initialization wizard and return the selected template ID.
-    
+
     Args:
         preset: Optional preset name to use directly without prompting
-    
+
     Returns:
         Template ID string or None for blank site
-        
+
     """
     cli = get_cli_output()
 
     # If preset was provided via flag, use it directly
     if preset:
         if preset not in PRESETS:
-            cli.warning(f"Unknown preset '{preset}'. Available: " + ", ".join(PRESETS.keys()))
+            cli.warning(
+                f"Unknown preset '{preset}'. Available: " + ", ".join(PRESETS.keys())
+            )
             return None
 
         selected_preset = PRESETS[preset]
-        cli.info(f"🏗️  Selected {selected_preset['emoji']} {selected_preset['name']} preset.")
+        cli.info(
+            f"🏗️  Selected {selected_preset['emoji']} {selected_preset['name']} preset."
+        )
         return str(selected_preset.get("template_id", "default"))
 
     # Build choices list
@@ -121,7 +127,8 @@ def run_init_wizard(preset: str | None = None) -> str | None:
     if selection == "__custom__":
         cli.blank()
         sections_input = cli.prompt(
-            "Enter section names (comma-separated, e.g., blog,about)", default="blog,about"
+            "Enter section names (comma-separated, e.g., blog,about)",
+            default="blog,about",
         )
         pages_per = cli.prompt("Pages per section", default=3, type=int)
         cli.blank()

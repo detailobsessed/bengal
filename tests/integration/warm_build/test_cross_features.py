@@ -10,19 +10,12 @@ important for real-world usage.
 See: plan/rfc-warm-build-test-expansion.md
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
 
 from bengal.core.site import Site
 from bengal.orchestration.build.options import BuildOptions
-
-from tests.integration.warm_build.conftest import (
-    WarmBuildTestSite,
-    create_basic_site_structure,
-)
 
 
 class TestWarmBuildCrossFeatures:
@@ -201,7 +194,6 @@ items:
 
         Note: Skipped until i18n is fully implemented.
         """
-        pass
 
     @pytest.mark.skip(reason="Versioned docs not fully implemented")
     def test_versioned_docs_incremental(self, tmp_path: Path) -> None:
@@ -216,7 +208,6 @@ items:
 
         Note: Skipped until versioned docs are fully implemented.
         """
-        pass
 
     def test_collection_with_taxonomy(self, tmp_path: Path) -> None:
         """
@@ -663,7 +654,7 @@ Post.
         site1 = Site.from_config(site_dir)
         site1.build(BuildOptions(incremental=False))
 
-        output_dir = site_dir / "public"
+        site_dir / "public"
 
         # Enable RSS
         (site_dir / "bengal.toml").write_text("""

@@ -39,7 +39,10 @@ content_dir = "content"
             result = runner.invoke(validate_command, catch_exceptions=False)
 
             # Should succeed
-            assert result.exit_code in [0, 1]  # May exit with 1 if validation has warnings
+            assert result.exit_code in [
+                0,
+                1,
+            ]  # May exit with 1 if validation has warnings
 
     def test_validate_command_missing_config(self, tmp_path):
         """Test validation with missing config."""
@@ -172,7 +175,11 @@ class TestGraphCommands:
             # Should succeed
             assert result.exit_code == 0
             # CSV should have header or data
-            assert "Rank" in result.output or "Title" in result.output or "Page" in result.output
+            assert (
+                "Rank" in result.output
+                or "Title" in result.output
+                or "Page" in result.output
+            )
 
     def test_communities_csv_format(self, tmp_path):
         """Test communities command with CSV format."""
@@ -185,13 +192,17 @@ class TestGraphCommands:
             (tmp_path / "content" / "page1.md").write_text("# Page 1\n")
             (tmp_path / "bengal.toml").write_text("[site]\ntitle = 'Test'\n")
 
-            result = runner.invoke(communities_command, ["--format", "csv", str(tmp_path)])
+            result = runner.invoke(
+                communities_command, ["--format", "csv", str(tmp_path)]
+            )
 
             # Should succeed
             assert result.exit_code == 0
             # CSV should have header or data
             assert (
-                "Community" in result.output or "Size" in result.output or "Page" in result.output
+                "Community" in result.output
+                or "Size" in result.output
+                or "Page" in result.output
             )
 
     def test_bridges_csv_format(self, tmp_path):
@@ -210,7 +221,11 @@ class TestGraphCommands:
             # Should succeed
             assert result.exit_code == 0
             # CSV should have header or data
-            assert "Rank" in result.output or "Title" in result.output or "Page" in result.output
+            assert (
+                "Rank" in result.output
+                or "Title" in result.output
+                or "Page" in result.output
+            )
 
 
 class TestUtilsCommands:
@@ -267,7 +282,9 @@ content_dir = "content"
             from bengal.cli.commands.site import build_command
 
             # Test with --incremental flag
-            result = runner.invoke(build_command, ["--incremental"], catch_exceptions=False)
+            result = runner.invoke(
+                build_command, ["--incremental"], catch_exceptions=False
+            )
 
             # Should handle incremental build
             assert result.exit_code in [0, 1]

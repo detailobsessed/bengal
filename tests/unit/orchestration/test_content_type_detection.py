@@ -79,7 +79,9 @@ class TestContentTypeDetection:
             "articles",
         ],
     )
-    def test_content_type_detection_by_name(self, orchestrator, section_name, expected_type):
+    def test_content_type_detection_by_name(
+        self, orchestrator, section_name, expected_type
+    ):
         """
         Test that section names are correctly mapped to content types.
 
@@ -162,7 +164,9 @@ class TestContentTypeDetection:
 
         for i in range(3):
             page = Page(
-                source_path=Path(f"/content/docs/page{i}.md"), _raw_content="Content", metadata={}
+                source_path=Path(f"/content/docs/page{i}.md"),
+                _raw_content="Content",
+                metadata={},
             )
             section.add_page(page)
 
@@ -265,7 +269,9 @@ class TestPaginationDecision:
         # Add many pages
         for i in range(100):
             page = Page(
-                source_path=Path(f"/content/api/page{i}.md"), _raw_content="Content", metadata={}
+                source_path=Path(f"/content/api/page{i}.md"),
+                _raw_content="Content",
+                metadata={},
             )
             section.add_page(page)
 
@@ -308,12 +314,16 @@ class TestPaginationDecision:
 
     def test_explicit_pagination_override(self, orchestrator):
         """Test explicit pagination metadata overrides heuristics."""
-        section = Section(name="docs", path=Path("/content/docs"), metadata={"paginate": True})
+        section = Section(
+            name="docs", path=Path("/content/docs"), metadata={"paginate": True}
+        )
 
         # Even with few pages, explicit override should enable pagination
         for i in range(5):
             page = Page(
-                source_path=Path(f"/content/docs/page{i}.md"), _raw_content="Content", metadata={}
+                source_path=Path(f"/content/docs/page{i}.md"),
+                _raw_content="Content",
+                metadata={},
             )
             section.add_page(page)
 

@@ -7,8 +7,6 @@ supports ~50 common languages. Languages not supported by Rosettes
 fall back to plain text rendering with proper escaping.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.parsing import MistuneParser
@@ -83,7 +81,9 @@ A --> B
         assert "&gt;" in html or "graph LR" in html
 
 
-@pytest.mark.skipif(not HAS_MARKDOWN, reason="python-markdown not installed (optional dependency)")
+@pytest.mark.skipif(
+    not HAS_MARKDOWN, reason="python-markdown not installed (optional dependency)"
+)
 class TestPythonMarkdownHighlighting:
     """Test python-markdown parser (uses Pygments codehilite extension)."""
 

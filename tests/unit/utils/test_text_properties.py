@@ -97,7 +97,10 @@ class TestTruncateCharsProperties:
     """Property tests for truncate_chars function."""
 
     @pytest.mark.hypothesis
-    @given(text=st.text(min_size=10, max_size=500), length=st.integers(min_value=10, max_value=100))
+    @given(
+        text=st.text(min_size=10, max_size=500),
+        length=st.integers(min_value=10, max_value=100),
+    )
     def test_never_exceeds_length(self, text, length):
         """
         Property: Result length never exceeds specified length.
@@ -119,7 +122,10 @@ class TestTruncateCharsProperties:
             )
 
     @pytest.mark.hypothesis
-    @given(text=st.text(min_size=0, max_size=50), length=st.integers(min_value=100, max_value=200))
+    @given(
+        text=st.text(min_size=0, max_size=50),
+        length=st.integers(min_value=100, max_value=200),
+    )
     def test_short_text_unchanged(self, text, length):
         """
         Property: If text is shorter than limit, return unchanged.
@@ -141,7 +147,9 @@ class TestTruncateCharsProperties:
         """
         if len(text) > length:
             result = truncate_chars(text, length)
-            assert result.endswith("..."), f"Truncated text should end with '...': '{result}'"
+            assert result.endswith("..."), (
+                f"Truncated text should end with '...': '{result}'"
+            )
 
 
 class TestTruncateMiddleProperties:
@@ -149,7 +157,8 @@ class TestTruncateMiddleProperties:
 
     @pytest.mark.hypothesis
     @given(
-        text=st.text(min_size=0, max_size=500), max_length=st.integers(min_value=10, max_value=100)
+        text=st.text(min_size=0, max_size=500),
+        max_length=st.integers(min_value=10, max_value=100),
     )
     def test_respects_max_length(self, text, max_length):
         """
@@ -163,7 +172,8 @@ class TestTruncateMiddleProperties:
 
     @pytest.mark.hypothesis
     @given(
-        text=st.text(min_size=20, max_size=100), max_length=st.integers(min_value=15, max_value=30)
+        text=st.text(min_size=20, max_size=100),
+        max_length=st.integers(min_value=15, max_value=30),
     )
     def test_contains_separator(self, text, max_length):
         """
@@ -175,7 +185,8 @@ class TestTruncateMiddleProperties:
 
     @pytest.mark.hypothesis
     @given(
-        text=st.text(min_size=20, max_size=100), max_length=st.integers(min_value=15, max_value=30)
+        text=st.text(min_size=20, max_size=100),
+        max_length=st.integers(min_value=15, max_value=30),
     )
     def test_preserves_start_and_end(self, text, max_length):
         """
@@ -211,7 +222,9 @@ class TestStripHtmlProperties:
         result = strip_html(html)
 
         # Check for any remaining tags
-        assert not re.search(r"<[^>]+>", result), f"Result still contains HTML tags: '{result}'"
+        assert not re.search(r"<[^>]+>", result), (
+            f"Result still contains HTML tags: '{result}'"
+        )
 
     @pytest.mark.hypothesis
     @given(text=st.text(alphabet=string.ascii_letters + " ", min_size=5, max_size=50))
@@ -240,8 +253,12 @@ class TestStripHtmlProperties:
         assert content in result, (
             f"Content '{content}' should be preserved from '{html}', got '{result}'"
         )
-        assert f"<{tag}>" not in result, f"Opening tag should be removed from '{result}'"
-        assert f"</{tag}>" not in result, f"Closing tag should be removed from '{result}'"
+        assert f"<{tag}>" not in result, (
+            f"Opening tag should be removed from '{result}'"
+        )
+        assert f"</{tag}>" not in result, (
+            f"Closing tag should be removed from '{result}'"
+        )
 
 
 class TestNormalizeWhitespaceProperties:
@@ -268,12 +285,16 @@ class TestNormalizeWhitespaceProperties:
         result = normalize_whitespace(text)
 
         if result:  # Non-empty results
-            assert result == result.strip(), f"Result has leading/trailing whitespace: '{result}'"
+            assert result == result.strip(), (
+                f"Result has leading/trailing whitespace: '{result}'"
+            )
 
     @pytest.mark.hypothesis
     @given(
         words=st.lists(
-            st.text(alphabet=string.ascii_letters, min_size=1, max_size=10), min_size=1, max_size=10
+            st.text(alphabet=string.ascii_letters, min_size=1, max_size=10),
+            min_size=1,
+            max_size=10,
         )
     )
     def test_single_space_between_words(self, words):
@@ -314,7 +335,7 @@ class TestHumanizeBytesProperties:
         Property: Sizes < 1024 should use 'B' unit.
         """
         result = humanize_bytes(size)
-        assert result.endswith("B") or result.endswith("bytes"), (
+        assert result.endswith(("B", "bytes")), (
             f"Size {size} should use bytes: '{result}'"
         )
 
@@ -325,7 +346,9 @@ class TestHumanizeBytesProperties:
         Property: Sizes 1024-1048575 should use KB.
         """
         result = humanize_bytes(size)
-        assert "KB" in result or "kB" in result, f"Size {size} should use KB: '{result}'"
+        assert "KB" in result or "kB" in result, (
+            f"Size {size} should use KB: '{result}'"
+        )
 
     @pytest.mark.hypothesis
     @given(size=st.integers(min_value=0, max_value=10**12))
@@ -340,9 +363,9 @@ class TestHumanizeBytesProperties:
 class TestSlugifyProperties:
     """
     Property tests for slugify in text utils.
-    
+
     Note: This is different from CLI slugify, but should have similar properties.
-        
+
     """
 
     @pytest.mark.hypothesis
@@ -370,7 +393,8 @@ class TestSlugifyProperties:
 
     @pytest.mark.hypothesis
     @given(
-        text=st.text(min_size=50, max_size=200), max_length=st.integers(min_value=10, max_value=30)
+        text=st.text(min_size=50, max_size=200),
+        max_length=st.integers(min_value=10, max_value=30),
     )
     def test_respects_max_length(self, text, max_length):
         """Property: Slugs respect max_length parameter."""
@@ -398,7 +422,9 @@ class TestSlugifyProperties:
 
         if separator in result:
             # If separator appears, it should be the one we specified
-            assert separator in result, f"Should use separator '{separator}': '{result}'"
+            assert separator in result, (
+                f"Should use separator '{separator}': '{result}'"
+            )
 
 
 # Example output documentation

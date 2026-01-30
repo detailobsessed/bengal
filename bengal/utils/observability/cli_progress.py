@@ -53,13 +53,13 @@ logger = get_logger(__name__)
 class PhaseStatus(Enum):
     """
     Status of a build phase.
-    
+
     Values:
         PENDING: Phase not yet started
         RUNNING: Phase currently in progress
         COMPLETE: Phase finished successfully
         FAILED: Phase encountered an error
-        
+
     """
 
     PENDING = "pending"
@@ -72,7 +72,7 @@ class PhaseStatus(Enum):
 class PhaseProgress:
     """
     Track progress for a single build phase.
-    
+
     Attributes:
         name: Display name for the phase (e.g., 'Rendering', 'Discovery')
         status: Current phase status
@@ -83,7 +83,7 @@ class PhaseProgress:
         start_time: Unix timestamp when phase started
         metadata: Additional phase-specific data (e.g., error messages)
         recent_items: Rolling list of recently processed items
-        
+
     """
 
     name: str
@@ -125,28 +125,33 @@ class PhaseProgress:
 class LiveProgressManager:
     """
     Manager for live progress updates across build phases.
-    
+
     Features:
     - Profile-aware display (Writer/Theme-Dev/Developer)
     - In-place updates (no scrolling)
     - Graceful fallback for CI/non-TTY
     - Context manager for clean setup/teardown
-    
+
     Example:
         with LiveProgressManager(profile) as progress:
             progress.add_phase('rendering', 'Rendering', total=100)
             progress.start_phase('rendering')
-    
+
             for i in range(100):
                 process_page(i)
                 progress.update_phase('rendering', current=i+1,
                                      current_item=f"page_{i}.html")
-    
+
             progress.complete_phase('rendering', elapsed_ms=1234)
-        
+
     """
 
-    def __init__(self, profile: BuildProfile, console: Console | None = None, enabled: bool = True):
+    def __init__(
+        self,
+        profile: BuildProfile,
+        console: Console | None = None,
+        enabled: bool = True,
+    ):
         """
         Initialize live progress manager.
 
@@ -209,10 +214,10 @@ class LiveProgressManager:
     def start(self) -> LiveProgressManager:
         """
         Start the live display explicitly.
-        
+
         Alternative to using as context manager when the progress display
         needs to span multiple function calls.
-        
+
         Returns:
             Self for method chaining.
         """
@@ -229,7 +234,7 @@ class LiveProgressManager:
     def stop(self) -> None:
         """
         Stop the live display explicitly.
-        
+
         Call this when done with progress updates to clean up the display.
         """
         if self.live:
@@ -371,7 +376,10 @@ class LiveProgressManager:
         """Update the live display or print fallback."""
         if self.live:
             now = time.time()
-            if not force and (now - self._last_render_ts) < self._min_render_interval_sec:
+            if (
+                not force
+                and (now - self._last_render_ts) < self._min_render_interval_sec
+            ):
                 return
             self.live.update(self._render())
             self._last_render_ts = now
@@ -498,12 +506,16 @@ class LiveProgressManager:
                     lines.append(Text.from_markup(line))
 
                     # Show recent items
-                    if phase.recent_items and self.live_config.get("show_recent_items", False):
+                    if phase.recent_items and self.live_config.get(
+                        "show_recent_items", False
+                    ):
                         lines.append(Text.from_markup("  [dim]Recent:[/dim]"))
                         for item in phase.recent_items[-3:]:
                             short_item = item[:60] + "..." if len(item) > 60 else item
                             lines.append(
-                                Text.from_markup(f"    [green]✓[/green] [dim]{short_item}[/dim]")
+                                Text.from_markup(
+                                    f"    [green]✓[/green] [dim]{short_item}[/dim]"
+                                )
                             )
                 else:
                     line = f"{status_icon} [cyan]{phase.name:<13}[/cyan] {phase.current_item}"
@@ -585,7 +597,9 @@ class LiveProgressManager:
                         # Calculate throughput
                         if phase.elapsed_ms > 0 and phase.current > 0:
                             throughput = (phase.current / phase.elapsed_ms) * 1000
-                            metric_parts.append(f"Throughput: {throughput:.1f} items/sec")
+                            metric_parts.append(
+                                f"Throughput: {throughput:.1f} items/sec"
+                            )
 
                         # Add other metadata
                         for key, value in phase.metadata.items():
@@ -594,7 +608,9 @@ class LiveProgressManager:
 
                         if metric_parts:
                             lines.append(
-                                Text.from_markup(f"  [dim]{' | '.join(metric_parts)}[/dim]")
+                                Text.from_markup(
+                                    f"  [dim]{' | '.join(metric_parts)}[/dim]"
+                                )
                             )
                 else:
                     line = f"{status_icon} [cyan]{phase.name:<13}[/cyan] {phase.current_item}"

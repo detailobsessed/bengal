@@ -32,7 +32,10 @@ def test_swizzle_copy_and_registry(tmp_path: Path):
     registry = tmp_path / ".bengal" / "themes" / "sources.json"
     data = json.loads(registry.read_text(encoding="utf-8"))
     recs = data.get("records", [])
-    assert any(r.get("target") == "partials/demo.html" and r.get("theme") == "child" for r in recs)
+    assert any(
+        r.get("target") == "partials/demo.html" and r.get("theme") == "child"
+        for r in recs
+    )
 
 
 def test_swizzle_update_skips_when_local_changed(tmp_path: Path):

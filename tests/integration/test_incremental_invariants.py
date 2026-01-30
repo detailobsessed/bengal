@@ -15,14 +15,13 @@ Invariants tested:
 - Consecutive builds without changes skip all pages
 """
 
-from __future__ import annotations
-
 import subprocess
 import sys
 import time
+from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -47,10 +46,10 @@ class WarmBuildTestSite:
     root: Path
     content: Path
     cache_path: Path
-    _site: "Site | None" = None
+    _site: Site | None = None
 
     @property
-    def site(self) -> "Site":
+    def site(self) -> Site:
         """Load or return cached site instance."""
         if self._site is None:
             from bengal.cli.helpers import load_site_from_cli
@@ -58,7 +57,7 @@ class WarmBuildTestSite:
             self._site = load_site_from_cli(source=str(self.root))
         return self._site
 
-    def build(self, *, incremental: bool = True, explain: bool = True) -> "BuildStats":
+    def build(self, *, incremental: bool = True, explain: bool = True) -> BuildStats:
         """Build the site and return stats.
 
         Args:
@@ -88,7 +87,7 @@ class WarmBuildTestSite:
 
 
 @pytest.fixture
-def warm_site(tmp_path: Path) -> Generator[WarmBuildTestSite, None, None]:
+def warm_site(tmp_path: Path) -> Generator[WarmBuildTestSite]:
     """Create a minimal site and warm its cache.
 
     Creates a basic Bengal site with:
@@ -134,7 +133,7 @@ output_dir = "public"
 
 
 @pytest.fixture
-def warm_site_with_sections(tmp_path: Path) -> Generator[WarmBuildTestSite, None, None]:
+def warm_site_with_sections(tmp_path: Path) -> Generator[WarmBuildTestSite]:
     """Create a site with nested sections and warm its cache.
 
     Creates a Bengal site with:
@@ -235,13 +234,17 @@ class TestIncrementalInvariants:
         if decision is not None:
             rebuilt_paths = {str(p.source_path) for p in decision.pages_to_build}
             assert any("page1" in p for p in rebuilt_paths), (
-                f"Changed file page1.md was not rebuilt. " f"Rebuilt: {rebuilt_paths}"
+                f"Changed file page1.md was not rebuilt. Rebuilt: {rebuilt_paths}"
             )
         else:
             # If no decision object, check that at least one page was built
-            assert stats.total_pages >= 1, "Changed file should have triggered a rebuild"
+            assert stats.total_pages >= 1, (
+                "Changed file should have triggered a rebuild"
+            )
 
-    def test_home_body_change_rebuilds_only_home(self, warm_site: WarmBuildTestSite) -> None:
+    def test_home_body_change_rebuilds_only_home(
+        self, warm_site: WarmBuildTestSite
+    ) -> None:
         """
         Changing home page body should rebuild only that page.
 
@@ -258,8 +261,7 @@ class TestIncrementalInvariants:
         assert str(home) in rebuilt_paths, "Home page should be in rebuild set"
 
         assert len(rebuilt_paths) == 1, (
-            "Home body change should rebuild only the home page. "
-            f"Rebuilt: {sorted(rebuilt_paths)}"
+            f"Home body change should rebuild only the home page. Rebuilt: {sorted(rebuilt_paths)}"
         )
 
     def test_subsection_change_marks_parent_section(
@@ -283,11 +285,13 @@ class TestIncrementalInvariants:
         if decision is not None:
             rebuilt_paths = {str(p.source_path) for p in decision.pages_to_build}
             assert any("glossary" in p for p in rebuilt_paths), (
-                f"Changed file glossary.md was not rebuilt. " f"Rebuilt: {rebuilt_paths}"
+                f"Changed file glossary.md was not rebuilt. Rebuilt: {rebuilt_paths}"
             )
         else:
             # If no decision object, check that at least one page was built
-            assert stats.total_pages >= 1, "Subsection file change should trigger rebuild"
+            assert stats.total_pages >= 1, (
+                "Subsection file change should trigger rebuild"
+            )
 
     def test_cross_process_cache_consistency(self, tmp_path: Path) -> None:
         """INVARIANT: Cache saved in process A must load correctly in process B.
@@ -339,7 +343,7 @@ print(f"saved:{{len(cache.file_fingerprints)}}")
         When no files have changed between builds, the incremental system
         should detect this and skip unnecessary work.
         """
-        stats1 = warm_site.build(incremental=True)
+        warm_site.build(incremental=True)
         stats2 = warm_site.build(incremental=True)
 
         # INVARIANT: Second build should have 0 pages to rebuild
@@ -376,8 +380,12 @@ class TestIncrementalEdgeCases:
         decision = getattr(stats, "incremental_decision", None)
         if decision is not None:
             rebuilt_paths = {str(p.source_path) for p in decision.pages_to_build}
-            assert any("page1" in p for p in rebuilt_paths), "page1.md should be rebuilt"
-            assert any("page2" in p for p in rebuilt_paths), "page2.md should be rebuilt"
+            assert any("page1" in p for p in rebuilt_paths), (
+                "page1.md should be rebuilt"
+            )
+            assert any("page2" in p for p in rebuilt_paths), (
+                "page2.md should be rebuilt"
+            )
 
     def test_unchanged_sibling_rebuild_reason(
         self, warm_site: WarmBuildTestSite
@@ -399,9 +407,7 @@ class TestIncrementalEdgeCases:
         decision = getattr(stats, "incremental_decision", None)
         if decision is not None:
             # page1 must have been rebuilt with content_changed reason
-            page1_rebuilt = any(
-                "page1" in p for p in decision.rebuild_reasons.keys()
-            )
+            page1_rebuilt = any("page1" in p for p in decision.rebuild_reasons)
             assert page1_rebuilt, "Modified file page1.md should be in rebuild_reasons"
 
             # If page2 was rebuilt, log the reason (acceptable if section-related)

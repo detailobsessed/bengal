@@ -76,7 +76,7 @@ def _is_free_threading() -> bool:
 class SocialCardConfig:
     """
     Configuration for social card generation.
-    
+
     Attributes:
         enabled: Whether social cards are enabled
         template: Template style (default, minimal, documentation)
@@ -91,10 +91,12 @@ class SocialCardConfig:
         format: Image format (png or jpg)
         quality: JPEG quality (1-100)
         cache: Whether to cache generated cards
-        
+
     """
 
-    enabled: bool = False  # Disabled by default (Pillow not thread-safe in free-threading Python)
+    enabled: bool = (
+        False  # Disabled by default (Pillow not thread-safe in free-threading Python)
+    )
     template: str = "default"
     background_color: str = "#1a1a2e"
     text_color: str = "#ffffff"
@@ -113,19 +115,19 @@ class SocialCardConfig:
 def parse_social_cards_config(config: Config | dict[str, Any]) -> SocialCardConfig:
     """
     Parse [social_cards] section from bengal.toml.
-    
+
     Args:
         config: Full site configuration dictionary
-    
+
     Returns:
         SocialCardConfig with parsed values or defaults
-    
+
     Example:
             >>> config = {"social_cards": {"enabled": True, "template": "minimal"}}
             >>> sc_config = parse_social_cards_config(config)
             >>> sc_config.template
             'minimal'
-        
+
     """
     social_config = config.get("social_cards", {})
 
@@ -154,13 +156,13 @@ def parse_social_cards_config(config: Config | dict[str, Any]) -> SocialCardConf
 def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     """
     Convert hex color to RGB tuple.
-    
+
     Args:
         hex_color: Hex color string (e.g., "#ffffff" or "ffffff")
-    
+
     Returns:
         RGB tuple (r, g, b)
-        
+
     """
     hex_color = hex_color.lstrip("#")
     return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore[return-value]
@@ -169,35 +171,35 @@ def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
 class SocialCardGenerator:
     """
     Generates social card (Open Graph) images for pages.
-    
+
     Creates 1200x630px PNG images with page title, description, and site
     branding for social media preview cards. Supports multiple templates
     and content-based caching.
-    
+
     Creation:
         Direct instantiation: SocialCardGenerator(site, config)
             - Created by PostprocessOrchestrator for card generation
             - Requires Site instance with rendered pages
-    
+
     Attributes:
         site: Site instance with pages and configuration
         config: SocialCardConfig with styling options
         _cache: Hash cache for incremental generation
         _cache_lock: Thread-safe cache access
-    
+
     Relationships:
         - Used by: PostprocessOrchestrator for post-processing phase
         - Uses: Site for page access and configuration
         - Uses: Pillow for image generation
-    
+
     Thread Safety:
         Uses sequential generation for Pillow thread-safety.
         Font loading is cached for performance.
-    
+
     Examples:
         generator = SocialCardGenerator(site, config)
         count = generator.generate_all(site.pages, output_dir)
-        
+
     """
 
     def __init__(self, site: SiteLike, config: SocialCardConfig) -> None:
@@ -305,7 +307,9 @@ class SocialCardGenerator:
         # Try to use site's configured fonts and download TTF version
         site_fonts = self.site.config.get("fonts", {})
         if site_fonts:
-            downloaded_path = self._download_site_font_as_ttf(site_fonts, fonts_dir, bold)
+            downloaded_path = self._download_site_font_as_ttf(
+                site_fonts, fonts_dir, bold
+            )
             if downloaded_path:
                 return downloaded_path
 
@@ -345,12 +349,14 @@ class SocialCardGenerator:
         from bengal.fonts.downloader import GoogleFontsDownloader
 
         # Find first configured font family
-        for _key, value in font_config.items():
+        for value in font_config.values():
             if isinstance(value, str):
                 # Simple format: "Outfit:400,600,700"
                 parts = value.split(":")
                 family = parts[0]
-                weights = [int(w) for w in parts[1].split(",")] if len(parts) > 1 else [400]
+                weights = (
+                    [int(w) for w in parts[1].split(",")] if len(parts) > 1 else [400]
+                )
             elif isinstance(value, dict):
                 # Detailed format: {family: "Outfit", weights: [400, 700]}
                 family = value.get("family", "")
@@ -469,7 +475,11 @@ class SocialCardGenerator:
         return output_dir / f"{slug}.{ext}"
 
     def _wrap_text(
-        self, text: str, font: ImageFont.FreeTypeFont, max_width: int, max_lines: int = 3
+        self,
+        text: str,
+        font: ImageFont.FreeTypeFont,
+        max_width: int,
+        max_lines: int = 3,
     ) -> list[str]:
         """
         Wrap text to fit within width constraint.
@@ -491,7 +501,7 @@ class SocialCardGenerator:
         current_line: list[str] = []
 
         for word in words:
-            test_line = " ".join(current_line + [word])
+            test_line = " ".join([*current_line, word])
             bbox = font.getbbox(test_line)
             width = bbox[2] - bbox[0]
 
@@ -577,7 +587,9 @@ class SocialCardGenerator:
 
         # Title (center area)
         title_y = 160
-        title_lines = self._wrap_text(title, self._title_font, content_width, max_lines=3)
+        title_lines = self._wrap_text(
+            title, self._title_font, content_width, max_lines=3
+        )
         for i, line in enumerate(title_lines):
             draw.text(
                 (margin_x, title_y + i * 70),
@@ -589,7 +601,9 @@ class SocialCardGenerator:
         # Description (below title)
         if description:
             desc_y = title_y + len(title_lines) * 70 + 40
-            desc_lines = self._wrap_text(description, self._body_font, content_width, max_lines=2)
+            desc_lines = self._wrap_text(
+                description, self._body_font, content_width, max_lines=2
+            )
             for i, line in enumerate(desc_lines):
                 draw.text(
                     (margin_x, desc_y + i * 40),
@@ -658,7 +672,9 @@ class SocialCardGenerator:
         content_width = CARD_WIDTH - 160
 
         # Title (centered)
-        title_lines = self._wrap_text(title, self._title_font, content_width, max_lines=3)
+        title_lines = self._wrap_text(
+            title, self._title_font, content_width, max_lines=3
+        )
         total_height = len(title_lines) * 70
         start_y = (CARD_HEIGHT - total_height) // 2 - 30
 
@@ -666,7 +682,9 @@ class SocialCardGenerator:
             bbox = self._title_font.getbbox(line)
             line_width = bbox[2] - bbox[0]
             x = (CARD_WIDTH - line_width) // 2
-            draw.text((x, start_y + i * 70), line, font=self._title_font, fill=text_color)
+            draw.text(
+                (x, start_y + i * 70), line, font=self._title_font, fill=text_color
+            )
 
         # Accent line
         line_y = start_y + total_height + 30
@@ -727,6 +745,7 @@ class SocialCardGenerator:
         config = self.config
         if isinstance(social_card_meta, dict):
             from dataclasses import replace
+
             overrides = {}
             if "background_color" in social_card_meta:
                 overrides["background_color"] = social_card_meta["background_color"]
@@ -738,9 +757,13 @@ class SocialCardGenerator:
         # Select template (use local config for per-page overrides)
         template = config.template
         if template == "minimal":
-            img = self._render_minimal_template(title, description, site_name, site_url, config)
+            img = self._render_minimal_template(
+                title, description, site_name, site_url, config
+            )
         else:
-            img = self._render_default_template(title, description, site_name, site_url, config)
+            img = self._render_default_template(
+                title, description, site_name, site_url, config
+            )
 
         # Skip if fonts unavailable (img is None)
         if img is None:
@@ -861,20 +884,22 @@ class SocialCardGenerator:
         return (generated_count, cached_count)
 
 
-def get_social_card_path(page: Page, config: SocialCardConfig, base_path: str = "") -> str | None:
+def get_social_card_path(
+    page: Page, config: SocialCardConfig, base_path: str = ""
+) -> str | None:
     """
     Get the path to a page's generated social card.
-    
+
     Used by SEO template functions to inject og:image meta tag.
-    
+
     Args:
         page: Page to get card path for
         config: SocialCardConfig for output directory
         base_path: Base path prefix (e.g., site baseurl)
-    
+
     Returns:
         Path to social card image, or None if page has manual image or disabled
-        
+
     """
     # Manual image takes precedence
     if page.metadata.get("image"):

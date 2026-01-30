@@ -96,12 +96,16 @@ def _display_template_error_rich(error: TemplateRenderError) -> None:
         )
 
         # Display in panel
-        panel_title = f"[red bold]{header}[/red bold] in [yellow]{ctx.template_name}[/yellow]"
+        panel_title = (
+            f"[red bold]{header}[/red bold] in [yellow]{ctx.template_name}[/yellow]"
+        )
         if ctx.line_number:
             panel_title += f":[yellow]{ctx.line_number}[/yellow]"
 
         console.print()
-        console.print(Panel(syntax, title=panel_title, border_style="red", padding=(1, 2)))
+        console.print(
+            Panel(syntax, title=panel_title, border_style="red", padding=(1, 2))
+        )
     else:
         # No code context, just show header
         console.print()
@@ -209,7 +213,18 @@ def _generate_enhanced_suggestions(error: TemplateRenderError) -> list[str]:
             func_matches = [
                 f
                 for f in func_matches
-                if f not in ("if", "for", "while", "with", "set", "range", "len", "dict", "list")
+                if f
+                not in (
+                    "if",
+                    "for",
+                    "while",
+                    "with",
+                    "set",
+                    "range",
+                    "len",
+                    "dict",
+                    "list",
+                )
             ]
             if func_matches:
                 suggestions.append(
@@ -330,14 +345,20 @@ def _generate_enhanced_suggestions(error: TemplateRenderError) -> list[str]:
 
             # Common filter mistakes
             if "date" in filter_name.lower():
-                suggestions.append("For dates, use [cyan]{{ date | date('%Y-%m-%d') }}[/cyan]")
+                suggestions.append(
+                    "For dates, use [cyan]{{ date | date('%Y-%m-%d') }}[/cyan]"
+                )
 
     elif error.error_type == "syntax":
         if "unexpected" in error_str:
-            suggestions.append("Check for missing [cyan]%}[/cyan] or [cyan]}}[/cyan] tags")
+            suggestions.append(
+                "Check for missing [cyan]%}[/cyan] or [cyan]}}[/cyan] tags"
+            )
 
         if "expected token" in error_str:
-            suggestions.append("Verify Jinja2 syntax - might be using unsupported features")
+            suggestions.append(
+                "Verify Jinja2 syntax - might be using unsupported features"
+            )
 
         if "endfor" in error_str or "endif" in error_str:
             suggestions.append(
@@ -367,7 +388,9 @@ def _extract_variable_name(error_message: str) -> str | None:
 
 def _extract_filter_name(error_message: str) -> str | None:
     """Extract filter name from filter error."""
-    match = re.search(r"no filter named ['\"]([^'\"]+)['\"]", error_message, re.IGNORECASE)
+    match = re.search(
+        r"no filter named ['\"]([^'\"]+)['\"]", error_message, re.IGNORECASE
+    )
     if match:
         return match.group(1)
 
@@ -384,7 +407,9 @@ def _extract_dict_attribute(error_message: str) -> str | None:
     return None
 
 
-def _display_template_error_click(error: TemplateRenderError, use_color: bool = True) -> None:
+def _display_template_error_click(
+    error: TemplateRenderError, use_color: bool = True
+) -> None:
     """Fallback display using click (original implementation)."""
     import click
 
@@ -423,7 +448,9 @@ def _display_template_error_click(error: TemplateRenderError, use_color: bool = 
             else:
                 styled_line = click.style(line_content, fg="white")
 
-            click.echo(click.style(f"  {prefix} {line_num:4d} | ", fg="cyan") + styled_line)
+            click.echo(
+                click.style(f"  {prefix} {line_num:4d} | ", fg="cyan") + styled_line
+            )
 
             # Add pointer to error location
             if is_error_line and ctx.source_line:
@@ -438,7 +465,9 @@ def _display_template_error_click(error: TemplateRenderError, use_color: bool = 
 
     # Suggestion
     if error.suggestion:
-        click.echo(click.style("\n  Suggestion: ", fg="yellow", bold=True) + error.suggestion)
+        click.echo(
+            click.style("\n  Suggestion: ", fg="yellow", bold=True) + error.suggestion
+        )
 
     # Alternatives
     if error.available_alternatives:
@@ -455,7 +484,9 @@ def _display_template_error_click(error: TemplateRenderError, use_color: bool = 
 
     # Page source
     if error.page_source:
-        click.echo(click.style("\n  Used by page: ", fg="cyan") + str(error.page_source))
+        click.echo(
+            click.style("\n  Used by page: ", fg="cyan") + str(error.page_source)
+        )
 
     # Template search paths
     if error.search_paths:

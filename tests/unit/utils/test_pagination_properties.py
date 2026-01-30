@@ -16,10 +16,10 @@ from bengal.utils.pagination import Paginator
 class TestPaginatorProperties:
     """
     Property-based tests for Paginator class.
-    
+
     Each test runs 100+ times with randomly generated inputs
     to discover edge cases automatically.
-        
+
     """
 
     @pytest.mark.hypothesis
@@ -140,7 +140,9 @@ class TestPaginatorProperties:
 
     @pytest.mark.hypothesis
     @given(
-        items=st.lists(st.integers(min_value=0, max_value=100), min_size=10, max_size=100),
+        items=st.lists(
+            st.integers(min_value=0, max_value=100), min_size=10, max_size=100
+        ),
         per_page=st.integers(min_value=1, max_value=20),
     )
     def test_no_item_duplication(self, items, per_page):
@@ -282,13 +284,15 @@ class TestPaginatorProperties:
         context = paginator.page_context(last_page, "/test/")
 
         assert context["has_next"] is False, f"Page {last_page} should not have next"
-        assert context["next_page"] is None, f"Page {last_page} should have next_page=None"
+        assert context["next_page"] is None, (
+            f"Page {last_page} should have next_page=None"
+        )
 
 
 class TestPaginatorEdgeCases:
     """
     Targeted property tests for specific edge cases.
-        
+
     """
 
     @pytest.mark.hypothesis
@@ -315,11 +319,14 @@ class TestPaginatorEdgeCases:
         items = [1, 2, 3, 4, 5]
         paginator = Paginator(items, per_page=per_page)
 
-        assert paginator.per_page >= 1, f"per_page should be >= 1, got {paginator.per_page}"
+        assert paginator.per_page >= 1, (
+            f"per_page should be >= 1, got {paginator.per_page}"
+        )
 
     @pytest.mark.hypothesis
     @given(
-        n=st.integers(min_value=1, max_value=100), per_page=st.integers(min_value=1, max_value=20)
+        n=st.integers(min_value=1, max_value=100),
+        per_page=st.integers(min_value=1, max_value=20),
     )
     def test_single_item_per_page(self, n, per_page):
         """
@@ -362,7 +369,11 @@ class TestPaginatorEdgeCases:
                 )
 
     @pytest.mark.hypothesis
-    @given(base_url=st.text(alphabet="abcdefghijklmnopqrstuvwxyz/-", min_size=1, max_size=50))
+    @given(
+        base_url=st.text(
+            alphabet="abcdefghijklmnopqrstuvwxyz/-", min_size=1, max_size=50
+        )
+    )
     def test_base_url_normalization(self, base_url):
         """
         Property: base_url in context always ends with /.
@@ -373,7 +384,9 @@ class TestPaginatorEdgeCases:
         context = paginator.page_context(1, base_url)
 
         result_url = context["base_url"]
-        assert result_url.endswith("/"), f"base_url should end with '/', got '{result_url}'"
+        assert result_url.endswith("/"), (
+            f"base_url should end with '/', got '{result_url}'"
+        )
 
 
 # Example output documentation

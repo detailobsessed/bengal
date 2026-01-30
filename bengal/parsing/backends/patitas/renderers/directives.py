@@ -43,7 +43,9 @@ class DirectiveRendererMixin:
     - _render_block(node, sb): method
     """
 
-    def _render_directive(self: HtmlRendererProtocol, node: Directive, sb: StringBuilder) -> None:
+    def _render_directive(
+        self: HtmlRendererProtocol, node: Directive, sb: StringBuilder
+    ) -> None:
         """Render a directive block.
 
         Uses registered handler if available, otherwise falls back to default.
@@ -67,7 +69,8 @@ class DirectiveRendererMixin:
                 sig = inspect.signature(handler.render)
                 # Page-dependent directives are NOT cacheable
                 if is_cacheable and (
-                    "page_context" in sig.parameters or "get_page_context" in sig.parameters
+                    "page_context" in sig.parameters
+                    or "get_page_context" in sig.parameters
                 ):
                     is_cacheable = False
 
@@ -114,7 +117,9 @@ class DirectiveRendererMixin:
         # Default rendering
         result_sb.append(f'<div class="directive directive-{escape_attr(node.name)}">')
         if node.title:
-            result_sb.append(f'<p class="directive-title">{escape_html(node.title)}</p>')
+            result_sb.append(
+                f'<p class="directive-title">{escape_html(node.title)}</p>'
+            )
         result_sb.append(rendered_children)
         result_sb.append("</div>\n")
 

@@ -20,11 +20,10 @@ from bengal.utils.io.atomic_write import atomic_write_text
 def codemod_cli() -> None:
     """
     Automated code transformation utilities.
-    
+
     Use codemod commands to migrate codebases safely with preview and dry-run modes.
-        
+
     """
-    pass
 
 
 @codemod_cli.command("urls")
@@ -50,18 +49,18 @@ def codemod_cli() -> None:
 def codemod_urls(path: Path, dry_run: bool, diff: bool) -> None:
     """
     Migrate URL properties from old naming to new href/_path convention.
-    
+
     Replaces:
     - .url → .href (but NOT source_url, canonical_url, etc.)
     - .relative_url → ._path
     - .site_path → ._path
     - .permalink → .href
-    
+
     Examples:
         bengal codemod-urls --path site/themes/ --dry-run
         bengal codemod-urls --path site/themes/ --diff
         bengal codemod-urls --path site/themes/
-        
+
     """
     cli = CLIOutput()
     cli.info("Codemod: URL Property Migration")
@@ -75,10 +74,11 @@ def codemod_urls(path: Path, dry_run: bool, diff: bool) -> None:
     # Find all matching files (exclude vendor directories)
     files_to_process: list[Path] = []
     for ext in extensions:
-        for file_path in path.rglob(f"*{ext}"):
-            # Skip vendor directories (third-party libraries)
-            if "vendor" not in file_path.parts:
-                files_to_process.append(file_path)
+        files_to_process.extend(
+            file_path
+            for file_path in path.rglob(f"*{ext}")
+            if "vendor" not in file_path.parts
+        )
 
     if not files_to_process:
         cli.warning("No matching files found.")
@@ -172,7 +172,7 @@ def _show_diff(cli: CLIOutput, original: str, modified: str, file_path: Path) ->
 
     # Use console directly for diff output (supports rich formatting)
     for line in diff:
-        if line.startswith("---") or line.startswith("+++"):
+        if line.startswith(("---", "+++")):
             cli.console.print(line, style="dim")
         elif line.startswith("@@"):
             cli.console.print(line, style="cyan")

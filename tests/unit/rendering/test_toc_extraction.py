@@ -6,8 +6,6 @@ Tests the extract_toc_structure() function which parses TOC HTML
 for custom TOC rendering with grouping and collapsing.
 """
 
-from __future__ import annotations
-
 from bengal.rendering.pipeline import extract_toc_structure
 
 

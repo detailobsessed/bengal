@@ -43,9 +43,10 @@ class TestCacheSessionTracking:
 
         # Check that errors by code includes cache_version_mismatch
         errors_by_code = summary.get("errors_by_code", {})
-        assert any("cache_version_mismatch" in code or "A002" in code for code in errors_by_code), (
-            f"Expected cache_version_mismatch in errors_by_code: {errors_by_code}"
-        )
+        assert any(
+            "cache_version_mismatch" in code or "A002" in code
+            for code in errors_by_code
+        ), f"Expected cache_version_mismatch in errors_by_code: {errors_by_code}"
 
     def test_cache_error_includes_file_path(self, tmp_path):
         """Verify cache errors include file path in session."""

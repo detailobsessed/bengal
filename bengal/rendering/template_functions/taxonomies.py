@@ -30,17 +30,17 @@ logger = get_logger(__name__)
 
 
 # Store site reference for filter access
-_site_ref: Site | None = None
+_site_ref: SiteLike | None = None
 
 
 @dataclass(frozen=True, slots=True)
 class TagView:
     """
     Normalized view of a tag for templates.
-    
+
     Provides consistent access to tag data including name, slug, URL,
     post count, and optional description.
-    
+
     Attributes:
         name: Display name of the tag
         slug: URL-safe slug
@@ -48,7 +48,7 @@ class TagView:
         count: Number of posts with this tag
         description: Tag description (if available)
         percentage: Percentage of total posts (for tag clouds)
-        
+
     """
 
     name: str
@@ -96,25 +96,29 @@ class TagView:
 
 def register(env: TemplateEnvironment, site: SiteLike) -> None:
     """Register taxonomy helper functions with template environment.
-    
+
     Context-dependent functions (tag_url) are registered via the adapter
     layer which handles engine-specific context mechanisms.
-    
+
     Non-context functions (related_posts, popular_tags, has_tag) are
     registered directly here.
-        
+
     """
     global _site_ref
     _site_ref = site
+    # Access taxonomies via getattr (not in SiteLike protocol)
+    taxonomies: dict[str, Any] = getattr(site, "taxonomies", {})
 
     # Create closures that have access to site
     def related_posts_with_site(page: Any, limit: int = 5) -> list[Any]:
-        return related_posts(page, site.pages, limit)
+        return related_posts(page, list(site.pages), limit)
 
     def popular_tags_with_site(limit: int = 10) -> list[tuple[str, int]]:
         # Transform tags dict to extract pages lists from nested structure
-        raw_tags = site.taxonomies.get("tags", {})
-        tags_with_pages = {tag_slug: tag_data["pages"] for tag_slug, tag_data in raw_tags.items()}
+        raw_tags = taxonomies.get("tags", {})
+        tags_with_pages = {
+            tag_slug: tag_data["pages"] for tag_slug, tag_data in raw_tags.items()
+        }
         return popular_tags(tags_with_pages, limit)
 
     env.filters.update(
@@ -140,24 +144,24 @@ def tag_views_filter(
 ) -> list[TagView]:
     """
     Get all tags as normalized TagView objects.
-    
+
     Args:
         source: Site object or taxonomies dict
         limit: Maximum number of tags to return (None for all)
         sort_by: Sort field ('count', 'name', 'percentage')
-    
+
     Returns:
         List of TagView objects
-    
+
     Example:
         {% for tag in site | tag_views %}
           <a href="{{ tag.href }}">{{ tag.name }} ({{ tag.count }})</a>
         {% end %}
-    
+
         {% for tag in site | tag_views(limit=10, sort_by='name') %}
           {{ tag.name }}
         {% end %}
-        
+
     """
     # Get taxonomies from site or use directly
     if hasattr(source, "taxonomies"):
@@ -193,24 +197,25 @@ def tag_views_filter(
 def tag_view_filter(tag_slug: str) -> TagView | None:
     """
     Get a single tag as a TagView by slug.
-    
+
     Args:
         tag_slug: Tag slug to look up
-    
+
     Returns:
         TagView object or None if not found
-    
+
     Example:
         {% let python_tag = 'python' | tag_view %}
         {% if python_tag %}
           <a href="{{ python_tag.href }}">{{ python_tag.name }}</a>
         {% end %}
-        
+
     """
     if not tag_slug or not _site_ref:
         return None
 
-    raw_tags = _site_ref.taxonomies.get("tags", {})
+    taxonomies: dict[str, Any] = getattr(_site_ref, "taxonomies", {})
+    raw_tags = taxonomies.get("tags", {})
     tag_data = raw_tags.get(tag_slug)
 
     if not tag_data or not isinstance(tag_data, dict):
@@ -220,34 +225,36 @@ def tag_view_filter(tag_slug: str) -> TagView | None:
     return TagView.from_taxonomy_entry(tag_slug, tag_data, total_posts)
 
 
-def related_posts(page: Any, all_pages: list[Any] | None = None, limit: int = 5) -> list[Any]:
+def related_posts(
+    page: Any, all_pages: list[Any] | None = None, limit: int = 5
+) -> list[Any]:
     """
     Find related posts based on shared tags.
-    
+
     PERFORMANCE NOTE: This function now uses pre-computed related posts
     for O(1) access. The old O(n²) algorithm is kept as a fallback for
     backward compatibility with custom templates.
-    
+
     RECOMMENDED: Use `page.related_posts` directly in templates instead
     of calling this function.
-    
+
     Args:
         page: Current page
         all_pages: All site pages (optional, only needed for fallback)
         limit: Maximum number of related posts
-    
+
     Returns:
         List of related pages sorted by relevance
-    
+
     Example (NEW - recommended):
         {% set related = page.related_posts[:3] %}
-    
+
     Example (OLD - backward compatible):
         {% set related = related_posts(page, limit=3) %}
         {% for post in related %}
           <a href="{{ url_for(post) }}">{{ post.title }}</a>
         {% endfor %}
-        
+
     """
     page_slug = page.slug if hasattr(page, "slug") else "unknown"
 
@@ -319,23 +326,25 @@ def related_posts(page: Any, all_pages: list[Any] | None = None, limit: int = 5)
     return result
 
 
-def popular_tags(tags_dict: dict[str, list[Any]], limit: int = 10) -> list[tuple[str, int]]:
+def popular_tags(
+    tags_dict: dict[str, list[Any]], limit: int = 10
+) -> list[tuple[str, int]]:
     """
     Get most popular tags sorted by count.
-    
+
     Args:
         tags_dict: Dictionary of tag -> pages
         limit: Maximum number of tags
-    
+
     Returns:
         List of (tag, count) tuples
-    
+
     Example:
         {% set top_tags = popular_tags(limit=5) %}
         {% for tag, count in top_tags %}
           <a href="{{ tag_url(tag) }}">{{ tag }} ({{ count }})</a>
         {% endfor %}
-        
+
     """
     if not tags_dict:
         logger.debug("popular_tags_empty", caller="template")
@@ -350,7 +359,10 @@ def popular_tags(tags_dict: dict[str, list[Any]], limit: int = 10) -> list[tuple
     result = tag_counts[:limit]
 
     logger.debug(
-        "popular_tags_computed", total_tags=len(tags_dict), limit=limit, result_count=len(result)
+        "popular_tags_computed",
+        total_tags=len(tags_dict),
+        limit=limit,
+        result_count=len(result),
     )
 
     return result
@@ -359,19 +371,19 @@ def popular_tags(tags_dict: dict[str, list[Any]], limit: int = 10) -> list[tuple
 def tag_url(tag: str) -> str:
     """
     Generate URL for a tag page.
-    
+
     Uses bengal.utils.text.slugify for tag slug generation.
-    
+
     Args:
         tag: Tag name
-    
+
     Returns:
         URL path to tag page
-    
+
     Example:
         <a href="{{ tag_url('python') }}">Python</a>
         # <a href="/tags/python/">Python</a>
-        
+
     """
     if not tag:
         return "/tags/"
@@ -387,19 +399,19 @@ def tag_url(tag: str) -> str:
 def has_tag(page: Any, tag: str) -> bool:
     """
     Check if page has a specific tag.
-    
+
     Args:
         page: Page to check
         tag: Tag to look for
-    
+
     Returns:
         True if page has the tag
-    
+
     Example:
         {% if page | has_tag('tutorial') %}
           <span class="badge">Tutorial</span>
         {% endif %}
-        
+
     """
     if not hasattr(page, "tags") or not page.tags:
         return False

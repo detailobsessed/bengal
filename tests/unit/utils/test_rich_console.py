@@ -43,7 +43,10 @@ class TestShouldUseRich:
 
     def test_disabled_in_ci(self, monkeypatch):
         """Test that rich is disabled in CI environments."""
-        from bengal.utils.observability.rich_console import reset_console, should_use_rich
+        from bengal.utils.observability.rich_console import (
+            reset_console,
+            should_use_rich,
+        )
 
         monkeypatch.setenv("CI", "true")
         reset_console()
@@ -52,7 +55,10 @@ class TestShouldUseRich:
 
     def test_disabled_with_dumb_terminal(self, monkeypatch):
         """Test that rich is disabled with TERM=dumb."""
-        from bengal.utils.observability.rich_console import reset_console, should_use_rich
+        from bengal.utils.observability.rich_console import (
+            reset_console,
+            should_use_rich,
+        )
 
         monkeypatch.setenv("TERM", "dumb")
         monkeypatch.delenv("CI", raising=False)
@@ -62,7 +68,10 @@ class TestShouldUseRich:
 
     def test_disabled_without_terminal(self, monkeypatch):
         """Test that rich is disabled when not a terminal."""
-        from bengal.utils.observability.rich_console import reset_console, should_use_rich
+        from bengal.utils.observability.rich_console import (
+            reset_console,
+            should_use_rich,
+        )
 
         # Clean environment
         monkeypatch.delenv("CI", raising=False)
@@ -81,7 +90,10 @@ class TestDetectEnvironment:
 
     def test_detects_ci_environment(self, monkeypatch):
         """Test that CI environments are detected."""
-        from bengal.utils.observability.rich_console import detect_environment, reset_console
+        from bengal.utils.observability.rich_console import (
+            detect_environment,
+            reset_console,
+        )
 
         monkeypatch.setenv("CI", "true")
         reset_console()
@@ -91,7 +103,10 @@ class TestDetectEnvironment:
 
     def test_detects_github_actions(self, monkeypatch):
         """Test that GitHub Actions is detected as CI."""
-        from bengal.utils.observability.rich_console import detect_environment, reset_console
+        from bengal.utils.observability.rich_console import (
+            detect_environment,
+            reset_console,
+        )
 
         monkeypatch.delenv("CI", raising=False)
         monkeypatch.setenv("GITHUB_ACTIONS", "true")
@@ -102,7 +117,10 @@ class TestDetectEnvironment:
 
     def test_detects_docker(self, tmp_path):
         """Test that Docker containers are detected."""
-        from bengal.utils.observability.rich_console import detect_environment, reset_console
+        from bengal.utils.observability.rich_console import (
+            detect_environment,
+            reset_console,
+        )
 
         reset_console()
         env = detect_environment()
@@ -112,7 +130,10 @@ class TestDetectEnvironment:
 
     def test_detects_git_repo(self, tmp_path, monkeypatch):
         """Test that Git repositories are detected."""
-        from bengal.utils.observability.rich_console import detect_environment, reset_console
+        from bengal.utils.observability.rich_console import (
+            detect_environment,
+            reset_console,
+        )
 
         # Change to temp directory
         monkeypatch.chdir(tmp_path)
@@ -130,7 +151,10 @@ class TestDetectEnvironment:
 
     def test_returns_cpu_count(self):
         """Test that CPU count is returned."""
-        from bengal.utils.observability.rich_console import detect_environment, reset_console
+        from bengal.utils.observability.rich_console import (
+            detect_environment,
+            reset_console,
+        )
 
         reset_console()
         env = detect_environment()
@@ -141,7 +165,10 @@ class TestDetectEnvironment:
 
     def test_returns_terminal_info(self):
         """Test that terminal info is returned."""
-        from bengal.utils.observability.rich_console import detect_environment, reset_console
+        from bengal.utils.observability.rich_console import (
+            detect_environment,
+            reset_console,
+        )
 
         reset_console()
         env = detect_environment()

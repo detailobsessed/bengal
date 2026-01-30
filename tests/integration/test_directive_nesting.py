@@ -12,8 +12,6 @@ These tests verify that:
 3. Warnings include directive name and context
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.parsing.backends.mistune import MistuneParser
@@ -279,4 +277,3 @@ Orphaned step
         # Both valid and orphaned should render
         assert "Valid step" in result
         assert "Orphaned step" in result
-

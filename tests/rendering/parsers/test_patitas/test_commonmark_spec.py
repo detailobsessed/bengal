@@ -20,8 +20,6 @@ See: plan/rfc-patitas-commonmark-compliance.md for roadmap
 
 """
 
-from __future__ import annotations
-
 import json
 import re
 from pathlib import Path
@@ -42,22 +40,22 @@ SPEC_TESTS: list[dict[str, Any]] = json.loads(SPEC_PATH.read_text())
 
 def normalize_html(html_string: str) -> str:
     """Normalize HTML for comparison.
-    
+
     CommonMark spec allows variation in:
     - Attribute ordering
     - Self-closing tag style (<br> vs <br />)
     - Whitespace handling
     - Entity encoding
-    
+
     This normalizer makes comparisons more forgiving while still
     validating semantic correctness.
-    
+
     Args:
         html_string: Raw HTML string to normalize
-    
+
     Returns:
         Normalized HTML string for comparison
-        
+
     """
     result = html_string.strip()
 
@@ -102,17 +100,17 @@ def normalize_html(html_string: str) -> str:
 
 def normalize_for_comparison(expected: str, actual: str) -> tuple[str, str]:
     """Normalize both expected and actual HTML for comparison.
-    
+
     This applies additional normalization rules that account for
     Patitas-specific rendering choices that are still spec-compliant.
-    
+
     Args:
         expected: Expected HTML from spec
         actual: Actual HTML from Patitas
-    
+
     Returns:
         Tuple of (normalized_expected, normalized_actual)
-        
+
     """
     expected = normalize_html(expected)
     actual = normalize_html(actual)
@@ -145,7 +143,8 @@ def pytest_generate_tests(metafunc: Any) -> None:
     """Generate test parameters from spec examples."""
     if "example" in metafunc.fixturenames:
         ids = [
-            f"example_{ex['example']:03d}_{ex['section'].replace(' ', '_')}" for ex in SPEC_TESTS
+            f"example_{ex['example']:03d}_{ex['section'].replace(' ', '_')}"
+            for ex in SPEC_TESTS
         ]
         metafunc.parametrize("example", SPEC_TESTS, ids=ids)
 
@@ -174,7 +173,9 @@ class TestCommonMarkSpec:
 
         # Parse and compare
         actual_html = parse(markdown)
-        expected_norm, actual_norm = normalize_for_comparison(expected_html, actual_html)
+        expected_norm, actual_norm = normalize_for_comparison(
+            expected_html, actual_html
+        )
 
         assert actual_norm == expected_norm, (
             f"\n\nExample {example_num} ({section}) failed:\n"
@@ -200,7 +201,9 @@ class TestSpecSections:
             sections[section].append(ex)
         return sections
 
-    def test_section_count(self, section_examples: dict[str, list[dict[str, Any]]]) -> None:
+    def test_section_count(
+        self, section_examples: dict[str, list[dict[str, Any]]]
+    ) -> None:
         """Verify we have all expected sections."""
         # Core sections from the spec
         core_sections = {
@@ -257,9 +260,9 @@ class TestBaseline:
 
 def generate_baseline_report() -> str:
     """Generate a detailed baseline report.
-    
+
     Run this function to get current pass/fail stats by section.
-        
+
     """
     results: dict[str, dict[str, int]] = {}
 
@@ -274,7 +277,9 @@ def generate_baseline_report() -> str:
 
         try:
             actual = parse(example["markdown"])
-            expected_norm, actual_norm = normalize_for_comparison(example["html"], actual)
+            expected_norm, actual_norm = normalize_for_comparison(
+                example["html"], actual
+            )
             if expected_norm == actual_norm:
                 results[section]["passed"] += 1
             else:

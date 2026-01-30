@@ -43,15 +43,15 @@ logger = get_logger(__name__)
 class FileWatcher(Protocol):
     """
     Protocol for file watchers.
-    
+
     File watchers yield tuples of (changed_paths, event_types) asynchronously.
     Implementations must handle filtering internally.
-    
+
     Event types follow watchfiles conventions:
         - "created": File was created
         - "modified": File was modified
         - "deleted": File was deleted
-        
+
     """
 
     async def watch(self) -> AsyncIterator[tuple[set[Path], set[str]]]:
@@ -70,13 +70,13 @@ class FileWatcher(Protocol):
 class WatchfilesWatcher:
     """
     File watcher using Rust-based watchfiles.
-    
+
     Features:
         - 10-50x faster change detection on large codebases
         - Built-in debouncing and batching
         - Native async iterator support
         - Low memory footprint
-        
+
     """
 
     def __init__(
@@ -122,7 +122,9 @@ class WatchfilesWatcher:
             watch_filter=watch_filter,
         ):
             paths = {Path(path) for (_, path) in changes}
-            event_types = {change_type_map.get(change, "modified") for (change, _) in changes}
+            event_types = {
+                change_type_map.get(change, "modified") for (change, _) in changes
+            }
             yield (paths, event_types)
 
 
@@ -132,18 +134,18 @@ def create_watcher(
 ) -> WatchfilesWatcher:
     """
     Create a file watcher for the given paths.
-    
+
     Args:
         paths: Directories to watch
         ignore_filter: Function returning True if path should be ignored
-    
+
     Returns:
         Configured FileWatcher instance
-    
+
     Example:
             >>> filter = IgnoreFilter(glob_patterns=["*.pyc"])
             >>> watcher = create_watcher([Path(".")], filter)
-        
+
     """
     logger.debug("file_watcher_backend", backend="watchfiles")
     return WatchfilesWatcher(paths, ignore_filter)

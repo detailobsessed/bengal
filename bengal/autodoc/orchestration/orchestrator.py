@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Any
 import yaml
 
 from bengal.autodoc.base import DocElement
-from bengal.errors import BengalCacheError, ErrorCode
 from bengal.autodoc.orchestration.extractors import (
     extract_cli,
     extract_openapi,
@@ -38,8 +37,9 @@ from bengal.autodoc.orchestration.section_builders import (
 from bengal.autodoc.orchestration.utils import normalize_autodoc_config, slugify
 from bengal.core.page import Page
 from bengal.core.section import Section
-from bengal.utils.primitives.hashing import hash_dict
+from bengal.errors import BengalCacheError, ErrorCode
 from bengal.utils.observability.logger import get_logger
+from bengal.utils.primitives.hashing import hash_dict
 
 if TYPE_CHECKING:
     from bengal.core.site import Site
@@ -50,28 +50,28 @@ logger = get_logger(__name__)
 class VirtualAutodocOrchestrator:
     """
     Orchestrate API documentation generation as virtual pages.
-    
+
     This orchestrator creates virtual Page and Section objects that integrate
     directly into the site's build pipeline, rendered via theme templates
     without intermediate markdown files.
-    
+
     Architecture:
         1. Extract DocElements from source (Python, CLI, or OpenAPI)
         2. Create virtual Section hierarchy based on element type
         3. Create virtual Pages for each documentable element
         4. Return (pages, sections) tuple for integration into site
-    
+
     Supports:
         - Python API docs (modules, classes, functions)
         - CLI docs (commands, command groups)
         - OpenAPI docs (endpoints, schemas)
-    
+
     Benefits over markdown-based approach:
         - No intermediate markdown files to manage
         - Direct HTML rendering (bypass markdown parsing)
         - Better layout control (card-based API Explorer)
         - Faster builds (no parse → render → parse cycle)
-        
+
     """
 
     def __init__(self, site: Site, cache: Any | None = None):
@@ -90,7 +90,8 @@ class VirtualAutodocOrchestrator:
         self.cache = cache  # RFC: rfc-build-performance-optimizations Phase 3
         # Use site's config directly (supports both YAML and TOML)
         self.config = site.config.get("autodoc", {})
-        self.normalized_config = normalize_autodoc_config(site.config)
+        config_dict = dict(site.config) if hasattr(site.config, "__iter__") else {}
+        self.normalized_config = normalize_autodoc_config(config_dict)
         self.python_config = self.config.get("python", {})
         self.cli_config = self.config.get("cli", {})
         self.openapi_config = self.config.get("openapi", {})
@@ -133,7 +134,9 @@ class VirtualAutodocOrchestrator:
         """
         result = AutodocRunResult()
 
-        elements_section = payload.get("elements") if isinstance(payload, dict) else None
+        elements_section = (
+            payload.get("elements") if isinstance(payload, dict) else None
+        )
         if not isinstance(elements_section, dict):
             return [], [], result
 
@@ -216,7 +219,9 @@ class VirtualAutodocOrchestrator:
                 "python",
                 self._resolve_output_prefix,
                 lambda e, dt: get_element_metadata(e, dt, self._resolve_output_prefix),
-                lambda e, s, dt: find_parent_section(e, s, dt, self._resolve_output_prefix),
+                lambda e, s, dt: find_parent_section(
+                    e, s, dt, self._resolve_output_prefix
+                ),
                 result,
             )
             all_pages.extend(python_pages)
@@ -229,7 +234,9 @@ class VirtualAutodocOrchestrator:
         ):
             all_elements.extend(cli_elements)
             result.extracted += len(cli_elements)
-            cli_sections = create_cli_sections(cli_elements, self.site, self._resolve_output_prefix)
+            cli_sections = create_cli_sections(
+                cli_elements, self.site, self._resolve_output_prefix
+            )
             all_sections.update(cli_sections)
             cli_pages, _ = create_pages(
                 cli_elements,
@@ -238,7 +245,9 @@ class VirtualAutodocOrchestrator:
                 "cli",
                 self._resolve_output_prefix,
                 lambda e, dt: get_element_metadata(e, dt, self._resolve_output_prefix),
-                lambda e, s, dt: find_parent_section(e, s, dt, self._resolve_output_prefix),
+                lambda e, s, dt: find_parent_section(
+                    e, s, dt, self._resolve_output_prefix
+                ),
                 result,
             )
             all_pages.extend(cli_pages)
@@ -266,7 +275,9 @@ class VirtualAutodocOrchestrator:
                 "openapi",
                 self._resolve_output_prefix,
                 lambda e, dt: get_element_metadata(e, dt, self._resolve_output_prefix),
-                lambda e, s, dt: find_parent_section(e, s, dt, self._resolve_output_prefix),
+                lambda e, s, dt: find_parent_section(
+                    e, s, dt, self._resolve_output_prefix
+                ),
                 result,
                 consolidate=consolidate,
             )
@@ -282,7 +293,9 @@ class VirtualAutodocOrchestrator:
         index_pages = create_index_pages(all_sections, self.site)
         all_pages.extend(index_pages)
 
-        root_sections = [section for section in all_sections.values() if section.parent is None]
+        root_sections = [
+            section for section in all_sections.values() if section.parent is None
+        ]
         return all_pages, root_sections, result
 
     def _derive_python_prefix(self) -> str:
@@ -327,7 +340,9 @@ class VirtualAutodocOrchestrator:
 
         spec_path = self.site.root_path / spec_file
         if not spec_path.exists():
-            logger.debug("autodoc_openapi_spec_not_found_for_prefix", path=str(spec_path))
+            logger.debug(
+                "autodoc_openapi_spec_not_found_for_prefix", path=str(spec_path)
+            )
             self._openapi_prefix_cache = "api/rest"
             return self._openapi_prefix_cache
 
@@ -377,7 +392,9 @@ class VirtualAutodocOrchestrator:
 
         elif doc_type == "openapi":
             explicit = self.openapi_config.get("output_prefix")
-            resolved = explicit.strip("/") if explicit else self._derive_openapi_prefix()
+            resolved = (
+                explicit.strip("/") if explicit else self._derive_openapi_prefix()
+            )
 
         elif doc_type == "cli":
             explicit = self.cli_config.get("output_prefix")
@@ -394,13 +411,13 @@ class VirtualAutodocOrchestrator:
         if not isinstance(self.config, dict) or not self.config:
             return False
 
-        python_enabled = self.python_config.get("virtual_pages", True) and self.python_config.get(
-            "enabled", True
-        )
+        python_enabled = self.python_config.get(
+            "virtual_pages", True
+        ) and self.python_config.get("enabled", True)
 
-        cli_enabled = self.cli_config.get("virtual_pages", True) and self.cli_config.get(
-            "enabled", True
-        )
+        cli_enabled = self.cli_config.get(
+            "virtual_pages", True
+        ) and self.cli_config.get("enabled", True)
 
         openapi_enabled = self.openapi_config.get(
             "virtual_pages", True
@@ -489,7 +506,9 @@ class VirtualAutodocOrchestrator:
             try:
                 # RFC: rfc-build-performance-optimizations Phase 3
                 # Pass cache to extractor if available
-                python_elements = extract_python(self.site, self.python_config, cache=self.cache)
+                python_elements = extract_python(
+                    self.site, self.python_config, cache=self.cache
+                )
                 if python_elements:
                     self._last_extracted_elements["python"] = python_elements
                     all_elements.extend(python_elements)
@@ -498,14 +517,18 @@ class VirtualAutodocOrchestrator:
                         python_elements, self.site, self._resolve_output_prefix
                     )
                     all_sections.update(python_sections)
-                    python_pages, page_result = create_pages(
+                    python_pages, _page_result = create_pages(
                         python_elements,
                         python_sections,
                         self.site,
                         "python",
                         self._resolve_output_prefix,
-                        lambda e, dt: get_element_metadata(e, dt, self._resolve_output_prefix),
-                        lambda e, s, dt: find_parent_section(e, s, dt, self._resolve_output_prefix),
+                        lambda e, dt: get_element_metadata(
+                            e, dt, self._resolve_output_prefix
+                        ),
+                        lambda e, s, dt: find_parent_section(
+                            e, s, dt, self._resolve_output_prefix
+                        ),
                         result,
                     )
                     all_pages.extend(python_pages)
@@ -530,7 +553,9 @@ class VirtualAutodocOrchestrator:
                     ) from e
 
         # 2. Extract CLI documentation
-        if self.cli_config.get("virtual_pages", True) and self.cli_config.get("enabled", True):
+        if self.cli_config.get("virtual_pages", True) and self.cli_config.get(
+            "enabled", True
+        ):
             try:
                 cli_elements = extract_cli(self.site, self.cli_config)
                 if cli_elements:
@@ -547,8 +572,12 @@ class VirtualAutodocOrchestrator:
                         self.site,
                         "cli",
                         self._resolve_output_prefix,
-                        lambda e, dt: get_element_metadata(e, dt, self._resolve_output_prefix),
-                        lambda e, s, dt: find_parent_section(e, s, dt, self._resolve_output_prefix),
+                        lambda e, dt: get_element_metadata(
+                            e, dt, self._resolve_output_prefix
+                        ),
+                        lambda e, s, dt: find_parent_section(
+                            e, s, dt, self._resolve_output_prefix
+                        ),
                         result,
                     )
                     all_pages.extend(cli_pages)
@@ -583,7 +612,10 @@ class VirtualAutodocOrchestrator:
                     all_elements.extend(openapi_elements)
                     result.extracted += len(openapi_elements)
                     openapi_sections = create_openapi_sections(
-                        openapi_elements, self.site, self._resolve_output_prefix, all_sections
+                        openapi_elements,
+                        self.site,
+                        self._resolve_output_prefix,
+                        all_sections,
                     )
                     all_sections.update(openapi_sections)
 
@@ -596,8 +628,12 @@ class VirtualAutodocOrchestrator:
                         self.site,
                         "openapi",
                         self._resolve_output_prefix,
-                        lambda e, dt: get_element_metadata(e, dt, self._resolve_output_prefix),
-                        lambda e, s, dt: find_parent_section(e, s, dt, self._resolve_output_prefix),
+                        lambda e, dt: get_element_metadata(
+                            e, dt, self._resolve_output_prefix
+                        ),
+                        lambda e, s, dt: find_parent_section(
+                            e, s, dt, self._resolve_output_prefix
+                        ),
                         result,
                         consolidate=consolidate,
                     )
@@ -671,7 +707,9 @@ class VirtualAutodocOrchestrator:
 
         # First, add aggregating parent sections (they take priority)
         aggregating_keys = {
-            key for key, s in all_sections.items() if s.metadata.get("is_aggregating_section")
+            key
+            for key, s in all_sections.items()
+            if s.metadata.get("is_aggregating_section")
         }
         root_section_keys.update(aggregating_keys)
 
@@ -692,7 +730,9 @@ class VirtualAutodocOrchestrator:
                 continue
             root_section_keys.add(prefix)
 
-        root_sections = [s for key, s in all_sections.items() if key in root_section_keys]
+        root_sections = [
+            s for key, s in all_sections.items() if key in root_section_keys
+        ]
 
         logger.debug(
             "virtual_autodoc_root_sections",

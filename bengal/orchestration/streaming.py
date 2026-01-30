@@ -40,19 +40,20 @@ from __future__ import annotations
 
 import gc
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
-    from bengal.protocols import ProgressReporter
     from bengal.build.tracking import DependencyTracker
     from bengal.core.page import Page
     from bengal.core.site import Site
+    from bengal.orchestration.build_context import BuildContext
     from bengal.orchestration.render import RenderOrchestrator
     from bengal.orchestration.stats import BuildStats
     from bengal.orchestration.types import ProgressManagerProtocol
-    from bengal.orchestration.build_context import BuildContext
+    from bengal.protocols import ProgressReporter
+    from bengal.protocols.core import SiteLike
     from bengal.utils.observability.cli_progress import LiveProgressManager
 
 logger = get_logger(__name__)
@@ -61,43 +62,43 @@ logger = get_logger(__name__)
 class StreamingRenderOrchestrator:
     """
     Memory-optimized page rendering using knowledge graph analysis.
-    
+
     Processes pages in connectivity-based order to minimize memory usage.
     Hub pages are rendered first and kept in memory (they're referenced
     often), while leaf pages are streamed in batches with immediate release.
-    
+
     Strategy:
         1. Build/reuse knowledge graph to identify page connectivity
         2. Classify into hubs, mid-tier, and leaves based on link count
         3. Render hubs first (keep in memory for cross-page references)
         4. Process mid-tier in batches
         5. Stream leaves with gc.collect() after each batch
-    
+
     Memory Savings:
         80-90% reduction on large sites by not keeping all pages in memory.
         Leaf pages (typically 70-80% of content) are released immediately.
-    
+
     Creation:
         Direct instantiation: StreamingRenderOrchestrator(site)
             - Created by BuildOrchestrator when memory_optimized=True
             - Requires Site instance with pages populated
-    
+
     Attributes:
         site: Site instance containing pages for rendering
-    
+
     Relationships:
         - Uses: KnowledgeGraph for connectivity analysis
         - Uses: RenderOrchestrator for actual page rendering
         - Used by: BuildOrchestrator when memory_optimized flag is set
-    
+
     Best For:
         Sites with 5K+ pages where memory is constrained. For smaller sites,
         the graph analysis overhead exceeds benefits.
-    
+
     Example:
         streaming = StreamingRenderOrchestrator(site)
         streaming.process(pages, parallel=True, batch_size=100)
-        
+
     """
 
     def __init__(self, site: Site):
@@ -220,7 +221,12 @@ class StreamingRenderOrchestrator:
 
                 orchestrator = RenderOrchestrator(self.site)
                 orchestrator.process(
-                    pages, parallel, quiet, tracker, stats, progress_manager=progress_manager
+                    pages,
+                    parallel,
+                    quiet,
+                    tracker,
+                    stats,
+                    progress_manager=progress_manager,
                 )
                 return
 
@@ -230,7 +236,7 @@ class StreamingRenderOrchestrator:
             elif not quiet:
                 print("  🧠 Analyzing connectivity for memory optimization...")
             logger.debug("building_knowledge_graph_for_streaming_render")
-            graph = KnowledgeGraph(self.site)
+            graph = KnowledgeGraph(cast("SiteLike", self.site))
             graph.build()
 
         # Get connectivity-based layers
@@ -247,7 +253,10 @@ class StreamingRenderOrchestrator:
         total_leaves = len(leaves_to_render)
 
         logger.info(
-            "streaming_render_layers", hubs=total_hubs, mid_tier=total_mid, leaves=total_leaves
+            "streaming_render_layers",
+            hubs=total_hubs,
+            mid_tier=total_mid,
+            leaves=total_leaves,
         )
 
         msg_h = f"     Hubs: {total_hubs} (keep in memory)"
@@ -275,7 +284,7 @@ class StreamingRenderOrchestrator:
             elif not quiet:
                 print(msg)
             renderer.process(
-                hubs_to_render,
+                cast(list["Page"], hubs_to_render),
                 parallel,
                 quiet,
                 tracker,
@@ -296,7 +305,7 @@ class StreamingRenderOrchestrator:
                 print(msg)
             self._render_batches(
                 renderer,
-                mid_to_render,
+                cast(list["Page"], mid_to_render),
                 batch_size,
                 parallel,
                 quiet,
@@ -318,7 +327,7 @@ class StreamingRenderOrchestrator:
                 print(msg)
             self._render_batches(
                 renderer,
-                leaves_to_render,
+                cast(list["Page"], leaves_to_render),
                 batch_size,
                 parallel,
                 quiet,

@@ -31,8 +31,6 @@ See Also:
 
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from bengal.errors import BengalGraphError, ErrorCode
@@ -50,20 +48,20 @@ logger = get_logger(__name__)
 class GraphReporter:
     """
     Generates reports and insights from knowledge graph analysis.
-    
+
     Provides methods for:
     - Formatted statistics output
     - Actionable recommendations for site structure
     - SEO-focused insights
     - Content gap detection
-    
+
     Example:
             >>> from bengal.analysis import KnowledgeGraph
             >>> graph = KnowledgeGraph(site)
             >>> graph.build()
             >>> reporter = GraphReporter(graph)
             >>> print(reporter.format_stats())
-        
+
     """
 
     def __init__(self, graph: KnowledgeGraph) -> None:
@@ -137,8 +135,7 @@ class GraphReporter:
         output.append("")
         if orphans:
             output.append(f"Orphaned Pages ({len(orphans)} with 0 incoming refs):")
-            for orphan in orphans[:5]:
-                output.append(f"  • {orphan.source_path}")
+            output.extend(f"  • {orphan.source_path}" for orphan in orphans[:5])
             if len(orphans) > 5:
                 output.append(f"  ... and {len(orphans) - 5} more")
         else:
@@ -148,7 +145,9 @@ class GraphReporter:
         output.append("")
         output.append("💡 Insights:")
         leaf_pct = m.leaf_count / m.total_pages * 100 if m.total_pages > 0 else 0
-        output.append(f"  • {leaf_pct:.0f}% of pages are leaves (could stream for memory savings)")
+        output.append(
+            f"  • {leaf_pct:.0f}% of pages are leaves (could stream for memory savings)"
+        )
 
         if orphans:
             output.append(
@@ -160,24 +159,21 @@ class GraphReporter:
         if recommendations:
             output.append("")
             output.append("🎯 Actionable Recommendations:")
-            for rec in recommendations:
-                output.append(f"  {rec}")
+            output.extend(f"  {rec}" for rec in recommendations)
 
         # Add SEO insights
         seo_insights = self.get_seo_insights()
         if seo_insights:
             output.append("")
             output.append("🎯 SEO Insights:")
-            for insight in seo_insights:
-                output.append(f"  {insight}")
+            output.extend(f"  {insight}" for insight in seo_insights)
 
         # Add content gap detection
         content_gaps = self.get_content_gaps()
         if content_gaps:
             output.append("")
             output.append("🔍 Content Gaps:")
-            for gap in content_gaps[:5]:  # Limit to top 5
-                output.append(f"  {gap}")
+            output.extend(f"  {gap}" for gap in content_gaps[:5])  # Limit to top 5
             if len(content_gaps) > 5:
                 output.append(f"  ... and {len(content_gaps) - 5} more gaps")
 
@@ -210,7 +206,9 @@ class GraphReporter:
             )
         elif len(orphans) > 0:
             orphan_titles = ", ".join(p.title for p in orphans[:3])
-            recommendations.append(f"🔗 Link {len(orphans)} orphaned pages: {orphan_titles}")
+            recommendations.append(
+                f"🔗 Link {len(orphans)} orphaned pages: {orphan_titles}"
+            )
 
         # Underlinked valuable content (only if PageRank computed)
         try:
@@ -227,7 +225,9 @@ class GraphReporter:
 
             # Find orphans with above-average PageRank (these are valuable but unlinked)
             high_pagerank_orphans = [
-                p for p in orphans if self._graph._pagerank_results.get_score(p) > avg_score * 1.5
+                p
+                for p in orphans
+                if self._graph._pagerank_results.get_score(p) > avg_score * 1.5
             ]
             if high_pagerank_orphans and len(high_pagerank_orphans) < len(orphans):
                 top_underlinked = high_pagerank_orphans[:3]
@@ -333,7 +333,9 @@ class GraphReporter:
                 if reachable:
                     avg_depth = sum(reachable) / len(reachable)
                     max_depth = max(reachable)
-                    insights.append(f"📏 Average link depth from homepage: {avg_depth:.1f} clicks")
+                    insights.append(
+                        f"📏 Average link depth from homepage: {avg_depth:.1f} clicks"
+                    )
                     insights.append(f"📏 Maximum link depth: {max_depth} clicks")
                     if max_depth > 4:
                         insights.append(
@@ -459,7 +461,9 @@ class GraphReporter:
                     links_within_tag = 0
                     for page in pages:
                         outgoing = self._graph.outgoing_refs.get(page, set())
-                        links_within_tag += sum(1 for target in outgoing if target in pages)
+                        links_within_tag += sum(
+                            1 for target in outgoing if target in pages
+                        )
 
                     # Expected links: at least 1 link per 2 pages
                     expected_links = len(pages) // 2
@@ -491,13 +495,17 @@ class GraphReporter:
             for section_name, pages in section_to_pages.items():
                 if len(pages) >= 5:
                     # Check if section has an index page
-                    has_index = any(p.source_path.stem in ("_index", "index") for p in pages)
+                    has_index = any(
+                        p.source_path.stem in ("_index", "index") for p in pages
+                    )
 
                     # Count links within section
                     links_within_section = 0
                     for page in pages:
                         outgoing = self._graph.outgoing_refs.get(page, set())
-                        links_within_section += sum(1 for target in outgoing if target in pages)
+                        links_within_section += sum(
+                            1 for target in outgoing if target in pages
+                        )
 
                     if not has_index and links_within_section < len(pages):
                         gaps.append(

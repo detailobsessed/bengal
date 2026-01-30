@@ -26,13 +26,13 @@ logger = get_logger(__name__)
 class NavigationValidator(BaseValidator):
     """
     Validates page navigation integrity.
-    
+
     Checks:
     - next/prev links form valid chains
     - Breadcrumbs (ancestors) are valid
     - Section navigation is consistent
     - No orphaned pages in navigation
-        
+
     """
 
     name = "Navigation"
@@ -76,22 +76,32 @@ class NavigationValidator(BaseValidator):
 
         for page in regular_pages:
             # Check if next exists and points to valid page
-            if hasattr(page, "next") and page.next:
-                if page.next not in site.pages:
-                    issues.append(f"{page.source_path.name}: page.next points to non-existent page")
-                elif not page.next.output_path or not page.next.output_path.exists():
+            next_page = getattr(page, "next", None)
+            if next_page:
+                if next_page not in site.pages:
                     issues.append(
-                        f"{page.source_path.name}: page.next points to page without output"
+                        f"{page.source_path.name}: page.next points to non-existent page"
                     )
+                else:
+                    next_output = getattr(next_page, "output_path", None)
+                    if not next_output or not next_output.exists():
+                        issues.append(
+                            f"{page.source_path.name}: page.next points to page without output"
+                        )
 
             # Check if prev exists and points to valid page
-            if hasattr(page, "prev") and page.prev:
-                if page.prev not in site.pages:
-                    issues.append(f"{page.source_path.name}: page.prev points to non-existent page")
-                elif not page.prev.output_path or not page.prev.output_path.exists():
+            prev_page = getattr(page, "prev", None)
+            if prev_page:
+                if prev_page not in site.pages:
                     issues.append(
-                        f"{page.source_path.name}: page.prev points to page without output"
+                        f"{page.source_path.name}: page.prev points to non-existent page"
                     )
+                else:
+                    prev_output = getattr(prev_page, "output_path", None)
+                    if not prev_output or not prev_output.exists():
+                        issues.append(
+                            f"{page.source_path.name}: page.prev points to page without output"
+                        )
 
         if issues:
             results.append(
@@ -104,7 +114,9 @@ class NavigationValidator(BaseValidator):
             )
         else:
             results.append(
-                CheckResult.success(f"Next/prev navigation validated ({len(regular_pages)} pages)")
+                CheckResult.success(
+                    f"Next/prev navigation validated ({len(regular_pages)} pages)"
+                )
             )
 
         return results
@@ -120,7 +132,7 @@ class NavigationValidator(BaseValidator):
                 continue
 
             # Check each ancestor in the breadcrumb trail
-            for i, ancestor in enumerate(page.ancestors):
+            for i, ancestor in enumerate(page.ancestors or []):  # type: ignore[arg-type]
                 # Verify ancestor is a valid Section or Page
                 # Sections don't have output_path, but they have 'name' and 'url' properties
                 if not (hasattr(ancestor, "url") and hasattr(ancestor, "title")):
@@ -131,12 +143,17 @@ class NavigationValidator(BaseValidator):
 
                 # Validate ancestor exists in site's section tree when it looks like a Section
                 try:
-                    if getattr(ancestor, "href", None) and getattr(ancestor, "source_path", None):
+                    if getattr(ancestor, "href", None) and getattr(
+                        ancestor, "source_path", None
+                    ):
                         # Consider it a Section-like object; verify membership by identity or URL
                         sections = getattr(site, "sections", []) or []
                         found = any(
                             (s is ancestor)
-                            or (getattr(s, "href", None) == getattr(ancestor, "href", None))
+                            or (
+                                getattr(s, "href", None)
+                                == getattr(ancestor, "href", None)
+                            )
                             for s in sections
                         )
                         if not found:
@@ -170,7 +187,9 @@ class NavigationValidator(BaseValidator):
                     f"{sum('not found in site.sections' in d for d in issues)} breadcrumb issue(s)",
                     code="H111",
                     recommendation="Ensure all breadcrumb ancestors correspond to real sections.",
-                    details=[d for d in issues if "not found in site.sections" in d][:5],
+                    details=[d for d in issues if "not found in site.sections" in d][
+                        :5
+                    ],
                 )
             ]
 
@@ -220,9 +239,11 @@ class NavigationValidator(BaseValidator):
                 )
 
             # Check if section pages have proper parent reference
-            for page in section_pages:
-                if hasattr(page, "_section") and page._section != section:
-                    issues.append(f"Page {page.source_path.name} has wrong section reference")
+            issues.extend(
+                f"Page {page.source_path.name} has wrong section reference"
+                for page in section_pages
+                if hasattr(page, "_section") and page._section != section
+            )
 
         if issues:
             results.append(
@@ -235,7 +256,9 @@ class NavigationValidator(BaseValidator):
             )
         else:
             results.append(
-                CheckResult.success(f"Section navigation validated ({len(site.sections)} sections)")
+                CheckResult.success(
+                    f"Section navigation validated ({len(site.sections)} sections)"
+                )
             )
 
         return results
@@ -252,8 +275,12 @@ class NavigationValidator(BaseValidator):
             for p in regular_pages
             if (hasattr(p, "next") and p.next) or (hasattr(p, "prev") and p.prev)
         )
-        with_breadcrumbs = sum(1 for p in regular_pages if hasattr(p, "ancestors") and p.ancestors)
-        in_sections = sum(1 for p in regular_pages if hasattr(p, "_section") and p._section)
+        with_breadcrumbs = sum(
+            1 for p in regular_pages if hasattr(p, "ancestors") and p.ancestors
+        )
+        in_sections = sum(
+            1 for p in regular_pages if hasattr(p, "_section") and p._section
+        )
 
         # Calculate coverage
         total = len(regular_pages)
@@ -271,7 +298,9 @@ class NavigationValidator(BaseValidator):
                 )
             )
         else:
-            results.append(CheckResult.info("No regular pages to validate navigation coverage"))
+            results.append(
+                CheckResult.info("No regular pages to validate navigation coverage")
+            )
 
         return results
 
@@ -394,7 +423,7 @@ class NavigationValidator(BaseValidator):
                     details=missing_attr[:10],
                 )
             )
-        
+
         if missing_file:
             results.append(
                 CheckResult.error(
@@ -405,8 +434,12 @@ class NavigationValidator(BaseValidator):
                     details=missing_file[:10],
                 )
             )
-        
+
         if not missing_attr and not missing_file:
-            results.append(CheckResult.success(f"All {len(site.pages)} pages have output_path set and exist on disk"))
+            results.append(
+                CheckResult.success(
+                    f"All {len(site.pages)} pages have output_path set and exist on disk"
+                )
+            )
 
         return results

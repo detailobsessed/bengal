@@ -5,8 +5,6 @@ Validates the registry functions: register_backend, get_highlighter,
 list_backends, and highlight.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.errors import BengalConfigError

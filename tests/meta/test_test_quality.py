@@ -13,8 +13,6 @@ that reduce test effectiveness:
 Run with: pytest tests/meta/test_test_quality.py -v
 """
 
-from __future__ import annotations
-
 import ast
 import re
 from pathlib import Path
@@ -27,12 +25,11 @@ TESTS_DIR = Path(__file__).parent.parent
 
 def _get_test_files() -> list[Path]:
     """Get all test files (excluding meta tests)."""
-    test_files = []
-    for f in TESTS_DIR.rglob("test_*.py"):
-        # Exclude meta tests and __pycache__
-        if "meta" not in f.parts and "__pycache__" not in f.parts:
-            test_files.append(f)
-    return test_files
+    return [
+        f
+        for f in TESTS_DIR.rglob("test_*.py")
+        if "meta" not in f.parts and "__pycache__" not in f.parts
+    ]
 
 
 def _parse_python_file(file_path: Path) -> ast.Module | None:
@@ -47,10 +44,17 @@ def _parse_python_file(file_path: Path) -> ast.Module | None:
 class TestNoWeakAssertions:
     """Tests that catch weak/useless assertions."""
 
-    @pytest.mark.parametrize("pattern,description,threshold", [
-        (r"^\s*assert\s+True\s*$", "assert True", 10),  # Start with baseline, reduce over time
-        (r"^\s*assert\s+False\s*$", "assert False (always fails)", 0),
-    ])
+    @pytest.mark.parametrize(
+        "pattern,description,threshold",
+        [
+            (
+                r"^\s*assert\s+True\s*$",
+                "assert True",
+                10,
+            ),  # Start with baseline, reduce over time
+            (r"^\s*assert\s+False\s*$", "assert False (always fails)", 0),
+        ],
+    )
     def test_no_bare_assert_true_or_false(
         self,
         pattern: str,
@@ -77,7 +81,11 @@ class TestNoWeakAssertions:
             f"Found '{description}' in {len(violations)} locations (threshold: {threshold}). "
             f"These assertions provide no value:\n"
             + "\n".join(f"  - {v}" for v in violations[:10])
-            + (f"\n  ... and {len(violations) - 10} more" if len(violations) > 10 else "")
+            + (
+                f"\n  ... and {len(violations) - 10} more"
+                if len(violations) > 10
+                else ""
+            )
         )
 
     def test_limited_bare_assert_result(self) -> None:
@@ -140,7 +148,7 @@ class TestMockUsagePatterns:
         # Report high-density files for prioritization
         if high_density_files:
             high_density_files.sort(key=lambda x: x[1], reverse=True)
-            print(f"\nHigh mock density files (>50 mocks):")
+            print("\nHigh mock density files (>50 mocks):")
             for f, count in high_density_files[:10]:
                 print(f"  {count:3d} mocks: {f}")
 
@@ -219,8 +227,7 @@ class TestHardeningProgress:
         # Tests get marked as hardening is identified
         if count > 0:
             print(
-                "Run: pytest --collect-only -m needs_hardening "
-                "to see all tests needing hardening"
+                "Run: pytest --collect-only -m needs_hardening to see all tests needing hardening"
             )
 
 
@@ -259,7 +266,7 @@ class TestAssertionHelperUsage:
                 usages += len(matches)
                 files_using += 1
 
-        print(f"\nBehavioral assertion helper usage:")
+        print("\nBehavioral assertion helper usage:")
         print(f"  Total usages: {usages}")
         print(f"  Files using helpers: {files_using}")
 
@@ -289,8 +296,7 @@ class TestGoldenFileScenarios:
         ]
 
         assert len(scenarios) >= 1, (
-            "No golden scenarios found. "
-            "Create tests/golden/*/input/ directories."
+            "No golden scenarios found. Create tests/golden/*/input/ directories."
         )
 
         print(f"\nGolden scenarios: {scenarios}")

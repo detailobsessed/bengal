@@ -19,8 +19,6 @@ Usage:
 Note: Requires `hypothesis` package (optional dev dependency).
 """
 
-from __future__ import annotations
-
 import hashlib
 import shutil
 import tempfile
@@ -32,11 +30,11 @@ import pytest
 
 # hypothesis is an optional dev dependency
 hypothesis = pytest.importorskip("hypothesis")
-from hypothesis import HealthCheck, assume, given, settings
-from hypothesis import strategies as st
+from hypothesis import HealthCheck, assume, given, settings  # noqa: E402
+from hypothesis import strategies as st  # noqa: E402
 
 if TYPE_CHECKING:
-    from bengal.core.site import Site
+    pass
 
 
 # =============================================================================
@@ -162,7 +160,7 @@ class TestIncrementalProperties:
         build's pages_to_build list.
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
-            site_dir, content_dir, page_paths = _create_warm_site(Path(tmp_dir))
+            site_dir, _content_dir, page_paths = _create_warm_site(Path(tmp_dir))
 
             # Modify selected pages
             time.sleep(0.01)  # Ensure mtime changes
@@ -205,7 +203,7 @@ class TestIncrementalProperties:
         should detect the file has changed.
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
-            site_dir, content_dir, page_paths = _create_warm_site(Path(tmp_dir))
+            site_dir, _content_dir, page_paths = _create_warm_site(Path(tmp_dir))
 
             # Modify first page with generated content
             time.sleep(0.01)
@@ -244,8 +242,7 @@ class TestIncrementalProperties:
         if decision is not None:
             pages_rebuilt = len(decision.pages_to_build)
             assert pages_rebuilt == 0, (
-                f"Unchanged files rebuilt: {pages_rebuilt} pages. "
-                f"Expected 0 on warm cache."
+                f"Unchanged files rebuilt: {pages_rebuilt} pages. Expected 0 on warm cache."
             )
 
     def test_consecutive_builds_stable(
@@ -272,8 +269,7 @@ class TestIncrementalProperties:
             if decision is not None:
                 pages_rebuilt = len(decision.pages_to_build)
                 assert pages_rebuilt == 0, (
-                    f"The {label} build rebuilt {pages_rebuilt} pages. "
-                    f"Expected stable 0 rebuilds."
+                    f"The {label} build rebuilt {pages_rebuilt} pages. Expected stable 0 rebuilds."
                 )
 
 
@@ -297,7 +293,7 @@ class TestIncrementalEquivalence:
         the same output as a full (non-incremental) build.
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
-            site_dir, content_dir, page_paths = _create_warm_site(Path(tmp_dir))
+            site_dir, _content_dir, page_paths = _create_warm_site(Path(tmp_dir))
 
             # Modify selected pages
             time.sleep(0.01)
@@ -357,9 +353,7 @@ class TestCacheProperties:
         loaded = BuildCache.load(cache_path, use_lock=False)
 
         # PROPERTY: Fingerprint should survive round-trip
-        assert len(loaded.file_fingerprints) == 1, (
-            "Fingerprint lost in round-trip"
-        )
+        assert len(loaded.file_fingerprints) == 1, "Fingerprint lost in round-trip"
 
     @given(content=st.text(min_size=1, max_size=1000))
     @settings(max_examples=50)
@@ -387,11 +381,15 @@ class TestCacheProperties:
             fp1 = cache1.file_fingerprints.get(str(test_file))
 
             # Different content
-            test_file.write_text(f"---\ntitle: Different\n---\n{content[::-1]}")  # Reversed
+            test_file.write_text(
+                f"---\ntitle: Different\n---\n{content[::-1]}"
+            )  # Reversed
             cache2 = BuildCache()
             cache2.update_file(test_file)
             fp2 = cache2.file_fingerprints.get(str(test_file))
 
             # PROPERTY: Different content should produce different fingerprint
             assert fp1 is not None and fp2 is not None
-            assert fp1["hash"] != fp2["hash"], "Different content produced same fingerprint"
+            assert fp1["hash"] != fp2["hash"], (
+                "Different content produced same fingerprint"
+            )

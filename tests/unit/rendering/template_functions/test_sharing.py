@@ -1,7 +1,5 @@
 """Tests for bengal.rendering.template_functions.sharing module."""
 
-from __future__ import annotations
-
 from bengal.rendering.template_functions.sharing import (
     email_share_url,
     facebook_share_url,

@@ -22,7 +22,16 @@ Get Started
 
     def test_button_colors(self, parser):
         """Test all button colors."""
-        colors = ["primary", "secondary", "success", "danger", "warning", "info", "light", "dark"]
+        colors = [
+            "primary",
+            "secondary",
+            "success",
+            "danger",
+            "warning",
+            "info",
+            "light",
+            "dark",
+        ]
 
         for color in colors:
             markdown = f""":::{{button}} /test/
@@ -202,7 +211,12 @@ class TestButtonEdgeCases:
         """)
         result = parser.parse(markdown, {})
         # Check for any of these indicating success
-        assert "→" in result or "arrow-right" in result or "<svg" in result or "Button" in result
+        assert (
+            "→" in result
+            or "arrow-right" in result
+            or "<svg" in result
+            or "Button" in result
+        )
 
 
 class TestButtonIntegration:

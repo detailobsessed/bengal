@@ -24,8 +24,6 @@ Usage:
         -o "hypothesis_profile=ci"
 """
 
-from __future__ import annotations
-
 import hashlib
 import re
 from pathlib import Path
@@ -112,7 +110,7 @@ def _create_site_with_content(
     content: dict[str, str],
     *,
     base_config: dict | None = None,
-) -> "Site":
+) -> Site:
     """
     Create a Bengal site with the given content.
 
@@ -211,7 +209,7 @@ class TestBuildProperties:
 
         For any valid site content, running build() twice should produce
         exactly the same output files with identical content.
-        
+
         Note: Uses dev_mode=True to exclude build_time from index.json,
         since build_time is expected to change between builds (it records
         when the build happened, not a content-derived value).
@@ -220,7 +218,7 @@ class TestBuildProperties:
 
         tmp_path = tmp_path_factory.mktemp("idempotent")
         site = _create_site_with_content(tmp_path, content)
-        
+
         # Enable dev_mode to exclude build_time from index.json
         # build_time changes every build by design - it's not part of idempotency
         site.dev_mode = True
@@ -327,7 +325,9 @@ class TestBuildProperties:
         # Note: Some pages may be excluded by config, so we check subset
         # rather than exact equality
         missing = source_pages - output_files - {"index"}  # index handled separately
-        assert len(missing) <= len(source_pages) * 0.1, (  # Allow 10% missing (drafts, etc.)
+        assert (
+            len(missing) <= len(source_pages) * 0.1
+        ), (  # Allow 10% missing (drafts, etc.)
             f"Too many source pages missing from output: {missing}"
         )
 
@@ -364,10 +364,10 @@ class TestURLProperties:
         slug = slugify(title)
 
         # PROPERTY: Slug should be URL-safe when input has alphanumeric chars
-        assert slug, f"Empty slug for title: {repr(title)}"
+        assert slug, f"Empty slug for title: {title!r}"
         # Allow lowercase, numbers, hyphens, and underscores (all URL-safe)
         assert re.match(r"^[a-z0-9_-]+$", slug), (
-            f"Invalid slug '{slug}' for title: {repr(title)}"
+            f"Invalid slug '{slug}' for title: {title!r}"
         )
 
 
@@ -411,11 +411,11 @@ class TestTaxonomyProperties:
         # Add a page with multiple tags
         if len(tags) >= 2:
             content["multi_tag.md"] = (
-                f"---\n"
-                f"title: Multi Tag Page\n"
-                f"tags:\n"
+                "---\n"
+                "title: Multi Tag Page\n"
+                "tags:\n"
                 + "\n".join(f"  - {t}" for t in tags[:2])
-                + f"\n---\n\n# Multi Tag\n\nMultiple tags."
+                + "\n---\n\n# Multi Tag\n\nMultiple tags."
             )
 
         # Create site with taxonomy config
@@ -461,7 +461,11 @@ tags = "tags"
 
                     # Check that pages have this tag
                     for page in term_pages:
-                        page_tags = getattr(page, "tags", []) if hasattr(page, "tags") else []
-                        assert tag in page_tags or tag.lower() in [t.lower() for t in page_tags], (
+                        page_tags = (
+                            getattr(page, "tags", []) if hasattr(page, "tags") else []
+                        )
+                        assert tag in page_tags or tag.lower() in [
+                            t.lower() for t in page_tags
+                        ], (
                             f"Page {page.source_path} in tag '{tag}' but doesn't have that tag"
                         )

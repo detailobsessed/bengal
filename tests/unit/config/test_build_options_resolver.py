@@ -8,8 +8,6 @@ Note: parallel processing is now auto-detected via should_parallelize().
 The force_sequential option is used to explicitly disable parallel processing.
 """
 
-from __future__ import annotations
-
 from bengal.config.build_options_resolver import CLIFlags, resolve_build_options
 from bengal.config.defaults import DEFAULTS
 

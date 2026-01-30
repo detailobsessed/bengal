@@ -37,19 +37,19 @@ def configure_traceback(
 ) -> None:
     """
     Configure traceback handling with proper precedence.
-    
+
     Precedence order:
     1. CLI --traceback flag (highest)
     2. CLI --debug flag (maps to full traceback)
     3. File-based config ([dev.traceback] in site config)
     4. Environment variable (BENGAL_TRACEBACK)
     5. Default (minimal)
-    
+
     Args:
         debug: Whether debug mode is enabled (maps to full traceback)
         traceback: Explicit traceback style (full, compact, minimal, off)
         site: Optional Site instance to apply file-based config from
-    
+
     Example:
         @click.command()
         @click.option("--debug", is_flag=True)
@@ -57,7 +57,7 @@ def configure_traceback(
         def my_command(debug: bool, traceback: str | None):
             configure_traceback(debug, traceback)
             # ... rest of command ...
-        
+
     """
     # Step 1: Map --debug flag to traceback style if --traceback not explicitly set
     map_debug_flag_to_traceback(debug, traceback)
@@ -71,7 +71,13 @@ def configure_traceback(
     # Step 4: Apply file-based config if site is available (lowest precedence)
     if site:
         try:
-            apply_file_traceback_to_env(site.config)
+            # Get raw config dict if using Config accessor, otherwise use as-is
+            config_dict = (
+                getattr(site.config, "raw", site.config)
+                if hasattr(site.config, "raw")
+                else site.config
+            )
+            apply_file_traceback_to_env(config_dict)  # type: ignore[arg-type]
             TracebackConfig.from_environment().install()
         except Exception as e:
             # Silently fail if file config can't be applied
@@ -80,4 +86,3 @@ def configure_traceback(
                 error=str(e),
                 error_type=type(e).__name__,
             )
-            pass

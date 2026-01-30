@@ -180,7 +180,9 @@ class BenchmarkResults:
             deltas["full_build_time_delta"] = (
                 current["full_build"]["time"] - previous["full_build"]["time"]
             )
-            deltas["speedup_delta"] = current["single_speedup"] - previous["single_speedup"]
+            deltas["speedup_delta"] = (
+                current["single_speedup"] - previous["single_speedup"]
+            )
 
         # Add more specific delta calculations as needed
 
@@ -314,7 +316,9 @@ if __name__ == "__main__":
 
     elif args.command == "compare":
         if args.files:
-            comparison = manager.compare_results(args.benchmark, args.files[0], args.files[1])
+            comparison = manager.compare_results(
+                args.benchmark, args.files[0], args.files[1]
+            )
         else:
             comparison = manager.compare_results(args.benchmark)
 

@@ -11,8 +11,6 @@ Note: Bengal uses Rosettes as the default syntax highlighting backend,
 which has a simpler output format than Pygments (no table-based line numbers).
 """
 
-from __future__ import annotations
-
 import re
 
 import pytest
@@ -174,12 +172,12 @@ line7 = 7
 class TestHllNewlinePlacement:
     """
     Test that .hll spans properly wrap highlighted lines.
-    
+
     Rosettes outputs .hll spans that wrap individual lines. The span
     structure is: <span class="hll">...tokens...</span>
-    
+
     where the newline appears AFTER the closing tag.
-        
+
     """
 
     @pytest.fixture
@@ -379,10 +377,10 @@ const b = 2;
 
 class TestHighlightingWithLineNumbers:
     """Test highlighting behavior with .hll line highlighting.
-    
+
     Note: Rosettes uses a simpler format without table-based line numbers.
     Line highlighting is done via .hll spans that wrap entire lines.
-        
+
     """
 
     @pytest.fixture
@@ -444,10 +442,10 @@ z = 3
 
 class TestHighlightSyntaxParsing:
     """Test that various highlight syntax patterns are parsed correctly.
-    
+
     Note: We test parsing indirectly through the parser output since
     parse_hl_lines is an internal function.
-        
+
     """
 
     @pytest.fixture

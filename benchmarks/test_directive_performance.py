@@ -19,17 +19,15 @@ Expected results:
     - No performance regression from migration
 """
 
-from __future__ import annotations
-
 from collections import defaultdict
 from pathlib import Path
 
 import pytest
+from patitas.nodes import Directive
+from patitas.parser import Parser
 
 from bengal.parsing.backends.patitas import create_markdown
 from bengal.parsing.backends.patitas.directives import create_default_registry
-from patitas.nodes import Directive
-from patitas.parser import Parser
 
 
 def bengal_site_root() -> Path:
@@ -88,7 +86,9 @@ def count_directives_in_ast(ast_nodes) -> dict[str, int]:
 class TestDirectiveParsingPerformance:
     """Benchmark directive parsing on real site content."""
 
-    def test_parse_sampled_site_files(self, benchmark, site_markdown_files, patitas_parser):
+    def test_parse_sampled_site_files(
+        self, benchmark, site_markdown_files, patitas_parser
+    ):
         """Parse sampled markdown files from the real site (full pipeline)."""
         # Sample files for faster execution
         sample_size = min(20, len(site_markdown_files))

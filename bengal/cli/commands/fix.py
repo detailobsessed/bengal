@@ -59,19 +59,19 @@ def fix(
 ) -> None:
     """
     Auto-fix common health check issues.
-    
+
     Analyzes health check results and applies safe fixes automatically.
     By default, only applies SAFE fixes (reversible, no side effects).
-    
+
     Examples:
         bengal fix
         bengal fix --validator Directives
         bengal fix --dry-run  # See what would be fixed
         bengal fix --all  # Apply all fixes including confirmations
-    
+
     See also:
         bengal validate - Run health checks
-        
+
     """
     cli = get_cli_output()
 
@@ -83,7 +83,11 @@ def fix(
     cli.info("Loading site and running health checks...")
 
     site = load_site_from_cli(
-        source=source, config=None, environment=None, profile=BuildProfile.WRITER, cli=cli
+        source=source,
+        config=None,
+        environment=None,
+        profile=BuildProfile.WRITER,
+        cli=cli,
     )
 
     # Apply file-based traceback config after site is loaded
@@ -94,7 +98,7 @@ def fix(
     site.discover_assets()
 
     # Run health checks
-    health_check = HealthCheck(site)
+    health_check = HealthCheck(site)  # type: ignore[arg-type]
     report = health_check.run(profile=BuildProfile.WRITER)
 
     # Analyze report and suggest fixes
@@ -103,7 +107,9 @@ def fix(
 
     # Filter by validator if specified
     if validator:
-        fixes = [f for f in fixes if f.check_result and f.check_result.validator == validator]
+        fixes = [
+            f for f in fixes if f.check_result and f.check_result.validator == validator
+        ]
 
     if not fixes:
         cli.success("No fixes available - all checks passed!")

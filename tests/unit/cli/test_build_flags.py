@@ -32,7 +32,9 @@ class TestFlagValidation:
         """Test that --quiet and --theme-dev cannot be used together."""
         runner = CliRunner()
         with runner.isolated_filesystem():
-            result = runner.invoke(main, ["site", "build", "--quiet", "--theme-dev", "."])
+            result = runner.invoke(
+                main, ["site", "build", "--quiet", "--theme-dev", "."]
+            )
 
             assert result.exit_code != 0
             assert "--quiet cannot be used with --dev or --theme-dev" in result.output
@@ -42,7 +44,15 @@ class TestFlagValidation:
         runner = CliRunner()
         with runner.isolated_filesystem():
             result = runner.invoke(
-                main, ["site", "build", "--memory-optimized", "--perf-profile", "test.stats", "."]
+                main,
+                [
+                    "site",
+                    "build",
+                    "--memory-optimized",
+                    "--perf-profile",
+                    "test.stats",
+                    ".",
+                ],
             )
 
             assert result.exit_code != 0
@@ -82,7 +92,9 @@ class TestProfilePrecedence:
         """Test that --theme-dev takes precedence over --profile."""
         from bengal.utils.observability.profile import BuildProfile
 
-        profile = BuildProfile.from_cli_args(dev=False, theme_dev=True, profile="writer")
+        profile = BuildProfile.from_cli_args(
+            dev=False, theme_dev=True, profile="writer"
+        )
 
         assert profile == BuildProfile.THEME_DEV
 
@@ -100,7 +112,9 @@ class TestProfilePrecedence:
         """Test that --debug maps to developer profile."""
         from bengal.utils.observability.profile import BuildProfile
 
-        profile = BuildProfile.from_cli_args(debug=True, dev=False, theme_dev=False, profile=None)
+        profile = BuildProfile.from_cli_args(
+            debug=True, dev=False, theme_dev=False, profile=None
+        )
 
         assert profile == BuildProfile.DEVELOPER
 
@@ -108,7 +122,9 @@ class TestProfilePrecedence:
         """Test that default profile is WRITER."""
         from bengal.utils.observability.profile import BuildProfile
 
-        profile = BuildProfile.from_cli_args(dev=False, theme_dev=False, profile=None, debug=False)
+        profile = BuildProfile.from_cli_args(
+            dev=False, theme_dev=False, profile=None, debug=False
+        )
 
         assert profile == BuildProfile.WRITER
 
@@ -168,7 +184,9 @@ class TestValidateFlag:
         result = runner.invoke(main, ["site", "build", "--help"])
 
         assert "--validate" in result.output
-        assert "Validate templates" in result.output or "validate" in result.output.lower()
+        assert (
+            "Validate templates" in result.output or "validate" in result.output.lower()
+        )
 
     # Note: Full integration test would require a test site with templates
     # This is covered by integration tests
@@ -191,10 +209,10 @@ class TestStrictMode:
 
 class TestConfigRespect:
     """Test that CLI respects config values when flags not explicitly passed.
-    
+
     RFC: rfc-path-to-200-pgs - discovered that --parallel default=True
     was ignoring config settings. These tests prevent regressions.
-        
+
     """
 
     def test_no_parallel_flag_default_is_false(self):
@@ -241,7 +259,9 @@ class TestConfigRespect:
                 break
 
         assert fast_option is not None
-        assert fast_option.default is None, "--fast default should be None to allow config fallback"
+        assert fast_option.default is None, (
+            "--fast default should be None to allow config fallback"
+        )
 
 
 class TestFastMode:
@@ -269,7 +289,9 @@ class TestFastMode:
         """Test that --fast and --theme-dev cannot be used together."""
         runner = CliRunner()
         with runner.isolated_filesystem():
-            result = runner.invoke(main, ["site", "build", "--fast", "--theme-dev", "."])
+            result = runner.invoke(
+                main, ["site", "build", "--fast", "--theme-dev", "."]
+            )
 
             assert result.exit_code != 0
             assert "--fast cannot be used with --dev or --theme-dev" in result.output

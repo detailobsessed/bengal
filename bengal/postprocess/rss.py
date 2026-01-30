@@ -37,24 +37,24 @@ if TYPE_CHECKING:
 class RSSGenerator:
     """
     Generates RSS/Atom feeds for content syndication.
-    
+
     Creates rss.xml files with recent pages sorted by date, enabling readers
     to subscribe to site updates via RSS readers. Supports i18n per-locale feeds
     and respects page visibility settings.
-    
+
     Creation:
         Direct instantiation: RSSGenerator(site)
             - Created by PostprocessOrchestrator for RSS generation
             - Requires Site instance with rendered pages
-    
+
     Attributes:
         site: Site instance with pages and configuration
         logger: Logger instance for RSS generation events
-    
+
     Relationships:
         - Used by: PostprocessOrchestrator for RSS generation
         - Uses: Site for page access and configuration
-    
+
     Features:
         - Includes title, link, description for each item
         - Sorted by date (newest first)
@@ -62,11 +62,11 @@ class RSSGenerator:
         - RFC 822 date formatting
         - i18n per-locale feeds (if i18n enabled)
         - Respects page visibility (draft, rss visibility)
-    
+
     Examples:
         generator = RSSGenerator(site)
         generator.generate()  # Writes rss.xml to output directory
-        
+
     """
 
     def __init__(self, site: Any, collector: OutputCollector | None = None) -> None:
@@ -181,7 +181,9 @@ class RSSGenerator:
                             link = f"/{rel_path}".replace("\\", "/")
                         link = link.replace("/index.html", "/")
                     except ValueError:
-                        link = f"{baseurl}/{page.slug}/" if baseurl else f"/{page.slug}/"
+                        link = (
+                            f"{baseurl}/{page.slug}/" if baseurl else f"/{page.slug}/"
+                        )
                 else:
                     link = f"{baseurl}/{page.slug}/" if baseurl else f"/{page.slug}/"
                 ET.SubElement(item, "link").text = link
@@ -191,7 +193,9 @@ class RSSGenerator:
                     desc_text = page.metadata["description"]
                 else:
                     content = (
-                        page.content[:200] + "..." if len(page.content) > 200 else page.content
+                        page.content[:200] + "..."
+                        if len(page.content) > 200
+                        else page.content
                     )
                     desc_text = content
                 ET.SubElement(item, "description").text = desc_text
@@ -225,7 +229,9 @@ class RSSGenerator:
                 if self._collector:
                     from bengal.core.output import OutputType
 
-                    self._collector.record(rss_path, OutputType.XML, phase="postprocess")
+                    self._collector.record(
+                        rss_path, OutputType.XML, phase="postprocess"
+                    )
 
                 self.logger.info(
                     "rss_generation_complete",
@@ -275,7 +281,9 @@ class RSSGenerator:
                 self._indent(child, level + 1)
                 last_child = child
             # Set tail on last child (last_child is guaranteed non-None when len(elem) > 0)
-            if last_child is not None and (not last_child.tail or not last_child.tail.strip()):
+            if last_child is not None and (
+                not last_child.tail or not last_child.tail.strip()
+            ):
                 last_child.tail = indent
         elif level and (not elem.tail or not elem.tail.strip()):
             elem.tail = indent

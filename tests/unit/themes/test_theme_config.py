@@ -1,7 +1,5 @@
 """Tests for ThemeConfig error handling."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -111,4 +109,7 @@ appearance:
 
         assert exc_info.value.suggestion is not None
         # Should mention at least one valid palette
-        assert "blue-bengal" in exc_info.value.suggestion or "snow-lynx" in exc_info.value.suggestion
+        assert (
+            "blue-bengal" in exc_info.value.suggestion
+            or "snow-lynx" in exc_info.value.suggestion
+        )

@@ -13,13 +13,11 @@ Fixes covered:
 See: plan/drafted/rfc-cache-invalidation-fixes.md
 """
 
-from __future__ import annotations
-
 import time
 from pathlib import Path
 
-from bengal.cache.build_cache import BuildCache
 from bengal.build.tracking import DependencyTracker
+from bengal.cache.build_cache import BuildCache
 from bengal.config.hash import compute_config_hash
 
 
@@ -169,7 +167,9 @@ class TestUnchangedTemplateFingerprintBehavior:
 class TestContentHashDependencyValidation:
     """Tests for Fix 5: Content hash validation."""
 
-    def test_touched_but_unchanged_dependency_is_cache_hit(self, tmp_path: Path) -> None:
+    def test_touched_but_unchanged_dependency_is_cache_hit(
+        self, tmp_path: Path
+    ) -> None:
         """File touch without content change should not invalidate cache."""
         dep = tmp_path / "partial.html"
         dep.write_text("unchanged content")

@@ -11,8 +11,6 @@ Features:
 - Accessibility analysis → Emit warnings
 """
 
-from __future__ import annotations
-
 import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -23,8 +21,8 @@ if TYPE_CHECKING:
     from bengal.protocols import SiteLike
 
 __all__ = [
-    "ContentIntelligence",
     "ContentAnalysisReport",
+    "ContentIntelligence",
     "analyze_content_intelligence",
 ]
 
@@ -58,7 +56,7 @@ class ContentSuggestion:
 class ContentAnalysisReport:
     """
     Report of content intelligence analysis.
-    
+
     Attributes:
         pages_analyzed: Number of pages analyzed
         code_blocks_detected: Pages with multiple code blocks (tab candidates)
@@ -66,7 +64,7 @@ class ContentAnalysisReport:
         navigation_patterns: Detected navigation patterns
         suggestions: List of improvement suggestions
         speculation_recommendations: Recommended speculation rules
-        
+
     """
 
     pages_analyzed: int = 0
@@ -81,7 +79,9 @@ class ContentAnalysisReport:
         return {
             "pages_analyzed": self.pages_analyzed,
             "code_blocks_detected": self.code_blocks_detected,
-            "accessibility_warnings": [w.to_dict() for w in self.accessibility_warnings],
+            "accessibility_warnings": [
+                w.to_dict() for w in self.accessibility_warnings
+            ],
             "navigation_patterns": self.navigation_patterns,
             "suggestions_count": len(self.suggestions),
             "suggestions": [s.to_dict() for s in self.suggestions[:20]],  # Top 20
@@ -104,18 +104,21 @@ class ContentAnalysisReport:
 
         if self.code_blocks_detected:
             lines.append("  📑 Pages with multiple code blocks (consider tabs):")
-            for path in self.code_blocks_detected[:5]:
-                lines.append(f"     • {path}")
+            lines.extend(f"     • {path}" for path in self.code_blocks_detected[:5])
             if len(self.code_blocks_detected) > 5:
                 lines.append(f"     ... and {len(self.code_blocks_detected) - 5} more")
             lines.append("")
 
         if self.accessibility_warnings:
             lines.append("  ⚠️  Accessibility warnings:")
-            for warning in self.accessibility_warnings[:5]:
-                lines.append(f"     • {warning.page_path}: {warning.message}")
+            lines.extend(
+                f"     • {w.page_path}: {w.message}"
+                for w in self.accessibility_warnings[:5]
+            )
             if len(self.accessibility_warnings) > 5:
-                lines.append(f"     ... and {len(self.accessibility_warnings) - 5} more")
+                lines.append(
+                    f"     ... and {len(self.accessibility_warnings) - 5} more"
+                )
             lines.append("")
 
         if self.speculation_recommendations:
@@ -131,15 +134,15 @@ class ContentAnalysisReport:
 class ContentIntelligence:
     """
     Analyzes content for Document Application optimizations.
-    
+
     This runs at author-time (during build) to provide intelligent
     suggestions for improving the user experience.
-    
+
     Example usage:
         intel = ContentIntelligence(site)
         report = intel.analyze()
         print(report.summary())
-        
+
     """
 
     def __init__(self, site: SiteLike):
@@ -190,7 +193,9 @@ class ContentIntelligence:
         # Track navigation patterns
         self._track_navigation_patterns(page, path, report)
 
-    def _check_code_blocks(self, path: str, content: str, report: ContentAnalysisReport) -> None:
+    def _check_code_blocks(
+        self, path: str, content: str, report: ContentAnalysisReport
+    ) -> None:
         """
         Check for multiple code blocks that could be tabs.
 
@@ -204,7 +209,7 @@ class ContentIntelligence:
 
         if len(languages) >= 3:
             # Check if they're different languages (tab candidate)
-            unique_langs = set(lang for lang in languages if lang)
+            unique_langs = {lang for lang in languages if lang}
             if len(unique_langs) >= 2:
                 report.code_blocks_detected.append(path)
                 report.suggestions.append(
@@ -273,9 +278,13 @@ class ContentIntelligence:
         parts = path.strip("/").split("/")
         if parts and parts[0]:
             section = f"/{parts[0]}/"
-            report.navigation_patterns[section] = report.navigation_patterns.get(section, 0) + 1
+            report.navigation_patterns[section] = (
+                report.navigation_patterns.get(section, 0) + 1
+            )
 
-    def _generate_speculation_recommendations(self, report: ContentAnalysisReport) -> None:
+    def _generate_speculation_recommendations(
+        self, report: ContentAnalysisReport
+    ) -> None:
         """
         Generate speculation rule recommendations based on content analysis.
         """
@@ -302,13 +311,13 @@ class ContentIntelligence:
 def analyze_content_intelligence(site: SiteLike) -> ContentAnalysisReport:
     """
     Convenience function to analyze content intelligence.
-    
+
     Args:
         site: The Bengal site instance
-    
+
     Returns:
         ContentAnalysisReport with analysis results
-        
+
     """
     intel = ContentIntelligence(site)
     return intel.analyze()

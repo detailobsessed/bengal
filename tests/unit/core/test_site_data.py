@@ -9,8 +9,6 @@ Note: Config is now nested (site.title, build.output_dir, etc.)
 See: plan/drafted/rfc-site-responsibility-separation.md
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from types import MappingProxyType
 

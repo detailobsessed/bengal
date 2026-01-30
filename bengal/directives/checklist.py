@@ -41,13 +41,13 @@ VALID_STYLES = frozenset(["default", "numbered", "minimal"])
 class ChecklistOptions(DirectiveOptions):
     """
     Options for checklist directive.
-    
+
     Attributes:
         style: Visual style (default, numbered)
         show_progress: Display completion percentage for task lists
         compact: Tighter spacing for dense lists
         css_class: Additional CSS classes
-    
+
     Example:
         :::{checklist} Prerequisites
         :style: numbered
@@ -57,7 +57,7 @@ class ChecklistOptions(DirectiveOptions):
         - [x] Bengal installed
         - [ ] Git configured
         :::{/checklist}
-        
+
     """
 
     style: str = "default"
@@ -66,7 +66,7 @@ class ChecklistOptions(DirectiveOptions):
     css_class: str = ""
 
     _field_aliases: ClassVar[dict[str, str]] = {"class": "css_class"}
-    _allowed_values: ClassVar[dict[str, list[str]]] = {
+    _allowed_values: ClassVar[dict[str, list[str | int]]] = {
         "style": list(VALID_STYLES),
     }
 
@@ -74,7 +74,7 @@ class ChecklistOptions(DirectiveOptions):
 class ChecklistDirective(BengalDirective):
     """
     Checklist directive using Mistune's fenced syntax.
-    
+
     Syntax:
         :::{checklist} Optional Title
         :style: numbered
@@ -85,17 +85,17 @@ class ChecklistDirective(BengalDirective):
         - [x] Completed item
         - [ ] Unchecked item
         :::{/checklist}
-    
+
     Options:
         :style: - Visual style
             - default: Standard bullet list styling
             - numbered: Ordered list with numbers
         :show-progress: - Show completion bar for task lists
         :compact: - Tighter spacing between items
-    
+
     Supports both regular bullet lists and task lists (checkboxes).
     The directive wraps the list in a styled container.
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["checklist"]
@@ -107,7 +107,7 @@ class ChecklistDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: ChecklistOptions,  # type: ignore[override]
+        options: ChecklistOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -166,7 +166,9 @@ class ChecklistDirective(BengalDirective):
         if has_header:
             parts.append('  <div class="checklist-header">\n')
             if title:
-                parts.append(f'    <p class="checklist-title">{self.escape_html(title)}</p>\n')
+                parts.append(
+                    f'    <p class="checklist-title">{self.escape_html(title)}</p>\n'
+                )
             if show_progress and has_checkboxes:
                 progress_html = self._render_progress_bar(text)
                 if progress_html:

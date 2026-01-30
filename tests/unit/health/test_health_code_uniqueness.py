@@ -7,9 +7,6 @@ This prevents confusion in error tracking, filtering, and CI integration.
 This test would have caught Bug #4: duplicate H701 code in external_refs and connectivity.
 """
 
-from __future__ import annotations
-
-import ast
 import re
 from pathlib import Path
 
@@ -26,11 +23,12 @@ def extract_health_codes_from_file(file_path: Path) -> list[tuple[str, int, str]
     content = file_path.read_text(encoding="utf-8")
 
     # Pattern matches code="H###" or code='H###'
-    pattern = re.compile(r'''code\s*=\s*["']([HV]\d{3})["']''')
+    pattern = re.compile(r"""code\s*=\s*["']([HV]\d{3})["']""")
 
     for i, line in enumerate(content.splitlines(), 1):
-        for match in pattern.finditer(line):
-            codes.append((match.group(1), i, file_path.name))
+        codes.extend(
+            (match.group(1), i, file_path.name) for match in pattern.finditer(line)
+        )
 
     return codes
 
@@ -59,7 +57,7 @@ def get_all_health_codes() -> dict[str, list[tuple[str, int]]]:
             if code in file_codes:
                 continue  # Skip duplicates within same file
             file_codes.add(code)
-            
+
             if code not in codes_map:
                 codes_map[code] = []
             codes_map[code].append((filename, line))
@@ -75,7 +73,9 @@ class TestHealthCheckCodeUniqueness:
         codes_map = get_all_health_codes()
 
         duplicates = {
-            code: locations for code, locations in codes_map.items() if len(locations) > 1
+            code: locations
+            for code, locations in codes_map.items()
+            if len(locations) > 1
         }
 
         if duplicates:
@@ -91,13 +91,14 @@ class TestHealthCheckCodeUniqueness:
         """Health check codes should follow H### or V### convention."""
         codes_map = get_all_health_codes()
 
-        invalid_codes = []
-        for code in codes_map:
-            if not re.match(r"^[HV]\d{3}$", code):
-                invalid_codes.append(code)
+        invalid_codes = [
+            code for code in codes_map if not re.match(r"^[HV]\d{3}$", code)
+        ]
 
         if invalid_codes:
-            pytest.fail(f"Invalid health check codes (should be H### or V###): {invalid_codes}")
+            pytest.fail(
+                f"Invalid health check codes (should be H### or V###): {invalid_codes}"
+            )
 
     def test_health_codes_are_in_expected_ranges(self):
         """
@@ -120,10 +121,7 @@ class TestHealthCheckCodeUniqueness:
 
         # Just verify all codes are in valid ranges (0-9)
         for code in codes_map:
-            if code.startswith("H"):
-                num = int(code[1:])
-                assert 0 <= num < 1000, f"Code {code} out of range"
-            elif code.startswith("V"):
+            if code.startswith(("H", "V")):
                 num = int(code[1:])
                 assert 0 <= num < 1000, f"Code {code} out of range"
 

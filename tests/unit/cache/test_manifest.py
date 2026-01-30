@@ -5,12 +5,8 @@ RFC: rfc-cache-invalidation-architecture
 Tests rebuild tracking and observability.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
-
-import pytest
 
 from bengal.cache.manifest import RebuildEntry, RebuildManifest
 

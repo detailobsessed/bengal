@@ -389,7 +389,11 @@ class TestSectionMetadataInheritance:
         index_page = Page(
             source_path=tmp_path / "docs/_index.md",
             _raw_content="Index content",
-            metadata={"title": "Documentation", "weight": 42, "description": "All the docs"},
+            metadata={
+                "title": "Documentation",
+                "weight": 42,
+                "description": "All the docs",
+            },
         )
 
         section.add_page(index_page)

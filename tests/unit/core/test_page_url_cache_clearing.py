@@ -38,7 +38,9 @@ def test_url_cache_cleared_after_output_path_set():
     # This is the new behavior - fallbacks don't get cached to allow proper URL
     # computation once output_path is set
     assert "_url_cache" not in page.__dict__, "Fallback URL should not be cached"
-    assert "_relative_url_cache" not in page.__dict__, "Fallback relative_url should not be cached"
+    assert "_relative_url_cache" not in page.__dict__, (
+        "Fallback relative_url should not be cached"
+    )
 
     # Now set the proper output_path
     page.output_path = Path("/tmp/public/releases/0.1.0/index.html")
@@ -48,7 +50,9 @@ def test_url_cache_cleared_after_output_path_set():
 
     # Now accessing url should compute the correct value
     correct_url = page.href
-    assert correct_url == "/releases/0.1.0/", f"Should use path-based URL, got: {correct_url}"
+    assert correct_url == "/releases/0.1.0/", (
+        f"Should use path-based URL, got: {correct_url}"
+    )
 
 
 def test_url_correct_when_output_path_set_first():

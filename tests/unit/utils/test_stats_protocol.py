@@ -12,8 +12,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 from bengal.orchestration.stats import BuildStats
 from bengal.server.build_executor import BuildResult
 from bengal.utils.stats_minimal import MinimalStats

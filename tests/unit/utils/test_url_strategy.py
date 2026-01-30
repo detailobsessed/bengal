@@ -72,7 +72,15 @@ class TestURLStrategy:
         result = url_strategy.make_virtual_path(mock_site, "a", "b", "c", "d", "e")
 
         expected = (
-            mock_site.root_path / ".bengal" / "generated" / "a" / "b" / "c" / "d" / "e" / "index.md"
+            mock_site.root_path
+            / ".bengal"
+            / "generated"
+            / "a"
+            / "b"
+            / "c"
+            / "d"
+            / "e"
+            / "index.md"
         )
         assert result == expected
 
@@ -87,7 +95,9 @@ class TestURLStrategy:
     # Archive Output Path Tests
     # =========================================================================
 
-    def test_compute_archive_output_path_top_level(self, url_strategy, mock_site, tmp_path):
+    def test_compute_archive_output_path_top_level(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test archive path for top-level section."""
         section = Section(name="blog", path=tmp_path / "content" / "blog")
 
@@ -98,23 +108,31 @@ class TestURLStrategy:
         expected = mock_site.output_dir / "blog" / "index.html"
         assert result == expected
 
-    def test_compute_archive_output_path_nested_section(self, url_strategy, mock_site, tmp_path):
+    def test_compute_archive_output_path_nested_section(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test archive path for nested section."""
         parent = Section(name="docs", path=tmp_path / "content" / "docs")
         child = Section(name="guides", path=tmp_path / "content" / "docs" / "guides")
         parent.add_subsection(child)
 
-        result = url_strategy.compute_archive_output_path(section=child, page_num=1, site=mock_site)
+        result = url_strategy.compute_archive_output_path(
+            section=child, page_num=1, site=mock_site
+        )
 
         # Should include full hierarchy: docs/guides/
         expected = mock_site.output_dir / "docs" / "guides" / "index.html"
         assert result == expected
 
-    def test_compute_archive_output_path_deeply_nested(self, url_strategy, mock_site, tmp_path):
+    def test_compute_archive_output_path_deeply_nested(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test archive path for deeply nested section."""
         top = Section(name="api", path=tmp_path / "content" / "api")
         middle = Section(name="v2", path=tmp_path / "content" / "api" / "v2")
-        bottom = Section(name="users", path=tmp_path / "content" / "api" / "v2" / "users")
+        bottom = Section(
+            name="users", path=tmp_path / "content" / "api" / "v2" / "users"
+        )
 
         top.add_subsection(middle)
         middle.add_subsection(bottom)
@@ -159,16 +177,24 @@ class TestURLStrategy:
     ):
         """Test nested section archive with pagination."""
         parent = Section(name="docs", path=tmp_path / "content" / "docs")
-        child = Section(name="tutorials", path=tmp_path / "content" / "docs" / "tutorials")
+        child = Section(
+            name="tutorials", path=tmp_path / "content" / "docs" / "tutorials"
+        )
         parent.add_subsection(child)
 
-        result = url_strategy.compute_archive_output_path(section=child, page_num=3, site=mock_site)
+        result = url_strategy.compute_archive_output_path(
+            section=child, page_num=3, site=mock_site
+        )
 
         # Should be: docs/tutorials/page/3/index.html
-        expected = mock_site.output_dir / "docs" / "tutorials" / "page" / "3" / "index.html"
+        expected = (
+            mock_site.output_dir / "docs" / "tutorials" / "page" / "3" / "index.html"
+        )
         assert result == expected
 
-    def test_compute_archive_output_path_skips_root(self, url_strategy, mock_site, tmp_path):
+    def test_compute_archive_output_path_skips_root(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test that 'root' is excluded from hierarchy."""
         # Section with root in hierarchy (should be filtered out)
         section = Section(name="blog", path=tmp_path / "content" / "blog")
@@ -197,17 +223,23 @@ class TestURLStrategy:
 
     def test_compute_tag_output_path_page_one(self, url_strategy, mock_site):
         """Test tag page path for first page."""
-        result = url_strategy.compute_tag_output_path(tag_slug="python", page_num=1, site=mock_site)
+        result = url_strategy.compute_tag_output_path(
+            tag_slug="python", page_num=1, site=mock_site
+        )
 
         expected = mock_site.output_dir / "tags" / "python" / "index.html"
         assert result == expected
 
     def test_compute_tag_output_path_with_pagination(self, url_strategy, mock_site):
         """Test tag page path with pagination."""
-        result = url_strategy.compute_tag_output_path(tag_slug="python", page_num=2, site=mock_site)
+        result = url_strategy.compute_tag_output_path(
+            tag_slug="python", page_num=2, site=mock_site
+        )
 
         # Should be: tags/python/page/2/index.html
-        expected = mock_site.output_dir / "tags" / "python" / "page" / "2" / "index.html"
+        expected = (
+            mock_site.output_dir / "tags" / "python" / "page" / "2" / "index.html"
+        )
         assert result == expected
 
     def test_compute_tag_output_path_multi_word_slug(self, url_strategy, mock_site):
@@ -216,10 +248,14 @@ class TestURLStrategy:
             tag_slug="static-site-generators", page_num=1, site=mock_site
         )
 
-        expected = mock_site.output_dir / "tags" / "static-site-generators" / "index.html"
+        expected = (
+            mock_site.output_dir / "tags" / "static-site-generators" / "index.html"
+        )
         assert result == expected
 
-    def test_compute_tag_output_path_special_chars_in_slug(self, url_strategy, mock_site):
+    def test_compute_tag_output_path_special_chars_in_slug(
+        self, url_strategy, mock_site
+    ):
         """Test tag path with special characters (should be pre-slugified)."""
         # Assumes tag_slug is already slugified by caller
         result = url_strategy.compute_tag_output_path(
@@ -241,7 +277,9 @@ class TestURLStrategy:
 
         assert result == "/"
 
-    def test_url_from_output_path_top_level_page(self, url_strategy, mock_site, tmp_path):
+    def test_url_from_output_path_top_level_page(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test URL for top-level page."""
         output_path = mock_site.output_dir / "about" / "index.html"
 
@@ -257,15 +295,21 @@ class TestURLStrategy:
 
         assert result == "/docs/guide/"
 
-    def test_url_from_output_path_deeply_nested(self, url_strategy, mock_site, tmp_path):
+    def test_url_from_output_path_deeply_nested(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test URL for deeply nested page."""
-        output_path = mock_site.output_dir / "api" / "v2" / "users" / "create" / "index.html"
+        output_path = (
+            mock_site.output_dir / "api" / "v2" / "users" / "create" / "index.html"
+        )
 
         result = url_strategy.url_from_output_path(output_path, mock_site)
 
         assert result == "/api/v2/users/create/"
 
-    def test_url_from_output_path_non_index_html(self, url_strategy, mock_site, tmp_path):
+    def test_url_from_output_path_non_index_html(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test URL for non-index HTML files."""
         output_path = mock_site.output_dir / "about.html"
 
@@ -274,7 +318,9 @@ class TestURLStrategy:
         # Should strip .html and add trailing slash
         assert result == "/about/"
 
-    def test_url_from_output_path_nested_non_index(self, url_strategy, mock_site, tmp_path):
+    def test_url_from_output_path_nested_non_index(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test URL for nested non-index file."""
         output_path = mock_site.output_dir / "blog" / "post-1.html"
 
@@ -282,7 +328,9 @@ class TestURLStrategy:
 
         assert result == "/blog/post-1/"
 
-    def test_url_from_output_path_with_pagination(self, url_strategy, mock_site, tmp_path):
+    def test_url_from_output_path_with_pagination(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test URL for paginated content."""
         output_path = mock_site.output_dir / "blog" / "page" / "2" / "index.html"
 
@@ -367,9 +415,13 @@ class TestURLStrategy:
         )
         url = url_strategy.url_from_output_path(output_path, mock_site)
 
-        assert url == expected_url, f"Page {page_num} should have URL '{expected_url}', got '{url}'"
+        assert url == expected_url, (
+            f"Page {page_num} should have URL '{expected_url}', got '{url}'"
+        )
 
-    def test_virtual_path_structure_is_consistent(self, url_strategy, mock_site, tmp_path):
+    def test_virtual_path_structure_is_consistent(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test that virtual paths have consistent structure."""
         paths = [
             url_strategy.make_virtual_path(mock_site, "archives", "blog"),
@@ -386,7 +438,9 @@ class TestURLStrategy:
             # All should be absolute
             assert path.is_absolute()
 
-    def test_hierarchy_filtering_removes_only_root(self, url_strategy, mock_site, tmp_path):
+    def test_hierarchy_filtering_removes_only_root(
+        self, url_strategy, mock_site, tmp_path
+    ):
         """Test that only 'root' is filtered from hierarchy, not other segments."""
         # Create section with 'root' and 'roots' in hierarchy
         root = Section(name="root", path=tmp_path / "content")
@@ -396,7 +450,9 @@ class TestURLStrategy:
         root.add_subsection(roots)
         roots.add_subsection(blog)
 
-        result = url_strategy.compute_archive_output_path(section=blog, page_num=1, site=mock_site)
+        result = url_strategy.compute_archive_output_path(
+            section=blog, page_num=1, site=mock_site
+        )
 
         # Should filter 'root' but keep 'roots': roots/blog/index.html
         expected = mock_site.output_dir / "roots" / "blog" / "index.html"
@@ -452,12 +508,14 @@ class TestURLStrategy:
         """Verify that all methods are static (class design choice)."""
         import inspect
 
-        for name, _method in inspect.getmembers(URLStrategy, predicate=inspect.isfunction):
+        for name, _method in inspect.getmembers(
+            URLStrategy, predicate=inspect.isfunction
+        ):
             if not name.startswith("_"):
                 # All public methods should be static
-                assert isinstance(inspect.getattr_static(URLStrategy, name), staticmethod), (
-                    f"Method {name} should be static"
-                )
+                assert isinstance(
+                    inspect.getattr_static(URLStrategy, name), staticmethod
+                ), f"Method {name} should be static"
 
     def test_class_has_docstring(self):
         """Verify URLStrategy has comprehensive docstring."""

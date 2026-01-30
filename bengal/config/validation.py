@@ -26,18 +26,18 @@ REQUIRED_KEYS: dict[str, list[str]] = {
 def validate_config(config: dict[str, Any]) -> None:
     """
     Validate required keys exist. Raises ConfigError if missing.
-    
+
     Args:
         config: Configuration dictionary to validate.
-    
+
     Raises:
         BengalConfigError: If any required keys are missing.
-    
+
     Example:
             >>> validate_config({"site": {"title": "My Site"}})
             >>> validate_config({"site": {}})  # Missing title
         BengalConfigError: Missing required config keys: site.title
-        
+
     """
     missing: list[str] = []
     for section, keys in REQUIRED_KEYS.items():
@@ -45,9 +45,7 @@ def validate_config(config: dict[str, Any]) -> None:
         if not isinstance(section_data, dict):
             missing.append(f"{section} (not a dict)")
             continue
-        for key in keys:
-            if key not in section_data:
-                missing.append(f"{section}.{key}")
+        missing.extend(f"{section}.{key}" for key in keys if key not in section_data)
 
     if missing:
         raise BengalConfigError(

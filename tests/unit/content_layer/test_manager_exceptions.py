@@ -7,13 +7,8 @@ These tests verify that:
 - Failed sources can fall back to cache in offline mode
 """
 
-from __future__ import annotations
-
-import asyncio
-from datetime import timedelta
 from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -54,7 +49,7 @@ class MockSource(ContentSource):
 
 class TestManagerCriticalExceptions:
     """Test that critical exceptions are properly re-raised.
-    
+
     Note: We test the logic path rather than actually raising these exceptions,
     as pytest workers don't handle KeyboardInterrupt/SystemExit gracefully.
     """
@@ -67,11 +62,12 @@ class TestManagerCriticalExceptions:
         for exc in critical_exceptions:
             # Simulate what the manager does
             result = exc
-            if isinstance(result, BaseException):
-                if isinstance(result, (KeyboardInterrupt, SystemExit)):
-                    # Would raise here
-                    assert True  # Logic is correct
-                    continue
+            if isinstance(result, BaseException) and isinstance(
+                result, (KeyboardInterrupt, SystemExit)
+            ):
+                # Would raise here
+                assert True  # Logic is correct
+                continue
             pytest.fail(f"Critical exception {type(exc)} not properly detected")
 
     def test_keyboard_interrupt_is_base_exception(self) -> None:
@@ -109,7 +105,9 @@ class TestManagerRegularExceptions:
         assert entries == []
 
     @pytest.mark.asyncio
-    async def test_one_failing_source_doesnt_affect_others(self, tmp_path: Path) -> None:
+    async def test_one_failing_source_doesnt_affect_others(
+        self, tmp_path: Path
+    ) -> None:
         """If one source fails, others should still work."""
         manager = ContentLayerManager(cache_dir=tmp_path / "cache")
 
@@ -181,11 +179,13 @@ class TestManagerCacheFallback:
         }
         (cache_dir / "test.json").write_text(json.dumps([cached_entry]))
         (cache_dir / "test.meta.json").write_text(
-            json.dumps({
-                "source_key": "mock:test:[]",
-                "cached_at": "2024-01-01T00:00:00",
-                "entry_count": 1,
-            })
+            json.dumps(
+                {
+                    "source_key": "mock:test:[]",
+                    "cached_at": "2024-01-01T00:00:00",
+                    "entry_count": 1,
+                }
+            )
         )
 
         manager = ContentLayerManager(cache_dir=cache_dir, offline=True)
@@ -259,7 +259,11 @@ class TestManagerSyncWrapper:
         manager = ContentLayerManager(cache_dir=tmp_path / "cache")
 
         entry = ContentEntry(
-            id="test", slug="test", content="# Test", source_type="mock", source_name="test"
+            id="test",
+            slug="test",
+            content="# Test",
+            source_type="mock",
+            source_name="test",
         )
         manager.sources["test"] = MockSource("test", {}, entries=[entry])
 

@@ -14,8 +14,6 @@ Content
 
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.parsing.backends.mistune import MistuneParser
@@ -196,7 +194,7 @@ Deeply nested content
     def test_five_level_nesting_no_counting(self, parser: MistuneParser) -> None:
         """
         Five levels deep - this would require :::::: with fence counting.
-        
+
         With named closers, we just use ::: everywhere.
         """
         markdown = """\
@@ -337,7 +335,7 @@ Inner tip
         markdown = """\
 :::{note}
 Content
-:::{/note}   
+:::{/note}
 """
         result = parser.parse(markdown, {})
         assert 'class="admonition note"' in result
@@ -353,4 +351,3 @@ Content
         result = parser.parse(markdown, {})
         assert 'class="admonition note"' in result
         assert "Content" in result
-

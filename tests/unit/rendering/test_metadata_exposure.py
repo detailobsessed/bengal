@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime
 from pathlib import Path
 
@@ -34,7 +32,9 @@ def test_bengal_global_standard_exposure_includes_theme_and_build_and_i18n():
 
 
 def test_bengal_global_extended_exposure_includes_rendering_info():
-    site = _make_site({"expose_metadata": "extended", "markdown": {"parser": "mistune"}})
+    site = _make_site(
+        {"expose_metadata": "extended", "markdown": {"parser": "mistune"}}
+    )
     engine = TemplateEngine(site)
     meta = engine.env.globals.get("bengal")
     assert "rendering" in meta

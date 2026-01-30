@@ -13,7 +13,9 @@ class TestConcurrentBuilds:
     def test_concurrent_full_builds(self, tmp_path):
         site_root = Path(tmp_path)
         (site_root / "content").mkdir(parents=True)
-        (site_root / "content" / "index.md").write_text("---\ntitle: Home\n---\n# Home\n")
+        (site_root / "content" / "index.md").write_text(
+            "---\ntitle: Home\n---\n# Home\n"
+        )
         (site_root / "bengal.toml").write_text("title='t'")
 
         def build_once(_):

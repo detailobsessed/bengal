@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 class CodeReference:
     """
     A reference to code in documentation content.
-    
+
     Attributes:
         ref_type: Type of reference (function, class, config, variable)
         name: The referenced name
@@ -47,7 +47,7 @@ class CodeReference:
         raw: Raw matched text
         line: Line number in content
         file_path: Path to the content file
-        
+
     """
 
     ref_type: str  # function, class, config, variable, anchor
@@ -67,14 +67,14 @@ class CodeReference:
 class CodeIndex:
     """
     Index of code symbols for validation.
-    
+
     Attributes:
         functions: Set of function names
         classes: Set of class names
         constants: Set of constant names
         config_options: Set of configuration option names
         modules: Set of module paths
-        
+
     """
 
     functions: set[str] = field(default_factory=set)
@@ -145,20 +145,20 @@ class CodeIndex:
 class CrossReferenceValidator(BaseValidator):
     """
     Validates semantic cross-references in documentation.
-    
+
     Checks that code references (functions, classes, config options) in
     documentation actually exist in the source code.
-    
+
     Creation:
         health_check.register(CrossReferenceValidator(source_dirs=[Path("src")]))
-    
+
     Attributes:
         source_dirs: Directories to search for source code
         code_index: Index of discovered code symbols
         config_options: Known configuration option names
         current_version: Current product version for version checks
         deprecated_versions: List of deprecated version strings
-        
+
     """
 
     name = "cross_references"
@@ -187,7 +187,9 @@ class CrossReferenceValidator(BaseValidator):
         self.deprecated_versions = deprecated_versions or []
         self.code_index: CodeIndex | None = None
 
-    def validate(self, site: SiteLike, build_context: Any | None = None) -> list[CheckResult]:
+    def validate(
+        self, site: SiteLike, build_context: Any | None = None
+    ) -> list[CheckResult]:
         """
         Validate cross-references in all site pages.
 
@@ -403,7 +405,11 @@ class CrossReferenceValidator(BaseValidator):
                         if self.current_version
                         else "Update to current version",
                         details=[f"{file_path}:{line}"],
-                        metadata={"found_version": version, "file_path": file_path, "line": line},
+                        metadata={
+                            "found_version": version,
+                            "file_path": file_path,
+                            "line": line,
+                        },
                     )
                 )
 
@@ -466,15 +472,15 @@ def create_cross_ref_validator(
 ) -> CrossReferenceValidator:
     """
     Factory function to create a configured CrossReferenceValidator.
-    
+
     Args:
         site_root: Root path of the site
         source_dir: Name of source code directory
         config_options: Optional set of known config option names
-    
+
     Returns:
         Configured CrossReferenceValidator
-        
+
     """
     source_path = site_root / source_dir
     source_dirs = [source_path] if source_path.exists() else []

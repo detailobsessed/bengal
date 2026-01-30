@@ -14,11 +14,7 @@ See Also:
 
 """
 
-from __future__ import annotations
-
 from pathlib import Path
-
-import pytest
 
 from bengal.errors import (
     BengalAutodocError,
@@ -128,7 +124,10 @@ class TestBengalValidatorError:
             code=ErrorCode.V004,
             suggestion="Increase timeout or check network",
         )
-        assert "timeout" in error.suggestion.lower() or "network" in error.suggestion.lower()
+        assert (
+            "timeout" in error.suggestion.lower()
+            or "network" in error.suggestion.lower()
+        )
 
     def test_get_related_test_files(self) -> None:
         """Returns appropriate test files for validator errors."""
@@ -219,7 +218,7 @@ class TestConvertedExceptions:
 
     def test_rendering_error_has_original_error(self) -> None:
         """Rendering errors can chain original exception."""
-        original = IOError("Disk full")
+        original = OSError("Disk full")
         error = BengalRenderingError(
             "Writer thread failed",
             code=ErrorCode.R010,

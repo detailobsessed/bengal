@@ -24,6 +24,7 @@ enhanced_html = enhancer.enhance(html, page_type='python-module')
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
 from bengal.utils.observability.logger import get_logger
 
@@ -33,22 +34,22 @@ logger = get_logger(__name__)
 class APIDocEnhancer:
     """
     Post-processes API documentation HTML to inject badges and visual enhancements.
-    
+
     This enhancer transforms marker syntax (e.g., @async, @property) into styled
     HTML badges. It operates on already-parsed HTML, avoiding Mistune's escaping issues.
-    
+
     Markers are placed in templates after method names and get replaced with proper
     HTML during post-processing.
-    
+
     Example:
         Input:  <h4>build @async</h4>
         Output: <h4>build <span class="api-badge api-badge-async">async</span></h4>
-        
+
     """
 
     # Badge patterns: (marker_pattern, replacement)
     # Note: These need to handle headerlink anchors that come before the closing tag
-    BADGE_PATTERNS = [
+    BADGE_PATTERNS: ClassVar[list[tuple[str, str]]] = [
         # Async methods/functions (h3 or h4 headings)
         (
             r"(<h[34][^>]*>)([^<@]+)\s*@async\s*(<a[^>]*headerlink[^>]*>.*?</a>)(\s*</h[34]>)",
@@ -77,7 +78,7 @@ class APIDocEnhancer:
     ]
 
     # Page types that should be enhanced
-    SUPPORTED_PAGE_TYPES = {
+    SUPPORTED_PAGE_TYPES: ClassVar[set[str]] = {
         "python-module",
         "autodoc/python",
         "cli-command",
@@ -142,7 +143,9 @@ class APIDocEnhancer:
             from bengal.utils.observability.profile import should_show_debug
 
             if should_show_debug():
-                logger.debug("api_doc_badge_replacements", replacements_made=replacements_made)
+                logger.debug(
+                    "api_doc_badge_replacements", replacements_made=replacements_made
+                )
 
         return enhanced
 
@@ -173,10 +176,10 @@ _enhancer = None
 def get_enhancer() -> APIDocEnhancer:
     """
     Get or create the singleton APIDocEnhancer instance.
-    
+
     Returns:
         Shared APIDocEnhancer instance
-        
+
     """
     global _enhancer
     if _enhancer is None:

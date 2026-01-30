@@ -33,9 +33,13 @@ def test_env_explicit_bengal_baseurl_overrides_when_config_empty(
     assert config.site.baseurl == "https://example.com/sub"
 
 
-def test_netlify_url_used_when_config_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_netlify_url_used_when_config_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     # Platform detection only works when baseurl is missing (not explicitly empty)
-    write_min_config(tmp_path, baseurl=None)  # Missing baseurl allows platform detection
+    write_min_config(
+        tmp_path, baseurl=None
+    )  # Missing baseurl allows platform detection
     # Ensure BENGAL_BASEURL isn't set from test matrix
     monkeypatch.delenv("BENGAL_BASEURL", raising=False)
     monkeypatch.delenv("BENGAL_BASE_URL", raising=False)
@@ -48,9 +52,13 @@ def test_netlify_url_used_when_config_empty(tmp_path: Path, monkeypatch: pytest.
     assert config.site.baseurl == "https://docs.example.com"
 
 
-def test_netlify_preview_deploy_prime_url_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_netlify_preview_deploy_prime_url_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     # Platform detection only works when baseurl is missing (not explicitly empty)
-    write_min_config(tmp_path, baseurl=None)  # Missing baseurl allows platform detection
+    write_min_config(
+        tmp_path, baseurl=None
+    )  # Missing baseurl allows platform detection
     # Ensure BENGAL_BASEURL isn't set from test matrix
     monkeypatch.delenv("BENGAL_BASEURL", raising=False)
     monkeypatch.delenv("BENGAL_BASE_URL", raising=False)
@@ -69,7 +77,9 @@ def test_vercel_url_with_protocol_added_when_missing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     # Platform detection only works when baseurl is missing (not explicitly empty)
-    write_min_config(tmp_path, baseurl=None)  # Missing baseurl allows platform detection
+    write_min_config(
+        tmp_path, baseurl=None
+    )  # Missing baseurl allows platform detection
     # Ensure BENGAL_BASEURL isn't set from test matrix
     monkeypatch.delenv("BENGAL_BASEURL", raising=False)
     monkeypatch.delenv("BENGAL_BASE_URL", raising=False)
@@ -82,9 +92,13 @@ def test_vercel_url_with_protocol_added_when_missing(
     assert config.site.baseurl == "https://my-docs.vercel.app"
 
 
-def test_github_pages_owner_repo_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_github_pages_owner_repo_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     # Platform detection only works when baseurl is missing (not explicitly empty)
-    write_min_config(tmp_path, baseurl=None)  # Missing baseurl allows platform detection
+    write_min_config(
+        tmp_path, baseurl=None
+    )  # Missing baseurl allows platform detection
     # Ensure BENGAL_BASEURL isn't set from test matrix
     monkeypatch.delenv("BENGAL_BASEURL", raising=False)
     monkeypatch.delenv("BENGAL_BASE_URL", raising=False)
@@ -98,7 +112,9 @@ def test_github_pages_owner_repo_fallback(tmp_path: Path, monkeypatch: pytest.Mo
     assert config.site.baseurl == "/repo456"
 
 
-def test_github_pages_root_deployment_via_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_github_pages_root_deployment_via_env(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     """Test that GITHUB_PAGES_ROOT=true sets baseurl to root (no repo subdirectory)."""
     write_min_config(tmp_path, baseurl="")
     # Ensure BENGAL_BASEURL isn't set from test matrix
@@ -115,7 +131,9 @@ def test_github_pages_root_deployment_via_env(tmp_path: Path, monkeypatch: pytes
     assert config.site.baseurl == ""
 
 
-def test_github_pages_user_org_site_auto_detection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_github_pages_user_org_site_auto_detection(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     """Test that user/org sites (repo name matches {owner}.github.io) auto-detect root deployment."""
     write_min_config(tmp_path, baseurl="")
     # Ensure BENGAL_BASEURL isn't set from test matrix
@@ -123,7 +141,9 @@ def test_github_pages_user_org_site_auto_detection(tmp_path: Path, monkeypatch: 
     monkeypatch.delenv("BENGAL_BASE_URL", raising=False)
     monkeypatch.setenv("GITHUB_ACTIONS", "true")
     monkeypatch.setenv("GITHUB_REPOSITORY", "lbliii/lbliii.github.io")
-    monkeypatch.delenv("GITHUB_PAGES_ROOT", raising=False)  # Not set, should auto-detect
+    monkeypatch.delenv(
+        "GITHUB_PAGES_ROOT", raising=False
+    )  # Not set, should auto-detect
 
     loader = UnifiedConfigLoader()
     config = loader.load(tmp_path)

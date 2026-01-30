@@ -5,15 +5,17 @@ Tests that ContentDiscovery properly validates content against
 collection schemas.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
 import pytest
 
-from bengal.collections import CollectionConfig, ContentValidationError, define_collection
+from bengal.collections import (
+    CollectionConfig,
+    ContentValidationError,
+    define_collection,
+)
 from bengal.content.discovery.content_discovery import ContentDiscovery
 
 # Test schemas
@@ -107,7 +109,7 @@ This is my first post.
             collections=collections,
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should succeed
         assert len(pages) == 1
@@ -138,7 +140,7 @@ Welcome to the docs.
             collections=collections,
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should succeed
         assert len(pages) == 1
@@ -199,14 +201,14 @@ Missing title and date!
         )
 
         # Should not raise
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Page should be created with original metadata
         assert len(pages) == 1
 
         # Validation errors should be recorded
         assert len(discovery._validation_errors) == 1
-        path, collection, errors = discovery._validation_errors[0]
+        path, collection, _errors = discovery._validation_errors[0]
         assert "bad-post.md" in str(path)
         assert collection == "blog"
 
@@ -263,7 +265,7 @@ Content.
             collections=collections,
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should succeed with coerced types
         assert len(pages) == 1
@@ -291,7 +293,7 @@ About page not in any collection.
             collections=collections,
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should succeed - no validation applied
         assert len(pages) == 1
@@ -322,7 +324,7 @@ Just title and date.
             collections=collections,
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         assert len(pages) == 1
         # Defaults should be applied
@@ -334,7 +336,9 @@ Just title and date.
 class TestCollectionTransform:
     """Test collection transform functions."""
 
-    @pytest.mark.skip(reason="Transform feature not yet implemented in define_collection")
+    @pytest.mark.skip(
+        reason="Transform feature not yet implemented in define_collection"
+    )
     def test_transform_applied(self, content_dir: Path) -> None:
         """Test transform function is called before validation."""
 
@@ -375,7 +379,7 @@ Legacy format content.
             collections=collections,
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should succeed after transform
         assert len(pages) == 1
@@ -405,7 +409,7 @@ Content.
             collections=None,
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should succeed - no validation
         assert len(pages) == 1
@@ -427,7 +431,7 @@ Content.
             collections={},
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         assert len(pages) == 1
 
@@ -468,7 +472,7 @@ Doc content.
             collections=collections,
             strict_validation=True,
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Both should be validated against their respective schemas
         assert len(pages) == 2
@@ -505,7 +509,7 @@ Doc content.
             collections=collections,
             strict_validation=False,  # Lenient mode
         )
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Both pages created
         assert len(pages) == 2

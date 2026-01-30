@@ -40,22 +40,22 @@ logger = get_logger(__name__)
 class RequestLogger:
     """
     Mixin providing beautiful, minimal HTTP request logging.
-    
+
     Designed to be mixed into an HTTP request handler to override default
     logging behavior. Filters out noisy requests and provides color-coded
     output for easy scanning during development.
-    
+
     Filtering Rules:
         - Skip: favicon requests, .well-known paths
         - Skip: 304 Not Modified (cache hits)
         - Skip: Successful asset loads (/assets/, /static/)
         - Skip: Optional resource 404s (search-index.json)
         - Show: All page loads, errors, and initial asset loads
-    
+
     Example:
             >>> class MyHandler(RequestLogger, SimpleHTTPRequestHandler):
             ...     pass  # Logging is automatically enhanced
-        
+
     """
 
     def log_message(self, format: str, *args: Any) -> None:
@@ -98,7 +98,9 @@ class RequestLogger:
         request_path = parts[1] if len(parts) > 1 else "/"
 
         # Skip assets unless they're errors or initial loads
-        is_asset = any(request_path.startswith(prefix) for prefix in ["/assets/", "/static/"])
+        is_asset = any(
+            request_path.startswith(prefix) for prefix in ["/assets/", "/static/"]
+        )
         is_cached = status_code == "304"
         is_success = status_code.startswith("2")
 
@@ -112,7 +114,9 @@ class RequestLogger:
 
         # Skip 404s for optional resources - these are expected when dependencies not installed
         is_404 = status_code == "404"
-        is_optional_resource = any(request_path == pattern for pattern in optional_resources)
+        is_optional_resource = any(
+            request_path == pattern for pattern in optional_resources
+        )
         if is_404 and is_optional_resource:
             return
 
@@ -164,11 +168,12 @@ class RequestLogger:
             if "Broken pipe" in error_msg or "Connection reset" in error_msg:
                 logger.debug(
                     "client_disconnected",
-                    error_type="BrokenPipe" if "Broken pipe" in error_msg else "ConnectionReset",
+                    error_type="BrokenPipe"
+                    if "Broken pipe" in error_msg
+                    else "ConnectionReset",
                     client_address=getattr(self, "client_address", ["unknown", 0])[0],
                 )
                 return
 
         # All other error logging is handled in log_message with proper filtering
         # This prevents duplicate error messages
-        pass

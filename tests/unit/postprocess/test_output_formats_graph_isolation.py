@@ -8,14 +8,10 @@ is not mutated when processing multiple pages. This prevents the
 Regression test for: Graph data mutation bug (json_generator.py:454-456)
 """
 
-from __future__ import annotations
-
 import copy
 import json
 from pathlib import Path
 from unittest.mock import Mock
-
-import pytest
 
 from bengal.postprocess.output_formats.json_generator import PageJSONGenerator
 
@@ -25,7 +21,7 @@ class TestGraphDataIsolation:
 
     def test_graph_data_not_mutated_across_pages(self, tmp_path: Path) -> None:
         """CRITICAL: Verify shared graph_data is not mutated when processing multiple pages.
-        
+
         This is a regression test for a bug where adding isCurrent=True to nodes
         would persist in the shared graph_data, causing incorrect visualization
         for subsequent pages.
@@ -38,9 +34,24 @@ class TestGraphDataIsolation:
         # Create shared graph data with multiple interconnected nodes
         graph_data = {
             "nodes": [
-                {"id": "page1", "url": "/page1/", "incoming_refs": 5, "outgoing_refs": 3},
-                {"id": "page2", "url": "/page2/", "incoming_refs": 3, "outgoing_refs": 2},
-                {"id": "page3", "url": "/page3/", "incoming_refs": 1, "outgoing_refs": 1},
+                {
+                    "id": "page1",
+                    "url": "/page1/",
+                    "incoming_refs": 5,
+                    "outgoing_refs": 3,
+                },
+                {
+                    "id": "page2",
+                    "url": "/page2/",
+                    "incoming_refs": 3,
+                    "outgoing_refs": 2,
+                },
+                {
+                    "id": "page3",
+                    "url": "/page3/",
+                    "incoming_refs": 1,
+                    "outgoing_refs": 1,
+                },
             ],
             "edges": [
                 {"source": "page1", "target": "page2"},
@@ -91,9 +102,24 @@ class TestGraphDataIsolation:
 
         graph_data = {
             "nodes": [
-                {"id": "page1", "url": "/page1/", "incoming_refs": 5, "outgoing_refs": 3},
-                {"id": "page2", "url": "/page2/", "incoming_refs": 3, "outgoing_refs": 2},
-                {"id": "page3", "url": "/page3/", "incoming_refs": 1, "outgoing_refs": 1},
+                {
+                    "id": "page1",
+                    "url": "/page1/",
+                    "incoming_refs": 5,
+                    "outgoing_refs": 3,
+                },
+                {
+                    "id": "page2",
+                    "url": "/page2/",
+                    "incoming_refs": 3,
+                    "outgoing_refs": 2,
+                },
+                {
+                    "id": "page3",
+                    "url": "/page3/",
+                    "incoming_refs": 1,
+                    "outgoing_refs": 1,
+                },
             ],
             "edges": [
                 {"source": "page1", "target": "page2"},
@@ -124,7 +150,9 @@ class TestGraphDataIsolation:
             data = json.loads(json_path.read_text())
 
             if "graph" in data and data["graph"].get("nodes"):
-                current_nodes = [n for n in data["graph"]["nodes"] if n.get("isCurrent")]
+                current_nodes = [
+                    n for n in data["graph"]["nodes"] if n.get("isCurrent")
+                ]
                 assert len(current_nodes) == 1, (
                     f"Page {i} should have exactly 1 current node, found {len(current_nodes)}. "
                     "Multiple current nodes indicates mutation bug."
@@ -143,8 +171,18 @@ class TestGraphDataIsolation:
 
         graph_data = {
             "nodes": [
-                {"id": "page1", "url": "/page1/", "incoming_refs": 2, "outgoing_refs": 1},
-                {"id": "page2", "url": "/page2/", "incoming_refs": 1, "outgoing_refs": 2},
+                {
+                    "id": "page1",
+                    "url": "/page1/",
+                    "incoming_refs": 2,
+                    "outgoing_refs": 1,
+                },
+                {
+                    "id": "page2",
+                    "url": "/page2/",
+                    "incoming_refs": 1,
+                    "outgoing_refs": 2,
+                },
             ],
             "edges": [{"source": "page1", "target": "page2"}],
         }
@@ -206,7 +244,9 @@ class TestGraphDataIsolation:
 
         json_path = output_dir / "test/index.json"
         data = json.loads(json_path.read_text())
-        assert "graph" not in data, "No graph key should be present when graph_data is None"
+        assert "graph" not in data, (
+            "No graph key should be present when graph_data is None"
+        )
 
     def test_graph_with_no_edges_for_page(self, tmp_path: Path) -> None:
         """Verify pages not in graph are handled gracefully."""
@@ -218,7 +258,12 @@ class TestGraphDataIsolation:
         # Graph data that doesn't include our test page
         graph_data = {
             "nodes": [
-                {"id": "other1", "url": "/other1/", "incoming_refs": 1, "outgoing_refs": 1},
+                {
+                    "id": "other1",
+                    "url": "/other1/",
+                    "incoming_refs": 1,
+                    "outgoing_refs": 1,
+                },
             ],
             "edges": [],
         }
@@ -242,7 +287,9 @@ class TestGraphDataIsolation:
 
     # Helper methods
 
-    def _create_mock_site(self, site_dir: Path, output_dir: Path, baseurl: str = "") -> Mock:
+    def _create_mock_site(
+        self, site_dir: Path, output_dir: Path, baseurl: str = ""
+    ) -> Mock:
         """Create a mock Site instance."""
         from datetime import datetime
 

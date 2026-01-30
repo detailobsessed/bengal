@@ -3,8 +3,6 @@
 Verifies that AST-based rendering produces equivalent output to legacy HTML parsing.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -224,7 +222,10 @@ class TestASTWithDirectives:
         """Verify RawHTMLNode type can represent directive output."""
         from bengal.parsing.ast.types import RawHTMLNode, is_raw_html
 
-        node: RawHTMLNode = {"type": "raw_html", "content": "<div class='note'>Note content</div>"}
+        node: RawHTMLNode = {
+            "type": "raw_html",
+            "content": "<div class='note'>Note content</div>",
+        }
 
         assert is_raw_html(node)
         assert node["content"] == "<div class='note'>Note content</div>"

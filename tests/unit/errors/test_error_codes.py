@@ -8,8 +8,6 @@ See Also:
 - bengal/errors/codes.py
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.errors.codes import ErrorCode, get_codes_by_category, get_error_code_by_name
@@ -31,7 +29,7 @@ class TestErrorCodeUniqueness:
                 duplicate_codes.append(f"{dup_value!r}: {codes_with_value}")
 
             pytest.fail(
-                f"Found duplicate ErrorCode values (causes enum aliasing):\n"
+                "Found duplicate ErrorCode values (causes enum aliasing):\n"
                 + "\n".join(f"  • {d}" for d in duplicate_codes)
             )
 
@@ -53,7 +51,7 @@ class TestErrorCodeUniqueness:
 
         if aliases:
             pytest.fail(
-                f"Found enum aliases (duplicate values):\n"
+                "Found enum aliases (duplicate values):\n"
                 + "\n".join(f"  • {a}" for a in aliases)
             )
 
@@ -105,7 +103,9 @@ class TestErrorCodeCategories:
         for code in ErrorCode:
             prefix = code.name[0]
             expected_category = prefix_to_category.get(prefix)
-            assert expected_category is not None, f"Unknown prefix {prefix} in {code.name}"
+            assert expected_category is not None, (
+                f"Unknown prefix {prefix} in {code.name}"
+            )
             assert code.category == expected_category, (
                 f"{code.name} has category {code.category!r}, "
                 f"expected {expected_category!r} based on prefix"

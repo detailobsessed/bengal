@@ -80,7 +80,7 @@ Add the 5 missing members to `SectionLike`:
 @runtime_checkable
 class SectionLike(Protocol):
     # ... existing properties ...
-    
+
     @property
     def root(self) -> SectionLike:
         """Root section of the tree."""
@@ -229,7 +229,7 @@ Keep concrete `Section` in these locations:
 
 1. **Section's own implementation** (`bengal/core/section/*.py`)
    - Mixins need concrete self-types
-   
+
 2. **Factory functions** that must return concrete instances
    - `section_builder.py:build_section()` return type
    - `Section.create_virtual()` return type

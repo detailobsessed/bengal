@@ -43,7 +43,9 @@ class TestBengalPaths:
         ]
 
         for file_path in file_paths:
-            assert str(file_path).startswith(str(state_dir)), f"{file_path} not under {state_dir}"
+            assert str(file_path).startswith(str(state_dir)), (
+                f"{file_path} not under {state_dir}"
+            )
 
         # All directory paths should be under .bengal
         dir_paths = [
@@ -60,7 +62,9 @@ class TestBengalPaths:
         ]
 
         for dir_path in dir_paths:
-            assert str(dir_path).startswith(str(state_dir)), f"{dir_path} not under {state_dir}"
+            assert str(dir_path).startswith(str(state_dir)), (
+                f"{dir_path} not under {state_dir}"
+            )
 
     def test_paths_are_path_objects(self, tmp_path: Path):
         """Test all path properties return Path objects."""

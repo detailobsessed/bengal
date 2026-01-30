@@ -11,10 +11,7 @@ Tests for edge cases that ensure parity with Mistune parser output:
 These tests verify both AST construction and HTML rendering.
 """
 
-from __future__ import annotations
-
 import pytest
-
 from patitas.nodes import (
     FootnoteDef,
     FootnoteRef,

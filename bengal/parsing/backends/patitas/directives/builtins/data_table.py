@@ -38,9 +38,10 @@ from dataclasses import dataclass, field, replace
 from html import escape as html_escape
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 from patitas.directives.options import DirectiveOptions
 from patitas.nodes import Directive
+
+from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
@@ -74,7 +75,7 @@ class DataTableOptions(DirectiveOptions):
 class DataTableDirective:
     """
     Interactive data table directive.
-    
+
     Syntax:
         :::{data-table} path/to/data.yaml
         :search: true
@@ -84,11 +85,11 @@ class DataTableDirective:
         :height: 400px
         :columns: col1,col2,col3
         :::
-    
+
     Supported file formats:
         - YAML: Must have 'columns' and 'data' keys
         - CSV: Headers auto-detected from first row
-    
+
     Options:
         :search: Enable search box (default: true)
         :filter: Enable column filters (default: true)
@@ -96,13 +97,13 @@ class DataTableDirective:
         :pagination: Page size or false (default: 50)
         :height: Table height CSS value (default: auto)
         :columns: Comma-separated list of visible columns
-    
+
     Requires:
         FileResolver for loading data files.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("data-table",)
@@ -129,7 +130,9 @@ class DataTableDirective:
         # Parse visible columns
         visible_columns = None
         if options.columns:
-            visible_columns = [col.strip() for col in options.columns.split(",") if col.strip()]
+            visible_columns = [
+                col.strip() for col in options.columns.split(",") if col.strip()
+            ]
 
         # Generate table ID
         try:
@@ -139,7 +142,9 @@ class DataTableDirective:
         except ImportError:
             import hashlib
 
-            table_id = f"data-table-{hashlib.sha256(file_path.encode()).hexdigest()[:8]}"
+            table_id = (
+                f"data-table-{hashlib.sha256(file_path.encode()).hexdigest()[:8]}"
+            )
 
         # Store configuration
         computed_opts = replace(
@@ -218,7 +223,9 @@ class DataTableDirective:
         config_json = json.dumps(config, indent=None)
 
         # Build HTML
-        sb.append(f'<div class="bengal-data-table-wrapper" data-table-id="{table_id}">\n')
+        sb.append(
+            f'<div class="bengal-data-table-wrapper" data-table-id="{table_id}">\n'
+        )
 
         # Search box (if enabled)
         if search:

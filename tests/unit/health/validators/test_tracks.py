@@ -4,8 +4,6 @@ Tests health/validators/tracks.py:
 - TrackValidator: learning track validation in health check system
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -155,7 +153,8 @@ class TestTrackValidatorInvalidStructure:
 
         error_results = [r for r in results if r.status == CheckStatus.ERROR]
         assert any(
-            "missing" in r.message.lower() and "items" in r.message.lower() for r in error_results
+            "missing" in r.message.lower() and "items" in r.message.lower()
+            for r in error_results
         )
 
     def test_error_when_items_not_list(self, validator, mock_site):
@@ -212,7 +211,8 @@ class TestTrackValidatorMissingPages:
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
         assert any(
-            "string" in r.message.lower() or "type" in r.message.lower() for r in warning_results
+            "string" in r.message.lower() or "type" in r.message.lower()
+            for r in warning_results
         )
 
 
@@ -235,7 +235,9 @@ class TestTrackValidatorInvalidTrackId:
         results = validator.validate(mock_site)
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        track_id_warnings = [r for r in warning_results if "track_id" in r.message.lower()]
+        track_id_warnings = [
+            r for r in warning_results if "track_id" in r.message.lower()
+        ]
         assert len(track_id_warnings) == 0
 
 
@@ -248,16 +250,16 @@ class TestTrackValidatorGetPage:
         mock_site._page_lookup_maps = None
         # The _get_page function builds maps based on source_path relative to content root
         # Our mock pages have source_path at content/intro.md
-        page = validator._get_page(mock_site, "intro.md")
+        validator._get_page(mock_site, "intro.md")
         # Since the mock sets up proper paths, this should find the page
-        assert page is not None or True  # Mock may not be perfect
+        assert True  # Mock may not be perfect
 
     def test_finds_page_without_extension(self, validator, mock_site):
         """_get_page finds page when .md extension omitted."""
         mock_site._page_lookup_maps = None
-        page = validator._get_page(mock_site, "intro")
+        validator._get_page(mock_site, "intro")
         # Extension-less lookup should add .md
-        assert page is not None or True  # Mock may not be perfect
+        assert True  # Mock may not be perfect
 
     def test_returns_none_for_missing(self, validator, mock_site):
         """_get_page returns None for missing page."""
@@ -286,7 +288,9 @@ class TestTrackValidatorRecommendations:
         results = validator.validate(mock_site)
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        missing_warning = next((r for r in warning_results if "missing" in r.message.lower()), None)
+        missing_warning = next(
+            (r for r in warning_results if "missing" in r.message.lower()), None
+        )
         assert missing_warning is not None
         assert missing_warning.recommendation is not None
 
@@ -297,7 +301,9 @@ class TestTrackValidatorRecommendations:
         results = validator.validate(mock_site)
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        track_warning = next((r for r in warning_results if "track_id" in r.message.lower()), None)
+        track_warning = next(
+            (r for r in warning_results if "track_id" in r.message.lower()), None
+        )
         assert track_warning is not None
         assert track_warning.recommendation is not None
 
@@ -317,7 +323,9 @@ class TestTrackValidatorMultipleTracks:
 
         # Should have results for both tracks (success or warning)
         track_results = [
-            r for r in results if "beginner" in r.message.lower() or "advanced" in r.message.lower()
+            r
+            for r in results
+            if "beginner" in r.message.lower() or "advanced" in r.message.lower()
         ]
         assert len(track_results) >= 2
 

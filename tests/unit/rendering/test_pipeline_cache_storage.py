@@ -12,8 +12,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from bengal.cache import BuildCache
 from bengal.build.tracking import DependencyTracker
+from bengal.cache import BuildCache
 from bengal.rendering.pipeline import RenderingPipeline
 
 
@@ -109,7 +109,9 @@ class TestPipelineCacheStorage:
         engine = DummyTemplateEngine(site)
         ctx = SimpleNamespace(markdown_parser=parser, template_engine=engine)
 
-        pipeline = RenderingPipeline(site, dependency_tracker=tracker, build_context=ctx)
+        pipeline = RenderingPipeline(
+            site, dependency_tracker=tracker, build_context=ctx
+        )
 
         # Manually call cache_parsed_content via the cache_checker
         mock_page.parsed_ast = "<p>Test content</p>"
@@ -120,11 +122,16 @@ class TestPipelineCacheStorage:
         assert str(mock_page.source_path) not in cache.parsed_content
 
         # Call the method via the extracted CacheChecker
-        pipeline._cache_checker.cache_parsed_content(mock_page, "default.html", "mistune-3.0-toc1")
+        pipeline._cache_checker.cache_parsed_content(
+            mock_page, "default.html", "mistune-3.0-toc1"
+        )
 
         # After caching, parsed_content should have an entry
         assert str(mock_page.source_path) in cache.parsed_content
-        assert cache.parsed_content[str(mock_page.source_path)]["html"] == "<p>Test content</p>"
+        assert (
+            cache.parsed_content[str(mock_page.source_path)]["html"]
+            == "<p>Test content</p>"
+        )
 
     def test_cache_rendered_output_uses_correct_attribute(
         self, site_with_cache, mock_page, tmp_path
@@ -140,7 +147,9 @@ class TestPipelineCacheStorage:
         engine = DummyTemplateEngine(site)
         ctx = SimpleNamespace(markdown_parser=parser, template_engine=engine)
 
-        pipeline = RenderingPipeline(site, dependency_tracker=tracker, build_context=ctx)
+        pipeline = RenderingPipeline(
+            site, dependency_tracker=tracker, build_context=ctx
+        )
 
         # Update file in cache first (required for rendered output storage)
         cache.update_file(mock_page.source_path)
@@ -164,7 +173,7 @@ class TestPipelineCacheStorage:
 
         This ensures the rendering pipeline can access it correctly.
         """
-        site, cache, tracker = site_with_cache
+        _site, cache, tracker = site_with_cache
 
         # Must have .cache (public), not ._cache (private)
         assert hasattr(tracker, "cache")
@@ -178,7 +187,9 @@ class TestPipelineCacheStorage:
 class TestPipelineCacheIntegration:
     """Integration tests for cache storage across save/load cycles."""
 
-    def test_parsed_content_survives_cache_save_load(self, site_with_cache, mock_page, tmp_path):
+    def test_parsed_content_survives_cache_save_load(
+        self, site_with_cache, mock_page, tmp_path
+    ):
         """Verify parsed content is persisted and can be retrieved after save/load."""
         site, cache, tracker = site_with_cache
 
@@ -186,7 +197,9 @@ class TestPipelineCacheIntegration:
         engine = DummyTemplateEngine(site)
         ctx = SimpleNamespace(markdown_parser=parser, template_engine=engine)
 
-        pipeline = RenderingPipeline(site, dependency_tracker=tracker, build_context=ctx)
+        pipeline = RenderingPipeline(
+            site, dependency_tracker=tracker, build_context=ctx
+        )
 
         # Store parsed content
         mock_page.parsed_ast = "<p>Cached content for persistence test</p>"
@@ -194,7 +207,9 @@ class TestPipelineCacheIntegration:
         mock_page.links = []
 
         cache.update_file(mock_page.source_path)
-        pipeline._cache_checker.cache_parsed_content(mock_page, "default.html", "mistune-3.0-toc1")
+        pipeline._cache_checker.cache_parsed_content(
+            mock_page, "default.html", "mistune-3.0-toc1"
+        )
 
         # Save cache to disk
         cache_path = tmp_path / ".bengal" / "cache.json"
@@ -210,7 +225,9 @@ class TestPipelineCacheIntegration:
             in loaded_cache.parsed_content[str(mock_page.source_path)]["html"]
         )
 
-    def test_rendered_output_survives_cache_save_load(self, site_with_cache, mock_page, tmp_path):
+    def test_rendered_output_survives_cache_save_load(
+        self, site_with_cache, mock_page, tmp_path
+    ):
         """Verify rendered output is persisted and can be retrieved after save/load."""
         site, cache, tracker = site_with_cache
 
@@ -218,11 +235,15 @@ class TestPipelineCacheIntegration:
         engine = DummyTemplateEngine(site)
         ctx = SimpleNamespace(markdown_parser=parser, template_engine=engine)
 
-        pipeline = RenderingPipeline(site, dependency_tracker=tracker, build_context=ctx)
+        pipeline = RenderingPipeline(
+            site, dependency_tracker=tracker, build_context=ctx
+        )
 
         # Update file and store rendered output
         cache.update_file(mock_page.source_path)
-        mock_page.rendered_html = "<html><body>Rendered content for persistence test</body></html>"
+        mock_page.rendered_html = (
+            "<html><body>Rendered content for persistence test</body></html>"
+        )
 
         pipeline._cache_checker.cache_rendered_output(mock_page, "default.html")
 

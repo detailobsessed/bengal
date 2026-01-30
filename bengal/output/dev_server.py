@@ -44,16 +44,16 @@ if TYPE_CHECKING:
 class DevServerOutputMixin:
     """
     Mixin providing development server specific output methods.
-    
+
     This mixin adds HTTP request logging, file change notifications,
     and server status display methods to CLIOutput. It is designed
     to be mixed into CLIOutput and relies on attributes defined there.
-    
+
     Required Attributes (from CLIOutput):
         use_rich: Whether to use Rich console output
         console: Rich Console instance for styled output
         should_show: Method to check message visibility based on level
-        
+
     """
 
     # These attributes are defined in CLIOutput
@@ -113,7 +113,9 @@ class DevServerOutputMixin:
 
         self.separator()
         if self.use_rich:
-            self.console.print(f"  {timestamp} │ [warning]📝 File changed:[/warning] {file_name}")
+            self.console.print(
+                f"  {timestamp} │ [warning]📝 File changed:[/warning] {file_name}"
+            )
         else:
             click.echo(f"  {timestamp} │ \033[33m📝 File changed:\033[0m {file_name}")
         self.separator()
@@ -152,11 +154,19 @@ class DevServerOutputMixin:
             return
 
         if self.use_rich:
-            self.console.print(f"  [dim]{'TIME':8} │ {'METHOD':6} │ {'STATUS':3} │ PATH[/dim]")
-            self.console.print(f"  [dim]{'─' * 8}─┼─{'─' * 6}─┼─{'─' * 3}─┼─{'─' * 60}[/dim]")
+            self.console.print(
+                f"  [dim]{'TIME':8} │ {'METHOD':6} │ {'STATUS':3} │ PATH[/dim]"
+            )
+            self.console.print(
+                f"  [dim]{'─' * 8}─┼─{'─' * 6}─┼─{'─' * 3}─┼─{'─' * 60}[/dim]"
+            )
         else:
-            click.echo(f"  \033[90m{'TIME':8} │ {'METHOD':6} │ {'STATUS':3} │ PATH\033[0m")
-            click.echo(f"  \033[90m{'─' * 8}─┼─{'─' * 6}─┼─{'─' * 3}─┼─{'─' * 60}\033[0m")
+            click.echo(
+                f"  \033[90m{'TIME':8} │ {'METHOD':6} │ {'STATUS':3} │ PATH\033[0m"
+            )
+            click.echo(
+                f"  \033[90m{'─' * 8}─┼─{'─' * 6}─┼─{'─' * 3}─┼─{'─' * 60}\033[0m"
+            )
 
     def http_request(
         self,

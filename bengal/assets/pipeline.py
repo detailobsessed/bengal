@@ -51,8 +51,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -72,10 +70,10 @@ logger = get_logger(__name__)
 class PipelineConfig:
     """
     Configuration for the Node-based asset pipeline.
-    
+
     Populated from site configuration and passed to NodePipeline. All boolean
     flags default to sensible values when the pipeline is enabled.
-    
+
     Attributes:
         root_path: Site root directory containing assets/ and themes/.
         theme_name: Active theme name for locating theme assets, or None.
@@ -86,7 +84,7 @@ class PipelineConfig:
         bundle_js: Whether to bundle JavaScript/TypeScript files.
         esbuild_target: Target environment for esbuild (e.g. 'es2018', 'esnext').
         sourcemaps: Whether to generate source maps for debugging.
-        
+
     """
 
     root_path: Path
@@ -104,18 +102,18 @@ class PipelineConfig:
 class NodePipeline:
     """
     Thin wrapper over Node CLIs for asset compilation.
-    
+
     Orchestrates SCSS compilation, PostCSS transforms, and JavaScript bundling
     by invoking external CLI tools. Designed to fail gracefully with clear
     error messages when required tools are not installed.
-    
+
     The pipeline writes compiled files to a temporary directory, which is then
     processed by AssetOrchestrator for fingerprinting and deployment.
-    
+
     Attributes:
         config: Pipeline configuration settings.
         temp_out_dir: Temporary directory for compiled output files.
-    
+
     Example:
             >>> config = PipelineConfig(
             ...     root_path=Path("/site"),
@@ -130,7 +128,7 @@ class NodePipeline:
             ... )
             >>> pipeline = NodePipeline(config)
             >>> compiled_files = pipeline.build()
-        
+
     """
 
     def __init__(self, config: PipelineConfig) -> None:
@@ -217,7 +215,9 @@ class NodePipeline:
             )
             return []
 
-        scss_files = self._find_sources([".scss"], subdirs=["assets", self._theme_assets_subdir()])
+        scss_files = self._find_sources(
+            [".scss"], subdirs=["assets", self._theme_assets_subdir()]
+        )
         outputs: list[Path] = []
         for src in scss_files:
             try:
@@ -383,9 +383,11 @@ class NodePipeline:
             bases.append(theme_assets / "js")
         for base in bases:
             if base.exists():
-                for p in base.glob("*.*"):
-                    if p.is_file() and p.suffix.lower() in (".js", ".ts"):
-                        entries.append(p)
+                entries.extend(
+                    p
+                    for p in base.glob("*.*")
+                    if p.is_file() and p.suffix.lower() in (".js", ".ts")
+                )
         logger.debug("pipeline_js_entries", count=len(entries))
         return entries
 
@@ -454,7 +456,10 @@ class NodePipeline:
             if bengal_pkg.__file__ is None:
                 return None
             bundled = (
-                Path(bengal_pkg.__file__).parent / "themes" / self.config.theme_name / "assets"
+                Path(bengal_pkg.__file__).parent
+                / "themes"
+                / self.config.theme_name
+                / "assets"
             )
             return bundled if bundled.exists() else None
         except Exception as e:
@@ -508,7 +513,9 @@ class NodePipeline:
             BengalAssetError: If the command exits with non-zero status (code X003).
         """
         logger.debug("pipeline_exec", cmd=" ".join(cmd))
-        proc = subprocess.run(cmd, check=False, cwd=str(cwd), capture_output=True, text=True)
+        proc = subprocess.run(
+            cmd, check=False, cwd=str(cwd), capture_output=True, text=True
+        )
         if proc.returncode != 0:
             from bengal.errors import BengalAssetError, ErrorCode
 
@@ -523,24 +530,26 @@ class NodePipeline:
 def from_site(site: Site) -> NodePipeline:
     """
     Factory to create a NodePipeline from site configuration.
-    
+
     Extracts pipeline settings from the site's ``[assets]`` config section
     and creates a configured NodePipeline instance.
-    
+
     Args:
         site: Site instance with loaded configuration.
-    
+
     Returns:
         Configured NodePipeline ready to run.
-    
+
     Example:
             >>> from bengal.assets.pipeline import from_site
             >>> pipeline = from_site(site)
             >>> compiled_files = pipeline.build()
-        
+
     """
     assets_cfg = (
-        site.config.get("assets", {}) if isinstance(site.config.get("assets"), dict) else {}
+        site.config.get("assets", {})
+        if isinstance(site.config.get("assets"), dict)
+        else {}
     )
     # Use session ID from build state for thread-safe temporary directories
     session_id = None

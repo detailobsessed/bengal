@@ -69,10 +69,9 @@ from __future__ import annotations
 import json
 import os
 import threading
-from http.server import SimpleHTTPRequestHandler
 from io import BufferedIOBase
 from pathlib import Path
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, ClassVar, Protocol
 
 from bengal.errors import ErrorCode
 from bengal.utils.observability.logger import get_logger
@@ -87,15 +86,18 @@ class HTTPHandlerProtocol(Protocol):
     path: str
     wfile: BufferedIOBase
     # Class-level cache attributes from LiveReloadMixin
-    _html_cache: dict[tuple[str, float], bytes]
-    _html_cache_max_size: int
-    _html_cache_lock: threading.Lock
+    _html_cache: ClassVar[dict[tuple[str, float], bytes]]
+    _html_cache_max_size: ClassVar[int]
+    _html_cache_lock: ClassVar[threading.Lock]
 
     def send_response(self, code: int, message: str | None = None) -> None: ...
     def send_header(self, keyword: str, value: str) -> None: ...
     def end_headers(self) -> None: ...
-    def send_error(self, code: int, message: str | None = None, explain: str | None = None) -> None: ...
+    def send_error(
+        self, code: int, message: str | None = None, explain: str | None = None
+    ) -> None: ...
     def translate_path(self, path: str) -> str: ...
+
 
 logger = get_logger(__name__)
 
@@ -214,29 +216,29 @@ LIVE_RELOAD_SCRIPT = r"""
 class LiveReloadMixin:
     """
     Mixin class providing SSE-based live reload for HTTP request handlers.
-    
+
     Designed to be mixed into an HTTP request handler (before SimpleHTTPRequestHandler
     in MRO) to add live reload capabilities. Provides SSE endpoint handling and
     automatic script injection into HTML responses.
-    
+
     Methods:
         handle_sse(): Handle the /__bengal_reload__ SSE endpoint
         serve_html_with_live_reload(): Serve HTML with injected reload script
-    
+
     Type Declarations:
         The mixin declares types for attributes provided by SimpleHTTPRequestHandler
         (path, client_address, wfile) to help type checkers understand the interface.
-    
+
     Important:
         Do NOT add stub methods for send_response, send_header, etc. Python MRO
         resolves this mixin BEFORE SimpleHTTPRequestHandler, so stubs would shadow
         the real implementations.
-    
+
     Class Attributes:
         _html_cache: LRU cache for injected HTML responses
         _html_cache_max_size: Maximum number of pages to keep in cache
         _html_cache_lock: Thread lock protecting the cache
-    
+
     Example:
             >>> class CustomHandler(LiveReloadMixin, SimpleHTTPRequestHandler):
             ...     def do_GET(self):
@@ -246,7 +248,7 @@ class LiveReloadMixin:
             ...             return  # HTML served with script injected
             ...         else:
             ...             super().do_GET()  # Default file serving
-        
+
     """
 
     # Type declarations for attributes provided by SimpleHTTPRequestHandler
@@ -258,9 +260,9 @@ class LiveReloadMixin:
     # Cache for injected HTML responses (avoids re-reading files on rapid navigation)
     # Key: (file_path_str, mtime), Value: modified_content bytes
     # Defined here in the mixin to avoid circular import with request_handler.py
-    _html_cache: dict[tuple[str, float], bytes] = {}
-    _html_cache_max_size = 50  # Keep last 50 pages in cache
-    _html_cache_lock = threading.Lock()
+    _html_cache: ClassVar[dict[tuple[str, float], bytes]] = {}
+    _html_cache_max_size: ClassVar[int] = 50  # Keep last 50 pages in cache
+    _html_cache_lock: ClassVar[threading.Lock] = threading.Lock()
 
     # NOTE: Do NOT add stub methods here for send_response, send_header, etc.!
     # Python MRO resolves this mixin BEFORE SimpleHTTPRequestHandler, so stubs
@@ -283,6 +285,9 @@ class LiveReloadMixin:
         client_addr = getattr(self, "client_address", ["unknown", 0])[0]
         logger.info("sse_client_connected", client_address=client_addr)
 
+        keepalive_count = 0
+        message_count = 0
+
         try:
             # Send SSE headers
             self.send_response(200)
@@ -299,7 +304,7 @@ class LiveReloadMixin:
             # Allow any origin during local development (dev server only)
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
-            
+
             # Advise client on retry delay and send an opening comment to start the stream
             # Protected against early client disconnect during handshake
             try:
@@ -314,8 +319,6 @@ class LiveReloadMixin:
                 )
                 return
 
-            keepalive_count = 0
-            message_count = 0
             # IMPORTANT: Initialize last_seen_generation to current to avoid replaying
             # the last action on new connections/reconnects
             with _reload_condition:
@@ -329,7 +332,9 @@ class LiveReloadMixin:
                 logger.debug("keepalive_env_parse_failed", error=str(e))
                 keepalive_interval = 15
 
-            logger.info("sse_stream_started", keepalive_interval_secs=keepalive_interval)
+            logger.info(
+                "sse_stream_started", keepalive_interval_secs=keepalive_interval
+            )
 
             # Keep connection alive and send messages when generation increments
             while True:
@@ -465,7 +470,9 @@ class LiveReloadMixin:
 
                 if body_idx != -1:
                     # Inject before </body>
-                    modified_content = content[:body_idx] + script_bytes + content[body_idx:]
+                    modified_content = (
+                        content[:body_idx] + script_bytes + content[body_idx:]
+                    )
                 else:
                     # Fallback: try </html>
                     html_tag_lower = b"</html>"
@@ -475,7 +482,9 @@ class LiveReloadMixin:
                         html_idx = content.rfind(html_tag_upper)
 
                     if html_idx != -1:
-                        modified_content = content[:html_idx] + script_bytes + content[html_idx:]
+                        modified_content = (
+                            content[:html_idx] + script_bytes + content[html_idx:]
+                        )
                     else:
                         # Last resort: append at end
                         modified_content = content + script_bytes
@@ -497,7 +506,9 @@ class LiveReloadMixin:
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(modified_content)))
             # Strongly discourage caching injected HTML in dev
-            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header(
+                "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0"
+            )
             self.send_header("Pragma", "no-cache")
             self.end_headers()
             self.wfile.write(modified_content)
@@ -535,17 +546,17 @@ class LiveReloadMixin:
 def shutdown_sse_clients() -> None:
     """
     Signal all SSE handlers to exit gracefully.
-    
+
     Sets the shutdown flag and wakes all handlers waiting on the condition
     variable. Each handler will check the flag and exit its loop cleanly.
-    
+
     Thread Safety:
         Safe to call from any thread. Uses condition variable for synchronization.
-    
+
     Note:
         Should be called BEFORE shutting down the HTTP server to ensure
         SSE connections close cleanly and don't block server shutdown.
-        
+
     """
     global _shutdown_requested
     with _reload_condition:
@@ -557,11 +568,11 @@ def shutdown_sse_clients() -> None:
 def reset_sse_shutdown() -> None:
     """
     Reset the shutdown flag for a fresh server start.
-    
+
     Called when starting a new server instance to clear any previous
     shutdown state. Without this, SSE handlers would exit immediately
     if a previous server instance requested shutdown.
-        
+
     """
     global _shutdown_requested
     with _reload_condition:
@@ -572,23 +583,25 @@ def reset_sse_shutdown() -> None:
 def notify_clients_reload() -> None:
     """
     Notify all connected SSE clients to trigger a full page reload.
-    
+
     Increments the global generation counter and wakes all SSE handlers
     waiting on the condition variable. Each handler will send a reload
     event to its connected client.
-    
+
     Thread Safety:
         Safe to call from any thread (e.g., build handler thread).
         Uses condition variable for synchronization.
-    
+
     Note:
         Does nothing if BENGAL_DISABLE_RELOAD_EVENTS environment variable
         is set (useful for diagnostic purposes).
-        
+
     """
     global _reload_generation
     if _reload_events_disabled():
-        logger.info("reload_notification_suppressed", reason="env_BENGAL_DISABLE_RELOAD_EVENTS")
+        logger.info(
+            "reload_notification_suppressed", reason="env_BENGAL_DISABLE_RELOAD_EVENTS"
+        )
         return
     with _reload_condition:
         _reload_generation += 1
@@ -599,25 +612,25 @@ def notify_clients_reload() -> None:
 def send_reload_payload(action: str, reason: str, changed_paths: list[str]) -> None:
     """
     Send a structured JSON reload event to all connected SSE clients.
-    
+
     Provides detailed reload information including the specific files that
     changed, enabling smarter client-side reload behavior (e.g., CSS-only
     reload targets specific stylesheets).
-    
+
     Args:
         action: Reload type - 'reload' (full), 'reload-css' (stylesheets only),
                 or 'reload-page' (explicit full reload)
         reason: Machine-readable reason (e.g., 'css-only', 'content-changed')
         changed_paths: Changed output paths relative to output directory.
                       For CSS reload, client uses these to target specific links.
-    
+
     Example:
             >>> send_reload_payload(
             ...     action="reload-css",
             ...     reason="css-only",
             ...     changed_paths=["assets/style.css", "assets/print.css"]
             ... )
-        
+
     """
     global _reload_generation, _last_action
     if _reload_events_disabled():
@@ -668,19 +681,19 @@ def send_reload_payload(action: str, reason: str, changed_paths: list[str]) -> N
 def set_reload_action(action: str) -> None:
     """
     Set the next reload action type for SSE clients.
-    
+
     Updates the global action that will be sent with the next reload event.
     Used by ReloadController to specify CSS-only vs full page reload.
-    
+
     Thread-safe: Protected by _reload_condition for safe concurrent access.
-    
+
     Args:
         action: One of:
             - 'reload': Full page reload (default)
             - 'reload-css': CSS hot-reload without page refresh
             - 'reload-page': Explicit full reload (alias of 'reload')
             Invalid values are silently replaced with 'reload'.
-        
+
     """
     global _last_action
     if action not in ("reload", "reload-css", "reload-page"):
@@ -693,24 +706,24 @@ def set_reload_action(action: str) -> None:
 def inject_live_reload_into_response(response: bytes) -> bytes:
     """
     Inject live reload script into an HTTP response body.
-    
+
     Parses the HTTP response, locates </body> or </html> tag, and injects
     the LIVE_RELOAD_SCRIPT before it. Updates Content-Length header to
     reflect the new body size.
-    
+
     Args:
         response: Complete HTTP response bytes (headers + body).
                  Must be formatted as: headers\r\n\r\nbody
-    
+
     Returns:
         Modified response with script injected and Content-Length updated.
         Returns original response if injection fails or response is malformed.
-    
+
     Note:
         This is a fallback method. The preferred approach is using
         LiveReloadMixin.serve_html_with_live_reload() which operates
         on file contents before HTTP response construction.
-        
+
     """
     try:
         # HTTP response format: headers\r\n\r\nbody

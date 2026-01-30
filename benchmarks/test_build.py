@@ -147,7 +147,9 @@ def test_incremental_multi_page_change(benchmark, temporary_scenario):
 
     def build_after_multi_page_change():
         # Modify multiple pages
-        for page_path, original in zip(pages_to_modify, original_contents, strict=False):
+        for page_path, original in zip(
+            pages_to_modify, original_contents, strict=False
+        ):
             page_path.write_text(original + f"\n\nBatch modified at {time.time_ns()}")
 
         subprocess.run(
@@ -159,7 +161,9 @@ def test_incremental_multi_page_change(benchmark, temporary_scenario):
         )
 
         # Restore originals
-        for page_path, original in zip(pages_to_modify, original_contents, strict=False):
+        for page_path, original in zip(
+            pages_to_modify, original_contents, strict=False
+        ):
             page_path.write_text(original)
 
     benchmark(build_after_multi_page_change)
@@ -431,7 +435,7 @@ def test_parallel_vs_sequential(benchmark, fresh_scenario_no_fast):
 
     Validates that parallel processing provides 2-4x speedup on multi-core systems.
     This tests the core parallel optimization that benefits all builds.
-    
+
     Note: Parallel is now the default, so we just run a standard build here.
     Use --no-parallel to force sequential mode.
     """

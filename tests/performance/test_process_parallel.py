@@ -21,13 +21,13 @@ from bengal.rendering.pipeline import RenderingPipeline
 def render_page_process(args):
     """
     Render a single page in a separate process.
-    
+
     Args:
         args: Tuple of (site, page)
-    
+
     Returns:
         Tuple of (page_source_path, success, error_msg)
-        
+
     """
     site, page = args
 
@@ -39,7 +39,11 @@ def render_page_process(args):
     except Exception as e:
         import traceback
 
-        return (str(page.source_path), False, f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
+        return (
+            str(page.source_path),
+            False,
+            f"{type(e).__name__}: {e}\n{traceback.format_exc()}",
+        )
 
 
 @pytest.mark.slow
@@ -48,10 +52,10 @@ def render_page_process(args):
 @pytest.mark.memory_intensive(limit_gb=1.0)
 def test_thread_vs_process_rendering():
     """Compare thread-based vs process-based rendering.
-    
+
     Marked slow: Creates and renders 1000 complex pages (~117s).
     Marked serial/parallel_unsafe: Uses ProcessPoolExecutor which conflicts with pytest-xdist.
-        
+
     """
 
     # Create test site
@@ -240,7 +244,9 @@ This page contains enough complex markdown (code blocks, tables, math, nested li
         return str(page.source_path)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(render_with_thread, page) for page in pages_to_render]
+        futures = [
+            executor.submit(render_with_thread, page) for page in pages_to_render
+        ]
         results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
     thread_time = time.time() - start
@@ -248,7 +254,9 @@ This page contains enough complex markdown (code blocks, tables, math, nested li
 
     print(f"\n✓ Completed in {thread_time:.2f}s")
     print(f"  Pages/sec: {thread_pps:.1f}")
-    print(f"  Speedup: {len(pages_to_render) / thread_time / 1:.1f}x vs sequential (estimated)")
+    print(
+        f"  Speedup: {len(pages_to_render) / thread_time / 1:.1f}x vs sequential (estimated)"
+    )
 
     # ========================================================================
     # TEST 2: ProcessPoolExecutor (true parallelism)
@@ -303,7 +311,9 @@ This page contains enough complex markdown (code blocks, tables, math, nested li
 
     print(f"\n✓ Completed in {process_time:.2f}s")
     print(f"  Pages/sec: {process_pps:.1f}")
-    print(f"  Speedup: {len(pages_to_render) / process_time / 1:.1f}x vs sequential (estimated)")
+    print(
+        f"  Speedup: {len(pages_to_render) / process_time / 1:.1f}x vs sequential (estimated)"
+    )
 
     if errors:
         print(f"\n⚠️  Errors encountered: {len(errors)}")

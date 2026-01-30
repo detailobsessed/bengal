@@ -216,7 +216,9 @@ class TestPageResource:
             resource_file = tmp_path / filename
             resource_file.write_bytes(b"data")
             resource = PageResource(path=resource_file, page_url="/")
-            assert resource.resource_type == expected_type, f"{filename} should be {expected_type}"
+            assert resource.resource_type == expected_type, (
+                f"{filename} should be {expected_type}"
+            )
 
 
 class TestPageResourcesCollection:

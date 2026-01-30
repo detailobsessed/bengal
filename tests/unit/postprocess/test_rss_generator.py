@@ -15,8 +15,6 @@ Covers:
 - Atomic file writing
 """
 
-from __future__ import annotations
-
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
@@ -130,8 +128,12 @@ class TestRSSGeneratorWithPages:
         if config:
             site_section = config.get("site", {})
             if isinstance(site_section, dict):
-                site.title = str(site_section.get("title", config.get("title", "Test Site")))
-                site.baseurl = str(site_section.get("baseurl", config.get("baseurl", "")))
+                site.title = str(
+                    site_section.get("title", config.get("title", "Test Site"))
+                )
+                site.baseurl = str(
+                    site_section.get("baseurl", config.get("baseurl", ""))
+                )
                 site.description = str(
                     site_section.get("description", config.get("description", ""))
                 )
@@ -146,7 +148,9 @@ class TestRSSGeneratorWithPages:
         return site
 
     @patch("bengal.utils.io.atomic_write.AtomicFile")
-    def test_generates_rss_with_pages(self, mock_atomic: MagicMock, tmp_path: Path) -> None:
+    def test_generates_rss_with_pages(
+        self, mock_atomic: MagicMock, tmp_path: Path
+    ) -> None:
         """Test RSS generation with pages that have dates."""
         from bengal.postprocess.rss import RSSGenerator
 
@@ -192,7 +196,7 @@ class TestRSSGeneratorWithPages:
 
         site = self._create_mock_site(pages=[page1, page2, page3])
 
-        generator = RSSGenerator(site)
+        RSSGenerator(site)
 
         # Get pages with dates and sort (mimicking generate logic)
         pages_with_dates = [p for p in site.pages if p.date and p.in_rss]
@@ -218,7 +222,7 @@ class TestRSSGeneratorWithPages:
 
         site = self._create_mock_site(pages=pages)
 
-        generator = RSSGenerator(site)
+        RSSGenerator(site)
 
         # Get pages with dates and limit (mimicking generate logic)
         pages_with_dates = [p for p in site.pages if p.date and p.in_rss]
@@ -250,7 +254,9 @@ class TestRSSGeneratori18n:
         """Test that pages are filtered by language in prefix strategy."""
         from bengal.postprocess.rss import RSSGenerator
 
-        page_en = self._create_mock_page("English Post", datetime(2024, 1, 1), lang="en")
+        page_en = self._create_mock_page(
+            "English Post", datetime(2024, 1, 1), lang="en"
+        )
         page_fr = self._create_mock_page("French Post", datetime(2024, 1, 2), lang="fr")
 
         site = MagicMock()
@@ -266,7 +272,7 @@ class TestRSSGeneratori18n:
         }
         site.output_dir = Path("/tmp/output")
 
-        generator = RSSGenerator(site)
+        RSSGenerator(site)
 
         # Verify filtering logic
         i18n = site.config.get("i18n", {}) or {}
@@ -380,7 +386,9 @@ class TestRSSGeneratorDescriptionHandling:
         if "description" in page.metadata:
             desc_text = page.metadata["description"]
         else:
-            content = page.content[:200] + "..." if len(page.content) > 200 else page.content
+            content = (
+                page.content[:200] + "..." if len(page.content) > 200 else page.content
+            )
             desc_text = content
 
         assert desc_text == "Custom description"
@@ -394,7 +402,9 @@ class TestRSSGeneratorDescriptionHandling:
         if "description" in page.metadata:
             desc_text = page.metadata["description"]
         else:
-            content = page.content[:200] + "..." if len(page.content) > 200 else page.content
+            content = (
+                page.content[:200] + "..." if len(page.content) > 200 else page.content
+            )
             desc_text = content
 
         assert desc_text == "A" * 200 + "..."
@@ -408,7 +418,9 @@ class TestRSSGeneratorDescriptionHandling:
         if "description" in page.metadata:
             desc_text = page.metadata["description"]
         else:
-            content = page.content[:200] + "..." if len(page.content) > 200 else page.content
+            content = (
+                page.content[:200] + "..." if len(page.content) > 200 else page.content
+            )
             desc_text = content
 
         assert desc_text == "Short content"
@@ -449,7 +461,7 @@ class TestRSSGeneratorLinkGeneration:
         site.output_dir = tmp_path
         site.config = {"baseurl": "https://example.com"}
 
-        generator = RSSGenerator(site)
+        RSSGenerator(site)
 
         # Mimicking link generation logic
         # Access from site section (supports both Config and dict)

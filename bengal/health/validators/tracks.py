@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING, Any
 
 from bengal.health.base import BaseValidator
@@ -15,12 +16,12 @@ if TYPE_CHECKING:
 class TrackValidator(BaseValidator):
     """
     Validates track definitions and track item references.
-    
+
     Checks:
     - Track data structure validity
     - Track items reference existing pages
     - Track pages have valid track_id
-        
+
     """
 
     name = "Tracks"
@@ -43,7 +44,14 @@ class TrackValidator(BaseValidator):
             )
             return results
 
-        tracks = site.data.tracks
+        tracks_data = site.data.tracks
+        if not tracks_data:
+            return results
+
+        # Cast to dict for iteration (tracks_data is dict at runtime)
+        tracks: dict[str, Any] = tracks_data  # type: ignore[assignment]
+        if not tracks:
+            return results
 
         # Validate track structure
         for track_id, track in tracks.items():
@@ -99,7 +107,11 @@ class TrackValidator(BaseValidator):
             if missing_items:
                 details_text = (
                     f"The following track items reference pages that don't exist: {', '.join(missing_items[:5])}"
-                    + (f" (and {len(missing_items) - 5} more)" if len(missing_items) > 5 else "")
+                    + (
+                        f" (and {len(missing_items) - 5} more)"
+                        if len(missing_items) > 5
+                        else ""
+                    )
                 )
                 results.append(
                     CheckResult.warning(
@@ -119,15 +131,17 @@ class TrackValidator(BaseValidator):
         # Check for track pages with invalid track_id
         track_ids = set(tracks.keys())
         for page in site.pages:
-            track_id = page.metadata.get("track_id")
-            if track_id and track_id not in track_ids:
+            page_track_id = page.metadata.get("track_id")
+            if page_track_id and page_track_id not in track_ids:
+                # Use source_path for display since relative_path may not exist on PageLike
+                page_display = str(getattr(page, "source_path", page.title))
                 results.append(
                     CheckResult.warning(
-                        f"Page '{page.relative_path}' has invalid track_id",
+                        f"Page '{page_display}' has invalid track_id",
                         code="H806",
-                        recommendation=f"Either add '{track_id}' to tracks.yaml or remove track_id from page metadata.",
+                        recommendation=f"Either add '{page_track_id}' to tracks.yaml or remove track_id from page metadata.",
                         details=[
-                            f"Page references track_id '{track_id}' which doesn't exist in tracks.yaml."
+                            f"Page references track_id '{page_track_id}' which doesn't exist in tracks.yaml."
                         ],
                     )
                 )
@@ -145,9 +159,11 @@ class TrackValidator(BaseValidator):
             return None
 
         # Build lookup maps if not already built
-        if site._page_lookup_maps is None:
-            by_full_path = {}
-            by_content_relative = {}
+        # Use getattr since _page_lookup_maps may not exist on SiteLike protocol
+        page_lookup_maps = getattr(site, "_page_lookup_maps", None)
+        if page_lookup_maps is None:
+            by_full_path: dict[str, object] = {}
+            by_content_relative: dict[str, object] = {}
 
             content_root = site.root_path / "content"
 
@@ -162,9 +178,16 @@ class TrackValidator(BaseValidator):
                     # Page is not under content root; skip adding to relative map.
                     pass
 
-            site._page_lookup_maps = {"full": by_full_path, "relative": by_content_relative}
+            page_lookup_maps = {
+                "full": by_full_path,
+                "relative": by_content_relative,
+            }
+            # Try to cache on site if possible
+            if hasattr(site, "_page_lookup_maps"):
+                with contextlib.suppress(AttributeError):
+                    site._page_lookup_maps = page_lookup_maps  # type: ignore[attr-defined]
 
-        maps = site._page_lookup_maps
+        maps = page_lookup_maps
         normalized_path = path.replace("\\", "/")
 
         # Strategy 1: Direct lookup
@@ -173,7 +196,9 @@ class TrackValidator(BaseValidator):
 
         # Strategy 2: Try adding .md extension
         path_with_ext = (
-            f"{normalized_path}.md" if not normalized_path.endswith(".md") else normalized_path
+            f"{normalized_path}.md"
+            if not normalized_path.endswith(".md")
+            else normalized_path
         )
         if path_with_ext in maps["relative"]:
             return maps["relative"][path_with_ext]

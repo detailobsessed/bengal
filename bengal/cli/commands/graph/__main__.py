@@ -15,7 +15,11 @@ from bengal.cli.helpers import (
     load_site_from_cli,
 )
 from bengal.utils.io.atomic_write import atomic_write_text
-from bengal.utils.observability.logger import LogLevel, close_all_loggers, configure_logging
+from bengal.utils.observability.logger import (
+    LogLevel,
+    close_all_loggers,
+    configure_logging,
+)
 
 from .bridges import bridges
 from .communities import communities
@@ -28,7 +32,6 @@ from .suggest import suggest
 @click.group("graph", cls=BengalGroup)
 def graph_cli() -> None:
     """Commands for analyzing the site's knowledge graph."""
-    pass
 
 
 @click.command("analyze", cls=BengalCommand)
@@ -58,13 +61,17 @@ def graph_cli() -> None:
     help="Generate interactive visualization to file (e.g., public/graph.html)",
 )
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
-def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str) -> None:
+def analyze(
+    show_stats: bool, tree: bool, output: str, config: str, source: str
+) -> None:
     """
     Analyze site structure and connectivity.
-        
+
     """
     from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
@@ -73,7 +80,9 @@ def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str)
 
     # Load site using helper
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     # We need to discover content to analyze it
     # This also builds the xref_index for link analysis
@@ -93,7 +102,7 @@ def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str)
 
                 # Build knowledge graph
                 status.update(f"[bold green]Analyzing {len(site.pages)} pages...")
-                graph_obj = KnowledgeGraph(site)
+                graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
                 graph_obj.build()
         else:
             # Fallback to simple messages
@@ -104,7 +113,7 @@ def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str)
             content_orch.discover()
 
             cli.info(f"📊 Analyzing {len(site.pages)} pages...")
-            graph_obj = KnowledgeGraph(site)
+            graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
             graph_obj.build()
     except ImportError:
         # Rich not available, use simple messages
@@ -115,7 +124,7 @@ def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str)
         content_orch.discover()
 
         cli.info(f"📊 Analyzing {len(site.pages)} pages...")
-        graph_obj = KnowledgeGraph(site)
+        graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
         graph_obj.build()
 
     # Show tree visualization if requested
@@ -123,7 +132,10 @@ def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str)
         try:
             from rich.tree import Tree
 
-            from bengal.utils.observability.rich_console import get_console, should_use_rich
+            from bengal.utils.observability.rich_console import (
+                get_console,
+                should_use_rich,
+            )
 
             if should_use_rich():
                 console = get_console()
@@ -137,7 +149,7 @@ def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str)
                 for page in site.pages:
                     # Get section from page path or use root
                     if hasattr(page, "section") and page.section:
-                        section_name = page.section
+                        section_name = str(page.section)
                     else:
                         # Try to extract from path
                         parts = Path(page.source_path).parts
@@ -152,23 +164,25 @@ def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str)
                     pages_in_section = sections_dict[section_name]
 
                     # Create section branch
-                    section_label = (
-                        f"📁 [info]{section_name}[/info] [dim]({len(pages_in_section)} pages)[/dim]"
-                    )
+                    section_label = f"📁 [info]{section_name}[/info] [dim]({len(pages_in_section)} pages)[/dim]"
                     section_branch = tree_root.add(section_label)
 
                     # Add pages (limit to first 15 per section)
-                    for page in sorted(pages_in_section, key=lambda p: str(p.source_path))[:15]:
+                    for page in sorted(
+                        pages_in_section, key=lambda p: str(p.source_path)
+                    )[:15]:
                         # Determine icon
                         icon = "📄"
                         if hasattr(page, "is_index") and page.is_index:
                             icon = "🏠"
-                        elif hasattr(page, "source_path") and "blog" in str(page.source_path):
+                        elif hasattr(page, "source_path") and "blog" in str(
+                            page.source_path
+                        ):
                             icon = "📝"
 
                         # Get incoming/outgoing links
-                        incoming = len(graph_obj.incoming_refs.get(page, []))
-                        outgoing = len(graph_obj.outgoing_refs.get(page, []))
+                        incoming = int(graph_obj.incoming_refs.get(page, 0))
+                        outgoing = len(graph_obj.outgoing_refs.get(page, set()))
 
                         # Format page entry
                         title = getattr(page, "title", str(page.source_path))
@@ -207,7 +221,7 @@ def analyze(show_stats: bool, tree: bool, output: str, config: str, source: str)
         try:
             from bengal.analysis.graph.visualizer import GraphVisualizer
 
-            visualizer = GraphVisualizer(site, graph_obj)
+            visualizer = GraphVisualizer(site, graph_obj)  # type: ignore[arg-type]
             html = visualizer.generate_html()
 
             # Ensure output directory exists

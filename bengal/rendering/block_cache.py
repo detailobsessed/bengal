@@ -61,52 +61,52 @@ logger = get_logger(__name__)
 
 class BlockCache:
     """Cache for rendered template blocks.
-    
+
     Caches blocks based on their introspection-determined cache scope:
     - "site": Cached once per build, reused for all pages
     - "page": Cached per-page (cleared between pages)
     - "none"/"unknown": Not cached
-    
+
     Attributes:
         _site_blocks: Site-wide cached blocks {template:block -> html}
         _cacheable_blocks: Analysis results {template -> {block -> scope}}
         _stats: Cache hit/miss statistics
-    
+
     Thread-Safety:
         Site blocks are populated before parallel rendering starts.
         During rendering, only reads occur (thread-safe).
-        
+
     """
 
     # Multiplier for time savings estimation.
-    # 
+    #
     # The measured render_block() time is significantly lower than the actual
     # time saved in practice because it doesn't account for:
     # - Context resolution overhead (building page context dict)
     # - AST traversal for block extraction
     # - String builder allocation and concatenation
     # - Template inheritance chain resolution
-    # 
+    #
     # Empirical measurements on real-world large sites (500+ pages) show:
     # - Isolated render_block(): ~0.5-2ms per block
     # - Full integrated savings: ~15-40ms per cached block hit
     # - Real-world factor: ~25-40x measured isolation time
-    # 
+    #
     # We use 25.0 as a conservative estimate (lower bound of observed range).
     # Actual savings may be higher on complex templates with deep inheritance.
-    # 
+    #
     # RFC: kida-template-introspection (Performance Analysis section)
     SAVINGS_MULTIPLIER = 25.0
 
     __slots__ = (
-        "_site_blocks",
-        "_cacheable_blocks",
-        "_stats",
-        "_enabled",
         "_block_hashes",  # {template:block -> content_hash}
+        "_cacheable_blocks",
+        "_enabled",
         "_hash_lock",  # Thread safety for hash updates
-        "_stats_lock",  # Thread safety for stats updates during parallel rendering
+        "_site_blocks",
         "_site_blocks_lock",  # Thread safety for site blocks updates (PEP 703)
+        "_stats",
+        "_stats_lock",  # Thread safety for stats updates during parallel rendering
     )
 
     def __init__(self, enabled: bool = True) -> None:
@@ -167,7 +167,7 @@ class BlockCache:
                 "block_cache_analysis",
                 template=template_name,
                 cacheable_blocks=list(cacheable.keys()),
-                scopes={k: v for k, v in cacheable.items()},
+                scopes=dict(cacheable.items()),
             )
 
         self._cacheable_blocks[template_name] = cacheable
@@ -409,7 +409,11 @@ class BlockCache:
         """
         if template_name not in self._cacheable_blocks:
             return "unknown"
-        return self._cacheable_blocks[template_name].get(block_name, "unknown")
+        scope = self._cacheable_blocks[template_name].get(block_name, "unknown")
+        # Validate scope is a known literal value
+        if scope in ("site", "page", "none", "unknown"):
+            return scope  # type: ignore[return-value]
+        return "unknown"
 
     # =========================================================================
     # Block Change Detection (RFC: block-level-incremental-builds)

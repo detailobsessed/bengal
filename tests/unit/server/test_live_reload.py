@@ -92,7 +92,6 @@ class TestSSEShutdown:
     def test_shutdown_sse_clients_sets_flag(self):
         """Test that shutdown_sse_clients sets the shutdown flag."""
         from bengal.server.live_reload import (
-            _shutdown_requested,
             reset_sse_shutdown,
             shutdown_sse_clients,
         )
@@ -160,7 +159,7 @@ class TestSetReloadAction:
 
     def test_set_reload_action_valid_values(self):
         """Test that valid action values are accepted."""
-        from bengal.server.live_reload import _last_action, set_reload_action
+        from bengal.server.live_reload import set_reload_action
 
         for action in ("reload", "reload-css", "reload-page"):
             set_reload_action(action)
@@ -205,7 +204,9 @@ class TestInjectLiveReloadIntoResponse:
             inject_live_reload_into_response,
         )
 
-        response = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html>No body</html>"
+        response = (
+            b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html>No body</html>"
+        )
         result = inject_live_reload_into_response(response)
 
         assert LIVE_RELOAD_SCRIPT.encode() in result
@@ -218,7 +219,9 @@ class TestInjectLiveReloadIntoResponse:
         """Test that Content-Length is updated after injection."""
         from bengal.server.live_reload import inject_live_reload_into_response
 
-        response = b"HTTP/1.1 200 OK\r\nContent-Length: 30\r\n\r\n<html><body></body></html>"
+        response = (
+            b"HTTP/1.1 200 OK\r\nContent-Length: 30\r\n\r\n<html><body></body></html>"
+        )
         result = inject_live_reload_into_response(response)
 
         # Parse headers to check Content-Length
@@ -243,21 +246,20 @@ class TestInjectLiveReloadIntoResponse:
 
 
 # Integration test example (requires more setup)
-@pytest.mark.skip(reason="Requires full server setup - placeholder for future implementation")
+@pytest.mark.skip(
+    reason="Requires full server setup - placeholder for future implementation"
+)
 class TestLiveReloadIntegration:
     """Integration tests for live reload (to be implemented)."""
 
     def test_server_starts_and_serves_with_live_reload(self):
         """Test that server starts and injects live reload script."""
         # TODO: Implement with actual server startup
-        pass
 
     def test_sse_connection_establishes(self):
         """Test that SSE connection can be established."""
         # TODO: Implement with actual SSE client
-        pass
 
     def test_file_change_triggers_notification(self):
         """Test that file changes trigger browser reload notification."""
         # TODO: Implement with file watching and SSE
-        pass

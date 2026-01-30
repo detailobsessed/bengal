@@ -11,8 +11,6 @@ Note: Parallel processing is now auto-detected via should_parallelize().
 Use force_sequential=True to explicitly disable parallel processing.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.orchestration.build.options import BuildOptions

@@ -13,7 +13,11 @@ from bengal.cli.helpers import (
     handle_cli_errors,
     load_site_from_cli,
 )
-from bengal.utils.observability.logger import LogLevel, close_all_loggers, configure_logging
+from bengal.utils.observability.logger import (
+    LogLevel,
+    close_all_loggers,
+    configure_logging,
+)
 
 
 @click.command("orphans", cls=BengalCommand)
@@ -74,31 +78,31 @@ def orphans(
 ) -> None:
     """
     List pages by connectivity level.
-    
+
     Shows pages grouped by how well they're connected:
     - 🔴 isolated: No meaningful connections (score < 0.25)
     - 🟠 lightly: Only structural links (score 0.25-1.0)
     - 🟡 adequately: Some connections (score 1.0-2.0)
     - 🟢 well: Well connected (score >= 2.0)
-    
+
     Use this command to:
     - Find truly isolated pages that need attention
     - Identify pages relying only on structural links
     - Prioritize internal linking improvements
-    
+
     Examples:
         # List isolated pages (truly orphaned)
         bengal graph orphans
-    
+
         # List lightly linked pages
         bengal graph orphans --level lightly
-    
+
         # Show all levels for full picture
         bengal graph orphans --level all
-    
+
         # Export as JSON
         bengal graph orphans --format json > orphans.json
-        
+
     """
     from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
@@ -106,7 +110,9 @@ def orphans(
     configure_logging(level=LogLevel.WARNING)
 
     # Load site using helper
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     try:
         if format != "paths":
@@ -120,7 +126,7 @@ def orphans(
         if format != "paths":
             cli.info(f"📊 Analyzing {len(site.pages)} pages...")
 
-        graph_obj = KnowledgeGraph(site)
+        graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
         graph_obj.build()
 
         # Get connectivity report
@@ -149,7 +155,9 @@ def orphans(
 
         # Sort
         if sort == "title":
-            page_scores.sort(key=lambda x: getattr(x[0], "title", str(x[0].source_path)))
+            page_scores.sort(
+                key=lambda x: getattr(x[0], "title", str(x[0].source_path))
+            )
         elif sort == "path":
             page_scores.sort(key=lambda x: str(x[0].source_path))
         else:  # score

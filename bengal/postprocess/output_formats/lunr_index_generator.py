@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from bengal.utils.io.atomic_write import atomic_write_text
 from bengal.utils.observability.logger import get_logger
@@ -54,11 +54,11 @@ except ImportError:
 class LunrIndexGenerator:
     """
     Generate pre-built Lunr.js search index at build time.
-    
+
     Uses the Python `lunr` package (pure Python implementation of Lunr.js)
     to build a serialized search index that can be loaded directly by the
     client-side Lunr.js library.
-    
+
     Field Boosts (matching search.js):
         - title: 10x (most important)
         - search_keywords: 8x (explicit search terms)
@@ -68,16 +68,16 @@ class LunrIndexGenerator:
         - author: 2x (authorship)
         - content: 1x (full text)
         - kind: 1x (content type)
-    
+
     Example:
             >>> generator = LunrIndexGenerator(site)
             >>> path = generator.generate()
             >>> print(f"Index written to: {path}")
-        
+
     """
 
     # Field boost values (matching search.js for consistency)
-    BOOSTS = {
+    BOOSTS: ClassVar[dict[str, int]] = {
         "title": 10,
         "description": 5,
         "content": 1,
@@ -162,10 +162,15 @@ class LunrIndexGenerator:
             # Build Lunr index
             logger.debug("building_lunr_index", document_count=len(documents))
 
+            # Type guard: lunr is guaranteed non-None after LUNR_AVAILABLE check at line 119
+            if lunr is None:
+                return None
+
             idx = lunr(
                 ref="objectID",
                 fields=[
-                    {"field_name": name, "boost": boost} for name, boost in self.BOOSTS.items()
+                    {"field_name": name, "boost": boost}
+                    for name, boost in self.BOOSTS.items()
                 ],
                 documents=documents,
             )
@@ -221,7 +226,9 @@ class LunrIndexGenerator:
 
             # Build document with all searchable fields
             doc = {
-                "objectID": page.get("objectID") or page.get("uri") or page.get("url", ""),
+                "objectID": page.get("objectID")
+                or page.get("uri")
+                or page.get("url", ""),
                 "title": page.get("title", ""),
                 "description": page.get("description", ""),
                 "content": page.get("content") or page.get("excerpt", ""),
@@ -293,5 +300,7 @@ class LunrIndexGenerator:
             )
             default_in_subdir = bool(i18n.get("default_in_subdir", False))
             if default_in_subdir or current_lang != i18n.get("default_language", "en"):
-                return Path(self.site.output_dir) / str(current_lang) / "search-index.json"
+                return (
+                    Path(self.site.output_dir) / str(current_lang) / "search-index.json"
+                )
         return Path(self.site.output_dir) / "search-index.json"

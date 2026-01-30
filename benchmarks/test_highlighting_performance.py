@@ -14,10 +14,6 @@ Requirements:
     - rosettes
 """
 
-from __future__ import annotations
-
-import pytest
-
 # Sample code snippets for benchmarking
 PYTHON_SIMPLE = """def hello():
     print("Hello, World!")
@@ -176,7 +172,7 @@ export default function UserList() {
 
 class TestRosettesHighlightingPerformance:
     """Benchmarks for Rosettes backend (default).
-    
+
     Rosettes is Bengal's default syntax highlighter:
     - 55 languages supported
     - Lock-free, thread-safe
@@ -222,7 +218,9 @@ class TestRosettesHighlightingPerformance:
         """Benchmark Rosettes with line numbers enabled."""
         import rosettes
 
-        result = benchmark(rosettes.highlight, PYTHON_MEDIUM, "python", show_linenos=True)
+        result = benchmark(
+            rosettes.highlight, PYTHON_MEDIUM, "python", show_linenos=True
+        )
         # Rosettes outputs highlighted code; line numbers may be CSS-based
         assert "<span" in result or "<pre" in result
 
@@ -230,7 +228,9 @@ class TestRosettesHighlightingPerformance:
         """Benchmark Rosettes with line highlighting."""
         import rosettes
 
-        result = benchmark(rosettes.highlight, PYTHON_MEDIUM, "python", hl_lines={1, 5, 10, 15})
+        result = benchmark(
+            rosettes.highlight, PYTHON_MEDIUM, "python", hl_lines={1, 5, 10, 15}
+        )
         # Rosettes outputs highlighted code; hl_lines affects specific lines
         assert "<span" in result or "<pre" in result
 
@@ -262,7 +262,13 @@ class TestBulkHighlighting:
         def highlight_all():
             results = []
             for code in codes:
-                lang = "python" if "def " in code else "rust" if "fn " in code else "javascript"
+                lang = (
+                    "python"
+                    if "def " in code
+                    else "rust"
+                    if "fn " in code
+                    else "javascript"
+                )
                 results.append(rosettes.highlight(code, lang))
             return results
 
@@ -272,7 +278,7 @@ class TestBulkHighlighting:
 
     def test_rosettes_100_blocks_parallel(self, benchmark) -> None:
         """Benchmark Rosettes parallel highlighting on 100 code blocks.
-        
+
         Uses rosettes.highlight_many() for parallel execution on Python 3.14t.
         """
         import rosettes

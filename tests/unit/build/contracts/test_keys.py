@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.build.contracts.keys import CacheKey, content_key, data_key, parse_key

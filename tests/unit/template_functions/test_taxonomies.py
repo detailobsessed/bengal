@@ -1,7 +1,5 @@
 """Tests for taxonomy helper template functions."""
 
-from __future__ import annotations
-
 from bengal.rendering.template_functions.taxonomies import (
     has_tag,
     popular_tags,

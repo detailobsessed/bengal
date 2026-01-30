@@ -57,16 +57,16 @@ _logger = logging.getLogger(__name__)
 
 class RosettesBackend:
     """Rosettes-based syntax highlighting backend.
-    
+
     Uses the external rosettes package (https://pypi.org/project/rosettes/).
-    
+
     Thread-safe by design: Rosettes uses immutable state and
     functools.cache for memoization.
-    
+
     Supports theming via site configuration (RFC-0003):
         - css_class_style: "semantic" (default) or "pygments"
         - theme: auto-inherited from site palette
-        
+
     """
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
@@ -152,7 +152,9 @@ class RosettesBackend:
             hl_set = set(hl_lines) if hl_lines else None
 
             # Determine container class based on style
-            css_class = "rosettes" if self._css_class_style == "semantic" else "highlight"
+            css_class = (
+                "rosettes" if self._css_class_style == "semantic" else "highlight"
+            )
 
             return rosettes.highlight(
                 code,
@@ -179,5 +181,7 @@ class RosettesBackend:
             HTML string with escaped code.
         """
         escaped = html.escape(code)
-        container_class = "rosettes" if self._css_class_style == "semantic" else "highlight"
+        container_class = (
+            "rosettes" if self._css_class_style == "semantic" else "highlight"
+        )
         return f'<div class="{container_class}" data-language="{language}"><pre><code>{escaped}</code></pre></div>'

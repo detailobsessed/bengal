@@ -23,7 +23,7 @@ def process_guard(request):
     """
     Guard against leaked processes.
     Ensures all child processes created during the test are terminated on teardown.
-        
+
     """
     if psutil is None:
         yield
@@ -113,4 +113,6 @@ def memory_guard(request):
         if peak_memory[0] > max_memory:
             peak_mb = peak_memory[0] / (1024 * 1024)
             limit_mb = max_memory / (1024 * 1024)
-            pytest.fail(f"Memory limit exceeded: {peak_mb:.1f}MB (limit: {limit_mb:.1f}MB)")
+            pytest.fail(
+                f"Memory limit exceeded: {peak_mb:.1f}MB (limit: {limit_mb:.1f}MB)"
+            )

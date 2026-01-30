@@ -30,8 +30,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 from bengal.autodoc.extractors.openapi import OpenAPIExtractor
 from bengal.autodoc.extractors.python import PythonExtractor
 

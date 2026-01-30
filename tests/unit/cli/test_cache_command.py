@@ -5,8 +5,6 @@ Tests the CLI commands for generating cache keys for CI systems,
 as specified in plan/rfc-ci-cache-inputs.md.
 """
 
-from __future__ import annotations
-
 import json
 
 from click.testing import CliRunner
@@ -90,7 +88,9 @@ class TestCacheInputs:
         """Includes OpenAPI spec when autodoc OpenAPI enabled."""
         self._create_test_site_with_autodoc(
             tmp_path,
-            autodoc_config={"openapi": {"enabled": True, "spec_file": "api/openapi.yaml"}},
+            autodoc_config={
+                "openapi": {"enabled": True, "spec_file": "api/openapi.yaml"}
+            },
         )
 
         runner = CliRunner()
@@ -235,10 +235,14 @@ class TestCacheHash:
         original_version = bengal.__version__
 
         monkeypatch.setattr(bengal, "__version__", "0.1.0")
-        result1 = runner.invoke(cache_cli, ["hash", "--no-include-version", str(tmp_path)])
+        result1 = runner.invoke(
+            cache_cli, ["hash", "--no-include-version", str(tmp_path)]
+        )
 
         monkeypatch.setattr(bengal, "__version__", "0.2.0")
-        result2 = runner.invoke(cache_cli, ["hash", "--no-include-version", str(tmp_path)])
+        result2 = runner.invoke(
+            cache_cli, ["hash", "--no-include-version", str(tmp_path)]
+        )
 
         monkeypatch.setattr(bengal, "__version__", original_version)
 
@@ -250,7 +254,9 @@ class TestCacheHash:
         """Hash handles non-matching globs gracefully."""
         self._create_test_site_with_autodoc(
             tmp_path,
-            autodoc_config={"python": {"enabled": True, "source_dirs": ["../nonexistent"]}},
+            autodoc_config={
+                "python": {"enabled": True, "source_dirs": ["../nonexistent"]}
+            },
         )
 
         runner = CliRunner()

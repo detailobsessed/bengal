@@ -9,8 +9,6 @@ Tests the centralized path resolution architecture to ensure:
 See: plan/active/rfc-path-resolution-architecture.md
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest

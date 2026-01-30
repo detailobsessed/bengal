@@ -15,20 +15,20 @@ if TYPE_CHECKING:
 class MenusContext:
     """
     Smart access to navigation menus.
-    
+
     Example:
         {% for item in menus.main %}
         {% for item in menus.footer %}
         {% for item in menus.get('sidebar') %}
-    
+
     Performance:
         Menu dicts are cached on first access to avoid repeated .to_dict() calls.
         For a 1000-page site accessing menus 3x per page, this eliminates
         ~3000 unnecessary dict creations per build.
-        
+
     """
 
-    __slots__ = ("_site", "_cache")
+    __slots__ = ("_cache", "_site")
 
     def __init__(self, site: SiteLike):
         self._site = site
@@ -57,14 +57,17 @@ class MenusContext:
 
         # Check for localized menu if language specified
         if lang:
-            localized = self._site.menu_localized.get(name, {}).get(lang)
+            menu_localized = getattr(self._site, "menu_localized", None)
+            localized = (
+                menu_localized.get(name, {}).get(lang) if menu_localized else None
+            )
             if localized is not None:
                 result: list[dict[str, Any]] = []
                 for item in localized:
                     if hasattr(item, "to_dict"):
-                        result.append(item.to_dict())  # type: ignore[attr-defined]
+                        result.append(item.to_dict())
                     else:
-                        result.append(item)  # type: ignore[arg-type]
+                        result.append(item)
                 self._cache[cache_key] = result
                 return self._cache[cache_key]
 
@@ -73,9 +76,9 @@ class MenusContext:
         result: list[dict[str, Any]] = []
         for item in menu:
             if hasattr(item, "to_dict"):
-                result.append(item.to_dict())  # type: ignore[attr-defined]
+                result.append(item.to_dict())
             else:
-                result.append(item)  # type: ignore[arg-type]
+                result.append(item)
         self._cache[cache_key] = result
         return self._cache[cache_key]
 

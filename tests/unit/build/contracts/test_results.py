@@ -4,8 +4,6 @@ Unit tests for bengal.build.contracts.results.
 Tests ChangeDetectionResult, RebuildReason, and RebuildReasonCode.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.build.contracts.keys import CacheKey
@@ -14,7 +12,6 @@ from bengal.build.contracts.results import (
     RebuildReason,
     RebuildReasonCode,
 )
-
 
 # =============================================================================
 # RebuildReasonCode Tests
@@ -153,12 +150,8 @@ class TestChangeDetectionResult:
         """merge() combines rebuild_reasons from both results."""
         reason1 = RebuildReason(RebuildReasonCode.CONTENT_CHANGED)
         reason2 = RebuildReason(RebuildReasonCode.DATA_FILE_CHANGED)
-        result1 = ChangeDetectionResult(
-            rebuild_reasons={CacheKey("page1.md"): reason1}
-        )
-        result2 = ChangeDetectionResult(
-            rebuild_reasons={CacheKey("page2.md"): reason2}
-        )
+        result1 = ChangeDetectionResult(rebuild_reasons={CacheKey("page1.md"): reason1})
+        result2 = ChangeDetectionResult(rebuild_reasons={CacheKey("page2.md"): reason2})
         merged = result1.merge(result2)
         assert CacheKey("page1.md") in merged.rebuild_reasons
         assert CacheKey("page2.md") in merged.rebuild_reasons
@@ -221,12 +214,8 @@ class TestChangeDetectionResult:
 
     def test_merge_combines_sections(self) -> None:
         """merge() combines affected_sections from both results."""
-        result1 = ChangeDetectionResult(
-            affected_sections=frozenset([CacheKey("docs")])
-        )
-        result2 = ChangeDetectionResult(
-            affected_sections=frozenset([CacheKey("blog")])
-        )
+        result1 = ChangeDetectionResult(affected_sections=frozenset([CacheKey("docs")]))
+        result2 = ChangeDetectionResult(affected_sections=frozenset([CacheKey("blog")]))
         merged = result1.merge(result2)
         assert CacheKey("docs") in merged.affected_sections
         assert CacheKey("blog") in merged.affected_sections
@@ -313,7 +302,9 @@ class TestChangeDetectionResult:
     def test_summary_templates(self) -> None:
         """summary() includes template count."""
         result = ChangeDetectionResult(
-            templates_changed=frozenset([CacheKey("base.html"), CacheKey("single.html")])
+            templates_changed=frozenset(
+                [CacheKey("base.html"), CacheKey("single.html")]
+            )
         )
         assert "2 templates" in result.summary()
 

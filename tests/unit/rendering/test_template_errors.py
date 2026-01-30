@@ -2,8 +2,6 @@
 Unit tests for template error reporting system.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -77,7 +75,9 @@ class TestInclusionChain:
 
     def test_multiple_entries(self):
         """Test inclusion chain with multiple entries."""
-        chain = InclusionChain([("base.html", None), ("page.html", 20), ("partials/nav.html", 15)])
+        chain = InclusionChain(
+            [("base.html", None), ("page.html", 20), ("partials/nav.html", 15)]
+        )
 
         chain_str = str(chain)
         assert "base.html" in chain_str
@@ -144,7 +144,9 @@ class TestTemplateRenderError:
         error = TemplateAssertionError("No filter named 'in_section'", 1)
         mock_engine = MockTemplateEngine()
 
-        suggestion = TemplateRenderError._generate_suggestion(error, "filter", mock_engine)
+        suggestion = TemplateRenderError._generate_suggestion(
+            error, "filter", mock_engine
+        )
 
         assert suggestion is not None
         assert "page.parent" in suggestion
@@ -154,7 +156,9 @@ class TestTemplateRenderError:
         error = TemplateAssertionError("No filter named 'markdwn'", 1)
         mock_engine = MockTemplateEngine()
 
-        alternatives = TemplateRenderError._find_alternatives(error, "filter", mock_engine)
+        alternatives = TemplateRenderError._find_alternatives(
+            error, "filter", mock_engine
+        )
 
         # Should suggest 'markdown' as it's similar
         assert "markdown" in alternatives
@@ -164,7 +168,9 @@ class TestTemplateRenderError:
         error = TemplateAssertionError("No filter named 'xyz123'", 1)
         mock_engine = MockTemplateEngine()
 
-        alternatives = TemplateRenderError._find_alternatives(error, "filter", mock_engine)
+        alternatives = TemplateRenderError._find_alternatives(
+            error, "filter", mock_engine
+        )
 
         # Should return empty or very poor matches
         assert len(alternatives) <= 3

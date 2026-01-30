@@ -4,8 +4,6 @@ Tests health/validators/output.py:
 - OutputValidator: build output validation in health check system
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -96,7 +94,9 @@ class TestOutputValidatorPageSizes:
         results = validator.validate(mock_site)
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        small_warning = next((r for r in warning_results if "small" in r.message.lower()), None)
+        small_warning = next(
+            (r for r in warning_results if "small" in r.message.lower()), None
+        )
         assert small_warning is not None
         assert small_warning.details is not None
 
@@ -232,7 +232,9 @@ class TestOutputValidatorRecommendations:
         results = validator.validate(mock_site)
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        small_warning = next((r for r in warning_results if "small" in r.message.lower()), None)
+        small_warning = next(
+            (r for r in warning_results if "small" in r.message.lower()), None
+        )
         assert small_warning is not None
         assert small_warning.recommendation is not None
 
@@ -241,7 +243,9 @@ class TestOutputValidatorRecommendations:
         results = validator.validate(mock_site)
 
         error_results = [r for r in results if r.status == CheckStatus.ERROR]
-        assets_error = next((r for r in error_results if "assets" in r.message.lower()), None)
+        assets_error = next(
+            (r for r in error_results if "assets" in r.message.lower()), None
+        )
         assert assets_error is not None
         assert assets_error.recommendation is not None
 
@@ -274,6 +278,8 @@ class TestOutputValidatorSilenceIsGolden:
         success_results = [r for r in results if r.status == CheckStatus.SUCCESS]
         # Should not have CSS/JS success messages
         asset_success = [
-            r for r in success_results if "css" in r.message.lower() or "js" in r.message.lower()
+            r
+            for r in success_results
+            if "css" in r.message.lower() or "js" in r.message.lower()
         ]
         assert len(asset_success) == 0

@@ -9,8 +9,6 @@ Tests cover:
 - Validation warnings
 """
 
-from __future__ import annotations
-
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -67,7 +65,9 @@ class TestOutputRecord:
 
     def test_from_path_manifest(self) -> None:
         """Auto-detect MANIFEST from .webmanifest extension."""
-        record = OutputRecord.from_path(Path("manifest.webmanifest"), phase="postprocess")
+        record = OutputRecord.from_path(
+            Path("manifest.webmanifest"), phase="postprocess"
+        )
         assert record.output_type == OutputType.MANIFEST
 
     def test_from_path_unknown_defaults_to_asset(self) -> None:
@@ -168,7 +168,9 @@ class TestBuildOutputCollector:
         """Absolute paths are converted to relative when output_dir provided."""
         output_dir = Path("/site/public")
         collector = BuildOutputCollector(output_dir)
-        collector.record(Path("/site/public/posts/hello.html"), OutputType.HTML, phase="render")
+        collector.record(
+            Path("/site/public/posts/hello.html"), OutputType.HTML, phase="render"
+        )
 
         outputs = collector.get_outputs()
         assert outputs[0].path == Path("posts/hello.html")
@@ -242,8 +244,12 @@ class TestBuildOutputCollector:
             barrier.wait()
             try:
                 for i in range(50):
-                    collector.record(Path(f"page{i}.html"), OutputType.HTML, phase="render")
-                    collector.record(Path(f"style{i}.css"), OutputType.CSS, phase="asset")
+                    collector.record(
+                        Path(f"page{i}.html"), OutputType.HTML, phase="render"
+                    )
+                    collector.record(
+                        Path(f"style{i}.css"), OutputType.CSS, phase="asset"
+                    )
             except Exception as e:
                 errors.append(e)
 

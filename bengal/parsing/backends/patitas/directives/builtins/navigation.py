@@ -26,9 +26,10 @@ from dataclasses import dataclass
 from html import escape as html_escape
 from typing import TYPE_CHECKING, Any, ClassVar, Protocol
 
-from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 from patitas.directives.options import DirectiveOptions
 from patitas.nodes import Directive
+
+from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
@@ -37,9 +38,9 @@ if TYPE_CHECKING:
 
 __all__ = [
     "BreadcrumbsDirective",
-    "SiblingsDirective",
     "PrevNextDirective",
     "RelatedDirective",
+    "SiblingsDirective",
 ]
 
 
@@ -82,14 +83,14 @@ class BreadcrumbsOptions(DirectiveOptions):
 class BreadcrumbsDirective:
     """
     Auto-generate breadcrumb navigation from page ancestors.
-    
+
     Syntax:
         :::{breadcrumbs}
         :separator: /
         :show-home: true
         :home-text: Home
         :::
-    
+
     Output:
         <nav class="breadcrumbs" aria-label="Breadcrumb">
           <a class="breadcrumb-item" href="/">Home</a>
@@ -98,13 +99,13 @@ class BreadcrumbsDirective:
           <span class="breadcrumb-separator">›</span>
           <span class="breadcrumb-item breadcrumb-current">Current Page</span>
         </nav>
-    
+
     Requires:
         Page context with `ancestors` attribute.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("breadcrumbs",)
@@ -206,14 +207,14 @@ class SiblingsOptions(DirectiveOptions):
 class SiblingsDirective:
     """
     Show other pages in the same section.
-    
+
     Syntax:
         :::{siblings}
         :limit: 10
         :exclude-current: true
         :show-description: true
         :::
-    
+
     Output:
         <div class="siblings">
           <ul class="siblings-list">
@@ -221,13 +222,13 @@ class SiblingsDirective:
             <li><a href="/page2/">Page 2</a></li>
           </ul>
         </div>
-    
+
     Requires:
         Page context with `_section.sorted_pages` attribute.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("siblings",)
@@ -288,7 +289,7 @@ class SiblingsDirective:
         siblings: list[Any] = []
         for page in pages:
             source_str = str(getattr(page, "source_path", ""))
-            if source_str.endswith("_index.md") or source_str.endswith("index.md"):
+            if source_str.endswith(("_index.md", "index.md")):
                 continue
             if (
                 exclude_current
@@ -316,7 +317,9 @@ class SiblingsDirective:
                 description = page.metadata.get("description", "")
 
             sb.append("  <li>\n")
-            sb.append(f'    <a href="{html_escape(url)}">{html_escape(page_title)}</a>\n')
+            sb.append(
+                f'    <a href="{html_escape(url)}">{html_escape(page_title)}</a>\n'
+            )
             if description:
                 sb.append(
                     f'    <span class="sibling-description">{html_escape(description)}</span>\n'
@@ -342,13 +345,13 @@ class PrevNextOptions(DirectiveOptions):
 class PrevNextDirective:
     """
     Section-aware previous/next navigation.
-    
+
     Syntax:
         :::{prev-next}
         :show-title: true
         :show-section: false
         :::
-    
+
     Output:
         <nav class="prev-next">
           <a class="prev-next-link prev-link" href="/prev/">
@@ -360,13 +363,13 @@ class PrevNextDirective:
             <span class="prev-next-title">Next Page</span>
           </a>
         </nav>
-    
+
     Requires:
         Page context with `prev_in_section` and `next_in_section` attributes.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("prev-next",)
@@ -425,11 +428,17 @@ class PrevNextDirective:
 
         if prev_page:
             prev_url = getattr(prev_page, "href", "/")
-            prev_title = getattr(prev_page, "title", "Previous") if show_title else "Previous"
-            sb.append(f'  <a class="prev-next-link prev-link" href="{html_escape(prev_url)}">\n')
+            prev_title = (
+                getattr(prev_page, "title", "Previous") if show_title else "Previous"
+            )
+            sb.append(
+                f'  <a class="prev-next-link prev-link" href="{html_escape(prev_url)}">\n'
+            )
             sb.append('    <span class="prev-next-label">← Previous</span>\n')
             if show_title:
-                sb.append(f'    <span class="prev-next-title">{html_escape(prev_title)}</span>\n')
+                sb.append(
+                    f'    <span class="prev-next-title">{html_escape(prev_title)}</span>\n'
+                )
             sb.append("  </a>\n")
         else:
             sb.append('  <span class="prev-next-link prev-link disabled"></span>\n')
@@ -437,10 +446,14 @@ class PrevNextDirective:
         if next_page:
             next_url = getattr(next_page, "href", "/")
             next_title = getattr(next_page, "title", "Next") if show_title else "Next"
-            sb.append(f'  <a class="prev-next-link next-link" href="{html_escape(next_url)}">\n')
+            sb.append(
+                f'  <a class="prev-next-link next-link" href="{html_escape(next_url)}">\n'
+            )
             sb.append('    <span class="prev-next-label">Next →</span>\n')
             if show_title:
-                sb.append(f'    <span class="prev-next-title">{html_escape(next_title)}</span>\n')
+                sb.append(
+                    f'    <span class="prev-next-title">{html_escape(next_title)}</span>\n'
+                )
             sb.append("  </a>\n")
         else:
             sb.append('  <span class="prev-next-link next-link disabled"></span>\n')
@@ -465,14 +478,14 @@ class RelatedOptions(DirectiveOptions):
 class RelatedDirective:
     """
     Show related content based on tags.
-    
+
     Syntax:
         :::{related}
         :limit: 5
         :title: Related Articles
         :show-tags: true
         :::
-    
+
     Output:
         <aside class="related">
           <h3 class="related-title">Related Articles</h3>
@@ -481,13 +494,13 @@ class RelatedDirective:
             <li><a href="/article2/">Article 2</a></li>
           </ul>
         </aside>
-    
+
     Requires:
         Page context with `related_posts` attribute.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("related",)
@@ -548,7 +561,9 @@ class RelatedDirective:
 
         sb.append('<aside class="related">\n')
         if section_title:
-            sb.append(f'  <h3 class="related-title">{html_escape(section_title)}</h3>\n')
+            sb.append(
+                f'  <h3 class="related-title">{html_escape(section_title)}</h3>\n'
+            )
         sb.append('  <ul class="related-list">\n')
 
         for page in related:
@@ -557,7 +572,9 @@ class RelatedDirective:
             page_tags = getattr(page, "tags", [])
 
             sb.append("    <li>\n")
-            sb.append(f'      <a href="{html_escape(page_url)}">{html_escape(page_title)}</a>\n')
+            sb.append(
+                f'      <a href="{html_escape(page_url)}">{html_escape(page_title)}</a>\n'
+            )
 
             if show_tags and page_tags:
                 tags_html = ", ".join(html_escape(tag) for tag in page_tags[:3])

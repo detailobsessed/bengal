@@ -5,6 +5,7 @@ Tests the new metadata access helpers: get_user_metadata, get_internal_metadata,
 and related convenience properties.
 """
 
+from typing import Any, ClassVar
 from unittest.mock import Mock
 
 import pytest
@@ -33,11 +34,15 @@ class TestMetadataHelpers:
         # Add the mixin methods
         from bengal.core.page.metadata import PageMetadataMixin
 
-        page.get_user_metadata = lambda key, default=None: PageMetadataMixin.get_user_metadata(
-            page, key, default
+        page.get_user_metadata = (
+            lambda key, default=None: PageMetadataMixin.get_user_metadata(
+                page, key, default
+            )
         )
         page.get_internal_metadata = (
-            lambda key, default=None: PageMetadataMixin.get_internal_metadata(page, key, default)
+            lambda key, default=None: PageMetadataMixin.get_internal_metadata(
+                page, key, default
+            )
         )
         return page
 
@@ -84,7 +89,7 @@ class TestMetadataProperties:
         from bengal.core.page.metadata import PageMetadataMixin
 
         class TestPage(PageMetadataMixin):
-            metadata = {"_generated": True}
+            metadata: ClassVar[dict[str, Any]] = {"_generated": True}
 
         page = TestPage()
         assert page.is_generated is True
@@ -94,7 +99,7 @@ class TestMetadataProperties:
         from bengal.core.page.metadata import PageMetadataMixin
 
         class TestPage(PageMetadataMixin):
-            metadata = {}
+            metadata: ClassVar[dict[str, Any]] = {}
 
         page = TestPage()
         assert page.is_generated is False
@@ -104,7 +109,7 @@ class TestMetadataProperties:
         from bengal.core.page.metadata import PageMetadataMixin
 
         class TestPage(PageMetadataMixin):
-            metadata = {"_generated": False}
+            metadata: ClassVar[dict[str, Any]] = {"_generated": False}
 
         page = TestPage()
         assert page.is_generated is False
@@ -114,7 +119,7 @@ class TestMetadataProperties:
         from bengal.core.page.metadata import PageMetadataMixin
 
         class TestPage(PageMetadataMixin):
-            metadata = {"template": "custom/landing.html"}
+            metadata: ClassVar[dict[str, Any]] = {"template": "custom/landing.html"}
 
         page = TestPage()
         assert page.assigned_template == "custom/landing.html"
@@ -124,7 +129,7 @@ class TestMetadataProperties:
         from bengal.core.page.metadata import PageMetadataMixin
 
         class TestPage(PageMetadataMixin):
-            metadata = {}
+            metadata: ClassVar[dict[str, Any]] = {}
 
         page = TestPage()
         assert page.assigned_template is None
@@ -134,7 +139,7 @@ class TestMetadataProperties:
         from bengal.core.page.metadata import PageMetadataMixin
 
         class TestPage(PageMetadataMixin):
-            metadata = {"content_type": "blog"}
+            metadata: ClassVar[dict[str, Any]] = {"content_type": "blog"}
 
         page = TestPage()
         assert page.content_type_name == "blog"
@@ -144,7 +149,7 @@ class TestMetadataProperties:
         from bengal.core.page.metadata import PageMetadataMixin
 
         class TestPage(PageMetadataMixin):
-            metadata = {}
+            metadata: ClassVar[dict[str, Any]] = {}
 
         page = TestPage()
         assert page.content_type_name is None

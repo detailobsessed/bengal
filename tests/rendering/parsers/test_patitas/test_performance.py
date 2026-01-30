@@ -6,8 +6,6 @@ on performance-critical operations like list parsing.
 See: plan/rfc-patitas-commonmark-compliance.md (Phase 5: Performance Regression Tests)
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.parsing.backends.patitas import parse

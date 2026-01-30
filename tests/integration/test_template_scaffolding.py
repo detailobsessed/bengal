@@ -4,8 +4,6 @@ Tests that all 7 site templates scaffold correctly and build without errors.
 Validates the end-to-end user workflow: scaffold → build → validate output.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from tests._testing.cli import run_cli
@@ -25,16 +23,16 @@ AVAILABLE_TEMPLATES = [
 @pytest.mark.parametrize("template", AVAILABLE_TEMPLATES)
 def test_template_scaffolds_and_builds(template: str, tmp_path) -> None:
     """Each template should scaffold and build without errors.
-    
+
     This test validates the complete user workflow:
     1. Scaffold a new site from template
     2. Build the site
     3. Verify essential output files exist
-    
+
     Args:
         template: Template name to test
         tmp_path: Pytest temporary directory fixture
-        
+
     """
     site_name = f"site-{template}"
     site_dir = tmp_path / site_name
@@ -61,21 +59,25 @@ def test_template_scaffolds_and_builds(template: str, tmp_path) -> None:
     # Basic validation - output directory exists with index.html
     output_dir = site_dir / "public"
     assert output_dir.exists(), f"Output directory not created for {template}"
-    assert (output_dir / "index.html").exists(), f"index.html not created for {template}"
+    assert (output_dir / "index.html").exists(), (
+        f"index.html not created for {template}"
+    )
 
     # Sitemap should exist for all templates
-    assert (output_dir / "sitemap.xml").exists(), f"sitemap.xml not created for {template}"
+    assert (output_dir / "sitemap.xml").exists(), (
+        f"sitemap.xml not created for {template}"
+    )
 
 
 @pytest.mark.integration
 @pytest.mark.parametrize("template", AVAILABLE_TEMPLATES)
 def test_template_has_valid_structure(template: str, tmp_path) -> None:
     """Each template should scaffold with expected directory structure.
-    
+
     Args:
         template: Template name to test
         tmp_path: Pytest temporary directory fixture
-        
+
     """
     site_name = f"site-{template}"
     site_dir = tmp_path / site_name
@@ -176,10 +178,10 @@ def test_docs_template_generates_search_index(tmp_path) -> None:
 @pytest.mark.slow
 def test_template_dev_server_starts(tmp_path) -> None:
     """Verify dev server can start for default template.
-    
+
     This is a smoke test to ensure dev server infrastructure works.
     Only tests default template to keep CI fast.
-        
+
     """
     import signal
     import subprocess
@@ -224,10 +226,20 @@ def test_template_dev_server_starts(tmp_path) -> None:
 
             os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
             proc.wait(timeout=5)
-        except (ProcessLookupError, subprocess.TimeoutExpired, PermissionError, OSError):
+        except (
+            ProcessLookupError,
+            subprocess.TimeoutExpired,
+            PermissionError,
+            OSError,
+        ):
             # Fall back to killing just the process if group kill fails
             try:
                 proc.kill()
                 proc.wait(timeout=2)
-            except (ProcessLookupError, subprocess.TimeoutExpired, PermissionError, OSError):
+            except (
+                ProcessLookupError,
+                subprocess.TimeoutExpired,
+                PermissionError,
+                OSError,
+            ):
                 pass

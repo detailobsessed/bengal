@@ -6,8 +6,6 @@ Tests:
 - menu.extra config (appending extra items to auto-generated menu)
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 from bengal.core.section import Section
@@ -19,7 +17,7 @@ def test_auto_menu_bundles_github_and_api_into_dev_dropdown() -> None:
     When repo_url is set and an 'api' section exists, auto-menu should:
     - create a 'Dev' parent item
     - add 'GitHub' and section title (or fallback) as children of Dev
-        
+
     """
     site = MagicMock()
     site.config = {"menu": {}, "params": {"repo_url": "https://example.com/repo"}}
@@ -29,7 +27,9 @@ def test_auto_menu_bundles_github_and_api_into_dev_dropdown() -> None:
     site._dev_menu_metadata = None
 
     # Section with explicit title - this title should be used in the menu
-    api_section = Section.create_virtual(name="api", relative_url="/api/", title="API", metadata={})
+    api_section = Section.create_virtual(
+        name="api", relative_url="/api/", title="API", metadata={}
+    )
     docs_section = Section.create_virtual(
         name="docs", relative_url="/docs/", title="Docs", metadata={}
     )
@@ -37,8 +37,12 @@ def test_auto_menu_bundles_github_and_api_into_dev_dropdown() -> None:
 
     items = MenuOrchestrator(site)._build_auto_menu_with_dev_bundling()
 
-    assert any(i.get("identifier") == "dev-auto" and i.get("name") == "Dev" for i in items)
-    assert any(i.get("parent") == "dev-auto" and i.get("name") == "GitHub" for i in items)
+    assert any(
+        i.get("identifier") == "dev-auto" and i.get("name") == "Dev" for i in items
+    )
+    assert any(
+        i.get("parent") == "dev-auto" and i.get("name") == "GitHub" for i in items
+    )
     # Uses section.title ("API") since it's explicitly set
     assert any(i.get("parent") == "dev-auto" and i.get("name") == "API" for i in items)
 
@@ -46,11 +50,11 @@ def test_auto_menu_bundles_github_and_api_into_dev_dropdown() -> None:
 def test_auto_menu_api_only_no_dev_dropdown() -> None:
     """
     If there is only one dev asset (API), we do not create a Dev dropdown.
-    
+
     Note: This tests _create_default_dev_bundle directly since the full
     _build_auto_menu_with_dev_bundling relies on get_auto_nav which needs
     real sections with paths.
-        
+
     """
     site = MagicMock()
     site.config = {"menu": {}, "params": {}}
@@ -60,7 +64,9 @@ def test_auto_menu_api_only_no_dev_dropdown() -> None:
     site._dev_menu_metadata = None
 
     # Section with explicit title
-    api_section = Section.create_virtual(name="api", relative_url="/api/", title="API", metadata={})
+    api_section = Section.create_virtual(
+        name="api", relative_url="/api/", title="API", metadata={}
+    )
     docs_section = Section.create_virtual(
         name="docs", relative_url="/docs/", title="Docs", metadata={}
     )
@@ -82,11 +88,11 @@ def test_auto_menu_api_only_no_dev_dropdown() -> None:
 def test_auto_menu_cli_only_no_dev_dropdown() -> None:
     """
     If there is only one dev asset (CLI), we do not create a Dev dropdown.
-    
+
     Note: This tests _create_default_dev_bundle directly since the full
     _build_auto_menu_with_dev_bundling relies on get_auto_nav which needs
     real sections with paths.
-        
+
     """
     site = MagicMock()
     site.config = {"menu": {}, "params": {}}
@@ -96,7 +102,9 @@ def test_auto_menu_cli_only_no_dev_dropdown() -> None:
     site._dev_menu_metadata = None
 
     # Section with explicit title
-    cli_section = Section.create_virtual(name="cli", relative_url="/cli/", title="CLI", metadata={})
+    cli_section = Section.create_virtual(
+        name="cli", relative_url="/cli/", title="CLI", metadata={}
+    )
     docs_section = Section.create_virtual(
         name="docs", relative_url="/docs/", title="Docs", metadata={}
     )
@@ -123,7 +131,7 @@ def test_auto_menu_cli_only_no_dev_dropdown() -> None:
 def test_menu_extra_appends_items_to_auto_menu() -> None:
     """
     menu.extra config should append items to the auto-generated menu.
-    
+
     This allows users to add one-off links (like forums) without
     replacing the entire auto-discovered menu.
     """
@@ -152,10 +160,12 @@ def test_menu_extra_appends_items_to_auto_menu() -> None:
 
     # Extra items should be appended
     assert any(
-        i.get("name") == "Forum" and i.get("url") == "https://forum.example.com/" for i in items
+        i.get("name") == "Forum" and i.get("url") == "https://forum.example.com/"
+        for i in items
     )
     assert any(
-        i.get("name") == "Discord" and i.get("url") == "https://discord.gg/example" for i in items
+        i.get("name") == "Discord" and i.get("url") == "https://discord.gg/example"
+        for i in items
     )
 
 
@@ -169,7 +179,11 @@ def test_menu_extra_deduplicates_by_url() -> None:
             "extra": [
                 {"name": "Forum", "url": "https://forum.example.com/", "weight": 100},
                 # Duplicate URL
-                {"name": "Forum Copy", "url": "https://forum.example.com/", "weight": 101},
+                {
+                    "name": "Forum Copy",
+                    "url": "https://forum.example.com/",
+                    "weight": 101,
+                },
             ]
         },
         "params": {},

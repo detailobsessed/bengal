@@ -15,8 +15,6 @@ See RFC: plan/drafted/rfc-patitas-bengal-directive-migration.md
 
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -762,17 +760,17 @@ def test_html_parity(
     assert_html_equal: Callable[[str, str, str], None],
 ) -> None:
     """Verify Patitas produces identical HTML to Bengal/mistune.
-    
+
     This test renders the same markdown source with both backends and
     compares the normalized HTML output.
-    
+
     Args:
         name: Test case name
         source: Markdown source to render
         render_with_mistune: Fixture to render with mistune
         render_with_patitas: Fixture to render with patitas
         assert_html_equal: Fixture for HTML comparison
-        
+
     """
     mistune_html = render_with_mistune(source)
     patitas_html = render_with_patitas(source)
@@ -797,9 +795,9 @@ def test_golden_file(
     assert_html_equal: Callable[[str, str, str], None],
 ) -> None:
     """Compare Patitas output against golden files.
-    
+
     Run with --update-golden-files to regenerate golden files.
-    
+
     Args:
         name: Test case name
         source: Markdown source to render
@@ -809,7 +807,7 @@ def test_golden_file(
         save_golden_file: Fixture to save golden file
         load_golden_file: Fixture to load golden file
         assert_html_equal: Fixture for HTML comparison
-        
+
     """
     patitas_html = render_with_patitas(source)
 
@@ -832,7 +830,9 @@ def test_golden_file(
 class TestAdmonitions:
     """Tests specifically for admonition directives."""
 
-    def test_all_admonition_types_parse(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_all_admonition_types_parse(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify all admonition types can be parsed without error."""
         types = [
             "note",
@@ -853,7 +853,9 @@ class TestAdmonitions:
             assert html, f"Failed to render {admon_type}"
             assert "admonition" in html or admon_type in html
 
-    def test_caution_maps_to_warning_css(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_caution_maps_to_warning_css(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify caution type maps to warning CSS class."""
         source = ":::{caution}\nCaution content.\n:::"
         html = render_with_patitas(source)
@@ -864,13 +866,17 @@ class TestAdmonitions:
 class TestDropdown:
     """Tests specifically for dropdown directives."""
 
-    def test_dropdown_open_state(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_dropdown_open_state(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify :open: option produces open details element."""
         source = ":::{dropdown} Title\n:open:\n\nContent\n:::"
         html = render_with_patitas(source)
         assert "open" in html
 
-    def test_details_alias_works(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_details_alias_works(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify details alias produces same output as dropdown."""
         source = ":::{details} Title\nContent\n:::"
         html = render_with_patitas(source)
@@ -895,7 +901,9 @@ Content 1
         # Should have tab container and tab content
         assert "tab" in html.lower()
 
-    def test_tab_sync_attribute(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_tab_sync_attribute(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify sync attribute is rendered."""
         source = """\
 ::::{tab-set}
@@ -934,7 +942,9 @@ Content 2
         html = render_with_patitas(source)
         assert "step" in html.lower()
 
-    def test_steps_start_number(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_steps_start_number(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify :start: option affects numbering."""
         source = """\
 ::::{steps}
@@ -954,7 +964,9 @@ Content
 class TestContainer:
     """Tests specifically for container directives."""
 
-    def test_container_class_applied(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_container_class_applied(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify container class is applied to div."""
         source = ":::{container} my-custom-class\nContent\n:::"
         html = render_with_patitas(source)
@@ -985,7 +997,9 @@ Inner note
         # Both outer and inner should be present
         assert "dropdown" in html.lower() or "details" in html.lower()
 
-    def test_three_level_nesting(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_three_level_nesting(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify three levels of nesting work."""
         source = """\
 :::::{dropdown} Level 1
@@ -1023,7 +1037,9 @@ Content 1
         # Should have card-grid container
         assert "card-grid" in html or "card" in html.lower()
 
-    def test_cards_columns_attribute(self, render_with_patitas: Callable[[str], str]) -> None:
+    def test_cards_columns_attribute(
+        self, render_with_patitas: Callable[[str], str]
+    ) -> None:
         """Verify columns attribute is rendered."""
         source = """\
 ::::{cards}

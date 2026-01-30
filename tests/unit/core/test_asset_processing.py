@@ -94,8 +94,12 @@ body { color: blue; }
         assert asset.minified is True
         minified = asset._minified_content
         # Nested selectors should be transformed
-        assert ".button:hover" in minified or ".button:hover" in minified.replace(" ", "")
-        assert ".button.active" in minified or ".button.active" in minified.replace(" ", "")
+        assert ".button:hover" in minified or ".button:hover" in minified.replace(
+            " ", ""
+        )
+        assert ".button.active" in minified or ".button.active" in minified.replace(
+            " ", ""
+        )
 
     def test_preserves_css_strings(self, temp_asset_dir):
         """Test that CSS strings are preserved during minification."""
@@ -330,7 +334,9 @@ class TestCopyToOutput:
         output_dir = temp_asset_dir / "output"
         output_dir.mkdir()
 
-        asset = Asset(source_path=css_file, output_path=Path("css/components/button.css"))
+        asset = Asset(
+            source_path=css_file, output_path=Path("css/components/button.css")
+        )
         output_path = asset.copy_to_output(output_dir, use_fingerprint=False)
 
         assert output_path.exists()
@@ -473,16 +479,16 @@ class TestCSSNestingTransformation:
 
 class TestCSSMinifierUtility:
     """Test CSS minifier utility function.
-    
+
     Comprehensive tests for CSS minification covering:
     - Basic minification (comments, whitespace)
     - Modern CSS features (@layer, nesting, @import)
     - CSS functions (calc, color-mix)
     - Complex selectors and combinators
     - Edge cases and real-world patterns
-    
+
     For manual diagnostic tools, see scripts/test_css_minification.py
-        
+
     """
 
     def test_removes_comments(self, temp_asset_dir):
@@ -625,7 +631,9 @@ body {
         css = 'a[href^="https"] { color: green; }'
         minified = minify_css(css)
 
-        assert 'href^="https"' in minified or 'href^="https"' in minified.replace(" ", "")
+        assert 'href^="https"' in minified or 'href^="https"' in minified.replace(
+            " ", ""
+        )
 
     def test_handles_pseudo_elements(self, temp_asset_dir):
         """Test that pseudo-elements are preserved."""
@@ -664,7 +672,9 @@ body {
         css = 'body { background: url("image.png"); }'
         minified = minify_css(css)
 
-        assert 'url("image.png")' in minified or 'url("image.png")' in minified.replace(" ", "")
+        assert 'url("image.png")' in minified or 'url("image.png")' in minified.replace(
+            " ", ""
+        )
 
     def test_handles_empty_rules(self, temp_asset_dir):
         """Test that empty CSS rules are handled."""
@@ -764,7 +774,9 @@ body {
         assert minified.count("{") == minified.count("}")
         assert minified.count("(") == minified.count(")")
 
-    def test_preserves_spaces_after_commas_in_multivalue_properties(self, temp_asset_dir):
+    def test_preserves_spaces_after_commas_in_multivalue_properties(
+        self, temp_asset_dir
+    ):
         """Test that spaces after commas in multi-value properties are preserved."""
         from bengal.assets.css_minifier import minify_css
 
@@ -805,7 +817,10 @@ body {
         # After removing spaces, if inset- appears, it means the space was removed incorrectly
         # But we need to account for box-shadow:inset- which is valid (colon before inset)
         # So we check that inset- doesn't appear where there should be a space
-        assert "inset-0.5px" not in minified_no_spaces or "box-shadow:inset-" in minified_no_spaces
+        assert (
+            "inset-0.5px" not in minified_no_spaces
+            or "box-shadow:inset-" in minified_no_spaces
+        )
 
     def test_preserves_spaces_after_commas_in_function_calls(self, temp_asset_dir):
         """Test that spaces after commas inside CSS function calls are preserved."""
@@ -836,7 +851,9 @@ body {
         # Critical: space between filter functions must be preserved
         # Should NOT be: blur(5px)brightness(1.2) (broken)
         # Should be: blur(5px) brightness(1.2) (correct)
-        assert ") brightness" in minified or ")brightness" not in minified.replace(" ", "")
+        assert ") brightness" in minified or ")brightness" not in minified.replace(
+            " ", ""
+        )
 
         # Test backdrop-filter
         css2 = "backdrop-filter: blur(12px) saturate(180%);"

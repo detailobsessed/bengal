@@ -13,7 +13,9 @@ def test_get_installed_themes_discovers_entry_point(monkeypatch, tmp_path):
     theme_root = tmp_path / "mock_theme"
     (theme_root / "templates").mkdir(parents=True)
     (theme_root / "assets").mkdir(parents=True)
-    (theme_root / "templates" / "page.html").write_text("<h1>TEST</h1>", encoding="utf-8")
+    (theme_root / "templates" / "page.html").write_text(
+        "<h1>TEST</h1>", encoding="utf-8"
+    )
     (theme_root / "assets" / "style.css").write_text("body{}", encoding="utf-8")
     (theme_root / "theme.toml").write_text('name="acme"\n', encoding="utf-8")
 
@@ -47,7 +49,9 @@ def test_get_installed_themes_discovers_entry_point(monkeypatch, tmp_path):
         mock_pkg.assets_exists.return_value = (theme_root / "assets").is_dir()
         mock_pkg.manifest_exists.return_value = (theme_root / "theme.toml").is_file()
         mock_pkg.resolve_resource_path = (
-            lambda resource: theme_root / resource if (theme_root / resource).exists() else None
+            lambda resource: theme_root / resource
+            if (theme_root / resource).exists()
+            else None
         )
         return mock_pkg
 

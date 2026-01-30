@@ -12,7 +12,7 @@ See Also:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any, cast, override
 
 from bengal.config.url_policy import is_reserved_namespace
 from bengal.health.base import BaseValidator
@@ -26,22 +26,22 @@ if TYPE_CHECKING:
 class OwnershipPolicyValidator(BaseValidator):
     """
     Validates that user content respects reserved namespace ownership.
-    
+
     Checks if content pages land in reserved namespaces (e.g., /tags/, autodoc
     prefixes, special pages) and reports ownership violations separately from
     raw collisions. Warning mode by default (no build failure).
-    
+
     Checks:
     - Content pages do not land in reserved namespaces
     - Reports ownership violations with namespace owner information
     - Provides clear guidance on namespace policy
-    
+
     Example violation:
         Ownership violation: /tags/python/
           Content page: content/tags/python.md
           Reserved by: taxonomy (priority 40)
           Recommendation: Move content or use different slug
-        
+
     """
 
     name = "Ownership Policy"
@@ -68,7 +68,9 @@ class OwnershipPolicyValidator(BaseValidator):
                 continue
 
             # Check if this URL falls in a reserved namespace
-            is_reserved, owner = is_reserved_namespace(url, site.config)
+            is_reserved, owner = is_reserved_namespace(
+                url, cast("dict[str, Any]", site.config)
+            )
             if is_reserved and owner:
                 violations.append((url, source, owner))
 
@@ -76,7 +78,9 @@ class OwnershipPolicyValidator(BaseValidator):
             # Format violation details
             details = []
             for url, source, owner in violations[:10]:  # Limit to first 10
-                details.append(f"URL: {url}\n  Content: {source}\n  Reserved by: {owner}")
+                details.append(
+                    f"URL: {url}\n  Content: {source}\n  Reserved by: {owner}"
+                )
 
             results.append(
                 CheckResult.warning(

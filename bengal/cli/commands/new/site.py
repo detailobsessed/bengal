@@ -21,8 +21,8 @@ from .config import create_config_directory
 from .wizard import run_init_wizard, should_run_init_wizard
 
 if TYPE_CHECKING:
-    from bengal.scaffolds.base import SiteTemplate
     from bengal.output import CLIOutput
+    from bengal.scaffolds.base import SiteTemplate
 
 # .gitignore content for new sites
 GITIGNORE_CONTENT = """# Bengal build outputs
@@ -87,19 +87,19 @@ def create_site(
 ) -> None:
     """
     Core logic for creating a new site.
-    
+
     🏗️  Create a new Bengal site with optional structure initialization.
-    
+
     Creates a new site directory with configuration, content structure, and
     optional sample content. Use --template to choose a preset layout.
-    
+
     Args:
         name: Site name (or None to prompt)
         theme: Theme to use
         template: Site template name
         no_init: Skip structure initialization wizard
         init_preset: Preset name if provided via flag
-        
+
     """
     cli = get_cli_output()
 
@@ -155,7 +155,9 @@ def create_site(
     cli.info("   ├─ Created directory structure")
 
     # Create config directory structure
-    create_config_directory(site_path, site_title, theme, cli, effective_template, baseurl)
+    create_config_directory(
+        site_path, site_title, theme, cli, effective_template, baseurl
+    )
 
     # Create .gitignore
     atomic_write_text(site_path / ".gitignore", GITIGNORE_CONTENT)
@@ -172,7 +174,9 @@ def create_site(
     cli.success("✅ Site created successfully!")
 
     # Show hints and next steps
-    _show_post_creation_hints(cli, wizard_selection, init_preset, is_custom, site_dir_name, baseurl)
+    _show_post_creation_hints(
+        cli, wizard_selection, init_preset, is_custom, site_dir_name, baseurl
+    )
 
 
 def _prompt_for_baseurl(no_init: bool, cli: CLIOutput) -> str:
@@ -206,10 +210,10 @@ def _determine_template(
 ) -> tuple[str, bool, str | None]:
     """
     Determine the effective template based on wizard selection.
-    
+
     Returns:
         Tuple of (effective_template, is_custom, wizard_selection)
-        
+
     """
     effective_template = template
     is_custom = False
@@ -273,7 +277,9 @@ def _show_post_creation_hints(
         cli.tip("Run 'bengal init' to add structure later.")
     if is_custom:
         cli.blank()
-        cli.tip("For custom sections, run 'bengal init --sections <your-list> --with-content' now.")
+        cli.tip(
+            "For custom sections, run 'bengal init --sections <your-list> --with-content' now."
+        )
 
     # Show next steps
     cli.subheader("Next steps:", icon="📚")
@@ -318,6 +324,8 @@ def _show_post_creation_hints(
     "--init-preset",
     help="Initialize with preset (blog, docs, portfolio, product, resume) without prompting",
 )
-def site_command(name: str, theme: str, template: str, no_init: bool, init_preset: str) -> None:
+def site_command(
+    name: str, theme: str, template: str, no_init: bool, init_preset: str
+) -> None:
     """Create a new Bengal site (bengal new site)."""
     create_site(name, theme, template, no_init, init_preset)

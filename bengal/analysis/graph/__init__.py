@@ -22,12 +22,14 @@ Related:
 
 """
 
-from __future__ import annotations
-
 from bengal.analysis.graph.analyzer import GraphAnalyzer
 from bengal.analysis.graph.builder import GraphBuilder
 from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
-from bengal.analysis.graph.metrics import GraphMetrics, MetricsCalculator, PageConnectivity
+from bengal.analysis.graph.metrics import (
+    GraphMetrics,
+    MetricsCalculator,
+    PageConnectivity,
+)
 from bengal.analysis.graph.reporter import GraphReporter
 from bengal.analysis.graph.visualizer import GraphVisualizer
 

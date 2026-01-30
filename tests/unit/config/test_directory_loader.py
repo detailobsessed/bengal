@@ -30,7 +30,9 @@ def config_dir(tmp_path):
     envs = config_dir / "environments"
     envs.mkdir()
 
-    (envs / "local.yaml").write_text(yaml.dump({"build": {"debug": True, "strict_mode": False}}))
+    (envs / "local.yaml").write_text(
+        yaml.dump({"build": {"debug": True, "strict_mode": False}})
+    )
     (envs / "production.yaml").write_text(
         yaml.dump(
             {
@@ -98,11 +100,15 @@ class TestConfigDirectoryLoader:
         loader = UnifiedConfigLoader()
 
         # Add conflicting key in all three layers
-        (config_dir / "_default" / "test.yaml").write_text(yaml.dump({"value": "default"}))
+        (config_dir / "_default" / "test.yaml").write_text(
+            yaml.dump({"value": "default"})
+        )
         (config_dir / "environments" / "production.yaml").write_text(
             yaml.dump({"value": "production"})
         )
-        (config_dir / "profiles" / "dev.yaml").write_text(yaml.dump({"value": "profile"}))
+        (config_dir / "profiles" / "dev.yaml").write_text(
+            yaml.dump({"value": "profile"})
+        )
 
         site_root = config_dir.parent
         config_obj = loader.load(site_root, environment="production", profile="dev")
@@ -194,7 +200,9 @@ class TestConfigDirectoryLoader:
         with pytest.raises(ConfigLoadError, match="Invalid YAML"):
             loader.load(config_dir, environment="local")
 
-    def test_load_missing_defaults_inherits_bengal_defaults(self, tmp_path, monkeypatch):
+    def test_load_missing_defaults_inherits_bengal_defaults(
+        self, tmp_path, monkeypatch
+    ):
         """Test loading without _default/ directory inherits Bengal DEFAULTS."""
         # Clear environment variables to avoid baseurl overrides
         monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
@@ -257,7 +265,9 @@ class TestConfigDirectoryLoader:
         envs.mkdir()
 
         # Use alias "prod" instead of "production"
-        (envs / "prod.yaml").write_text(yaml.dump({"site": {"baseurl": "https://example.com"}}))
+        (envs / "prod.yaml").write_text(
+            yaml.dump({"site": {"baseurl": "https://example.com"}})
+        )
 
         loader = UnifiedConfigLoader()
         site_root = config_dir.parent
@@ -390,7 +400,9 @@ class TestDefaultsInheritance:
         defaults_dir.mkdir(parents=True)
 
         # Create minimal user config (just site title)
-        (defaults_dir / "site.yaml").write_text(yaml.dump({"site": {"title": "My Site"}}))
+        (defaults_dir / "site.yaml").write_text(
+            yaml.dump({"site": {"title": "My Site"}})
+        )
 
         loader = UnifiedConfigLoader()
         site_root = config_dir.parent
@@ -424,7 +436,10 @@ class TestDefaultsInheritance:
             yaml.dump(
                 {
                     "output_formats": {"site_wide": []},
-                    "features": {"rss": False, "search": False},  # Disable feature expansion
+                    "features": {
+                        "rss": False,
+                        "search": False,
+                    },  # Disable feature expansion
                 }
             )
         )
@@ -449,7 +464,9 @@ class TestDefaultsInheritance:
         defaults_dir.mkdir(parents=True)
 
         # Explicitly disable search
-        (defaults_dir / "search.yaml").write_text(yaml.dump({"search": {"enabled": False}}))
+        (defaults_dir / "search.yaml").write_text(
+            yaml.dump({"search": {"enabled": False}})
+        )
 
         loader = UnifiedConfigLoader()
         site_root = config_dir.parent
@@ -471,7 +488,9 @@ class TestDefaultsInheritance:
         defaults_dir.mkdir(parents=True)
 
         # Minimal user config
-        (defaults_dir / "site.yaml").write_text(yaml.dump({"site": {"title": "My Site"}}))
+        (defaults_dir / "site.yaml").write_text(
+            yaml.dump({"site": {"title": "My Site"}})
+        )
 
         loader = ConfigDirectoryLoader(track_origins=True)
         loader.load(config_dir, environment="local")
@@ -507,7 +526,9 @@ class TestDefaultsInheritance:
                 }
             )
         )
-        (defaults_dir / "site.yaml").write_text(yaml.dump({"site": {"title": "Rosettes Docs"}}))
+        (defaults_dir / "site.yaml").write_text(
+            yaml.dump({"site": {"title": "Rosettes Docs"}})
+        )
 
         loader = UnifiedConfigLoader()
         site_root = config_dir.parent
@@ -526,7 +547,9 @@ class TestDefaultsInheritance:
 class TestSearchUIWarning:
     """Test warning when theme.features has search but no index will be generated."""
 
-    def test_warns_when_search_ui_enabled_but_no_index(self, tmp_path, monkeypatch, capsys):
+    def test_warns_when_search_ui_enabled_but_no_index(
+        self, tmp_path, monkeypatch, capsys
+    ):
         """Should warn if theme.features has search but no index_json in site_wide."""
         monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
         monkeypatch.delenv("NETLIFY", raising=False)
@@ -598,7 +621,9 @@ class TestSearchUIWarning:
         captured = capsys.readouterr()
         assert "search_ui_without_index" not in captured.out
 
-    def test_no_warning_when_no_search_in_theme_features(self, tmp_path, monkeypatch, capsys):
+    def test_no_warning_when_no_search_in_theme_features(
+        self, tmp_path, monkeypatch, capsys
+    ):
         """Should NOT warn if search is not in theme.features."""
         monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
         monkeypatch.delenv("NETLIFY", raising=False)

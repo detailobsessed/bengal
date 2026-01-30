@@ -4,8 +4,6 @@ Unit tests for AutodocValidator.
 Tests that autodoc HTML page generation is validated correctly.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -95,7 +93,9 @@ class TestAutodocValidatorHTMLParity:
         results = autodoc_validator.validate(minimal_site)
 
         # Should have error about missing HTML
-        assert any("no HTML" in r.message or "missing" in r.message.lower() for r in results)
+        assert any(
+            "no HTML" in r.message or "missing" in r.message.lower() for r in results
+        )
 
 
 class TestAutodocValidatorMissingHTML:
@@ -206,7 +206,9 @@ class TestAutodocValidatorPageTypes:
 
         # Should have no type mismatch warnings for CLI
         cli_warnings = [
-            r for r in results if "cli" in r.message.lower() and "wrong type" in r.message.lower()
+            r
+            for r in results
+            if "cli" in r.message.lower() and "wrong type" in r.message.lower()
         ]
         assert len(cli_warnings) == 0
 
@@ -214,7 +216,9 @@ class TestAutodocValidatorPageTypes:
 class TestAutodocValidatorStats:
     """Tests for validator stats/observability."""
 
-    def test_populates_last_stats(self, autodoc_validator: AutodocValidator, minimal_site) -> None:
+    def test_populates_last_stats(
+        self, autodoc_validator: AutodocValidator, minimal_site
+    ) -> None:
         """Validator populates last_stats after validation."""
         output_dir = minimal_site.output_dir
 

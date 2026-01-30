@@ -5,8 +5,6 @@ Verifies hashing utilities for file fingerprinting, cache keys, and
 content-addressable storage.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -27,7 +25,9 @@ class TestHashStr:
         """Test basic string hashing produces consistent output."""
         result = hash_str("hello")
         # SHA256 of "hello"
-        assert result == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+        assert (
+            result == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+        )
 
     def test_deterministic(self) -> None:
         """Test same input produces same hash."""

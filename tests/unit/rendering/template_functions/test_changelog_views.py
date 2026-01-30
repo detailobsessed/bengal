@@ -1,7 +1,5 @@
 """Tests for changelog view filters (ReleaseView, releases filter)."""
 
-from __future__ import annotations
-
 from datetime import datetime
 from unittest.mock import MagicMock
 

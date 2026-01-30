@@ -11,7 +11,6 @@ This module provides the core data structures for health check results:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -94,7 +93,9 @@ class CheckResult:
     metadata: dict[str, Any] | None = None
 
     @classmethod
-    def success(cls, message: str, code: str | None = None, validator: str = "") -> CheckResult:
+    def success(
+        cls, message: str, code: str | None = None, validator: str = ""
+    ) -> CheckResult:
         """Create a success result."""
         return cls(CheckStatus.SUCCESS, message, code=code, validator=validator)
 
@@ -188,7 +189,11 @@ class CheckResult:
 
     def is_actionable(self) -> bool:
         """Check if this requires action (error, warning, or suggestion)."""
-        return self.status in (CheckStatus.ERROR, CheckStatus.WARNING, CheckStatus.SUGGESTION)
+        return self.status in (
+            CheckStatus.ERROR,
+            CheckStatus.WARNING,
+            CheckStatus.SUGGESTION,
+        )
 
     @property
     def formatted_message(self) -> str:
@@ -309,10 +314,14 @@ class ValidatorStats:
 
         if self.cache_hits or self.cache_misses:
             total = self.cache_hits + self.cache_misses
-            parts.append(f"cache={self.cache_hits}/{total} ({self.cache_hit_rate:.0f}%)")
+            parts.append(
+                f"cache={self.cache_hits}/{total} ({self.cache_hit_rate:.0f}%)"
+            )
 
         if self.sub_timings:
-            timing_str = ", ".join(f"{k}={v:.0f}ms" for k, v in self.sub_timings.items())
+            timing_str = ", ".join(
+                f"{k}={v:.0f}ms" for k, v in self.sub_timings.items()
+            )
             parts.append(f"timings=[{timing_str}]")
 
         if self.metrics:

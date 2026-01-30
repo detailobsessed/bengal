@@ -31,20 +31,20 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class DirectiveContract:
     """Validation rules for directive nesting.
-    
+
     Use contracts to enforce structural requirements like "step must
     be inside steps" or "tab-item can only contain certain content".
-    
+
     Violations emit warnings rather than raising exceptions, allowing
     graceful degradation of invalid markup.
-    
+
     Attributes:
         requires_parent: This directive must be inside one of these parents.
         requires_children: This directive must contain at least one of these.
         allows_children: Only these child directive types are allowed.
         max_children: Maximum number of children allowed.
         forbids_children: These directive types are forbidden as children.
-    
+
     Example:
             >>> # tab-item must be inside tab-set
             >>> TAB_ITEM_CONTRACT = DirectiveContract(
@@ -56,7 +56,7 @@ class DirectiveContract:
             ...     requires_children=("tab-item",),
             ...     allows_children=("tab-item",),
             ... )
-        
+
     """
 
     requires_parent: tuple[str, ...] | None = None
@@ -176,31 +176,31 @@ class DirectiveContract:
 
         # Check allows_children
         if self.allows_children is not None:
-            for name in child_names:
-                if name not in self.allows_children:
-                    violations.append(
-                        ContractViolation(
-                            directive=directive_name,
-                            violation_type="forbidden_child",
-                            message=f"'{name}' is not allowed inside '{directive_name}'",
-                            expected=self.allows_children,
-                            actual=name,
-                        )
-                    )
+            violations.extend(
+                ContractViolation(
+                    directive=directive_name,
+                    violation_type="forbidden_child",
+                    message=f"'{name}' is not allowed inside '{directive_name}'",
+                    expected=self.allows_children,
+                    actual=name,
+                )
+                for name in child_names
+                if name not in self.allows_children
+            )
 
         # Check forbids_children
         if self.forbids_children is not None:
-            for name in child_names:
-                if name in self.forbids_children:
-                    violations.append(
-                        ContractViolation(
-                            directive=directive_name,
-                            violation_type="forbidden_child",
-                            message=f"'{name}' is forbidden inside '{directive_name}'",
-                            expected=None,
-                            actual=name,
-                        )
-                    )
+            violations.extend(
+                ContractViolation(
+                    directive=directive_name,
+                    violation_type="forbidden_child",
+                    message=f"'{name}' is forbidden inside '{directive_name}'",
+                    expected=None,
+                    actual=name,
+                )
+                for name in child_names
+                if name in self.forbids_children
+            )
 
         # Check max_children
         if self.max_children is not None and len(children) > self.max_children:
@@ -220,9 +220,9 @@ class DirectiveContract:
 @dataclass(frozen=True, slots=True)
 class ContractViolation:
     """Record of a contract violation.
-    
+
     Contains information about what went wrong and suggestions for fixes.
-        
+
     """
 
     directive: str
@@ -247,7 +247,9 @@ class ContractViolation:
             parent = self.expected[0]
             return f"Wrap '{self.directive}' inside a ':::{{{parent}}}' block"
 
-        if self.violation_type == "missing_required_child" and isinstance(self.expected, tuple):
+        if self.violation_type == "missing_required_child" and isinstance(
+            self.expected, tuple
+        ):
             child = self.expected[0]
             return f"Add at least one ':::{{{child}}}' inside '{self.directive}'"
 

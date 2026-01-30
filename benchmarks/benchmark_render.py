@@ -10,21 +10,19 @@ RFC Gate Criteria:
 Run with:
     # Standard pytest benchmark
     uv run pytest benchmarks/benchmark_render.py -v --benchmark-only
-    
+
     # Direct execution (no pytest)
     uv run python benchmarks/benchmark_render.py
-    
+
     # Save baseline for comparison
     uv run pytest benchmarks/benchmark_render.py --benchmark-save=render-baseline
-    
+
     # Compare against baseline
     uv run pytest benchmarks/benchmark_render.py --benchmark-compare=render-baseline
 
 Output JSON (for CI):
     uv run python benchmarks/benchmark_render.py --output reports/render-baseline.json
 """
-
-from __future__ import annotations
 
 import argparse
 import json
@@ -310,7 +308,9 @@ class TestThroughput:
         print(f"Per-page: {elapsed / len(pages) * 1000:.2f}ms")
 
         # RFC gate: must maintain ≥100 pages/sec
-        assert pages_per_sec >= 100, f"Performance below threshold: {pages_per_sec:.1f} pages/sec"
+        assert pages_per_sec >= 100, (
+            f"Performance below threshold: {pages_per_sec:.1f} pages/sec"
+        )
 
     def test_render_only_throughput(self, patitas_parser):
         """Measure render-only throughput (AST pre-parsed)."""
@@ -413,10 +413,14 @@ def run_benchmarks(output_path: str | None = None) -> dict:
 
     # Render-only benchmarks
     print("Render-Only (AST pre-parsed):")
-    mean, stddev = benchmark("render_medium", lambda: parser.render_ast(medium_ast, MEDIUM_DOC), 1000)
+    mean, stddev = benchmark(
+        "render_medium", lambda: parser.render_ast(medium_ast, MEDIUM_DOC), 1000
+    )
     print(f"  Medium doc: {mean * 1000:.3f}ms ± {stddev * 1000:.3f}ms")
 
-    mean, stddev = benchmark("render_complex", lambda: parser.render_ast(complex_ast, COMPLEX_DOC), 1000)
+    mean, stddev = benchmark(
+        "render_complex", lambda: parser.render_ast(complex_ast, COMPLEX_DOC), 1000
+    )
     print(f"  Complex doc: {mean * 1000:.3f}ms ± {stddev * 1000:.3f}ms")
 
     print()
@@ -465,7 +469,9 @@ def run_benchmarks(output_path: str | None = None) -> dict:
 
 def main():
     """CLI entry point."""
-    arg_parser = argparse.ArgumentParser(description="HtmlRenderer Performance Benchmark")
+    arg_parser = argparse.ArgumentParser(
+        description="HtmlRenderer Performance Benchmark"
+    )
     arg_parser.add_argument(
         "--output",
         "-o",

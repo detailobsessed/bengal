@@ -9,15 +9,10 @@ These tests ensure that hash files are:
 Regression test for: Non-atomic hash write bug (index_generator.py:538)
 """
 
-from __future__ import annotations
-
-import json
 import time
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock
-
-import pytest
 
 from bengal.postprocess.output_formats import OutputFormatsGenerator
 from bengal.postprocess.output_formats.index_generator import SiteIndexGenerator
@@ -309,7 +304,7 @@ class TestHashFileConsistency:
         first_hash = hash_path.read_text().strip()
 
         # Second generation with same content
-        path2 = generator.generate([page])
+        generator.generate([page])
 
         second_hash = hash_path.read_text().strip()
 
@@ -319,7 +314,9 @@ class TestHashFileConsistency:
 
     # Helper methods
 
-    def _create_mock_site(self, site_dir: Path, output_dir: Path, baseurl: str = "") -> Mock:
+    def _create_mock_site(
+        self, site_dir: Path, output_dir: Path, baseurl: str = ""
+    ) -> Mock:
         """Create a mock Site instance."""
         site = Mock()
         site.site_dir = site_dir

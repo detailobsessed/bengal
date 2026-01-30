@@ -115,7 +115,9 @@ class TestDotDictMethodNameCollisions:
     def test_items_field_not_method(self):
         """Test that 'items' field is accessible (not the method)."""
         # This is the core problem DotDict solves
-        data = DotDict({"skills": {"category": "Programming", "items": ["Python", "JavaScript"]}})
+        data = DotDict(
+            {"skills": {"category": "Programming", "items": ["Python", "JavaScript"]}}
+        )
         skills = data.skills
 
         # Should access the 'items' field, not the items() method
@@ -169,7 +171,9 @@ class TestDotDictModification:
         data = DotDict({"name": "Alice", "age": 30})
         del data.age
         assert "age" not in data
-        assert data.age == ""  # Returns '' for missing keys (consistent with ParamsContext)
+        assert (
+            data.age == ""
+        )  # Returns '' for missing keys (consistent with ParamsContext)
 
     def test_delattr_nonexistent_raises(self):
         """Test deleting non-existent attribute raises error."""
@@ -426,7 +430,10 @@ class TestDotDictJinja2Integration:
         resume_data = DotDict.from_dict(
             {
                 "skills": [
-                    {"category": "Programming", "items": ["Python", "JavaScript", "Go"]},
+                    {
+                        "category": "Programming",
+                        "items": ["Python", "JavaScript", "Go"],
+                    },
                     {"category": "Databases", "items": ["PostgreSQL", "Redis"]},
                 ]
             }

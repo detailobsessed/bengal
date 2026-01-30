@@ -4,8 +4,6 @@ Tests for DirectiveContract validation system.
 Tests contract definitions and ContractValidator for parent-child validation.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.directives import (
@@ -135,11 +133,14 @@ class TestContractViolation:
 
         result = violation.to_log_dict()
 
-        assert result == {
-            "directive": "step",
-            "violation": "directive_invalid_parent",
-            "detail": "step must be inside steps",  # 'detail' not 'message' (avoids kwarg conflict)
-        }
+        assert (
+            result
+            == {
+                "directive": "step",
+                "violation": "directive_invalid_parent",
+                "detail": "step must be inside steps",  # 'detail' not 'message' (avoids kwarg conflict)
+            }
+        )
 
     def test_to_log_dict_full(self) -> None:
         """Test conversion to log dict with all fields."""
@@ -340,7 +341,9 @@ class TestValidateChildren:
             children=children,
         )
 
-        assert any(v.violation_type == "directive_invalid_child_types" for v in violations)
+        assert any(
+            v.violation_type == "directive_invalid_child_types" for v in violations
+        )
 
     def test_disallowed_child_types(self) -> None:
         """Test disallowed child types (blacklist)."""

@@ -9,8 +9,6 @@ Verifies that the optimizations from RFC directive-template-optimization work co
 - Contract validation skipping in production
 """
 
-from __future__ import annotations
-
 import timeit
 
 from bengal.directives import create_documentation_directives, reset_directive_instances
@@ -60,7 +58,7 @@ class TestSingletonDirectiveInstances:
 
     def test_singleton_no_state_leakage(self):
         """Singleton directives must not leak state between pages."""
-        _instances = _get_directive_instances()  # noqa: F841 - intentional singleton init
+        _instances = _get_directive_instances()
 
         # Parse two different pages
         from bengal.parsing import MistuneParser

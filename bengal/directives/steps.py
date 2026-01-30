@@ -61,10 +61,10 @@ from bengal.directives.tokens import DirectiveToken
 from bengal.utils.observability.logger import get_logger
 
 __all__ = [
-    "StepsDirective",
     "StepDirective",
-    "StepsOptions",
     "StepOptions",
+    "StepsDirective",
+    "StepsOptions",
 ]
 
 logger = get_logger(__name__)
@@ -79,13 +79,13 @@ logger = get_logger(__name__)
 class StepOptions(DirectiveOptions):
     """
     Options for step directive.
-    
+
     Attributes:
         css_class: Custom CSS class for the step
         description: Lead-in text with special typography (rendered before main content)
         optional: Mark step as optional/skippable (adds visual indicator)
         duration: Estimated time for the step (e.g., "5 min", "1 hour")
-    
+
     Example:
         :::{step} Configure Settings
         :class: important-step
@@ -94,7 +94,7 @@ class StepOptions(DirectiveOptions):
         :optional:
         Content here
         :::{/step}
-        
+
     """
 
     css_class: str = ""
@@ -108,17 +108,17 @@ class StepOptions(DirectiveOptions):
 class StepDirective(BengalDirective):
     """
     Individual step directive (nested in steps).
-    
+
     Syntax:
         :::{step} Optional Title
         :class: custom-class
         Step content with **markdown** and nested directives.
         :::
-    
+
     Contract:
         MUST be nested inside a :::{steps} directive.
         If used outside steps, a warning is logged.
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["step"]
@@ -126,7 +126,7 @@ class StepDirective(BengalDirective):
     OPTIONS_CLASS: ClassVar[type[DirectiveOptions]] = StepOptions
 
     # Contract: step MUST be inside steps
-    CONTRACT: ClassVar[DirectiveContract] = STEP_CONTRACT
+    CONTRACT: ClassVar[DirectiveContract | None] = STEP_CONTRACT
 
     # For backward compatibility with health check introspection
     DIRECTIVE_NAMES: ClassVar[list[str]] = ["step"]
@@ -134,7 +134,7 @@ class StepDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: StepOptions,  # type: ignore[override]
+        options: StepOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -204,12 +204,16 @@ class StepDirective(BengalDirective):
         metadata_html = ""
         metadata_parts = []
         if optional:
-            metadata_parts.append('<span class="step-badge step-badge-optional">Optional</span>')
+            metadata_parts.append(
+                '<span class="step-badge step-badge-optional">Optional</span>'
+            )
         if duration:
             duration_text = self._parse_inline_markdown(renderer, duration)
             metadata_parts.append(f'<span class="step-duration">{duration_text}</span>')
         if metadata_parts:
-            metadata_html = f'<div class="step-metadata">{" ".join(metadata_parts)}</div>\n'
+            metadata_html = (
+                f'<div class="step-metadata">{" ".join(metadata_parts)}</div>\n'
+            )
 
         # Build description HTML if provided
         description_html = ""
@@ -290,12 +294,12 @@ class StepDirective(BengalDirective):
 class StepsOptions(DirectiveOptions):
     """
     Options for steps container directive.
-    
+
     Attributes:
         css_class: Custom CSS class for the steps container
         style: Step style (compact, default)
         start: Start numbering from this value (default: 1)
-    
+
     Example:
         :::{steps}
         :class: installation-steps
@@ -303,7 +307,7 @@ class StepsOptions(DirectiveOptions):
         :start: 5
             ...
         :::{/steps}
-        
+
     """
 
     css_class: str = ""
@@ -311,7 +315,7 @@ class StepsOptions(DirectiveOptions):
     start: int = 1
 
     _field_aliases: ClassVar[dict[str, str]] = {"class": "css_class"}
-    _allowed_values: ClassVar[dict[str, list[str]]] = {
+    _allowed_values: ClassVar[dict[str, list[str | int]]] = {
         "style": ["default", "compact"],
     }
 
@@ -319,27 +323,27 @@ class StepsOptions(DirectiveOptions):
 class StepsDirective(BengalDirective):
     """
     Steps directive for visual step-by-step guides.
-    
+
     Syntax (preferred - supports nested directives):
         ::::{steps}
         :class: custom-class
         :style: compact
-    
+
         :::{step} Step 1 Title
         Step 1 content with nested :::{tip} directives
         :::
-    
+
         :::{step} Step 2 Title
         Step 2 content
         :::
         ::::
-    
+
     Note: Parent container (steps) uses 4 colons, nested steps use 3 colons.
-    
+
     Contract:
         REQUIRES at least one :::{step} child directive.
         If no steps found, a warning is logged.
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["steps"]
@@ -347,7 +351,7 @@ class StepsDirective(BengalDirective):
     OPTIONS_CLASS: ClassVar[type[DirectiveOptions]] = StepsOptions
 
     # Contract: steps REQUIRES step children
-    CONTRACT: ClassVar[DirectiveContract] = STEPS_CONTRACT
+    CONTRACT: ClassVar[DirectiveContract | None] = STEPS_CONTRACT
 
     # For backward compatibility with health check introspection
     DIRECTIVE_NAMES: ClassVar[list[str]] = ["steps"]
@@ -355,7 +359,7 @@ class StepsDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: StepsOptions,  # type: ignore[override]
+        options: StepsOptions,
         content: str,
         children: list[Any],
         state: Any,

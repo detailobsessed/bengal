@@ -6,26 +6,10 @@ RFC: rfc-contextvar-config-implementation.md
 
 """
 
-from __future__ import annotations
-
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from bengal.parsing.backends.patitas import (
-    RenderConfig,
-    get_render_config,
-    render_config_context,
-    reset_render_config,
-    set_render_config,
-)
-from bengal.parsing.backends.patitas import (
-    ParseConfig as BengalParseConfig,
-    get_parse_config as get_bengal_parse_config,
-    parse_config_context as bengal_parse_config_context,
-    reset_parse_config as reset_bengal_parse_config,
-    set_parse_config as set_bengal_parse_config,
-)
 # For tests that use external patitas's Parser directly, we use patitas's config
 from patitas.config import (
     ParseConfig,
@@ -35,12 +19,32 @@ from patitas.config import (
     set_parse_config,
 )
 from patitas.parser import Parser
+
+from bengal.parsing.backends.patitas import (
+    ParseConfig as BengalParseConfig,
+)
+from bengal.parsing.backends.patitas import (
+    RenderConfig,
+    get_render_config,
+    render_config_context,
+    reset_render_config,
+    set_render_config,
+)
+from bengal.parsing.backends.patitas import (
+    get_parse_config as get_bengal_parse_config,
+)
+from bengal.parsing.backends.patitas import (
+    parse_config_context as bengal_parse_config_context,
+)
+from bengal.parsing.backends.patitas import (
+    reset_parse_config as reset_bengal_parse_config,
+)
 from bengal.parsing.backends.patitas.renderers.html import HtmlRenderer
 
 
 class TestParseConfig:
     """Tests for ParseConfig and parse_config_context.
-    
+
     Note: These tests use external patitas's ParseConfig and Parser directly
     to validate the ContextVar pattern works correctly. Bengal wraps these
     via its own config and Markdown class.
@@ -85,7 +89,9 @@ class TestParseConfig:
 
             # Inner context
             with parse_config_context(ParseConfig(math_enabled=True)):
-                assert get_parse_config().tables_enabled is False  # Inner doesn't inherit
+                assert (
+                    get_parse_config().tables_enabled is False
+                )  # Inner doesn't inherit
                 assert get_parse_config().math_enabled is True
 
             # After inner exits, should restore to outer
@@ -163,7 +169,9 @@ class TestRenderConfig:
 
     def test_renderer_reads_config(self):
         """HtmlRenderer reads configuration from ContextVar."""
-        with render_config_context(RenderConfig(highlight=True, highlight_style="pygments")):
+        with render_config_context(
+            RenderConfig(highlight=True, highlight_style="pygments")
+        ):
             renderer = HtmlRenderer("test")
             assert renderer._highlight is True
             assert renderer._highlight_style == "pygments"
@@ -355,10 +363,12 @@ class TestExceptionSafety:
         reset_parse_config()
         original_tables = get_parse_config().tables_enabled
 
-        with pytest.raises(ValueError):
-            with parse_config_context(ParseConfig(tables_enabled=True)):
-                assert get_parse_config().tables_enabled is True
-                raise ValueError("Test exception")
+        with (
+            pytest.raises(ValueError),
+            parse_config_context(ParseConfig(tables_enabled=True)),
+        ):
+            assert get_parse_config().tables_enabled is True
+            raise ValueError("Test exception")
 
         # Should be restored despite exception
         assert get_parse_config().tables_enabled == original_tables
@@ -367,10 +377,12 @@ class TestExceptionSafety:
         """RenderConfig is restored even if exception occurs."""
         original = get_render_config()
 
-        with pytest.raises(ValueError):
-            with render_config_context(RenderConfig(highlight=True)):
-                assert get_render_config().highlight is True
-                raise ValueError("Test exception")
+        with (
+            pytest.raises(ValueError),
+            render_config_context(RenderConfig(highlight=True)),
+        ):
+            assert get_render_config().highlight is True
+            raise ValueError("Test exception")
 
         # Should be restored despite exception
         assert get_render_config() is original

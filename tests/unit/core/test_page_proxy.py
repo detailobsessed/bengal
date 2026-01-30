@@ -90,7 +90,9 @@ class TestPageProxyMetadata:
         assert proxy.date.month == 1
         assert proxy.date.day == 15
 
-    def test_proxy_metadata_access_does_not_trigger_load(self, cached_metadata, page_loader):
+    def test_proxy_metadata_access_does_not_trigger_load(
+        self, cached_metadata, page_loader
+    ):
         """Verify accessing cached metadata doesn't trigger lazy load."""
         proxy = PageProxy(
             source_path=Path("content/blog/post.md"),
@@ -186,7 +188,9 @@ class TestPageProxyLazyLoading:
 class TestPageProxyEquality:
     """Tests for proxy equality and hashing."""
 
-    def test_proxy_equality_with_same_source(self, cached_metadata, page_loader, sample_page):
+    def test_proxy_equality_with_same_source(
+        self, cached_metadata, page_loader, sample_page
+    ):
         """Verify two proxies with same source are equal."""
         proxy1 = PageProxy(
             source_path=Path("content/blog/post.md"),
@@ -414,13 +418,15 @@ class TestPageProxyEdgeCases:
 
 class TestPageProxyPlainText:
     """Tests for plain_text property (output formats contract).
-    
+
     These tests ensure PageProxy exposes plain_text for output format generators
     (index.json, llm-full.txt, etc.) that read it during postprocessing.
-        
+
     """
 
-    def test_proxy_plain_text_exists_and_returns_string(self, cached_metadata, page_loader):
+    def test_proxy_plain_text_exists_and_returns_string(
+        self, cached_metadata, page_loader
+    ):
         """Verify plain_text property exists and returns str."""
         proxy = PageProxy(
             source_path=Path("content/blog/post.md"),

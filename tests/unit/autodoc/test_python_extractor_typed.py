@@ -2,8 +2,6 @@
 Integration tests for Python extractor typed_metadata output.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from textwrap import dedent
 
@@ -331,7 +329,9 @@ class TestPythonExtractorTypedMetadata:
 class TestTypedMetadataMatchesUntyped:
     """Tests to verify typed_metadata matches metadata dict."""
 
-    def test_module_metadata_matches(self, extractor: PythonExtractor, sample_module: Path) -> None:
+    def test_module_metadata_matches(
+        self, extractor: PythonExtractor, sample_module: Path
+    ) -> None:
         """Test that typed_metadata matches metadata dict for modules."""
         elements = extractor.extract(sample_module)
         module = elements[0]
@@ -342,7 +342,9 @@ class TestTypedMetadataMatchesUntyped:
         # The file_path should match
         assert module.typed_metadata.file_path == module.metadata.get("file_path")
 
-    def test_class_metadata_matches(self, extractor: PythonExtractor, sample_module: Path) -> None:
+    def test_class_metadata_matches(
+        self, extractor: PythonExtractor, sample_module: Path
+    ) -> None:
         """Test that typed_metadata matches metadata dict for classes."""
         elements = extractor.extract(sample_module)
         module = elements[0]
@@ -358,7 +360,9 @@ class TestTypedMetadataMatchesUntyped:
         assert isinstance(class_elem.typed_metadata, PythonClassMetadata)
 
         # Bases should match
-        assert list(class_elem.typed_metadata.bases) == class_elem.metadata.get("bases", [])
+        assert list(class_elem.typed_metadata.bases) == class_elem.metadata.get(
+            "bases", []
+        )
 
         # is_dataclass should match
         assert class_elem.typed_metadata.is_dataclass == class_elem.metadata.get(

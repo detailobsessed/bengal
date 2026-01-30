@@ -8,8 +8,6 @@ See: plan/drafted/rfc-link-previews.md
 See: plan/rfc-cross-site-xref-link-previews.md
 """
 
-from __future__ import annotations
-
 from bengal.config.defaults import get_default
 
 
@@ -247,9 +245,9 @@ class TestLinkPreviewsDefaultBehavior:
 
 class TestCrossSiteLinkPreviewsDefaults:
     """Test cross-site link preview configuration defaults.
-    
+
     See: plan/rfc-cross-site-xref-link-previews.md
-        
+
     """
 
     def test_allowed_hosts_defaults_to_empty(self):

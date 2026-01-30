@@ -8,8 +8,6 @@ The anchor validator checks for:
 Related: bengal/health/validators/anchors.py
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -44,7 +42,9 @@ class TestAnchorValidatorDuplicateDetection:
         page.source_path = Path("content/test.md")
         page._raw_content = "# Test Page\n\nContent here."
         page.content = ""  # Required: source code accesses page.content
-        page.rendered_html = '<h2 id="heading-1">Heading 1</h2><h2 id="heading-2">Heading 2</h2>'
+        page.rendered_html = (
+            '<h2 id="heading-1">Heading 1</h2><h2 id="heading-2">Heading 2</h2>'
+        )
         mock_site.pages = [page]
 
         results = validator.validate(mock_site)
@@ -58,7 +58,9 @@ class TestAnchorValidatorDuplicateDetection:
         page.source_path = Path("content/test.md")
         page._raw_content = ""
         page.content = ""  # Required: source code accesses page.content
-        page.rendered_html = '<h2 id="install">Install</h2><h2 id="install">Install Again</h2>'
+        page.rendered_html = (
+            '<h2 id="install">Install</h2><h2 id="install">Install Again</h2>'
+        )
         mock_site.pages = [page]
 
         results = validator.validate(mock_site)
@@ -152,9 +154,7 @@ class TestAnchorValidatorReferenceValidation:
         page = MagicMock()
         page.source_path = Path("content/test.md")
         page._raw_content = "See [[#install]] for details."
-        page.content = (
-            "See [[#install]] for details."  # Required: source code accesses page.content
-        )
+        page.content = "See [[#install]] for details."  # Required: source code accesses page.content
         page.rendered_html = ""
         mock_site.pages = [page]
 
@@ -168,9 +168,7 @@ class TestAnchorValidatorReferenceValidation:
         page = MagicMock()
         page.source_path = Path("content/test.md")
         page._raw_content = "See [[#configuration]] for details."
-        page.content = (
-            "See [[#configuration]] for details."  # Required: source code accesses page.content
-        )
+        page.content = "See [[#configuration]] for details."  # Required: source code accesses page.content
         page.rendered_html = ""
         mock_site.pages = [page]
 
@@ -183,9 +181,7 @@ class TestAnchorValidatorReferenceValidation:
         page = MagicMock()
         page.source_path = Path("content/test.md")
         page._raw_content = "See [[#nonexistent]] for details."
-        page.content = (
-            "See [[#nonexistent]] for details."  # Required: source code accesses page.content
-        )
+        page.content = "See [[#nonexistent]] for details."  # Required: source code accesses page.content
         page.rendered_html = ""
         mock_site.pages = [page]
 
@@ -219,9 +215,7 @@ Then [[#missing2]] for second part.
         page = MagicMock()
         page.source_path = Path("content/test.md")
         page._raw_content = "See [[#INSTALL]] for details."  # Uppercase
-        page.content = (
-            "See [[#INSTALL]] for details."  # Required: source code accesses page.content
-        )
+        page.content = "See [[#INSTALL]] for details."  # Required: source code accesses page.content
         page.rendered_html = ""
         mock_site.pages = [page]
 
@@ -235,9 +229,7 @@ Then [[#missing2]] for second part.
         page = MagicMock()
         page.source_path = Path("content/test.md")
         page._raw_content = "See [[#missing|the link]] for details."
-        page.content = (
-            "See [[#missing|the link]] for details."  # Required: source code accesses page.content
-        )
+        page.content = "See [[#missing|the link]] for details."  # Required: source code accesses page.content
         page.rendered_html = ""
         mock_site.pages = [page]
 
@@ -253,7 +245,9 @@ Then [[#missing2]] for second part.
         page = MagicMock()
         page.source_path = Path("content/test.md")
         page._raw_content = "See [[#something]] here."
-        page.content = "See [[#something]] here."  # Required: source code accesses page.content
+        page.content = (
+            "See [[#something]] here."  # Required: source code accesses page.content
+        )
         page.rendered_html = ""
         site.pages = [page]
 
@@ -340,9 +334,7 @@ class TestAnchorValidatorSimilarSuggestions:
         page = MagicMock()
         page.source_path = Path("content/test.md")
         page._raw_content = "See [[#install]] for details."  # Partial match
-        page.content = (
-            "See [[#install]] for details."  # Required: source code accesses page.content
-        )
+        page.content = "See [[#install]] for details."  # Required: source code accesses page.content
         page.rendered_html = ""
         site.pages = [page]
 

@@ -45,18 +45,18 @@ logger = get_logger(__name__)
 class LinkValidator:
     """
     Validates links in pages to catch broken links.
-    
+
     This validator checks that internal links resolve to existing pages
     in the site. External links (http/https), mailto, tel, and fragment-only
     links are skipped (external link checking is handled separately).
-    
+
     Attributes:
         validated_urls: Set of URLs that have been validated (cache)
         broken_links: List of (page_path, broken_link) tuples
         _page_urls: Cached set of all page URLs for O(1) lookup
         _source_paths: Cached set of all source paths for resolving relative links
         _site: Reference to site being validated
-        
+
     """
 
     def __init__(self, site: SiteLike | None = None) -> None:
@@ -116,7 +116,9 @@ class LinkValidator:
             Set of all source paths (normalized, relative to content dir)
         """
         paths: set[str] = set()
-        content_root = getattr(site, "content_dir", None) or (site.root_path / "content")
+        content_root = getattr(site, "content_dir", None) or (
+            site.root_path / "content"
+        )
 
         for page in site.pages:
             source_path = getattr(page, "source_path", None)
@@ -153,7 +155,9 @@ class LinkValidator:
             self._site = site
 
         logger.debug(
-            "validating_page_links", page=str(page.source_path), link_count=len(page.links)
+            "validating_page_links",
+            page=str(page.source_path),
+            link_count=len(page.links),
         )
 
         broken = []
@@ -195,10 +199,12 @@ class LinkValidator:
             self.validate_page_links(page, site)
 
         if self.broken_links:
-            pages_affected = len(set(str(page_path) for page_path, _ in self.broken_links))
+            pages_affected = len({str(page_path) for page_path, _ in self.broken_links})
 
-            def _relative_path(path: Path | str) -> str:
+            def _relative_path(path: Path | str | None) -> str:
                 """Convert to project-relative path for display."""
+                if path is None:
+                    return "<unknown>"
                 try:
                     return str(Path(path).relative_to(site.root_path))
                 except ValueError:
@@ -208,7 +214,9 @@ class LinkValidator:
                 "found_broken_links",
                 total_broken=len(self.broken_links),
                 pages_affected=pages_affected,
-                sample_links=[(_relative_path(p), link) for p, link in self.broken_links[:10]],
+                sample_links=[
+                    (_relative_path(p), link) for p, link in self.broken_links[:10]
+                ],
             )
         else:
             logger.debug(
@@ -265,7 +273,8 @@ class LinkValidator:
         # These are "View Source" links that point to Python files, not doc pages
         # Patterns: bengal/module.py#L1, ../module.py, path/to/file.py
         if ".py" in link and (
-            link.endswith(".py") or ".py#" in link  # Python file with fragment (line number)
+            link.endswith(".py")
+            or ".py#" in link  # Python file with fragment (line number)
         ):
             logger.debug(
                 "skipping_source_file_reference",
@@ -458,12 +467,12 @@ class LinkValidator:
 class LinkValidatorWrapper(BaseValidator):
     """
     Health check wrapper for link validation.
-    
+
     Integrates LinkValidator into the health check system and provides
     observability stats for link validation performance tracking.
-    
+
     Implements HasStats protocol for observability.
-        
+
     """
 
     name = "Links"
@@ -532,16 +541,21 @@ class LinkValidatorWrapper(BaseValidator):
                 if link.startswith(("http://", "https://"))
             ]
 
-            def _relative_path(path: str) -> str:
+            def _relative_path(path: Path | str | None) -> str:
                 """Convert absolute path to project-relative path for display."""
+                if path is None:
+                    return "<unknown>"
                 try:
                     return str(Path(path).relative_to(site.root_path))
                 except ValueError:
-                    return path  # Fallback to original if not under root
+                    return str(path)  # Fallback to original if not under root
 
             if internal_broken:
                 # Format as "page: link" for display (using relative paths)
-                details = [f"{_relative_path(page)}: {link}" for page, link in internal_broken[:5]]
+                details = [
+                    f"{_relative_path(page)}: {link}"
+                    for page, link in internal_broken[:5]
+                ]
                 results.append(
                     CheckResult.error(
                         f"{len(internal_broken)} broken internal link(s)",
@@ -552,7 +566,10 @@ class LinkValidatorWrapper(BaseValidator):
                 )
 
             if external_broken:
-                details = [f"{_relative_path(page)}: {link}" for page, link in external_broken[:5]]
+                details = [
+                    f"{_relative_path(page)}: {link}"
+                    for page, link in external_broken[:5]
+                ]
                 results.append(
                     CheckResult.warning(
                         f"{len(external_broken)} broken external link(s)",
@@ -574,16 +591,16 @@ class LinkValidatorWrapper(BaseValidator):
 def validate_links(page: Page, site: SiteLike | None = None) -> list[str]:
     """
     Validate all links in a page.
-    
+
     Convenience function for use by rendering pipeline and other callers.
-    
+
     Args:
         page: Page to validate
         site: Optional Site instance for URL resolution
-    
+
     Returns:
         List of broken link URLs
-        
+
     """
     validator = LinkValidator(site)
     return validator.validate_page_links(page, site)

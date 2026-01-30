@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 class PageDiff:
     """
     Represents the diff between two versions of a page.
-    
+
     Attributes:
         path: Logical path of the page (e.g., "docs/guide.md")
         status: Change status ("added", "modified", "removed", "unchanged")
@@ -39,7 +39,7 @@ class PageDiff:
         new_content: Content in the newer version (None if removed)
         diff_lines: Unified diff output (if modified)
         change_percentage: Percentage of content changed
-        
+
     """
 
     path: str
@@ -54,7 +54,7 @@ class PageDiff:
 class VersionDiff:
     """
     Represents the diff between two versions.
-    
+
     Attributes:
         old_version: Older version ID
         new_version: Newer version ID
@@ -62,7 +62,7 @@ class VersionDiff:
         removed_pages: Pages that exist only in old version
         modified_pages: Pages that exist in both but have changes
         unchanged_pages: Pages that are identical
-        
+
     """
 
     old_version: str
@@ -75,7 +75,9 @@ class VersionDiff:
     @property
     def total_changes(self) -> int:
         """Total number of changed pages."""
-        return len(self.added_pages) + len(self.removed_pages) + len(self.modified_pages)
+        return (
+            len(self.added_pages) + len(self.removed_pages) + len(self.modified_pages)
+        )
 
     @property
     def has_changes(self) -> bool:
@@ -103,22 +105,22 @@ class VersionDiff:
         if self.added_pages:
             lines.append("## ✨ New Pages")
             lines.append("")
-            for page in self.added_pages:
-                lines.append(f"- `{page.path}`")
+            lines.extend(f"- `{page.path}`" for page in self.added_pages)
             lines.append("")
 
         if self.removed_pages:
             lines.append("## 🗑️ Removed Pages")
             lines.append("")
-            for page in self.removed_pages:
-                lines.append(f"- `{page.path}`")
+            lines.extend(f"- `{page.path}`" for page in self.removed_pages)
             lines.append("")
 
         if self.modified_pages:
             lines.append("## 📝 Modified Pages")
             lines.append("")
-            for page in self.modified_pages:
-                lines.append(f"- `{page.path}` ({page.change_percentage:.1f}% changed)")
+            lines.extend(
+                f"- `{page.path}` ({page.change_percentage:.1f}% changed)"
+                for page in self.modified_pages
+            )
             lines.append("")
 
         if not self.has_changes:
@@ -130,11 +132,11 @@ class VersionDiff:
 class VersionDiffer:
     """
     Compares content between two versions.
-    
+
     Can work with:
     - Folder-based versions (comparing directories)
     - Git-based versions (comparing branches/tags)
-        
+
     """
 
     def __init__(
@@ -235,7 +237,9 @@ class VersionDiffer:
                 )
 
                 # Calculate change percentage
-                change_percentage = self._calculate_change_percentage(old_content, new_content)
+                change_percentage = self._calculate_change_percentage(
+                    old_content, new_content
+                )
 
                 result.modified_pages.append(
                     PageDiff(
@@ -345,19 +349,19 @@ def diff_git_versions(
 ) -> VersionDiff:
     """
     Diff two git refs (branches/tags) without checking out.
-    
+
     Uses git diff-tree to compare file lists and git show
     to get file contents.
-    
+
     Args:
         repo_path: Path to git repository
         old_ref: Old git ref (branch/tag/commit)
         new_ref: New git ref (branch/tag/commit)
         content_dir: Content directory to compare
-    
+
     Returns:
         VersionDiff with changes between refs
-        
+
     """
     import subprocess
 
@@ -369,7 +373,14 @@ def diff_git_versions(
     # Get list of changed files using git diff
     try:
         diff_output = subprocess.run(
-            ["git", "diff", "--name-status", f"{old_ref}..{new_ref}", "--", content_dir],
+            [
+                "git",
+                "diff",
+                "--name-status",
+                f"{old_ref}..{new_ref}",
+                "--",
+                content_dir,
+            ],
             cwd=repo_path,
             capture_output=True,
             text=True,
@@ -397,12 +408,16 @@ def diff_git_versions(
         if status == "A":
             # Added
             content = _git_show_file(repo_path, new_ref, path)
-            result.added_pages.append(PageDiff(path=path, status="added", new_content=content))
+            result.added_pages.append(
+                PageDiff(path=path, status="added", new_content=content)
+            )
         elif status == "D":
             # Deleted
             content = _git_show_file(repo_path, old_ref, path)
-            result.removed_pages.append(PageDiff(path=path, status="removed", old_content=content))
-        elif status.startswith("M") or status.startswith("R"):
+            result.removed_pages.append(
+                PageDiff(path=path, status="removed", old_content=content)
+            )
+        elif status.startswith(("M", "R")):
             # Modified or Renamed
             old_content = _git_show_file(repo_path, old_ref, path)
             new_content = _git_show_file(repo_path, new_ref, path)
@@ -418,7 +433,9 @@ def diff_git_versions(
                 )
 
                 # Calculate change percentage
-                matcher = difflib.SequenceMatcher(None, old_content or "", new_content or "")
+                matcher = difflib.SequenceMatcher(
+                    None, old_content or "", new_content or ""
+                )
                 change_pct = (1.0 - matcher.ratio()) * 100
 
                 result.modified_pages.append(

@@ -66,13 +66,13 @@ if TYPE_CHECKING:
 class NavNode:
     """
     Hierarchical navigation node for pre-computed trees.
-    
+
     Designed for memory efficiency and Jinja2 compatibility.
-    
+
     IMPORTANT: The `_path` field stores site_path (WITHOUT baseurl) for cache
     efficiency and internal lookups. Templates should use NavNodeProxy.href
     which applies baseurl automatically.
-        
+
     """
 
     id: str
@@ -144,9 +144,9 @@ class NavNode:
 class NavTree:
     """
     Pre-computed navigation tree for a specific version.
-    
+
     This object is immutable and cached per version.
-        
+
     """
 
     root: NavNode
@@ -232,7 +232,9 @@ class NavTree:
         - Optional active trail state (is_in_trail / is_expanded)
         - Optional root scoping (useful for docs-only sidebars)
         """
-        return NavTreeContext(self, page, mark_active_trail=mark_active_trail, root_node=root_node)
+        return NavTreeContext(
+            self, page, mark_active_trail=mark_active_trail, root_node=root_node
+        )
 
     @classmethod
     def build(cls, site: Site, version_id: str | None = None) -> NavTree:
@@ -260,7 +262,9 @@ class NavTree:
         # Add top-level sections
         for section in site.sections:
             # Filter by version if applicable - use has_content_for_version for accurate filtering
-            if version_id is not None and not section.has_content_for_version(version_id):
+            if version_id is not None and not section.has_content_for_version(
+                version_id
+            ):
                 # Check if section has any content for this version (index page, pages, or subsections)
                 continue
 
@@ -268,7 +272,8 @@ class NavTree:
             # Only add section node if it has children (pages or subsections) or is an index page
             # This ensures we show sections even if they only have an index page for this version
             if section_node.children or (
-                section.index_page and getattr(section.index_page, "version", None) == version_id
+                section.index_page
+                and getattr(section.index_page, "version", None) == version_id
             ):
                 nav_root.children.append(section_node)
 
@@ -282,7 +287,10 @@ class NavTree:
             versions = [v["id"] for v in site.versions]
 
         return cls(
-            root=nav_root, version_id=version_id, versions=versions, current_version=version_id
+            root=nav_root,
+            version_id=version_id,
+            versions=versions,
+            current_version=version_id,
         )
 
     @classmethod
@@ -334,7 +342,9 @@ class NavTree:
         return is_autodoc_page(page)
 
     @classmethod
-    def _build_node_recursive(cls, section: Section, version_id: str | None, depth: int) -> NavNode:
+    def _build_node_recursive(
+        cls, section: Section, version_id: str | None, depth: int
+    ) -> NavNode:
         """Recursively build NavNode tree from sections and pages."""
         # Create node for the section itself (using its index page if available)
         node_url = getattr(section, "_path", None) or f"/{section.name}/"
@@ -398,10 +408,10 @@ class NavTree:
 class NavTreeContext:
     """
     Per-page context overlay for a NavTree.
-    
+
     Preserves immutability of the cached NavTree while providing
     page-specific state like 'is_current' and 'is_in_trail'.
-        
+
     """
 
     def __init__(
@@ -432,7 +442,9 @@ class NavTreeContext:
         # Walk up from current section (use _section - the private attribute)
         section = getattr(self.page, "_section", None)
         while section:
-            self.active_trail_urls.add(getattr(section, "_path", None) or f"/{section.name}/")
+            self.active_trail_urls.add(
+                getattr(section, "_path", None) or f"/{section.name}/"
+            )
             section = section.parent
 
     def is_active(self, node: NavNode) -> bool:
@@ -472,30 +484,30 @@ class NavTreeContext:
 class NavNodeProxy:
     """
     Transient proxy for NavNode that injects page-specific state.
-    
+
     Used during template rendering to avoid mutating the cached NavTree.
-    
+
     PERFORMANCE:
     ============
     Properties are cached on first access to avoid repeated computation.
     Templates may access is_current, is_in_trail, href multiple times per node.
     Without caching, this creates millions of redundant computations.
-    
+
     URL CONVENTION:
     ===============
     NavNodeProxy provides two URL properties with distinct purposes:
-    
+
     - `href`: Public URL with baseurl applied (for template href attributes)
               Example: "/bengal/docs/getting-started/" on GitHub Pages
               USE THIS IN TEMPLATES: <a href="{{ item.href }}">
-    
+
     - `_path`: Site-relative path WITHOUT baseurl (for internal lookups)
                Example: "/docs/getting-started/"
                USE THIS FOR: Active trail detection, URL comparisons
-    
+
     The cached NavTree stores _path internally for efficient lookups,
     but templates should always use .href for href attributes.
-    
+
     Other Properties:
     - `is_current`: True if this node is the current page
     - `is_in_trail`: True if this node is in the path to current page
@@ -503,17 +515,17 @@ class NavNodeProxy:
     - `is_section`: True if this node represents a section
     - `has_children`: True if this node has children
     - `absolute_href`: Fully-qualified URL for meta tags and sitemaps
-        
+
     """
 
     __slots__ = (
-        "_node",
+        "_children_cached",
         "_context",
         "_href_cached",
         "_is_current_cached",
-        "_is_in_trail_cached",
         "_is_expanded_cached",
-        "_children_cached",
+        "_is_in_trail_cached",
+        "_node",
     )
 
     def __init__(self, node: NavNode, context: NavTreeContext) -> None:
@@ -632,7 +644,9 @@ class NavNodeProxy:
         """Child nodes wrapped as proxies (cached)."""
         if self._children_cached is not None:
             return self._children_cached
-        self._children_cached = [self._context._wrap_node(child) for child in self._node.children]
+        self._children_cached = [
+            self._context._wrap_node(child) for child in self._node.children
+        ]
         return self._children_cached
 
     def __getattr__(self, name: str) -> Any:
@@ -674,23 +688,23 @@ class NavNodeProxy:
 class NavTreeCache:
     """
     Thread-safe cache for NavTree instances with LRU eviction.
-    
+
     Uses per-version locking to prevent duplicate NavTree builds when multiple
     threads request the same version simultaneously. Different versions can
     still be built in parallel.
-    
+
     Memory leak prevention: Cache is limited to 20 entries. When limit is reached,
     least-recently-used entries are evicted (LRU). This prevents unbounded growth
     if many version_ids are created while keeping frequently-accessed versions cached.
-    
+
     Thread Safety:
         - Uses shared LRUCache with internal RLock
         - _build_locks: Per-version locks to serialize builds for SAME version
         - Different versions build in parallel (no contention)
-    
+
     Eviction Strategy:
         LRU (Least Recently Used) via shared bengal.utils.lru_cache.LRUCache.
-        
+
     """
 
     _cache: LRUCache[str, NavTree] = LRUCache(maxsize=20, name="nav_tree")

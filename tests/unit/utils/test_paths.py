@@ -120,7 +120,9 @@ class TestGetProfilePath:
 
         profile_path = BengalPaths.get_profile_path(source_dir)
 
-        assert profile_path == source_dir / ".bengal" / "profiles" / "build_profile.stats"
+        assert (
+            profile_path == source_dir / ".bengal" / "profiles" / "build_profile.stats"
+        )
         assert profile_path.parent.exists()
 
     def test_custom_profile_path(self, tmp_path):

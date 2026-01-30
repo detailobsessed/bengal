@@ -8,14 +8,12 @@ template chains, and output formats.
 See: plan/rfc-warm-build-test-expansion.md
 """
 
-from __future__ import annotations
-
 import os
 import shutil
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -227,9 +225,7 @@ class WarmBuildTestSite:
         if not self.output_exists(relative_path):
             return  # File doesn't exist, so it can't contain text
         content = self.read_output(relative_path)
-        assert text not in content, (
-            f"Found unexpected '{text}' in {relative_path}"
-        )
+        assert text not in content, f"Found unexpected '{text}' in {relative_path}"
 
     def assert_output_exists(self, relative_path: str) -> None:
         """

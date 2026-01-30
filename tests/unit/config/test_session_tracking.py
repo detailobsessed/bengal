@@ -6,8 +6,6 @@ Tests session integration for:
 - Deprecation warnings from deprecation.py
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.config.deprecation import check_deprecated_keys

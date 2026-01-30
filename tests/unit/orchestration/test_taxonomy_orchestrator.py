@@ -49,7 +49,11 @@ def mock_site():
         Page(
             source_path=Path("/fake/site/content/post3.md"),
             _raw_content="Post 3",
-            metadata={"title": "Post 3", "tags": ["testing"], "date": datetime(2024, 1, 3)},
+            metadata={
+                "title": "Post 3",
+                "tags": ["testing"],
+                "date": datetime(2024, 1, 3),
+            },
         ),
     ]
 
@@ -241,14 +245,18 @@ class TestConditionalGeneration:
             orchestrator.generate_dynamic_pages_for_tags({"python"})
 
         # Check that tag index exists
-        tag_indexes = [p for p in mock_site.pages if p.metadata.get("type") == "tag-index"]
+        tag_indexes = [
+            p for p in mock_site.pages if p.metadata.get("type") == "tag-index"
+        ]
         assert len(tag_indexes) == 1
 
 
 class TestPerformanceOptimization:
     """Test that conditional generation is more efficient."""
 
-    def test_selective_generation_calls_create_once_per_tag(self, orchestrator, mock_site):
+    def test_selective_generation_calls_create_once_per_tag(
+        self, orchestrator, mock_site
+    ):
         """Test that selective generation only creates pages for affected tags."""
         with patch("builtins.print"):
             orchestrator.collect_taxonomies()

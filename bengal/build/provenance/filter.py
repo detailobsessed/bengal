@@ -110,7 +110,7 @@ class ProvenanceFilter:
 
         # Precompute site config hash (affects all pages)
         self._config_hash = hash_dict(dict(site.config))
-        
+
         # Asset hash tracking (loaded from cache)
         self._asset_hashes: dict[CacheKey, ContentHash] = {}
         self._load_asset_hashes()
@@ -189,11 +189,14 @@ class ProvenanceFilter:
             is_virtual = getattr(page, "_virtual", False)
             if not is_virtual and page.source_path.exists():
                 provenance_fast = self._compute_provenance_fast(page)
-                if provenance_fast is not None and provenance_fast.combined_hash == stored_hash:
+                if (
+                    provenance_fast is not None
+                    and provenance_fast.combined_hash == stored_hash
+                ):
                     # Cache hit via fast path - skip full computation
                     pages_skipped.append(page)
                     continue
-            
+
             # Fast path didn't match or page is virtual - compute full provenance
             try:
                 provenance = self._compute_provenance(page)
@@ -209,7 +212,7 @@ class ProvenanceFilter:
                 changed_page_paths.add(page.source_path)
                 self._collect_affected(page, affected_tags, affected_sections)
                 continue
-            
+
             # Ensure provenance has at least config input (sanity check)
             if provenance.input_count == 0:
                 logger.warning(
@@ -222,7 +225,7 @@ class ProvenanceFilter:
                 changed_page_paths.add(page.source_path)
                 self._collect_affected(page, affected_tags, affected_sections)
                 continue
-            
+
             # Check if provenance matches stored hash
             if provenance.combined_hash == stored_hash:
                 pages_skipped.append(page)
@@ -232,12 +235,11 @@ class ProvenanceFilter:
                 self._collect_affected(page, affected_tags, affected_sections)
 
         # For assets, check file modification
-        assets_to_process: list[Asset] = []
-        for asset in assets:
-            if asset.source_path in forced:
-                assets_to_process.append(asset)
-            elif self._is_asset_changed(asset):
-                assets_to_process.append(asset)
+        assets_to_process: list[Asset] = [
+            asset
+            for asset in assets
+            if asset.source_path in forced or self._is_asset_changed(asset)
+        ]
 
         return ProvenanceFilterResult(
             pages_to_build=pages_to_build,
@@ -264,13 +266,13 @@ class ProvenanceFilter:
         """
         # OPTIMIZATION: Use already computed provenance if available from filter phase
         page_path = self._get_page_key(page)
-        
+
         # Thread-safe access to session cache
         provenance = self._computed_provenance.get(page_path)
-        
+
         if provenance is None:
             provenance = self._compute_provenance(page)
-        
+
         # Skip pages with no meaningful provenance (fallback only)
         if provenance.input_count <= 1:  # Only config, no real source
             return
@@ -286,21 +288,25 @@ class ProvenanceFilter:
         """Save the provenance cache to disk."""
         self.cache.save()
         self._save_asset_hashes()
-    
+
     def _load_asset_hashes(self) -> None:
         """Load asset hashes from disk."""
         import json
+
         asset_cache_path = self.cache.cache_dir / "asset_hashes.json"
         if asset_cache_path.exists():
             try:
                 data = json.loads(asset_cache_path.read_text())
-                self._asset_hashes = {CacheKey(k): ContentHash(v) for k, v in data.items()}
+                self._asset_hashes = {
+                    CacheKey(k): ContentHash(v) for k, v in data.items()
+                }
             except (json.JSONDecodeError, KeyError):
                 self._asset_hashes = {}
-    
+
     def _save_asset_hashes(self) -> None:
         """Save asset hashes to disk."""
         import json
+
         asset_cache_path = self.cache.cache_dir / "asset_hashes.json"
         asset_cache_path.parent.mkdir(parents=True, exist_ok=True)
         asset_cache_path.write_text(json.dumps(dict(self._asset_hashes), indent=2))
@@ -311,10 +317,10 @@ class ProvenanceFilter:
         cached = self._file_hashes.get(path)
         if cached is not None:
             return cached
-        
+
         # Compute hash (outside lock - I/O)
         computed = hash_file(path)
-        
+
         # Store in cache with lock
         with self._session_lock:
             # Double-check in case another thread computed it
@@ -325,10 +331,10 @@ class ProvenanceFilter:
     def _compute_provenance_fast(self, page: Page) -> Provenance | None:
         """
         Fast-path provenance computation for simple content pages.
-        
+
         Only computes content + config hash (most common case).
         Returns None if page needs full provenance computation (virtual, etc.).
-        
+
         This is an optimization to avoid full provenance computation for
         cache hits on regular markdown files.
         """
@@ -336,7 +342,7 @@ class ProvenanceFilter:
         is_virtual = getattr(page, "_virtual", False)
         if is_virtual:
             return None  # Need full computation for virtual pages
-        
+
         # Check if already computed for this page (fast path without lock)
         page_path = self._get_page_key(page)
         cached = self._computed_provenance.get(page_path)
@@ -348,34 +354,36 @@ class ProvenanceFilter:
         try:
             if not page.source_path.exists():
                 return None  # File missing - need full check
-            
+
             # Fast path: Compute just content hash + config hash
             # This matches the most common case (real markdown files)
             content_hash = self._get_file_hash(page.source_path)
         except OSError:
             # File system error (deleted, permission denied, etc.)
             return None
-        
+
         # Build minimal provenance (content + config only)
         provenance = Provenance()
         provenance = provenance.with_input("content", page_path, content_hash)
-        provenance = provenance.with_input("config", CacheKey("site_config"), self._config_hash)
-        
+        provenance = provenance.with_input(
+            "config", CacheKey("site_config"), self._config_hash
+        )
+
         # Cache for later (record_build) - thread-safe
         with self._session_lock:
             if page_path not in self._computed_provenance:
                 self._computed_provenance[page_path] = provenance
             return self._computed_provenance[page_path]
-    
+
     def _compute_provenance(self, page: Page) -> Provenance:
         """Compute provenance for a page based on its inputs.
-        
+
         Handles both real content pages and virtual pages:
         - Real pages: hash of source .md file
         - Autodoc pages: hash of Python source being documented
         - Taxonomy pages: hash of page list for that tag
         - Other virtual: template + metadata hash
-        
+
         Note: We intentionally exclude dynamic metadata because it can be
         modified by cascades. The source file content captures frontmatter.
         """
@@ -391,24 +399,30 @@ class ProvenanceFilter:
 
         # 1. Determine the actual source for this page
         is_virtual = getattr(page, "_virtual", False)
-        
+
         if not is_virtual:
             # Real content page - hash the markdown file
             try:
                 if page.source_path.exists():
                     content_hash = self._get_file_hash(page.source_path)
-                    provenance = provenance.with_input("content", rel_path, content_hash)
+                    provenance = provenance.with_input(
+                        "content", rel_path, content_hash
+                    )
             except OSError:
                 pass  # File system error - skip content input
-        
+
         elif is_virtual:
             # Virtual page - find the actual source
-            
+
             # Autodoc pages: hash the Python source file
             # Uses "source_file" metadata set during autodoc extraction
             autodoc_source = page.metadata.get("source_file")
             if autodoc_source and page.metadata.get("is_autodoc"):
-                source_path = Path(autodoc_source) if isinstance(autodoc_source, str) else autodoc_source
+                source_path = (
+                    Path(autodoc_source)
+                    if isinstance(autodoc_source, str)
+                    else autodoc_source
+                )
                 # Resolve relative paths from site root
                 if not source_path.is_absolute():
                     # Try site root first
@@ -420,7 +434,7 @@ class ProvenanceFilter:
                         candidate = self.site.root_path.parent / source_path
                         if candidate.exists():
                             source_path = candidate
-                
+
                 if source_path.exists():
                     source_hash = self._get_file_hash(source_path)
                     # Use relative path for cache key stability
@@ -430,7 +444,9 @@ class ProvenanceFilter:
                     except ValueError:
                         try:
                             # Try relative to repo root
-                            rel_source = str(source_path.relative_to(self.site.root_path.parent))
+                            rel_source = str(
+                                source_path.relative_to(self.site.root_path.parent)
+                            )
                         except ValueError:
                             # Fallback to absolute path string
                             rel_source = str(source_path)
@@ -439,7 +455,7 @@ class ProvenanceFilter:
                         CacheKey(rel_source),
                         source_hash,
                     )
-            
+
             # Taxonomy/tag pages: hash the tag name (page list is implicit)
             tag_name = page.metadata.get("_taxonomy_term") or page.metadata.get("tag")
             if tag_name:
@@ -449,11 +465,13 @@ class ProvenanceFilter:
                     CacheKey(f"tag:{tag_name}"),
                     tag_hash,
                 )
-            
+
             # CLI pages: similar to autodoc
             cli_source = page.metadata.get("source_file")
             if cli_source and page.metadata.get("is_cli"):
-                source_path = Path(cli_source) if isinstance(cli_source, str) else cli_source
+                source_path = (
+                    Path(cli_source) if isinstance(cli_source, str) else cli_source
+                )
                 if not source_path.is_absolute():
                     source_path = self.site.root_path / source_path
                 if source_path.exists():
@@ -463,16 +481,22 @@ class ProvenanceFilter:
                         CacheKey(str(source_path)),
                         source_hash,
                     )
-            
+
             # Fallback for other virtual pages: use template + title hash
             if provenance.input_count == 0:
-                template = page.metadata.get("template") or page.metadata.get("_autodoc_template") or "default"
+                template = (
+                    page.metadata.get("template")
+                    or page.metadata.get("_autodoc_template")
+                    or "default"
+                )
                 title = page.metadata.get("title") or rel_path
                 fallback_hash = hash_content(f"{template}:{title}")
                 provenance = provenance.with_input("virtual", rel_path, fallback_hash)
 
         # 2. Site config (affects all pages)
-        provenance = provenance.with_input("config", CacheKey("site_config"), self._config_hash)
+        provenance = provenance.with_input(
+            "config", CacheKey("site_config"), self._config_hash
+        )
 
         # Cache for later - thread-safe
         with self._session_lock:
@@ -487,9 +511,9 @@ class ProvenanceFilter:
     def _is_asset_changed(self, asset: Asset) -> bool:
         """
         Check if an asset has changed based on content hash.
-        
+
         OPTIMIZATION: Uses mtime check first to avoid hashing unchanged files.
-        
+
         Thread Safety:
             Uses local variables for hash comparisons. Asset hash dict
             updates are safe because each asset has a unique key.
@@ -499,10 +523,10 @@ class ProvenanceFilter:
                 return True
         except OSError:
             return True  # File system error - treat as changed
-        
+
         asset_path = self._get_asset_key(asset)
         stored_hash = self._asset_hashes.get(asset_path)
-        
+
         # OPTIMIZATION: If we have a stored hash, check mtime first
         # This avoids expensive file hashing for unchanged files
         if stored_hash is not None:
@@ -512,25 +536,25 @@ class ProvenanceFilter:
                 # For now, we still hash to be safe, but we could cache mtime too
             except OSError:
                 return True  # File error - treat as changed
-        
+
         # Compute hash (necessary for correctness)
         try:
             current_hash = self._get_file_hash(asset.source_path)
         except OSError:
             return True  # File error - treat as changed
-        
+
         if stored_hash is None:
             # First time seeing this asset
             self._asset_hashes[asset_path] = current_hash
             return True
-        
+
         if stored_hash != current_hash:
             # Asset content changed
             self._asset_hashes[asset_path] = current_hash
             return True
-        
+
         return False
-    
+
     def _get_asset_key(self, asset: Asset) -> CacheKey:
         """Get canonical asset key for cache lookups."""
         return content_key(asset.source_path, self.site.root_path)
@@ -538,7 +562,7 @@ class ProvenanceFilter:
     def _record_asset_hash(self, asset: Asset) -> None:
         """
         Record an asset's hash without checking if changed.
-        
+
         Used during full builds to populate the asset hash cache for
         subsequent incremental builds. Without this, the first incremental
         build after a full build would see all assets as "changed".

@@ -51,10 +51,10 @@ logger = get_logger(__name__)
 class RenderResult:
     """
     Result of rendering a shortcode/directive to HTML.
-    
+
     Contains the rendered output, timing information, and any errors
     or warnings encountered during parsing and rendering.
-    
+
     Attributes:
         input_content: Original Markdown content that was rendered.
         html: Rendered HTML output (empty string if failed).
@@ -64,7 +64,7 @@ class RenderResult:
         warnings: List of warning messages (non-fatal issues).
         parse_time_ms: Time spent parsing markdown (milliseconds).
         render_time_ms: Time spent rendering to HTML (milliseconds).
-    
+
     Example:
             >>> result = sandbox.render("```{note}
     Hello
@@ -75,7 +75,7 @@ class RenderResult:
             ... else:
             ...     for err in result.errors:
             ...         print(f"Error: {err}")
-        
+
     """
 
     input_content: str
@@ -106,13 +106,11 @@ class RenderResult:
 
         if self.errors:
             lines.append(f"\nErrors ({len(self.errors)}):")
-            for err in self.errors:
-                lines.append(f"  - {err}")
+            lines.extend(f"  - {err}" for err in self.errors)
 
         if self.warnings:
             lines.append(f"\nWarnings ({len(self.warnings)}):")
-            for warn in self.warnings:
-                lines.append(f"  - {warn}")
+            lines.extend(f"  - {warn}" for warn in self.warnings)
 
         return "\n".join(lines)
 
@@ -121,17 +119,17 @@ class RenderResult:
 class ValidationResult:
     """
     Result of directive/shortcode syntax validation.
-    
+
     Provides feedback on whether the syntax is valid, identifies the
     directive being used, and offers suggestions for fixing issues.
-    
+
     Attributes:
         content: Original content that was validated.
         valid: Whether the syntax is valid.
         directive_name: Detected directive name, or None if unrecognized.
         errors: Specific syntax errors found.
         suggestions: Helpful suggestions for fixing issues or typos.
-    
+
     Example:
             >>> result = sandbox.validate("```{notee}
     Text
@@ -139,7 +137,7 @@ class ValidationResult:
             >>> if not result.valid:
             ...     print(f"Invalid: {result.errors}")
             ...     print(f"Did you mean: {result.suggestions}")
-        
+
     """
 
     content: str
@@ -152,11 +150,11 @@ class ValidationResult:
 class ShortcodeSandbox(DebugTool):
     """
     Sandbox for testing shortcodes/directives in isolation.
-    
+
     Provides a safe environment to test MyST directive syntax and rendering
     without requiring a full site context. Useful for debugging directive
     issues, experimenting with syntax, and validating custom directives.
-    
+
     Capabilities:
         - **Isolated Rendering**: Render directives without building a site.
         - **Syntax Validation**: Check directive syntax before rendering.
@@ -164,16 +162,16 @@ class ShortcodeSandbox(DebugTool):
         - **Typo Detection**: Suggest similar directives for misspellings.
         - **Batch Testing**: Test multiple directives from a list.
         - **Directive Discovery**: List and document available directives.
-    
+
     The sandbox uses a mock context for template variables, allowing
     directives that reference page/site data to render correctly.
-    
+
     Attributes:
         name: Tool identifier ("sandbox").
         description: Brief tool description.
             DIRECTIVE_PATTERN_COLON: Regex for block directives (```{name}).
             DIRECTIVE_PATTERN_BRACE: Regex for inline directives ({name}).
-    
+
         Example:
             >>> sandbox = ShortcodeSandbox()
             >>>
@@ -191,16 +189,18 @@ class ShortcodeSandbox(DebugTool):
             >>>
             >>> # Get help for specific directive
             >>> help_text = sandbox.get_directive_help("note")
-    
+
         See Also:
             - :class:`RenderResult`: Rendering output structure.
             - :class:`ValidationResult`: Validation feedback structure.
             - :meth:`batch_test`: Test multiple directives at once.
-        
+
     """
 
     name: str = "sandbox"
-    description: str = "Test shortcodes/directives in isolation without building the site."
+    description: str = (
+        "Test shortcodes/directives in isolation without building the site."
+    )
 
     # Known directive patterns for validation
     DIRECTIVE_PATTERN_COLON = r"^```\{(\w+[-\w]*)\}"  # ```{note}
@@ -475,7 +475,9 @@ class ShortcodeSandbox(DebugTool):
                 # Suggest similar directives
                 suggestions = self._find_similar_directives(directive_name, known)
                 if suggestions:
-                    result.suggestions.append(f"Did you mean: {', '.join(suggestions)}?")
+                    result.suggestions.append(
+                        f"Did you mean: {', '.join(suggestions)}?"
+                    )
 
             # Check for closing fence
             if not content.strip().endswith("```"):
@@ -496,7 +498,9 @@ class ShortcodeSandbox(DebugTool):
                 result.errors.append(f"Unknown directive: {directive_name}")
                 suggestions = self._find_similar_directives(directive_name, known)
                 if suggestions:
-                    result.suggestions.append(f"Did you mean: {', '.join(suggestions)}?")
+                    result.suggestions.append(
+                        f"Did you mean: {', '.join(suggestions)}?"
+                    )
 
             return result
 
@@ -630,7 +634,9 @@ class ShortcodeSandbox(DebugTool):
 
         except Exception as e:
             result.errors.append(f"Render error: {e}")
-            logger.error("sandbox_render_error", error=str(e), error_type=type(e).__name__)
+            logger.error(
+                "sandbox_render_error", error=str(e), error_type=type(e).__name__
+            )
 
         return result
 
@@ -672,7 +678,9 @@ class ShortcodeSandbox(DebugTool):
 
             # Check expected output if provided
             if expected and result.success and expected not in result.html:
-                result.warnings.append(f"Expected content not found in output: {expected[:50]}...")
+                result.warnings.append(
+                    f"Expected content not found in output: {expected[:50]}..."
+                )
 
             results.append(result)
 

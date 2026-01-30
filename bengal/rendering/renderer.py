@@ -37,37 +37,41 @@ logger = get_logger(__name__)
 class Renderer:
     """
     Renders individual pages using templates and content processing.
-    
+
     Handles template rendering, content processing (H1 stripping), and error
     collection. Integrates with template engine for rendering (Kida default) and
     provides graceful error handling.
-    
+
     Creation:
         Direct instantiation: Renderer(template_engine, build_stats=None)
             - Created by RenderingPipeline for page rendering
             - Requires TemplateEngine instance
-    
+
     Attributes:
         template_engine: TemplateEngine instance for rendering (Kida default)
         site: Site instance (accessed via template_engine.site)
         build_stats: Optional BuildStats for error collection
-    
+
     Relationships:
         - Uses: TemplateEngine for template rendering
         - Uses: BuildStats for error collection
         - Used by: RenderingPipeline for page rendering
-    
+
     Thread Safety:
         Thread-safe. Each thread should have its own Renderer instance.
-    
+
     Examples:
         renderer = Renderer(template_engine, build_stats=stats)
         html = renderer.render_page(page)
-        
+
     """
 
     def __init__(
-        self, template_engine: Any, build_stats: Any = None, block_cache: Any = None, build_context: Any = None
+        self,
+        template_engine: Any,
+        build_stats: Any = None,
+        block_cache: Any = None,
+        build_context: Any = None,
     ) -> None:
         """
         Initialize the renderer.
@@ -81,7 +85,9 @@ class Renderer:
         self.template_engine = template_engine
         self.site = template_engine.site  # Access to site config for strict mode
         self.build_stats = build_stats  # For collecting template errors
-        self.block_cache = block_cache  # Block cache for KIDA introspection optimization
+        self.block_cache = (
+            block_cache  # Block cache for KIDA introspection optimization
+        )
         self.build_context = build_context  # For accessing snapshot
         # PERF: Cache for top-level content (computed once per build)
         self._top_level_cache: tuple[list[Page], list[Any]] | None = None
@@ -117,8 +123,12 @@ class Renderer:
                 nested_sections.add(id(s))
 
         # Filter using O(1) set membership
-        top_level_pages = [p for p in self.site.regular_pages if id(p) not in pages_in_sections]
-        top_level_subsections = [s for s in self.site.sections if id(s) not in nested_sections]
+        top_level_pages = [
+            p for p in self.site.regular_pages if id(p) not in pages_in_sections
+        ]
+        top_level_subsections = [
+            s for s in self.site.sections if id(s) not in nested_sections
+        ]
 
         self._top_level_cache = (top_level_pages, top_level_subsections)
         return self._top_level_cache
@@ -126,48 +136,47 @@ class Renderer:
     def _to_section_snapshot(self, section: Any, snapshot: Any) -> Any:
         """
         Convert a mutable Section to its SectionSnapshot equivalent.
-        
+
         Args:
             section: Mutable Section object (or None)
             snapshot: SiteSnapshot containing section snapshots
-            
+
         Returns:
             SectionSnapshot if found, NO_SECTION sentinel otherwise
         """
         from bengal.snapshots.types import NO_SECTION, SectionSnapshot
-        
+
         if section is None:
             return NO_SECTION
-        
+
         # If already a SectionSnapshot, return as-is
         if isinstance(section, SectionSnapshot):
             return section
-        
+
         # Look up in snapshot
         if snapshot:
             for sec_snap in snapshot.sections:
-                if (
-                    sec_snap.path == getattr(section, "path", None)
-                    or sec_snap.name == getattr(section, "name", "")
-                ):
+                if sec_snap.path == getattr(
+                    section, "path", None
+                ) or sec_snap.name == getattr(section, "name", ""):
                     return sec_snap
-        
+
         # Fallback: return NO_SECTION sentinel
         return NO_SECTION
 
     def _to_section_snapshots(self, sections: list[Any], snapshot: Any) -> list[Any]:
         """
         Convert a list of mutable Sections to SectionSnapshots.
-        
+
         Args:
             sections: List of mutable Section objects
             snapshot: SiteSnapshot containing section snapshots
-            
+
         Returns:
             List of SectionSnapshots
         """
-        from bengal.snapshots.types import NO_SECTION, SectionSnapshot
-        
+        from bengal.snapshots.types import NO_SECTION
+
         result = []
         for section in sections:
             if section is None:
@@ -346,7 +355,7 @@ class Renderer:
         snapshot = None
         if hasattr(self, "build_context") and self.build_context:
             snapshot = getattr(self.build_context, "snapshot", None)
-        
+
         context = build_page_context(
             page=page,
             site=self.site,
@@ -424,7 +433,10 @@ class Renderer:
             result = self.template_engine.render(template_name, context)
             return str(result) if result else ""
         except Exception as e:
-            from bengal.rendering.errors import TemplateRenderError, display_template_error
+            from bengal.rendering.errors import (
+                TemplateRenderError,
+                display_template_error,
+            )
 
             # Create rich error object
             rich_error = TemplateRenderError.from_jinja2_error(
@@ -457,14 +469,15 @@ class Renderer:
                     try:
                         from bengal.errors.traceback import TracebackConfig
 
-                        TracebackConfig.from_environment().get_renderer().display_exception(e)
+                        TracebackConfig.from_environment().get_renderer().display_exception(
+                            e
+                        )
                     except Exception as traceback_error:
                         logger.debug(
                             "traceback_renderer_failed",
                             error=str(traceback_error),
                             error_type=type(traceback_error).__name__,
                         )
-                        pass
                 # Raise TemplateRenderError directly (now extends Exception)
                 raise rich_error from e
 
@@ -482,14 +495,15 @@ class Renderer:
                 try:
                     from bengal.errors.traceback import TracebackConfig
 
-                    TracebackConfig.from_environment().get_renderer().display_exception(e)
+                    TracebackConfig.from_environment().get_renderer().display_exception(
+                        e
+                    )
                 except Exception as traceback_error:
                     logger.debug(
                         "traceback_renderer_failed",
                         error=str(traceback_error),
                         error_type=type(traceback_error).__name__,
                     )
-                    pass
 
             # Fallback to simple HTML
             return self._render_fallback(page, content)
@@ -525,14 +539,15 @@ class Renderer:
             self._add_tag_index_generated_page_context(page, context)
             return
 
-    def _add_archive_like_generated_page_context(self, page: Page, context: dict[str, Any]) -> None:
+    def _add_archive_like_generated_page_context(
+        self, page: Page, context: dict[str, Any]
+    ) -> None:
         """
         Add context for archive/reference/blog-like generated pages.
 
         Note: Posts are already filtered and sorted by the content type strategy
         in the SectionOrchestrator, so we do not re-sort here.
         """
-        from bengal.snapshots.types import NO_SECTION
 
         section = page.metadata.get("_section") if page.metadata is not None else None
         all_posts = (
@@ -576,7 +591,9 @@ class Renderer:
             }
         )
 
-    def _add_tag_generated_page_context(self, page: Page, context: dict[str, Any]) -> None:
+    def _add_tag_generated_page_context(
+        self, page: Page, context: dict[str, Any]
+    ) -> None:
         """Add context for an individual tag page."""
         tag_name = page.metadata.get("_tag")
         tag_slug = page.metadata.get("_tag_slug")
@@ -618,7 +635,9 @@ class Renderer:
                 fresh_paginator = Paginator(all_posts, per_page=per_page)
                 try:
                     posts = fresh_paginator.page(page_num)
-                    pagination = fresh_paginator.page_context(page_num, f"/tags/{tag_slug}/")
+                    pagination = fresh_paginator.page_context(
+                        page_num, f"/tags/{tag_slug}/"
+                    )
                 except ValueError:
                     posts = all_posts
                     pagination = {
@@ -655,7 +674,9 @@ class Renderer:
                 fresh_paginator = Paginator(all_posts, per_page=paginator.per_page)
                 posts = fresh_paginator.page(page_num)
                 total_posts_count = len(all_posts)
-                pagination = fresh_paginator.page_context(page_num, f"/tags/{tag_slug}/")
+                pagination = fresh_paginator.page_context(
+                    page_num, f"/tags/{tag_slug}/"
+                )
             else:
                 posts = []
                 total_posts_count = 0
@@ -696,7 +717,9 @@ class Renderer:
             }
         )
 
-    def _add_tag_index_generated_page_context(self, page: Page, context: dict[str, Any]) -> None:
+    def _add_tag_index_generated_page_context(
+        self, page: Page, context: dict[str, Any]
+    ) -> None:
         """Add context for the tag index page."""
         tags = page.metadata.get("_tags", {})
 
@@ -745,7 +768,11 @@ class Renderer:
         page_type = page.metadata.get("type")
         content_type = None
 
-        if hasattr(page, "_section") and page._section and hasattr(page._section, "metadata"):
+        if (
+            hasattr(page, "_section")
+            and page._section
+            and hasattr(page._section, "metadata")
+        ):
             content_type = page._section.metadata.get("content_type")
 
         # Determine which strategy to use

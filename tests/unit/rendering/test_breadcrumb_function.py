@@ -2,8 +2,6 @@
 Tests for breadcrumb template function.
 """
 
-from __future__ import annotations
-
 from unittest.mock import Mock
 
 from bengal.rendering.template_functions.navigation import get_breadcrumbs
@@ -169,7 +167,9 @@ class TestGetBreadcrumbs:
         """Pages without title show 'Untitled' when no slug or URL path available."""
         # Use spec to prevent Mock from auto-creating title attribute
         section = Mock(spec=["_path", "slug"])
-        section._path = "/"  # Root URL has empty url_parts, triggering "Untitled" fallback
+        section._path = (
+            "/"  # Root URL has empty url_parts, triggering "Untitled" fallback
+        )
         section.slug = None  # No slug either to trigger "Untitled"
 
         page = Mock()

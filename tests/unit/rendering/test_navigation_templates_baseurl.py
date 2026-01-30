@@ -5,8 +5,6 @@ Verifies that navigation components (breadcrumbs, footer menu)
 properly apply the | absolute_url filter to support subpath deployments.
 """
 
-from __future__ import annotations
-
 from unittest.mock import Mock
 
 import pytest
@@ -170,7 +168,9 @@ output_dir = "public"
 
         # Assert: footer links should have baseurl applied
         # Footer menu should be present and links should have baseurl
-        assert "Privacy" in html or "Terms" in html, "Footer menu items should be present"
+        assert "Privacy" in html or "Terms" in html, (
+            "Footer menu items should be present"
+        )
         if 'href="/privacy/"' in html or 'href="/terms/"' in html:
             # Check if baseurl is applied
             assert 'href="/blog/privacy/"' in html or 'href="/blog/terms/"' in html, (
@@ -246,7 +246,9 @@ output_dir = "public"
         breadcrumb_html = engine.render_string(breadcrumb_template, {"page": page})
 
         expected_url = f"{expected_prefix}/docs/" if expected_prefix else "/docs/"
-        assert f'href="{expected_url}"' in breadcrumb_html, f"Breadcrumbs should use {expected_url}"
+        assert f'href="{expected_url}"' in breadcrumb_html, (
+            f"Breadcrumbs should use {expected_url}"
+        )
 
 
 class TestMenuURLComparisonWithBaseurl:

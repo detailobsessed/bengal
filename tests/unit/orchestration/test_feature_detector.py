@@ -8,8 +8,6 @@ Tests CSS feature detection from page content:
 - Interactive widget detection
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 
@@ -218,7 +216,9 @@ class TestDetectSiteFeatures:
         site = MagicMock()
 
         page1 = MagicMock()
-        page1._source = "```mermaid\ngraph TD\n```"  # Required: source code uses page._source
+        page1._source = (
+            "```mermaid\ngraph TD\n```"  # Required: source code uses page._source
+        )
         page1.metadata = {}
 
         page2 = MagicMock()
@@ -250,7 +250,9 @@ class TestDetectSiteFeatures:
         site = MagicMock()
 
         page = MagicMock()
-        page._source = "# Simple page\n\nJust text."  # Required: source code uses page._source
+        page._source = (
+            "# Simple page\n\nJust text."  # Required: source code uses page._source
+        )
         page.metadata = {}
 
         site.pages = [page]

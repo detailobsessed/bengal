@@ -5,8 +5,6 @@ Tests config/validators.py:
 - ConfigValidator: validation with type checking and coercion
 """
 
-from __future__ import annotations
-
 from io import StringIO
 from pathlib import Path
 from unittest.mock import patch

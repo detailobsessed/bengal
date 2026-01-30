@@ -5,8 +5,6 @@ Extends test_template_errors.py with edge cases and error recovery scenarios
 to improve coverage from 54% to 70%.
 """
 
-from __future__ import annotations
-
 from unittest.mock import Mock
 
 import pytest
@@ -145,7 +143,9 @@ class TestEnhancedSuggestions:
         suggestions = _generate_enhanced_suggestions(error)
 
         # Should suggest checking documentation
-        assert any("documentation" in s.lower() or "help" in s.lower() for s in suggestions)
+        assert any(
+            "documentation" in s.lower() or "help" in s.lower() for s in suggestions
+        )
 
     def test_date_filter_specific_suggestion(self):
         """Test specific suggestion for date filters."""
@@ -215,7 +215,9 @@ class TestErrorClassificationEdgeCases:
         mock_engine.env = Mock()
         mock_engine.env.filters = {}
 
-        tre = TemplateRenderError.from_jinja2_error(error, "test.html", None, mock_engine)
+        tre = TemplateRenderError.from_jinja2_error(
+            error, "test.html", None, mock_engine
+        )
         assert tre.error_type == "filter"
 
     def test_classify_unknown_filter_in_assertion(self):
@@ -226,7 +228,9 @@ class TestErrorClassificationEdgeCases:
         mock_engine.env = Mock()
         mock_engine.env.filters = {}
 
-        tre = TemplateRenderError.from_jinja2_error(error, "test.html", None, mock_engine)
+        tre = TemplateRenderError.from_jinja2_error(
+            error, "test.html", None, mock_engine
+        )
         assert tre.error_type == "filter"
 
     def test_classify_non_filter_assertion_error(self):
@@ -237,7 +241,9 @@ class TestErrorClassificationEdgeCases:
         mock_engine.env = Mock()
         mock_engine.env.filters = {}
 
-        tre = TemplateRenderError.from_jinja2_error(error, "test.html", None, mock_engine)
+        tre = TemplateRenderError.from_jinja2_error(
+            error, "test.html", None, mock_engine
+        )
         assert tre.error_type == "syntax"
 
     def test_classify_generic_exception(self):
@@ -248,7 +254,9 @@ class TestErrorClassificationEdgeCases:
         mock_engine.env = Mock()
         mock_engine.env.filters = {}
 
-        tre = TemplateRenderError.from_jinja2_error(error, "test.html", None, mock_engine)
+        tre = TemplateRenderError.from_jinja2_error(
+            error, "test.html", None, mock_engine
+        )
         assert tre.error_type == "other"
 
 
@@ -274,7 +282,9 @@ class TestContextExtractionEdgeCases:
         error = TemplateSyntaxError("Error", 10)
         mock_engine = Mock()
         # Return path that doesn't exist
-        mock_engine._find_template_path = Mock(return_value=tmp_path / "nonexistent.html")
+        mock_engine._find_template_path = Mock(
+            return_value=tmp_path / "nonexistent.html"
+        )
 
         context = TemplateRenderError._extract_context(error, "test.html", mock_engine)
 
@@ -324,7 +334,9 @@ class TestSuggestionGenerationEdgeCases:
         error = TemplateAssertionError("No filter named 'in_section'", 1)
         mock_engine = Mock()
 
-        suggestion = TemplateRenderError._generate_suggestion(error, "filter", mock_engine)
+        suggestion = TemplateRenderError._generate_suggestion(
+            error, "filter", mock_engine
+        )
 
         assert suggestion is not None
         assert "page.parent" in suggestion
@@ -334,7 +346,9 @@ class TestSuggestionGenerationEdgeCases:
         error = TemplateAssertionError("No filter named 'is_ancestor'", 1)
         mock_engine = Mock()
 
-        suggestion = TemplateRenderError._generate_suggestion(error, "filter", mock_engine)
+        suggestion = TemplateRenderError._generate_suggestion(
+            error, "filter", mock_engine
+        )
 
         assert suggestion is not None
         assert "page.href" in suggestion or "page._path" in suggestion
@@ -344,7 +358,9 @@ class TestSuggestionGenerationEdgeCases:
         error = UndefinedError("'metadata.weight' is undefined")
         mock_engine = Mock()
 
-        suggestion = TemplateRenderError._generate_suggestion(error, "undefined", mock_engine)
+        suggestion = TemplateRenderError._generate_suggestion(
+            error, "undefined", mock_engine
+        )
 
         assert suggestion is not None
         assert "get(" in suggestion
@@ -354,7 +370,9 @@ class TestSuggestionGenerationEdgeCases:
         error = TemplateSyntaxError("'with' is not valid here", 1)
         mock_engine = Mock()
 
-        suggestion = TemplateRenderError._generate_suggestion(error, "syntax", mock_engine)
+        suggestion = TemplateRenderError._generate_suggestion(
+            error, "syntax", mock_engine
+        )
 
         assert suggestion is not None
         assert "set" in suggestion.lower()
@@ -364,7 +382,9 @@ class TestSuggestionGenerationEdgeCases:
         error = TemplateSyntaxError("unknown parameter: default=", 1)
         mock_engine = Mock()
 
-        suggestion = TemplateRenderError._generate_suggestion(error, "syntax", mock_engine)
+        suggestion = TemplateRenderError._generate_suggestion(
+            error, "syntax", mock_engine
+        )
 
         assert suggestion is not None
         assert "default" in suggestion.lower()
@@ -374,7 +394,9 @@ class TestSuggestionGenerationEdgeCases:
         error = Exception("Generic error message")
         mock_engine = Mock()
 
-        suggestion = TemplateRenderError._generate_suggestion(error, "other", mock_engine)
+        suggestion = TemplateRenderError._generate_suggestion(
+            error, "other", mock_engine
+        )
 
         assert suggestion is None
 
@@ -393,7 +415,9 @@ class TestAlternativesFinderEdgeCases:
             "uppercase": lambda x: x,
         }
 
-        alternatives = TemplateRenderError._find_alternatives(error, "filter", mock_engine)
+        alternatives = TemplateRenderError._find_alternatives(
+            error, "filter", mock_engine
+        )
 
         # Should suggest markdown (close match)
         assert "markdown" in alternatives
@@ -409,7 +433,9 @@ class TestAlternativesFinderEdgeCases:
             "truncate_words": lambda x, y: x,
         }
 
-        alternatives = TemplateRenderError._find_alternatives(error, "filter", mock_engine)
+        alternatives = TemplateRenderError._find_alternatives(
+            error, "filter", mock_engine
+        )
 
         # Should suggest multiple truncate variants
         assert len(alternatives) > 0
@@ -425,7 +451,9 @@ class TestAlternativesFinderEdgeCases:
             "truncate": lambda x, y: x,
         }
 
-        alternatives = TemplateRenderError._find_alternatives(error, "filter", mock_engine)
+        alternatives = TemplateRenderError._find_alternatives(
+            error, "filter", mock_engine
+        )
 
         # Should return empty or very few results
         assert len(alternatives) <= 3
@@ -435,7 +463,9 @@ class TestAlternativesFinderEdgeCases:
         error = UndefinedError("'var' is undefined")
         mock_engine = Mock()
 
-        alternatives = TemplateRenderError._find_alternatives(error, "undefined", mock_engine)
+        alternatives = TemplateRenderError._find_alternatives(
+            error, "undefined", mock_engine
+        )
 
         # Should return empty for non-filter errors
         assert alternatives == []
@@ -447,7 +477,9 @@ class TestAlternativesFinderEdgeCases:
         mock_engine.env = Mock()
         mock_engine.env.filters = {"markdown": lambda x: x}
 
-        alternatives = TemplateRenderError._find_alternatives(error, "filter", mock_engine)
+        alternatives = TemplateRenderError._find_alternatives(
+            error, "filter", mock_engine
+        )
 
         # Should handle gracefully
         assert alternatives == []

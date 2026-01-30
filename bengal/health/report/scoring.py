@@ -8,7 +8,9 @@ scores based on health check results.
 from __future__ import annotations
 
 
-def calculate_quality_score(total_errors: int, total_warnings: int, total_checks: int) -> int:
+def calculate_quality_score(
+    total_errors: int, total_warnings: int, total_checks: int
+) -> int:
     """
     Calculate build quality score (0-100).
 

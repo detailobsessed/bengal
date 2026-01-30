@@ -80,7 +80,9 @@ def benchmark_showcase():
     print("📊 Test 2: Incremental Build (No Changes)")
     print("-" * 80)
     start = time.time()
-    returncode, stdout, stderr, end = run_command("bengal build --incremental", cwd=showcase_dir)
+    returncode, stdout, stderr, end = run_command(
+        "bengal build --incremental", cwd=showcase_dir
+    )
     duration = end - start
 
     if returncode == 0:
@@ -177,7 +179,9 @@ def benchmark_showcase():
 
     if "incremental_1_change" in results and results["incremental_1_change"] > 0.1:
         print("⚠️  Incremental build with 1 change is slower than expected.")
-        print("    This confirms our analysis - taxonomies/menus are processing ALL pages.")
+        print(
+            "    This confirms our analysis - taxonomies/menus are processing ALL pages."
+        )
         print()
         print("    Expected impact of fixes:")
         print(

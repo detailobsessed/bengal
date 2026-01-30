@@ -22,7 +22,6 @@ logger = get_logger(__name__)
 @click.group(cls=BengalGroup)
 def assets() -> None:
     """Manage and build assets."""
-    pass
 
 
 @assets.command()
@@ -42,22 +41,24 @@ def assets() -> None:
 def build(watch: bool, source: str) -> None:
     """
     Build assets using the configured pipeline.
-    
+
     Processes CSS, JavaScript, and other assets according to your
     asset pipeline configuration. Use --watch to automatically rebuild
     on file changes.
-    
+
     Examples:
         bengal assets build           # Build once
         bengal assets build --watch   # Watch and rebuild on changes
-    
+
     See also:
         bengal assets status - View asset manifest
         bengal site build - Build site with assets
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
 
     def run_once() -> None:
         try:
@@ -71,7 +72,9 @@ def build(watch: bool, source: str) -> None:
             elapsed_ms = (time.time() - start_time) * 1000
 
             # Show phase completion
-            cli.phase("Assets", duration_ms=elapsed_ms, details=f"{len(outputs)} outputs")
+            cli.phase(
+                "Assets", duration_ms=elapsed_ms, details=f"{len(outputs)} outputs"
+            )
         except Exception as e:
             cli.error(f"✗ Asset pipeline failed: {e}")
 
@@ -109,20 +112,22 @@ def build(watch: bool, source: str) -> None:
 def status(source: str) -> None:
     """
     📋 Display the current asset manifest.
-    
+
     Shows the mapping of logical asset paths to fingerprinted output files.
     Useful for debugging asset references and cache-busting.
-    
+
     Examples:
         bengal assets status
-    
+
     See also:
         bengal assets build - Build assets
         bengal site build - Build site with assets
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
     manifest_path = site.output_dir / "asset-manifest.json"
     manifest = AssetManifest.load(manifest_path)
 
@@ -136,7 +141,9 @@ def status(source: str) -> None:
         entry = manifest.entries[logical_path]
         destination = f"/{entry.output_path}"
         if entry.fingerprint:
-            cli.info(f"{logical_path} → {destination} (fingerprint: {entry.fingerprint})")
+            cli.info(
+                f"{logical_path} → {destination} (fingerprint: {entry.fingerprint})"
+            )
         else:
             cli.info(f"{logical_path} → {destination}")
 

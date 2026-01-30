@@ -133,7 +133,9 @@ def main():
     elif actual > expected_max:
         print()
         print("⚠️  Creating more parsers than threads.")
-        print("   This might be intentional (e.g., different engines) or a caching issue.")
+        print(
+            "   This might be intentional (e.g., different engines) or a caching issue."
+        )
     else:
         print()
         print("✓  Parser creation looks optimal!")

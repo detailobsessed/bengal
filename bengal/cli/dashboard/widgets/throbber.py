@@ -73,8 +73,12 @@ class Gradient:
         c2 = self.colors[idx2]
 
         # Get RGB triplets
-        r1, g1, b1 = c1.triplet
-        r2, g2, b2 = c2.triplet
+        triplet1 = c1.triplet
+        triplet2 = c2.triplet
+        if triplet1 is None or triplet2 is None:
+            return self.colors[0]  # Fallback to first color
+        r1, g1, b1 = triplet1
+        r2, g2, b2 = triplet2
 
         # Interpolate
         r = int(r1 + (r2 - r1) * blend)
@@ -87,22 +91,22 @@ class Gradient:
 class BengalThrobberVisual(Visual):
     """
     Visual renderer for the throbber animation.
-    
+
     Renders a horizontal line with a cycling color gradient.
-        
+
     """
 
     gradient = Gradient.from_colors(*[Color.parse(c) for c in BENGAL_COLORS])
 
-    def get_optimal_width(self, _rules: RulesMap, container_width: int) -> int:
+    def get_optimal_width(self, _rules: RulesMap, container_width: int) -> int:  # type: ignore[override]
         """Return optimal width - fill container."""
         return container_width
 
-    def get_height(self, _rules: RulesMap, width: int) -> int:
+    def get_height(self, _rules: RulesMap, width: int) -> int:  # type: ignore[override]
         """Return height - always 1 line."""
         return 1
 
-    def render_strips(
+    def render_strips(  # type: ignore[override]
         self,
         width: int,
         height: int | None,
@@ -144,20 +148,20 @@ class BengalThrobberVisual(Visual):
 class BengalThrobber(Widget):
     """
     Animated build progress indicator with Bengal colors.
-    
+
     Shows a cycling gradient animation when active, hidden otherwise.
     Uses 15 FPS animation for smooth visuals without excessive CPU usage.
-    
+
     Attributes:
         active: When True, shows and animates. When False, hidden.
-    
+
     Example:
         throbber = BengalThrobber(id="build-throbber")
         # Start animation
         throbber.active = True
         # Stop animation
         throbber.active = False
-        
+
     """
 
     DEFAULT_CSS = """

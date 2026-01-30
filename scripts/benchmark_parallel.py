@@ -326,7 +326,9 @@ def main():
 
             indicator = "🚀" if speedup > 1.5 else ("✅" if speedup > 1.0 else "⚠️")
             par_ms = par_time * 1000
-            msg = f"  Parallel ({worker_label} workers): {par_ms:.2f} ms ({speedup:.2f}x)"
+            msg = (
+                f"  Parallel ({worker_label} workers): {par_ms:.2f} ms ({speedup:.2f}x)"
+            )
             print(f"{msg} {indicator}")
 
         print()
@@ -339,7 +341,10 @@ def main():
 
     # 50 large code blocks
     items = [
-        (generate_test_code(languages[i % len(languages)], "large"), languages[i % len(languages)])
+        (
+            generate_test_code(languages[i % len(languages)], "large"),
+            languages[i % len(languages)],
+        )
         for i in range(50)
     ]
 
@@ -362,7 +367,9 @@ def main():
     real_items = find_real_source_files()
     if real_items:
         total_chars = sum(len(code) for code, _ in real_items)
-        print(f"Found {len(real_items)} Python files ({total_chars:,} total characters)")
+        print(
+            f"Found {len(real_items)} Python files ({total_chars:,} total characters)"
+        )
         print()
 
         seq_time = benchmark_sequential(real_items)

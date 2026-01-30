@@ -8,7 +8,9 @@ def test_site_assets_include_installed_theme(tmp_path, monkeypatch):
     """Test Site includes assets from installed theme - using Mock objects"""
     site_root = tmp_path / "site"
     (site_root / "content").mkdir(parents=True)
-    (site_root / "bengal.toml").write_text('[site]\nname="t"\ntheme="acme"\n', encoding="utf-8")
+    (site_root / "bengal.toml").write_text(
+        '[site]\nname="t"\ntheme="acme"\n', encoding="utf-8"
+    )
 
     # Create mock theme directory
     theme_root = tmp_path / "mock_theme_acme"
@@ -24,7 +26,9 @@ def test_site_assets_include_installed_theme(tmp_path, monkeypatch):
     mock_pkg.version = "1.0.0"
     mock_pkg.assets_exists.return_value = True
     mock_pkg.resolve_resource_path = (
-        lambda resource: theme_root / resource if (theme_root / resource).exists() else None
+        lambda resource: theme_root / resource
+        if (theme_root / resource).exists()
+        else None
     )
 
     def mock_get_theme_package(slug: str):
@@ -32,7 +36,9 @@ def test_site_assets_include_installed_theme(tmp_path, monkeypatch):
 
     import bengal.core.theme.registry
 
-    monkeypatch.setattr(bengal.core.theme.registry, "get_theme_package", mock_get_theme_package)
+    monkeypatch.setattr(
+        bengal.core.theme.registry, "get_theme_package", mock_get_theme_package
+    )
     monkeypatch.setattr(
         bengal.core.theme.registry, "get_installed_themes", lambda: {"acme": mock_pkg}
     )

@@ -21,16 +21,18 @@ from bengal.utils.paths.url_strategy import URLStrategy
 class TestUrlFromOutputPathProperties:
     """
     Property tests for url_from_output_path method.
-    
+
     This is the most critical method - converts file paths to URLs.
-        
+
     """
 
     @pytest.mark.hypothesis
     @given(
         parts=st.lists(
             st.text(
-                alphabet=string.ascii_lowercase + string.digits + "-_", min_size=1, max_size=20
+                alphabet=string.ascii_lowercase + string.digits + "-_",
+                min_size=1,
+                max_size=20,
             ),
             min_size=0,
             max_size=5,
@@ -62,7 +64,9 @@ class TestUrlFromOutputPathProperties:
     @given(
         parts=st.lists(
             st.text(
-                alphabet=string.ascii_lowercase + string.digits + "-_", min_size=1, max_size=20
+                alphabet=string.ascii_lowercase + string.digits + "-_",
+                min_size=1,
+                max_size=20,
             ),
             min_size=1,
             max_size=5,
@@ -88,7 +92,9 @@ class TestUrlFromOutputPathProperties:
     @given(
         parts=st.lists(
             st.text(
-                alphabet=string.ascii_lowercase + string.digits + "-_", min_size=1, max_size=20
+                alphabet=string.ascii_lowercase + string.digits + "-_",
+                min_size=1,
+                max_size=20,
             ),
             min_size=0,
             max_size=5,
@@ -118,7 +124,9 @@ class TestUrlFromOutputPathProperties:
     @given(
         parts=st.lists(
             st.text(
-                alphabet=string.ascii_lowercase + string.digits + "-_", min_size=1, max_size=20
+                alphabet=string.ascii_lowercase + string.digits + "-_",
+                min_size=1,
+                max_size=20,
             ),
             min_size=0,
             max_size=5,
@@ -145,7 +153,9 @@ class TestUrlFromOutputPathProperties:
             assert ".html" not in url, f"Pretty URL '{url}' should not contain .html"
             # Don't check for 'index' string - it's valid in directory names
             # Just ensure we're not exposing index.html in the URL
-            assert "index.html" not in url, f"Pretty URL '{url}' should not contain index.html"
+            assert "index.html" not in url, (
+                f"Pretty URL '{url}' should not contain index.html"
+            )
 
     @pytest.mark.hypothesis
     @given(depth=st.integers(min_value=0, max_value=10))
@@ -179,7 +189,9 @@ class TestUrlFromOutputPathProperties:
     @pytest.mark.hypothesis
     @given(
         name=st.text(
-            alphabet=string.ascii_lowercase + string.digits + "-_", min_size=1, max_size=30
+            alphabet=string.ascii_lowercase + string.digits + "-_",
+            min_size=1,
+            max_size=30,
         )
     )
     def test_roundtrip_consistency(self, name):
@@ -199,7 +211,9 @@ class TestUrlFromOutputPathProperties:
             url1 = URLStrategy.url_from_output_path(output_path, mock_site)
             url2 = URLStrategy.url_from_output_path(output_path, mock_site)
 
-            assert url1 == url2, f"URL generation not deterministic: '{url1}' != '{url2}'"
+            assert url1 == url2, (
+                f"URL generation not deterministic: '{url1}' != '{url2}'"
+            )
 
 
 class TestMakeVirtualPathProperties:
@@ -279,7 +293,9 @@ class TestMakeVirtualPathProperties:
 
             virtual_path = URLStrategy.make_virtual_path(mock_site, *segments)
 
-            assert virtual_path.is_absolute(), f"Virtual path should be absolute: {virtual_path}"
+            assert virtual_path.is_absolute(), (
+                f"Virtual path should be absolute: {virtual_path}"
+            )
 
     @pytest.mark.hypothesis
     @given(
@@ -331,9 +347,13 @@ class TestArchiveOutputPathProperties:
             mock_site = Mock()
             mock_site.output_dir = Path(tmpdir) / "public"
 
-            section = Section(name=section_name, path=Path(tmpdir) / "content" / section_name)
+            section = Section(
+                name=section_name, path=Path(tmpdir) / "content" / section_name
+            )
 
-            output_path = URLStrategy.compute_archive_output_path(section, page_num, mock_site)
+            output_path = URLStrategy.compute_archive_output_path(
+                section, page_num, mock_site
+            )
 
             if page_num == 1:
                 # Page 1 at root: /blog/index.html
@@ -350,7 +370,9 @@ class TestArchiveOutputPathProperties:
                 )
 
     @pytest.mark.hypothesis
-    @given(section_name=st.text(alphabet=string.ascii_lowercase, min_size=1, max_size=20))
+    @given(
+        section_name=st.text(alphabet=string.ascii_lowercase, min_size=1, max_size=20)
+    )
     def test_archive_paths_end_with_index_html(self, section_name):
         """
         Property: Archive paths end with index.html.
@@ -361,7 +383,9 @@ class TestArchiveOutputPathProperties:
             mock_site = Mock()
             mock_site.output_dir = Path(tmpdir) / "public"
 
-            section = Section(name=section_name, path=Path(tmpdir) / "content" / section_name)
+            section = Section(
+                name=section_name, path=Path(tmpdir) / "content" / section_name
+            )
 
             output_path = URLStrategy.compute_archive_output_path(section, 1, mock_site)
 
@@ -375,7 +399,9 @@ class TestTagOutputPathProperties:
 
     @pytest.mark.hypothesis
     @given(
-        tag_slug=st.text(alphabet=string.ascii_lowercase + "-", min_size=1, max_size=30),
+        tag_slug=st.text(
+            alphabet=string.ascii_lowercase + "-", min_size=1, max_size=30
+        ),
         page_num=st.integers(min_value=1, max_value=50),
     )
     def test_tag_paths_under_tags_directory(self, tag_slug, page_num):
@@ -388,12 +414,18 @@ class TestTagOutputPathProperties:
             mock_site = Mock()
             mock_site.output_dir = Path(tmpdir) / "public"
 
-            output_path = URLStrategy.compute_tag_output_path(tag_slug, page_num, mock_site)
+            output_path = URLStrategy.compute_tag_output_path(
+                tag_slug, page_num, mock_site
+            )
 
-            assert "tags" in output_path.parts, f"Tag path should be under /tags/: {output_path}"
+            assert "tags" in output_path.parts, (
+                f"Tag path should be under /tags/: {output_path}"
+            )
 
     @pytest.mark.hypothesis
-    @given(tag_slug=st.text(alphabet=string.ascii_lowercase + "-", min_size=1, max_size=30))
+    @given(
+        tag_slug=st.text(alphabet=string.ascii_lowercase + "-", min_size=1, max_size=30)
+    )
     def test_tag_index_at_tags_root(self, tag_slug):
         """
         Property: Tag index is at /tags/index.html.

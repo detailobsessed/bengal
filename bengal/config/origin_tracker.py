@@ -36,16 +36,16 @@ from typing import Any
 class ConfigWithOrigin:
     """
     Configuration container with origin tracking for each key.
-    
+
     Tracks which file (or source) contributed each configuration key,
     enabling introspection and debugging of multi-file configurations.
     Later merges override earlier values, and the origin is updated
     to reflect the most recent source.
-    
+
     Attributes:
         config: The merged configuration dictionary.
         origins: Mapping of dot-separated key paths to their source identifiers.
-    
+
     Example:
             >>> tracker = ConfigWithOrigin()
             >>> tracker.merge({"site": {"title": "Test"}}, "_default/site.yaml")
@@ -56,7 +56,7 @@ class ConfigWithOrigin:
             '_default/site.yaml'
             >>> tracker.origins["site.baseurl"]
             'environments/prod.yaml'
-        
+
     """
 
     def __init__(self) -> None:
@@ -98,7 +98,7 @@ class ConfigWithOrigin:
             path: Current key path as a list of keys.
         """
         for key, value in override.items():
-            key_path = ".".join(path + [key])
+            key_path = ".".join([*path, key])
 
             if isinstance(value, dict):
                 if key not in base or not isinstance(base[key], dict):
@@ -106,7 +106,7 @@ class ConfigWithOrigin:
                     base[key] = {}
                     self.origins[key_path] = origin
                 # Recurse into dict (whether new or existing)
-                self._merge_recursive(base[key], value, origin, path + [key])
+                self._merge_recursive(base[key], value, origin, [*path, key])
             else:
                 # Primitive or list: override and track
                 base[key] = value
@@ -156,19 +156,18 @@ class ConfigWithOrigin:
             indent: Current indentation level (each level = 2 spaces).
         """
         for key, value in config.items():
-            key_path = ".".join(path + [key])
+            key_path = ".".join([*path, key])
             origin = self.origins.get(key_path, "unknown")
             indent_str = "  " * indent
 
             if isinstance(value, dict):
                 # Nested dict
                 lines.append(f"{indent_str}{key}:")
-                self._format_recursive(value, lines, path + [key], indent + 1)
+                self._format_recursive(value, lines, [*path, key], indent + 1)
             elif isinstance(value, list):
                 # List
                 lines.append(f"{indent_str}{key}:  # {origin}")
-                for item in value:
-                    lines.append(f"{indent_str}  - {item}")
+                lines.extend(f"{indent_str}  - {item}" for item in value)
             else:
                 # Primitive
                 lines.append(f"{indent_str}{key}: {value}  # {origin}")

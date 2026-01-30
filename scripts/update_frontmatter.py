@@ -56,7 +56,10 @@ def update_frontmatter(content: str) -> str:
 
     # Replace frontmatter
     result = re.sub(
-        frontmatter_pattern, replace_frontmatter, content, flags=re.MULTILINE | re.DOTALL
+        frontmatter_pattern,
+        replace_frontmatter,
+        content,
+        flags=re.MULTILINE | re.DOTALL,
     )
     return result
 

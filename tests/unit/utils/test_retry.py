@@ -4,8 +4,6 @@ Tests for bengal.utils.retry module.
 Verifies retry utilities with exponential backoff for both sync and async.
 """
 
-from __future__ import annotations
-
 import time
 
 import pytest

@@ -47,20 +47,20 @@ class PhaseInfo:
 class BengalBuildDashboard(BengalDashboard):
     """
     Interactive build dashboard with live progress.
-    
+
     Shows:
     - Header with Bengal branding
     - Progress bar for current phase
     - DataTable with phase timing
     - Log widget for build output
     - Footer with keyboard shortcuts
-    
+
     Bindings:
         q: Quit
         r: Rebuild (if build complete)
         c: Clear log
         ?: Help
-        
+
     """
 
     TITLE: ClassVar[str] = "Bengal Build"
@@ -118,7 +118,9 @@ class BengalBuildDashboard(BengalDashboard):
         self.build_kwargs = build_kwargs
 
         # Phase tracking
-        self.phases: dict[str, PhaseInfo] = {name: PhaseInfo(name=name) for name in self.PHASES}
+        self.phases: dict[str, PhaseInfo] = {
+            name: PhaseInfo(name=name) for name in self.PHASES
+        }
 
         # Build stats
         self.stats: dict[str, Any] = {}
@@ -265,7 +267,7 @@ class BengalBuildDashboard(BengalDashboard):
             thread=True,
         )
 
-    async def _run_build(self) -> dict[str, Any]:
+    async def _run_build(self) -> Any:
         """
         Run the build in a background thread.
 
@@ -286,7 +288,8 @@ class BengalBuildDashboard(BengalDashboard):
             self.app.call_from_thread(log.write_line, "→ Discovery...")
 
             from bengal.orchestration.build.options import BuildOptions
-            orchestrator = BuildOrchestrator(self.site)
+
+            orchestrator = BuildOrchestrator(self.site)  # type: ignore[arg-type]
 
             # Run the actual build
             options = BuildOptions(
@@ -335,7 +338,9 @@ class BengalBuildDashboard(BengalDashboard):
         """Mark a phase as running."""
         if phase_name in self.phases:
             self.phases[phase_name].status = "running"
-        self._update_phase_row(phase_name, status="⠹", time="...", percent="", details="")
+        self._update_phase_row(
+            phase_name, status="⠹", time="...", percent="", details=""
+        )
 
     def _update_phases_from_stats(self, stats: Any) -> None:
         """Update phase display from build stats."""
@@ -363,7 +368,9 @@ class BengalBuildDashboard(BengalDashboard):
                 self._update_phase_complete, display_name, duration_ms, details
             )
 
-    def _update_phase_complete(self, phase_name: str, duration_ms: float, details: str) -> None:
+    def _update_phase_complete(
+        self, phase_name: str, duration_ms: float, details: str
+    ) -> None:
         """Mark a phase as complete (Task 1.2)."""
         if phase_name in self.phases:
             self.phases[phase_name].status = "complete"
@@ -394,7 +401,9 @@ class BengalBuildDashboard(BengalDashboard):
     def _get_total_phase_time(self) -> float:
         """Get total time across all completed phases."""
         return sum(
-            phase.duration_ms or 0 for phase in self.phases.values() if phase.status == "complete"
+            phase.duration_ms or 0
+            for phase in self.phases.values()
+            if phase.status == "complete"
         )
 
     # === Message Handlers ===
@@ -424,7 +433,9 @@ class BengalBuildDashboard(BengalDashboard):
 
         if message.success:
             pages = self.stats.get("pages_rendered", self.stats.get("total_pages", 0))
-            status.update(f"{self.mascot}  Build complete! {pages} pages in {duration_s:.2f}s")
+            status.update(
+                f"{self.mascot}  Build complete! {pages} pages in {duration_s:.2f}s"
+            )
 
             # Show notification
             notify_build_complete(
@@ -437,7 +448,9 @@ class BengalBuildDashboard(BengalDashboard):
             # Final log entry
             log = self.query_one("#build-log", Log)
             log.write_line("")
-            log.write_line(f"{self.mascot}  Build complete! {pages} pages in {duration_s:.2f}s")
+            log.write_line(
+                f"{self.mascot}  Build complete! {pages} pages in {duration_s:.2f}s"
+            )
             log.write_line("   Press 'r' to rebuild, 'q' to quit")
         else:
             status.update(f"{self.error_mascot}  Build failed: {message.error}")
@@ -530,16 +543,16 @@ def run_build_dashboard(
 ) -> None:
     """
     Run the build dashboard for a site.
-    
+
     This is the entry point called by `bengal build --dashboard`.
-    
+
     Args:
         site: Site instance to build
         parallel: Enable parallel rendering
         incremental: Use incremental build
         profile: Build profile
         **kwargs: Additional build options
-        
+
     """
     app = BengalBuildDashboard(
         site=site,

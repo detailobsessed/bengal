@@ -107,7 +107,9 @@ class TestPageHashability:
         """Pages are equal based on path, not metadata."""
         path = tmp_path / "content/post.md"
         page1 = Page(source_path=path, metadata={"title": "First Title", "tags": ["a"]})
-        page2 = Page(source_path=path, metadata={"title": "Second Title", "tags": ["b", "c"]})
+        page2 = Page(
+            source_path=path, metadata={"title": "Second Title", "tags": ["b", "c"]}
+        )
 
         # Equal despite different metadata
         assert page1 == page2

@@ -4,8 +4,6 @@ Tests health/validators/rendering.py:
 - RenderingValidator: HTML output quality validation in health check system
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -87,8 +85,12 @@ class TestRenderingValidatorHTMLStructure:
 
     def test_warning_for_missing_doctype(self, validator, mock_site, tmp_path):
         """Returns warning for missing DOCTYPE."""
-        html_without_doctype = "<html><head><title>Test</title></head><body></body></html>"
-        page = create_page(mock_site.output_dir, "no-doctype.html", html_without_doctype)
+        html_without_doctype = (
+            "<html><head><title>Test</title></head><body></body></html>"
+        )
+        page = create_page(
+            mock_site.output_dir, "no-doctype.html", html_without_doctype
+        )
         mock_site.pages = [page]
 
         results = validator.validate(mock_site)
@@ -106,7 +108,9 @@ class TestRenderingValidatorHTMLStructure:
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
         # Should have structure issues
-        structure_warnings = [r for r in warning_results if "structure" in r.message.lower()]
+        structure_warnings = [
+            r for r in warning_results if "structure" in r.message.lower()
+        ]
         assert len(structure_warnings) >= 1
 
     def test_warning_has_details(self, validator, mock_site, tmp_path):
@@ -214,7 +218,9 @@ class TestRenderingValidatorSEOMetadata:
     def test_skips_generated_pages(self, validator, mock_site, tmp_path):
         """Skips generated pages in SEO check."""
         no_seo = "<!DOCTYPE html><html><head></head><body></body></html>"
-        page = create_page(mock_site.output_dir, "generated.html", no_seo, generated=True)
+        page = create_page(
+            mock_site.output_dir, "generated.html", no_seo, generated=True
+        )
         mock_site.pages = [page]
 
         results = validator.validate(mock_site)
@@ -231,7 +237,9 @@ class TestRenderingValidatorPrivateMethods:
     def test_detect_unrendered_jinja2_finds_page(self, validator):
         """_detect_unrendered_jinja2 finds {{ page. }}."""
         html = "<html><body>{{ page.title }}</body></html>"
-        with patch("bengal.health.validators.rendering.ParserFactory") as MockParserFactory:
+        with patch(
+            "bengal.health.validators.rendering.ParserFactory"
+        ) as MockParserFactory:
             mock_parser = MagicMock()
             mock_soup = MagicMock()
             mock_soup.get_text.return_value = "{{ page.title }}"
@@ -244,7 +252,9 @@ class TestRenderingValidatorPrivateMethods:
     def test_detect_unrendered_jinja2_finds_site(self, validator):
         """_detect_unrendered_jinja2 finds {{ site. }}."""
         html = "<html><body>{{ site.title }}</body></html>"
-        with patch("bengal.health.validators.rendering.ParserFactory") as MockParserFactory:
+        with patch(
+            "bengal.health.validators.rendering.ParserFactory"
+        ) as MockParserFactory:
             mock_parser = MagicMock()
             mock_soup = MagicMock()
             mock_soup.get_text.return_value = "{{ site.title }}"
@@ -257,7 +267,9 @@ class TestRenderingValidatorPrivateMethods:
     def test_detect_unrendered_jinja2_clean(self, validator):
         """_detect_unrendered_jinja2 returns False for clean HTML."""
         html = "<html><body>Hello World</body></html>"
-        with patch("bengal.health.validators.rendering.ParserFactory") as MockParserFactory:
+        with patch(
+            "bengal.health.validators.rendering.ParserFactory"
+        ) as MockParserFactory:
             mock_parser = MagicMock()
             mock_soup = MagicMock()
             mock_soup.get_text.return_value = "Hello World"
@@ -295,6 +307,8 @@ class TestRenderingValidatorRecommendations:
         results = validator.validate(mock_site)
 
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        seo_warning = next((r for r in warning_results if "seo" in r.message.lower()), None)
+        seo_warning = next(
+            (r for r in warning_results if "seo" in r.message.lower()), None
+        )
         if seo_warning:
             assert seo_warning.recommendation is not None

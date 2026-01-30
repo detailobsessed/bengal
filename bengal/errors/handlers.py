@@ -68,16 +68,16 @@ logger = get_logger(__name__)
 class ContextAwareHelp:
     """
     Container for context-aware error help information.
-    
+
     Used by traceback renderers to display helpful information
     alongside error messages.
-    
+
     Attributes:
         title: Short title describing the error type
             (e.g., "ImportError: cannot import name").
         lines: List of help lines to display, including suggestions,
             available options, and hints.
-    
+
     Example:
             >>> help_info = ContextAwareHelp(
             ...     title="ImportError: cannot import name",
@@ -88,7 +88,7 @@ class ContextAwareHelp:
             ...         "Available in bengal.core: Page, Site, Section ...",
             ...     ],
             ... )
-        
+
     """
 
     title: str
@@ -98,17 +98,17 @@ class ContextAwareHelp:
 def get_context_aware_help(error: BaseException) -> ContextAwareHelp | None:
     """
     Get context-aware help for an exception.
-    
+
     Analyzes the error message and type to provide helpful suggestions.
     This function is best-effort and will never raise an exception.
-    
+
     Args:
         error: Any exception to analyze.
-    
+
     Returns:
         ContextAwareHelp with title and suggestion lines, or None
         if no specific help is available for this error.
-    
+
     Example:
             >>> try:
             ...     from bengal.core import NonExistent
@@ -116,7 +116,7 @@ def get_context_aware_help(error: BaseException) -> ContextAwareHelp | None:
             ...     help_info = get_context_aware_help(e)
             ...     if help_info:
             ...         print(help_info.title)
-        
+
     """
     try:
         if isinstance(error, ImportError):
@@ -156,7 +156,9 @@ def _handle_import_error(error: ImportError) -> ContextAwareHelp | None:
             # Show a short sample of available exports to guide users
             if exports:
                 preview = ", ".join(sorted(exports)[:8])
-                lines.append(f"Available in {module}: {preview}{' …' if len(exports) > 8 else ''}")
+                lines.append(
+                    f"Available in {module}: {preview}{' …' if len(exports) > 8 else ''}"
+                )
             title = "ImportError: cannot import name"
             return ContextAwareHelp(title=title, lines=lines)
 
@@ -193,7 +195,9 @@ def _handle_attribute_error(error: AttributeError) -> ContextAwareHelp | None:
             lines.extend([f"  • {s}" for s in suggestions])
         if exports:
             preview = ", ".join(sorted(exports)[:8])
-            lines.append(f"Available in {module}: {preview}{' …' if len(exports) > 8 else ''}")
+            lines.append(
+                f"Available in {module}: {preview}{' …' if len(exports) > 8 else ''}"
+            )
         title = "AttributeError: unknown module attribute"
         return ContextAwareHelp(title=title, lines=lines)
 
@@ -235,15 +239,15 @@ def _handle_type_error(error: TypeError) -> ContextAwareHelp | None:
 def _between(text: str, start: str, end: str) -> str | None:
     """
     Extract substring between two delimiters.
-    
+
     Args:
         text: String to search in.
         start: Starting delimiter (not included in result).
         end: Ending delimiter (not included in result).
-    
+
     Returns:
         Substring between delimiters, or None if not found.
-        
+
     """
     try:
         s = text.index(start) + len(start)
@@ -256,16 +260,16 @@ def _between(text: str, start: str, end: str) -> str | None:
 def _safe_list_module_exports(module_path: str) -> list[str]:
     """
     Safely list public exports from a module.
-    
+
     Attempts to import the module and extract its ``__all__`` list,
     or falls back to listing all non-private attributes.
-    
+
     Args:
         module_path: Dotted module path (e.g., "bengal.core").
-    
+
     Returns:
         Sorted list of export names, or empty list on any error.
-        
+
     """
     exports: list[str] = []
     try:
@@ -289,16 +293,16 @@ def _safe_list_module_exports(module_path: str) -> list[str]:
 def _closest_matches(name: str | None, candidates: Iterable[str]) -> list[str]:
     """
     Find closest string matches using fuzzy matching.
-    
+
     Uses ``difflib.get_close_matches`` with a 60% similarity cutoff.
-    
+
     Args:
         name: String to find matches for.
         candidates: Iterable of candidate strings to match against.
-    
+
     Returns:
         Up to 5 close matches, or empty list if none found or on error.
-        
+
     """
     if not name:
         return []

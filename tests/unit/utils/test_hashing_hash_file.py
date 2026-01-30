@@ -11,8 +11,6 @@ Note: These tests were originally for file_utils.hash_file, which was
 deprecated in favor of the more feature-rich hashing.hash_file.
 """
 
-from __future__ import annotations
-
 import hashlib
 from pathlib import Path
 

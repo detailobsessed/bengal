@@ -15,8 +15,6 @@ Covers:
 - get_social_card_path helper
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
@@ -308,7 +306,9 @@ class TestSocialCardGeneratorTextWrapping:
             pytest.skip("Fonts unavailable for text wrapping test")
 
         very_long_text = " ".join(["word"] * 100)
-        lines = generator._wrap_text(very_long_text, generator._title_font, 200, max_lines=2)
+        lines = generator._wrap_text(
+            very_long_text, generator._title_font, 200, max_lines=2
+        )
 
         assert len(lines) <= 2
 
@@ -466,7 +466,9 @@ class TestSocialCardGeneratorGenerateAll:
             pytest.skip("Fonts unavailable for social card generation")
 
         pages = [
-            self._create_mock_page(title=f"Page {i}", source_path=f"page{i}.md", slug=f"page{i}")
+            self._create_mock_page(
+                title=f"Page {i}", source_path=f"page{i}.md", slug=f"page{i}"
+            )
             for i in range(3)
         ]
 
@@ -486,7 +488,9 @@ class TestSocialCardGeneratorGenerateAll:
             pytest.skip("Fonts unavailable for social card generation")
 
         pages = [
-            self._create_mock_page(title="Normal", source_path="normal.md", slug="normal"),
+            self._create_mock_page(
+                title="Normal", source_path="normal.md", slug="normal"
+            ),
             self._create_mock_page(
                 title="Disabled",
                 source_path="disabled.md",

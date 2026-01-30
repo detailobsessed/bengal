@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import tomllib
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from jinja2 import (
     ChoiceLoader,
@@ -24,11 +24,14 @@ from jinja2 import (
     select_autoescape,
 )
 
+if TYPE_CHECKING:
+    from bengal.protocols import TemplateEnvironment
+
 # ChainableUndefined is not in jinja2 type stubs; use StrictUndefined as fallback
 try:
-    from jinja2 import ChainableUndefined
+    from jinja2 import ChainableUndefined  # type: ignore[attr-defined]
 except ImportError:
-    ChainableUndefined = StrictUndefined  # type: ignore[misc, assignment]
+    ChainableUndefined = StrictUndefined
 from jinja2.bccache import FileSystemBytecodeCache
 
 from bengal.core.theme import get_theme_package
@@ -43,21 +46,21 @@ logger = get_logger(__name__)
 def resolve_theme_chain(active_theme: str | None, site: Any) -> list[str]:
     """
     Resolve theme inheritance chain starting from the active theme.
-    
+
     Order: child first → parent → ... (do not duplicate 'default').
-    
+
     When active_theme is "default" (or None), returns ["default"] so that
     the bundled default theme assets are discovered. For child themes that
     extend "default", filters out "default" since it's added as a fallback
     separately in template loaders.
-    
+
     Args:
         active_theme: Active theme name
         site: Site instance
-    
+
     Returns:
         List of theme names in inheritance order
-        
+
     """
     chain = []
     visited: set[str] = set()
@@ -85,16 +88,16 @@ def resolve_theme_chain(active_theme: str | None, site: Any) -> list[str]:
 def _resolve_theme_templates_path(theme_name: str, site: Any) -> Path | None:
     """
     Resolve the templates directory path for a theme.
-    
+
     Checks site themes, installed themes, and bundled themes in order.
-    
+
     Args:
         theme_name: Theme name to look up
         site: Site instance
-    
+
     Returns:
         Path to theme's templates directory, or None if not found
-        
+
     """
     # Site-level theme directory
     site_theme_templates = site.root_path / "themes" / theme_name / "templates"
@@ -128,14 +131,14 @@ def _resolve_theme_templates_path(theme_name: str, site: Any) -> Path | None:
 def read_theme_extends(theme_name: str, site: Any) -> str | None:
     """
     Read theme.toml for 'extends' from site, installed, or bundled theme path.
-    
+
     Args:
         theme_name: Theme name to look up
         site: Site instance
-    
+
     Returns:
         Parent theme name if extends is set, None otherwise
-        
+
     """
     # Site theme manifest
     site_manifest = site.root_path / "themes" / theme_name / "theme.toml"
@@ -179,7 +182,9 @@ def read_theme_extends(theme_name: str, site: Any) -> str | None:
         )
 
     # Bundled theme manifest
-    bundled_manifest = Path(__file__).parent.parent.parent / "themes" / theme_name / "theme.toml"
+    bundled_manifest = (
+        Path(__file__).parent.parent.parent / "themes" / theme_name / "theme.toml"
+    )
     if bundled_manifest.exists():
         try:
             with open(bundled_manifest, "rb") as f:
@@ -204,15 +209,15 @@ def create_jinja_environment(
 ) -> tuple[Environment, list[Path]]:
     """
     Create and configure Jinja2 environment.
-    
+
     Args:
         site: Site instance
         template_engine: TemplateEngine instance (for function bindings)
         profile_templates: Whether template profiling is enabled
-    
+
     Returns:
         Tuple of (Jinja2 Environment, list of template directories)
-        
+
     """
     import sys
 
@@ -228,7 +233,9 @@ def create_jinja_environment(
     cached = site._bengal_template_dirs_cache
     if not auto_reload and isinstance(cached, dict) and cached.get("key") == cache_key:
         cached_dirs = cached.get("template_dirs")
-        if isinstance(cached_dirs, list) and all(isinstance(d, str) for d in cached_dirs):
+        if isinstance(cached_dirs, list) and all(
+            isinstance(d, str) for d in cached_dirs
+        ):
             template_dirs = list(cached_dirs)
             used_cache = True
 
@@ -250,7 +257,10 @@ def create_jinja_environment(
         else:
             theme_chain = resolve_theme_chain(site.theme, site)
             if not auto_reload:
-                site._bengal_theme_chain_cache = {"key": cache_key, "chain": list(theme_chain)}
+                site._bengal_theme_chain_cache = {
+                    "key": cache_key,
+                    "chain": list(theme_chain),
+                }
 
         for theme_name in theme_chain:
             theme_found = False
@@ -280,7 +290,10 @@ def create_jinja_environment(
 
             # Bundled theme directory
             bundled_theme_templates = (
-                Path(__file__).parent.parent.parent / "themes" / theme_name / "templates"
+                Path(__file__).parent.parent.parent
+                / "themes"
+                / theme_name
+                / "templates"
             )
             if bundled_theme_templates.exists():
                 template_dirs.append(str(bundled_theme_templates))
@@ -307,7 +320,9 @@ def create_jinja_environment(
                 )
 
     # Ensure default exists as ultimate fallback
-    default_templates = Path(__file__).parent.parent.parent / "themes" / "default" / "templates"
+    default_templates = (
+        Path(__file__).parent.parent.parent / "themes" / "default" / "templates"
+    )
     if str(default_templates) not in template_dirs and default_templates.exists():
         template_dirs.append(str(default_templates))
 
@@ -328,7 +343,9 @@ def create_jinja_environment(
         for theme_name in all_themes:
             theme_templates_path = _resolve_theme_templates_path(theme_name, site)
             if theme_templates_path:
-                theme_prefix_loaders[theme_name] = FileSystemLoader(str(theme_templates_path))
+                theme_prefix_loaders[theme_name] = FileSystemLoader(
+                    str(theme_templates_path)
+                )
 
     logger.debug(
         "template_dirs_configured",
@@ -370,7 +387,9 @@ def create_jinja_environment(
         # other threads can load it quickly. This reduces wasted CPU from concurrent
         # compilation of the same template.
     elif auto_reload:
-        logger.debug("template_bytecode_cache_disabled", reason="dev_server_auto_reload")
+        logger.debug(
+            "template_bytecode_cache_disabled", reason="dev_server_auto_reload"
+        )
 
     # Create loader with cross-theme extends support.
     # ChoiceLoader tries loaders in order:
@@ -380,7 +399,9 @@ def create_jinja_environment(
     # This enables both patterns:
     #   {% extends "base.html" %}           -> Priority resolution (normal)
     #   {% extends "default/base.html" %}   -> Explicit parent theme (cross-theme extends)
-    base_loader = FileSystemLoader(template_dirs) if template_dirs else FileSystemLoader(".")
+    base_loader = (
+        FileSystemLoader(template_dirs) if template_dirs else FileSystemLoader(".")
+    )
 
     if theme_prefix_loaders:
         loader = ChoiceLoader([base_loader, PrefixLoader(theme_prefix_loaders)])
@@ -439,7 +460,8 @@ def create_jinja_environment(
     env.globals["get_menu_lang"] = template_engine._get_menu_lang
 
     # Register all template functions (non-context-dependent)
-    register_all(env, site)
+    # Cast to TemplateEnvironment protocol for type checker
+    register_all(cast("TemplateEnvironment", env), site)
 
     # Register context-dependent functions via adapter layer
     # This handles t(), current_lang(), tag_url(), asset_url() with @pass_context

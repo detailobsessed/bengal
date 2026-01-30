@@ -133,7 +133,8 @@ class TestNavigationValidator:
 
         # Should have success result for breadcrumbs
         assert any(
-            r.status == CheckStatus.SUCCESS and "breadcrumb" in r.message.lower() for r in results
+            r.status == CheckStatus.SUCCESS and "breadcrumb" in r.message.lower()
+            for r in results
         )
 
     def test_broken_ancestor(self, validator, mock_site):

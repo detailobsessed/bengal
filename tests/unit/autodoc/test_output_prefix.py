@@ -5,8 +5,6 @@ Tests the configurable output_prefix feature that enables each documentation
 type (Python, OpenAPI, CLI) to occupy distinct URL namespaces.
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -218,12 +216,16 @@ class TestResolveOutputPrefix:
 
     def test_python_explicit(self, orchestrator_factory):
         """Test Python with explicit prefix."""
-        orchestrator = orchestrator_factory({"python": {"output_prefix": "custom/python"}})
+        orchestrator = orchestrator_factory(
+            {"python": {"output_prefix": "custom/python"}}
+        )
         assert orchestrator._resolve_output_prefix("python") == "custom/python"
 
     def test_python_explicit_strips_slashes(self, orchestrator_factory):
         """Test that leading/trailing slashes are stripped."""
-        orchestrator = orchestrator_factory({"python": {"output_prefix": "/api/python/"}})
+        orchestrator = orchestrator_factory(
+            {"python": {"output_prefix": "/api/python/"}}
+        )
         assert orchestrator._resolve_output_prefix("python") == "api/python"
 
     def test_cli_default(self, orchestrator_factory):
@@ -251,7 +253,9 @@ info:
 """
         )
 
-        orchestrator = orchestrator_factory({"openapi": {"spec_file": "api/openapi.yaml"}})
+        orchestrator = orchestrator_factory(
+            {"openapi": {"spec_file": "api/openapi.yaml"}}
+        )
         assert orchestrator._resolve_output_prefix("openapi") == "api/payments"
 
     def test_openapi_explicit(self, orchestrator_factory):

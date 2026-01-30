@@ -4,8 +4,6 @@ Unit tests for error handling utilities.
 Tests error context, enrichment, recovery patterns, and exception hierarchy.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -273,7 +271,10 @@ class TestErrorRecovery:
 
     def test_error_recovery_context_failure_strict(self) -> None:
         """Test error_recovery_context in strict mode."""
-        with pytest.raises(ValueError), error_recovery_context("test operation", strict_mode=True):
+        with (
+            pytest.raises(ValueError),
+            error_recovery_context("test operation", strict_mode=True),
+        ):
             raise ValueError("Error")
 
     def test_error_recovery_context_failure_production(self) -> None:

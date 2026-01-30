@@ -29,13 +29,13 @@ if TYPE_CHECKING:
 class TaxonomyIndexMixin:
     """
     Mixin providing taxonomy indexing for fast incremental builds.
-    
+
     Requires these attributes on the host class:
         - taxonomy_deps: dict[str, set[str]]
         - page_tags: dict[str, set[str]]
         - tag_to_pages: dict[str, set[str]]
         - known_tags: set[str]
-        
+
     """
 
     # Type hints for mixin attributes (provided by host class)
@@ -102,8 +102,12 @@ class TaxonomyIndexMixin:
         # Get old tags for this page
         # Filter out None tags (YAML parses 'null' as None)
         old_tags = self.page_tags.get(page_path_str, set())
-        old_slugs = {str(tag).lower().replace(" ", "-") for tag in old_tags if tag is not None}
-        new_slugs = {str(tag).lower().replace(" ", "-") for tag in tags if tag is not None}
+        old_slugs = {
+            str(tag).lower().replace(" ", "-") for tag in old_tags if tag is not None
+        }
+        new_slugs = {
+            str(tag).lower().replace(" ", "-") for tag in tags if tag is not None
+        }
 
         # Find changes
         removed_slugs = old_slugs - new_slugs

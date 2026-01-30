@@ -1939,7 +1939,9 @@ def benchmark_function(
     return statistics.mean(times), statistics.stdev(times) if len(times) > 1 else 0.0
 
 
-def benchmark_language(language: str, code: str, iterations: int = 100) -> BenchmarkResult | None:
+def benchmark_language(
+    language: str, code: str, iterations: int = 100
+) -> BenchmarkResult | None:
     """Benchmark both Rosettes and Pygments for a language."""
 
     # Rosettes benchmark
@@ -1965,7 +1967,9 @@ def benchmark_language(language: str, code: str, iterations: int = 100) -> Bench
             def pygments_do_highlight():
                 return pygments_highlight(code, pygments_lexer, pygments_formatter)
 
-            pygments_mean, pygments_std = benchmark_function(pygments_do_highlight, iterations)
+            pygments_mean, pygments_std = benchmark_function(
+                pygments_do_highlight, iterations
+            )
             speedup = pygments_mean / rosettes_mean if rosettes_mean > 0 else 0
         except Exception:
             pass  # Language not supported in Pygments
@@ -2087,7 +2091,9 @@ def main():
 
         # Top 5 fastest
         print("\n🏆 Top 5 Speedups:")
-        top5 = sorted([r for r in results if r.speedup], key=lambda r: r.speedup, reverse=True)[:5]
+        top5 = sorted(
+            [r for r in results if r.speedup], key=lambda r: r.speedup, reverse=True
+        )[:5]
         for i, r in enumerate(top5, 1):
             print(f"  {i}. {r.language}: {r.speedup:.2f}x faster")
 

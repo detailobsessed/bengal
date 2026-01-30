@@ -4,8 +4,6 @@ Tests for bengal.utils.thread_local module.
 Verifies thread-local caching utilities for expensive objects.
 """
 
-from __future__ import annotations
-
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -236,7 +234,7 @@ class TestThreadSafeSet:
         with ThreadPoolExecutor(max_workers=10) as executor:
             # Each item submitted 5 times across threads
             for i in range(10):
-                for j in range(5):
+                for _j in range(5):
                     executor.submit(worker, f"item_{i}")
 
         # Should have exactly 10 True results (one per unique item)
@@ -286,7 +284,9 @@ class TestThreadLocalCacheWithExpensiveObjects:
         def create_parser(engine: str = "default") -> FakeParser:
             return FakeParser(engine)
 
-        parser_cache: ThreadLocalCache[FakeParser] = ThreadLocalCache(create_parser, name="parser")
+        parser_cache: ThreadLocalCache[FakeParser] = ThreadLocalCache(
+            create_parser, name="parser"
+        )
 
         # Simulate parsing multiple documents
         parser = parser_cache.get("mistune")

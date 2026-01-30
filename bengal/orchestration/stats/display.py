@@ -4,7 +4,7 @@ Build statistics display functions.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from bengal.orchestration.stats.helpers import format_time
 from bengal.orchestration.stats.warnings import display_warnings
@@ -15,17 +15,19 @@ if TYPE_CHECKING:
     from bengal.utils.stats_protocol import DisplayableStats
 
 
-def display_simple_build_stats(stats: BuildStats, output_dir: str | None = None) -> None:
+def display_simple_build_stats(
+    stats: BuildStats, output_dir: str | None = None
+) -> None:
     """
     Display simple build statistics for writers.
-    
+
     Clean, minimal output focused on success/failure and critical issues only.
     Perfect for content authors who just want to know "did it work?"
-    
+
     Args:
         stats: Build statistics to display
         output_dir: Output directory path to display
-        
+
     """
     cli = CLIOutput()
 
@@ -63,7 +65,9 @@ def display_simple_build_stats(stats: BuildStats, output_dir: str | None = None)
                             cli.error(f"   {line[4:].strip()}")
                     elif line.startswith("  ⚠️"):
                         if cli.use_rich:
-                            cli.console.print(f"   [warning]{line[4:].strip()}[/warning]")
+                            cli.console.print(
+                                f"   [warning]{line[4:].strip()}[/warning]"
+                            )
                         else:
                             cli.warning(f"   {line[4:].strip()}")
                     elif line.endswith(":"):
@@ -101,12 +105,12 @@ def display_build_stats(
 ) -> None:
     """
     Display build statistics in a colorful table.
-    
+
     Args:
         stats: Build statistics to display
         show_art: Whether to show ASCII art
         output_dir: Output directory path to display
-        
+
     """
     cli = CLIOutput()
 
@@ -119,7 +123,7 @@ def display_build_stats(
     if stats.has_errors or stats.warnings:
         from bengal.errors import format_error_report
 
-        error_report = format_error_report(stats, verbose=True)
+        error_report = format_error_report(cast("BuildStats", stats), verbose=True)
         if error_report != "✅ No errors or warnings":
             cli.blank()
             cli.error_header("Build Errors & Warnings")
@@ -133,7 +137,9 @@ def display_build_stats(
                             cli.error(f"   {line[4:].strip()}")
                     elif line.startswith("  ⚠️"):
                         if cli.use_rich:
-                            cli.console.print(f"   [warning]{line[4:].strip()}[/warning]")
+                            cli.console.print(
+                                f"   [warning]{line[4:].strip()}[/warning]"
+                            )
                         else:
                             cli.warning(f"   {line[4:].strip()}")
                     elif line.endswith(":") and not line.startswith(" "):
@@ -152,7 +158,7 @@ def display_build_stats(
 
     # Also display warnings using existing function
     if stats.warnings and not stats.has_errors:
-        display_warnings(stats)
+        display_warnings(cast("BuildStats", stats))
 
     # Build mode
     mode_parts = []
@@ -164,7 +170,9 @@ def display_build_stats(
 
     # Throughput
     pages_per_sec = (
-        (stats.total_pages / stats.build_time_ms) * 1000 if stats.build_time_ms > 0 else 0
+        (stats.total_pages / stats.build_time_ms) * 1000
+        if stats.build_time_ms > 0
+        else 0
     )
 
     # Phase breakdown - collect non-zero phases

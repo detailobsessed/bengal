@@ -4,11 +4,9 @@ Extraction wrappers for autodoc.
 Provides facade functions for extracting documentation from Python, CLI, and OpenAPI sources.
 """
 
-from __future__ import annotations
-
 import importlib
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from bengal.autodoc.base import DocElement
 from bengal.utils.observability.logger import get_logger
@@ -26,10 +24,10 @@ def extract_python(
 ) -> list[DocElement]:
     """
     Extract Python API documentation.
-    
+
     RFC: rfc-build-performance-optimizations Phase 3
     Accepts optional cache for AST caching.
-    
+
     Args:
         site: Site instance
         python_config: Python autodoc configuration
@@ -40,7 +38,9 @@ def extract_python(
     source_dirs = python_config.get("source_dirs", [])
     exclude_patterns = python_config.get("exclude", [])
 
-    extractor = PythonExtractor(exclude_patterns=exclude_patterns, config=python_config, cache=cache)
+    extractor = PythonExtractor(
+        exclude_patterns=exclude_patterns, config=python_config, cache=cache
+    )
     all_elements = []
 
     for source_dir in source_dirs:

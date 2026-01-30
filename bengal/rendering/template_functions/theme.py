@@ -15,17 +15,17 @@ if TYPE_CHECKING:
 def feature_enabled(feature: str, theme_config: Any) -> bool:
     """
     Check if a theme feature is enabled.
-    
+
     Args:
         feature: Feature key in dotted notation (e.g., "navigation.toc")
         theme_config: Theme configuration object (from site.theme_config)
-    
+
     Returns:
         True if feature is enabled
-    
+
     Example:
         {{ 'navigation.toc' | feature_enabled(site.theme_config) }}
-        
+
     """
     if not theme_config:
         return False
@@ -35,18 +35,21 @@ def feature_enabled(feature: str, theme_config: Any) -> bool:
 def register(env: TemplateEnvironment, site: SiteLike) -> None:
     """
     Register theme-related template functions and filters.
-    
+
     Args:
         env: Jinja2 environment
         site: Site instance
-        
+
     """
 
     # Register feature_enabled filter
     # Note: We need to create a closure that captures site.theme_config
+    # Access theme_config via getattr (not in SiteLike protocol)
+    theme_config = getattr(site, "theme_config", None)
+
     def feature_enabled_filter(feature: str) -> bool:
         """Filter version that uses site.theme_config automatically."""
-        return feature_enabled(feature, site.theme_config)
+        return feature_enabled(feature, theme_config)
 
     env.filters["feature_enabled"] = feature_enabled_filter
 

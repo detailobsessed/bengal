@@ -4,8 +4,6 @@ Tests for file locking utilities.
 Tests concurrent access safety for the build cache.
 """
 
-from __future__ import annotations
-
 import os
 import threading
 import time
@@ -330,7 +328,11 @@ class TestBuildCacheWithLocking:
         def slow_write():
             """Simulates a slow write operation."""
             cache = BuildCache()
-            cache.file_fingerprints["new.md"] = {"hash": "new_hash", "mtime": 0, "size": 0}
+            cache.file_fingerprints["new.md"] = {
+                "hash": "new_hash",
+                "mtime": 0,
+                "size": 0,
+            }
             write_started.set()
             cache.save(cache_path, use_lock=True)
 

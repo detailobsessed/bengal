@@ -7,8 +7,6 @@ each index only contains pages from its corresponding version.
 RFC: rfc-version-scoped-search.md
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 
@@ -55,7 +53,9 @@ class TestVersionedSearchIndexes:
 
         # Verify content separation
         # Latest version should not have v1 pages
-        latest_versions = {p.get("version") for p in latest_data["pages"] if p.get("version")}
+        latest_versions = {
+            p.get("version") for p in latest_data["pages"] if p.get("version")
+        }
         assert "v1" not in latest_versions, "Latest index should not contain v1 pages"
         assert "v2" not in latest_versions, "Latest index should not contain v2 pages"
 

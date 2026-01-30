@@ -7,7 +7,7 @@ Creates virtual Page objects and handles rendering for autodoc elements.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from bengal.autodoc.base import DocElement
 from bengal.autodoc.hashing import compute_doc_content_hash
@@ -26,6 +26,7 @@ from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
     from bengal.core.site import Site
+    from bengal.protocols import SiteLike
 
 logger = get_logger(__name__)
 
@@ -38,16 +39,16 @@ def compute_element_urls(
 ) -> None:
     """
     Compute _path and href for an element and all its children.
-    
+
     This sets URL properties on DocElement so templates can use {{ child.href }}
     directly without manual URL building or filters.
-    
+
     Args:
         element: DocElement to process
         site: Site instance (for baseurl)
         doc_type: Type of documentation ("python", "cli", "openapi")
         resolve_output_prefix: Function to resolve output prefix
-        
+
     """
     prefix = resolve_output_prefix(doc_type)
 
@@ -73,7 +74,8 @@ def compute_element_urls(
     element._path = f"/{url_path}/"
 
     # Set href (public URL with baseurl)
-    element.href = with_baseurl(element._path, site)
+    assert element._path is not None
+    element.href = with_baseurl(element._path, cast("SiteLike", site))
 
     # Recursively process children
     for child in element.children:
@@ -93,11 +95,11 @@ def create_pages(
 ) -> tuple[list[Page], AutodocRunResult]:
     """
     Create virtual pages for documentation elements.
-    
+
     This uses a two-pass approach to ensure navigation works correctly:
     1. First pass: Create all Page objects and add them to sections
     2. Second pass: Render HTML (now sections have all their pages)
-    
+
     Args:
         elements: DocElements to create pages for
         sections: Section hierarchy for page placement
@@ -108,10 +110,10 @@ def create_pages(
         find_parent_section: Function to find parent section
         result: AutodocRunResult to track failures and warnings
         consolidate: Whether to consolidate elements into section index pages (OpenAPI)
-    
+
     Returns:
         Tuple of (list of virtual Page objects, updated result)
-        
+
     """
     if result is None:
         result = AutodocRunResult()
@@ -120,8 +122,10 @@ def create_pages(
     page_data: list[Page] = []
 
     for element in elements:
-        display_source_file = format_source_file_for_display(element.source_file, site.root_path)
-        element.display_source_file = display_source_file
+        display_source_file = format_source_file_for_display(
+            element.source_file, site.root_path
+        )
+        element.metadata["display_source_file"] = display_source_file
         source_file_for_tracking = element.source_file
 
         # Compute _path and href for element and all children (for template use)
@@ -131,17 +135,22 @@ def create_pages(
         # In consolidated mode (OpenAPI), endpoints don't get individual pages
         # openapi_overview never gets a separate page - root section index IS the overview
         if (
-            doc_type == "python"
-            and element.element_type != "module"
-            or doc_type == "cli"
-            and element.element_type not in ("command", "command-group")
-            or doc_type == "openapi"
-            and (
-                element.element_type == "openapi_overview"  # Root section handles overview
-                or (consolidate and element.element_type == "openapi_endpoint")
-                or (
-                    not consolidate
-                    and element.element_type not in ("openapi_endpoint", "openapi_schema")
+            (doc_type == "python" and element.element_type != "module")
+            or (
+                doc_type == "cli"
+                and element.element_type not in ("command", "command-group")
+            )
+            or (
+                doc_type == "openapi"
+                and (
+                    element.element_type
+                    == "openapi_overview"  # Root section handles overview
+                    or (consolidate and element.element_type == "openapi_endpoint")
+                    or (
+                        not consolidate
+                        and element.element_type
+                        not in ("openapi_endpoint", "openapi_schema")
+                    )
                 )
             )
         ):
@@ -176,7 +185,8 @@ def create_pages(
                 "type": page_type,
                 "qualified_name": element.qualified_name,
                 "element_type": element.element_type,
-                "description": element.description or f"Documentation for {element.name}",
+                "description": element.description
+                or f"Documentation for {element.name}",
                 "source_file": display_source_file,
                 "line_number": getattr(element, "line_number", None),
                 "is_autodoc": True,
@@ -262,7 +272,9 @@ def create_pages(
         if source_file_for_tracking:
             doc_hash = compute_doc_content_hash(element)
             page.metadata["doc_content_hash"] = doc_hash
-            result.add_dependency(str(source_file_for_tracking), source_id, content_hash=doc_hash)
+            result.add_dependency(
+                str(source_file_for_tracking), source_id, content_hash=doc_hash
+            )
 
     # Note: HTML rendering is now DEFERRED to the rendering phase
     # This ensures menus and full template context are available.
@@ -310,7 +322,11 @@ def find_parent_section(
     elif doc_type == "openapi":
         # Note: openapi_overview doesn't get a page - root section index handles it
         if element.element_type == "openapi_schema":
-            return sections.get(f"{prefix}/schemas") or sections.get(prefix) or default_section
+            return (
+                sections.get(f"{prefix}/schemas")
+                or sections.get(prefix)
+                or default_section
+            )
         elif element.element_type == "openapi_endpoint":
             tags = get_openapi_tags(element)
             if tags:

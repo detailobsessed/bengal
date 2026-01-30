@@ -7,7 +7,9 @@ from pathlib import Path
 
 from bengal.parsing.backends.patitas import parse
 
-spec = json.loads(Path("tests/rendering/parsers/test_patitas/commonmark_spec_0_31_2.json").read_text())
+spec = json.loads(
+    Path("tests/rendering/parsers/test_patitas/commonmark_spec_0_31_2.json").read_text()
+)
 
 
 def normalize_html(html_string):
@@ -30,7 +32,7 @@ for ex in spec:
             by_section[section]["passed"] += 1
         else:
             by_section[section]["failed"] += 1
-    except:
+    except Exception:
         by_section[section]["failed"] += 1
 
 total_passed = sum(c["passed"] for c in by_section.values())

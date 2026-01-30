@@ -7,15 +7,13 @@ and correctly filters aggregate-only changes.
 RFC: Output Cache Architecture
 """
 
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
 from bengal.server.reload_controller import (
     EnhancedReloadDecision,
     ReloadController,
-    ReloadDecision,
 )
 
 
@@ -157,8 +155,7 @@ class TestBuildTriggerContentHashIntegration:
         # Create HTML with hash
         html = tmp_path / "test.html"
         html.write_text(
-            '<html><head><meta name="bengal:content-hash" content="test123">'
-            "</head></html>"
+            '<html><head><meta name="bengal:content-hash" content="test123"></head></html>'
         )
 
         # Capture baseline (simulating what build_trigger does)

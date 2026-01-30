@@ -5,20 +5,18 @@ Tests the beautiful error display for BengalError instances and
 common exception beautification.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from bengal.errors.display import (
-    beautify_common_exception,
-    display_bengal_error,
-)
 from bengal.errors import (
     BengalConfigError,
     BengalContentError,
     BengalRenderingError,
     ErrorCode,
+)
+from bengal.errors.display import (
+    beautify_common_exception,
+    display_bengal_error,
 )
 
 
@@ -165,7 +163,7 @@ class TestBeautifyCommonException:
         result = beautify_common_exception(error)
 
         assert result is not None
-        message, suggestion = result
+        message, _suggestion = result
         assert "YAML" in message
         assert "line 11" in message  # 10 + 1 (0-indexed)
 
@@ -197,7 +195,7 @@ class TestBeautifyCommonException:
         result = beautify_common_exception(error)
 
         assert result is not None
-        message, suggestion = result
+        message, _suggestion = result
         assert "syntax error" in message.lower()
         assert "line 15" in message
 
@@ -223,7 +221,7 @@ class TestBeautifyCommonException:
         result = beautify_common_exception(error)
 
         assert result is not None
-        message, suggestion = result
+        message, _suggestion = result
         assert "Template not found" in message
         assert "custom.html" in message
 

@@ -1,9 +1,6 @@
 """Tests for {% while %} loop statement."""
 
-from __future__ import annotations
-
 import pytest
-
 from kida import Environment
 
 

@@ -9,8 +9,6 @@ Tests config/defaults.py:
 - get_feature_config: full feature config access
 """
 
-from __future__ import annotations
-
 from bengal.config.defaults import (
     BOOL_OR_DICT_KEYS,
     DEFAULT_MAX_WORKERS,
@@ -61,9 +59,9 @@ class TestGetMaxWorkers:
 
 class TestGetDefault:
     """Tests for get_default function.
-    
+
     Note: Config is now fully nested (site.title, site.language, etc.)
-        
+
     """
 
     def test_section_access(self):
@@ -155,7 +153,9 @@ class TestNormalizeBoolOrDict:
 
     def test_dict_with_enabled_preserves_it(self):
         """Dict with explicit 'enabled' preserves user value."""
-        result = normalize_bool_or_dict({"enabled": False, "verbose": True}, "health_check")
+        result = normalize_bool_or_dict(
+            {"enabled": False, "verbose": True}, "health_check"
+        )
         assert result["enabled"] is False
         assert result["verbose"] is True
 

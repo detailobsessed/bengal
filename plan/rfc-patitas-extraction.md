@@ -1330,7 +1330,7 @@ Package size:     ~600 KB (including CommonMark spec fixture)
    ```python
    # Before
    from bengal.parsing.backends.patitas import parse, Markdown
-   
+
    # After
    from patitas import parse, Markdown
    # Or for Bengal-specific features:

@@ -48,13 +48,13 @@ from bengal.utils.observability.rich_console import should_use_emoji
 class PIDManager:
     """
     Manage PID files for process tracking and recovery.
-    
+
     Features:
     - Detect stale processes
     - Graceful process termination
     - PID file validation
     - Cross-platform support
-        
+
     """
 
     @staticmethod
@@ -279,7 +279,11 @@ class PIDManager:
             import subprocess
 
             result = subprocess.run(
-                ["lsof", "-ti", f":{port}"], check=False, capture_output=True, text=True, timeout=2
+                ["lsof", "-ti", f":{port}"],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=2,
             )
             if result.returncode == 0 and result.stdout.strip():
                 return int(result.stdout.strip().split()[0])

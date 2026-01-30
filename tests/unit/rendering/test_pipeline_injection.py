@@ -21,7 +21,9 @@ class DummyTemplateEngine:
 
 
 def test_pipeline_uses_injected_parser_and_engine(tmp_path):
-    site = SimpleNamespace(config={}, root_path=tmp_path, output_dir=tmp_path / "public")
+    site = SimpleNamespace(
+        config={}, root_path=tmp_path, output_dir=tmp_path / "public"
+    )
     tracker = SimpleNamespace()
     parser = DummyParser()
     engine = DummyTemplateEngine(site)

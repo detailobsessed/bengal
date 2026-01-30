@@ -38,9 +38,9 @@ _warned_translation_keys: set[str] = set()
 class LanguageInfo(TypedDict, total=False):
     """
     TypedDict for language information returned by _languages().
-    
+
     All fields except baseurl are required. baseurl is optional.
-        
+
     """
 
     code: str  # Language code (e.g., 'en', 'fr')
@@ -53,13 +53,13 @@ class LanguageInfo(TypedDict, total=False):
 def _warn_missing_translation(key: str, lang: str) -> None:
     """
     Log a debug warning when a translation key is missing.
-    
+
     Only warns once per key/lang combination per build to avoid log spam.
-    
+
     Args:
         key: The missing translation key
         lang: The language that was checked
-        
+
     """
     warn_key = f"{lang}:{key}"
     if warn_key not in _warned_translation_keys:
@@ -76,9 +76,9 @@ def _warn_missing_translation(key: str, lang: str) -> None:
 def reset_translation_warnings() -> None:
     """
     Reset the set of warned translation keys.
-    
+
     Useful for testing or when starting a new build.
-        
+
     """
     _warned_translation_keys.clear()
 
@@ -92,20 +92,20 @@ _DEF_FORMATS = {
 
 def register(env: TemplateEnvironment, site: SiteLike) -> None:
     """Register i18n helpers into template environment.
-    
+
     Context-dependent functions (t, current_lang) are registered via the
     adapter layer which handles engine-specific context mechanisms.
-    
+
     Non-context functions (languages, alternate_links, locale_date) are
     registered directly here as they don't need @pass_context.
-    
+
     Globals:
       - t (via adapter)
       - current_lang (via adapter)
       - languages
       - alternate_links
       - locale_date
-        
+
     """
 
     # Register context-independent functions directly
@@ -144,10 +144,10 @@ def _current_lang(site: SiteLike, page: Page | None = None) -> str | None:
 def _languages(site: SiteLike) -> list[LanguageInfo]:
     """
     Get normalized list of configured languages.
-    
+
     Returns:
         List of LanguageInfo dictionaries with code, name, hreflang, and optional baseurl/weight.
-        
+
     """
     i18n = site.config.get("i18n", {}) or {}
     langs = i18n.get("languages") or []
@@ -171,16 +171,22 @@ def _languages(site: SiteLike) -> list[LanguageInfo]:
         elif isinstance(entry, str):
             if entry not in seen:
                 seen.add(entry)
-                normalized.append({"code": entry, "name": entry, "hreflang": entry, "weight": 0})
+                normalized.append(
+                    {"code": entry, "name": entry, "hreflang": entry, "weight": 0}
+                )
     # Ensure default exists
     default = i18n.get("default_language", "en")
     if default and default not in {lang["code"] for lang in normalized}:
-        normalized.append({"code": default, "name": default, "hreflang": default, "weight": -1})
+        normalized.append(
+            {"code": default, "name": default, "hreflang": default, "weight": -1}
+        )
     normalized.sort(key=lambda x: (x.get("weight", 0), x["code"]))
     return normalized
 
 
-def _make_t(site: SiteLike) -> Callable[[str, dict[str, Any] | None, str | None, str | None], str]:
+def _make_t(
+    site: SiteLike,
+) -> Callable[[str, dict[str, Any] | None, str | None, str | None], str]:
     cache: dict[str, dict[str, Any]] = {}
     i18n_dir = site.root_path / "i18n"
 
@@ -191,7 +197,9 @@ def _make_t(site: SiteLike) -> Callable[[str, dict[str, Any] | None, str | None,
         for ext in (".yaml", ".yml", ".json", ".toml"):
             path = i18n_dir / f"{lang}{ext}"
             if path.exists():
-                data = load_data_file(path, on_error="return_empty", caller="i18n") or {}
+                data = (
+                    load_data_file(path, on_error="return_empty", caller="i18n") or {}
+                )
                 cache[lang] = data
                 return data
         cache[lang] = {}
@@ -256,13 +264,13 @@ _translation_key_index_cache: dict[int, tuple[int, dict[str, list[Any]]]] = {}
 def _get_translation_key_index(site: SiteLike) -> dict[str, list[Any]]:
     """
     Get or build translation_key -> pages index.
-    
+
     PERF: This is O(pages) once per build instead of O(pages) per page render.
     Cache is invalidated when page count changes (e.g., dev server rebuild).
-    
+
     Returns:
         Dict mapping translation_key to list of pages with that key.
-        
+
     """
     site_id = id(site)
     current_page_count = len(site.pages)
@@ -277,7 +285,8 @@ def _get_translation_key_index(site: SiteLike) -> dict[str, list[Any]]:
     index: dict[str, list[Any]] = {}
     for p in site.pages:
         key = getattr(p, "translation_key", None)
-        if key and p.output_path:
+        output_path = getattr(p, "output_path", None)
+        if key and output_path:
             if key not in index:
                 index[key] = []
             index[key].append(p)
@@ -303,7 +312,11 @@ def _alternate_links(site: SiteLike, page: Page | None) -> list[dict[str, str]]:
     for p in pages_with_key:
         try:
             rel = p.output_path.relative_to(site.output_dir)
-            href = "/" + str(rel).replace("index.html", "").replace("\\", "/").rstrip("/") + "/"
+            href = (
+                "/"
+                + str(rel).replace("index.html", "").replace("\\", "/").rstrip("/")
+                + "/"
+            )
             lang = getattr(p, "lang", None) or i18n.get("default_language", "en")
             alternates.append({"hreflang": lang, "href": href})
         except Exception as e:

@@ -62,17 +62,17 @@ def categorize_asset(asset: Asset) -> str:
 class AssetExplorer(Vertical):
     """
     Tabbed asset browser grouped by type.
-    
+
     Features:
     - Tabs for each asset category (images, styles, scripts, etc.)
     - DataTable with asset details (name, size, path)
     - Size summary per category
     - Quick filter within tabs
-    
+
     Example:
         explorer = AssetExplorer(id="asset-explorer")
         explorer.set_site(site)
-        
+
     """
 
     DEFAULT_CSS = """
@@ -117,7 +117,15 @@ class AssetExplorer(Vertical):
         )
 
         with TabbedContent(id="asset-tabs"):
-            for category in ["images", "styles", "scripts", "fonts", "data", "media", "other"]:
+            for category in [
+                "images",
+                "styles",
+                "scripts",
+                "fonts",
+                "data",
+                "media",
+                "other",
+            ]:
                 icon = CATEGORY_ICONS.get(category, "📎")
                 with TabPane(f"{icon} {category.title()}", id=f"tab-{category}"):
                     table = DataTable(id=f"table-{category}")
@@ -152,7 +160,15 @@ class AssetExplorer(Vertical):
                     total_size += asset.source_path.stat().st_size
 
         # Update tables
-        for category in ["images", "styles", "scripts", "fonts", "data", "media", "other"]:
+        for category in [
+            "images",
+            "styles",
+            "scripts",
+            "fonts",
+            "data",
+            "media",
+            "other",
+        ]:
             table = self.query_one(f"#table-{category}", DataTable)
             table.clear()
 

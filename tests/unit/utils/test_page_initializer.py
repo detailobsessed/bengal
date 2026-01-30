@@ -14,10 +14,10 @@ from unittest.mock import Mock
 
 import pytest
 
+from bengal.content.discovery.page_factory import PageInitializer
 from bengal.core.page import Page
 from bengal.core.section import Section
 from bengal.core.site import Site
-from bengal.content.discovery.page_factory import PageInitializer
 from bengal.errors import BengalContentError
 
 
@@ -39,7 +39,9 @@ class TestPageInitializer:
         site.registry.register_section = Mock(
             side_effect=lambda s: site._mock_sections.update({s.path: s})
         )
-        site.get_section_by_path = Mock(side_effect=lambda path: site._mock_sections.get(path))
+        site.get_section_by_path = Mock(
+            side_effect=lambda path: site._mock_sections.get(path)
+        )
         return site
 
     @pytest.fixture
@@ -68,7 +70,9 @@ class TestPageInitializer:
 
         assert initializer.site == mock_site
 
-    def test_ensure_initialized_sets_site_reference(self, initializer, mock_site, tmp_path):
+    def test_ensure_initialized_sets_site_reference(
+        self, initializer, mock_site, tmp_path
+    ):
         """Test that _site reference is set automatically."""
         page = Page(source_path=tmp_path / "test.md", metadata={"title": "Test"})
         page.output_path = mock_site.output_dir / "test" / "index.html"
@@ -134,7 +138,9 @@ class TestPageInitializer:
         with pytest.raises(BengalContentError, match="relative output_path"):
             initializer.ensure_initialized(page)
 
-    def test_ensure_initialized_absolute_path_works(self, initializer, mock_site, tmp_path):
+    def test_ensure_initialized_absolute_path_works(
+        self, initializer, mock_site, tmp_path
+    ):
         """Test that absolute output_path is accepted."""
         page = Page(source_path=tmp_path / "test.md", metadata={"title": "Test"})
         page.output_path = mock_site.output_dir / "test" / "index.html"
@@ -196,7 +202,9 @@ class TestPageInitializer:
         """Test that section initialization sets both _site and _section."""
         section = Section(name="docs", path=tmp_path / "content" / "docs")
 
-        page = Page(source_path=tmp_path / "docs" / "_index.md", metadata={"title": "Docs"})
+        page = Page(
+            source_path=tmp_path / "docs" / "_index.md", metadata={"title": "Docs"}
+        )
         page.output_path = mock_site.output_dir / "docs" / "index.html"
 
         # Register section in site registry for path-based lookup
@@ -228,7 +236,9 @@ class TestPageInitializer:
         # Should preserve existing _section
         assert page._section == section1
 
-    def test_ensure_initialized_for_section_validates_output_path(self, initializer, tmp_path):
+    def test_ensure_initialized_for_section_validates_output_path(
+        self, initializer, tmp_path
+    ):
         """Test that section initialization still validates output_path."""
         section = Section(name="docs", path=tmp_path / "content" / "docs")
 
@@ -262,7 +272,9 @@ class TestPageInitializer:
 
     def test_error_message_includes_page_title(self, initializer, tmp_path):
         """Test that error messages include helpful page info."""
-        page = Page(source_path=tmp_path / "test.md", metadata={"title": "My Important Page"})
+        page = Page(
+            source_path=tmp_path / "test.md", metadata={"title": "My Important Page"}
+        )
         # No output_path
 
         with pytest.raises(BengalContentError) as exc_info:
@@ -274,7 +286,8 @@ class TestPageInitializer:
     def test_error_message_includes_source_path(self, initializer, tmp_path):
         """Test that error messages include source path."""
         page = Page(
-            source_path=tmp_path / "content" / "blog" / "post.md", metadata={"title": "Test"}
+            source_path=tmp_path / "content" / "blog" / "post.md",
+            metadata={"title": "Test"},
         )
         # No output_path
 
@@ -284,7 +297,9 @@ class TestPageInitializer:
         error_msg = str(exc_info.value)
         assert "post.md" in error_msg or str(page.source_path) in error_msg
 
-    def test_error_message_for_missing_output_path_is_clear(self, initializer, tmp_path):
+    def test_error_message_for_missing_output_path_is_clear(
+        self, initializer, tmp_path
+    ):
         """Test that missing output_path error is actionable."""
         page = Page(source_path=tmp_path / "test.md", metadata={"title": "Test"})
 
@@ -306,7 +321,9 @@ class TestPageInitializer:
         error_msg = str(exc_info.value)
         assert "relative" in error_msg.lower()
 
-    def test_url_generation_succeeds_for_valid_paths(self, initializer, mock_site, tmp_path):
+    def test_url_generation_succeeds_for_valid_paths(
+        self, initializer, mock_site, tmp_path
+    ):
         """Test that URL generation succeeds for valid paths."""
         page = Page(source_path=tmp_path / "test.md", metadata={"title": "Test"})
         page.output_path = mock_site.output_dir / "test" / "index.html"
@@ -327,7 +344,12 @@ class TestPageInitializer:
 
         # Create archive page (as orchestrator would)
         archive_page = Page(
-            source_path=tmp_path / ".bengal" / "generated" / "archives" / "blog" / "index.md",
+            source_path=tmp_path
+            / ".bengal"
+            / "generated"
+            / "archives"
+            / "blog"
+            / "index.md",
             _raw_content="",
             metadata={
                 "title": "Blog",
@@ -351,7 +373,12 @@ class TestPageInitializer:
     def test_initialize_generated_tag_page(self, initializer, mock_site, tmp_path):
         """Test initialization of generated tag page."""
         tag_page = Page(
-            source_path=tmp_path / ".bengal" / "generated" / "tags" / "python" / "index.md",
+            source_path=tmp_path
+            / ".bengal"
+            / "generated"
+            / "tags"
+            / "python"
+            / "index.md",
             _raw_content="",
             metadata={
                 "title": "Posts tagged Python",
@@ -389,7 +416,9 @@ class TestPageInitializer:
                 "_page_num": 2,
             },
         )
-        archive_page.output_path = mock_site.output_dir / "blog" / "page" / "2" / "index.html"
+        archive_page.output_path = (
+            mock_site.output_dir / "blog" / "page" / "2" / "index.html"
+        )
 
         # Initialize
         initializer.ensure_initialized_for_section(archive_page, section)
@@ -435,7 +464,9 @@ class TestPageInitializer:
             _raw_content="# Introduction",
             metadata={"title": "Introduction"},
         )
-        page.output_path = mock_site.output_dir / "docs" / "guides" / "intro" / "index.html"
+        page.output_path = (
+            mock_site.output_dir / "docs" / "guides" / "intro" / "index.html"
+        )
 
         initializer.ensure_initialized_for_section(page, child)
 
@@ -443,11 +474,15 @@ class TestPageInitializer:
         assert page._section == child
         assert page.href == "/docs/guides/intro/"
 
-    def test_initialize_multiple_pages_in_sequence(self, initializer, mock_site, tmp_path):
+    def test_initialize_multiple_pages_in_sequence(
+        self, initializer, mock_site, tmp_path
+    ):
         """Test initializing multiple pages in sequence."""
         pages = []
         for i in range(5):
-            page = Page(source_path=tmp_path / f"page{i}.md", metadata={"title": f"Page {i}"})
+            page = Page(
+                source_path=tmp_path / f"page{i}.md", metadata={"title": f"Page {i}"}
+            )
             page.output_path = mock_site.output_dir / f"page{i}" / "index.html"
             pages.append(page)
 
@@ -460,12 +495,18 @@ class TestPageInitializer:
             assert page._site == mock_site
             assert page.href == f"/page{i}/"
 
-    def test_initialize_pages_with_same_output_dir(self, initializer, mock_site, tmp_path):
+    def test_initialize_pages_with_same_output_dir(
+        self, initializer, mock_site, tmp_path
+    ):
         """Test multiple pages in same directory."""
-        page1 = Page(source_path=tmp_path / "blog" / "post1.md", metadata={"title": "Post 1"})
+        page1 = Page(
+            source_path=tmp_path / "blog" / "post1.md", metadata={"title": "Post 1"}
+        )
         page1.output_path = mock_site.output_dir / "blog" / "post1" / "index.html"
 
-        page2 = Page(source_path=tmp_path / "blog" / "post2.md", metadata={"title": "Post 2"})
+        page2 = Page(
+            source_path=tmp_path / "blog" / "post2.md", metadata={"title": "Post 2"}
+        )
         page2.output_path = mock_site.output_dir / "blog" / "post2" / "index.html"
 
         initializer.ensure_initialized(page1)
@@ -498,10 +539,14 @@ class TestPageInitializer:
         """Verify all public methods have docstrings."""
         import inspect
 
-        for name, method in inspect.getmembers(PageInitializer, predicate=inspect.isfunction):
+        for name, method in inspect.getmembers(
+            PageInitializer, predicate=inspect.isfunction
+        ):
             if not name.startswith("_") and name != "__init__":
                 assert method.__doc__ is not None, f"Method {name} missing docstring"
-                assert len(method.__doc__) > 20, f"Method {name} has insufficient docstring"
+                assert len(method.__doc__) > 20, (
+                    f"Method {name} has insufficient docstring"
+                )
 
     # =========================================================================
     # Fail-Fast Philosophy Tests

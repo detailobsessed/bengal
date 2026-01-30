@@ -4,8 +4,6 @@ Index page builders for autodoc.
 Creates and renders section index pages for autodoc sections.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from bengal.autodoc.orchestration.utils import get_template_dir_for_type
@@ -22,14 +20,14 @@ def create_index_pages(
 ) -> list[Page]:
     """
     Create index pages for sections that need them.
-    
+
     Args:
         sections: Section dictionary to process
         site: Site instance
-    
+
     Returns:
         List of created index pages (to add to main pages list)
-        
+
     """
     created_pages: list[Page] = []
 
@@ -111,7 +109,9 @@ def create_index_pages(
                 url = URLStrategy.url_from_output_path(output_path, site)
                 source = str(index_page.source_path)
                 # Extract section_id from section_path (e.g., "api/python" -> "python")
-                section_id = section_path.split("/")[-1] if "/" in section_path else section_path
+                section_id = (
+                    section_path.split("/")[-1] if "/" in section_path else section_path
+                )
                 owner = f"autodoc:{section_id}"
                 site.url_registry.claim(
                     url=url,

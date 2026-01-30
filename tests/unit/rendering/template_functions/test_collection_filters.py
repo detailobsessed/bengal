@@ -1,7 +1,5 @@
 """Tests for collection filters in bengal.rendering.template_functions.collections module."""
 
-from __future__ import annotations
-
 from datetime import datetime
 
 from bengal.rendering.template_functions.collections import (

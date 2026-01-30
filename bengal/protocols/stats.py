@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 @runtime_checkable
 class BuildStatsProtocol(Protocol):
     """Protocol for build statistics access.
-    
+
     Defines the interface that lower layers can depend on for
     reading build statistics without importing the concrete
     BuildStats class from orchestration.
@@ -95,7 +95,9 @@ class BuildStatsProtocol(Protocol):
     # Methods for error reporting
     def get_error_summary(self) -> dict[str, Any]: ...
 
-    def add_warning(self, file_path: str, message: str, warning_type: str = "other") -> None: ...
+    def add_warning(
+        self, file_path: str, message: str, warning_type: str = "other"
+    ) -> None: ...
 
     def add_error(self, error: Any, category: str = "general") -> None: ...
 

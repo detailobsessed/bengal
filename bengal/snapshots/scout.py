@@ -9,17 +9,16 @@ be needed soon. Reads from frozen snapshot (lock-free).
 from __future__ import annotations
 
 import threading
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from bengal.snapshots.types import SiteSnapshot, ScoutHint
+    from bengal.snapshots.types import SiteSnapshot
 
 
 class ScoutThread(threading.Thread):
     """
     Lookahead thread that warms caches ahead of workers.
-    
+
     Reads from frozen snapshot (lock-free).
     Communicates via lock-free deque operations.
     """
@@ -74,11 +73,12 @@ class ScoutThread(threading.Thread):
         try:
             # Try to get template (will compile/load if needed)
             # This warms the engine's internal cache
-            if hasattr(self.template_engine, "template_exists"):
-                # Check if template exists first (avoids exceptions)
-                if not self.template_engine.template_exists(template_name):
-                    return
-            
+            # Check if template exists first (avoids exceptions)
+            if hasattr(
+                self.template_engine, "template_exists"
+            ) and not self.template_engine.template_exists(template_name):
+                return
+
             # Use render_template method if available (safest approach)
             if hasattr(self.template_engine, "render_template"):
                 # Try to get template via environment

@@ -4,8 +4,6 @@ CLI documentation extractor for autodoc system.
 Extracts documentation from command-line applications built with Click, argparse, or Typer.
 """
 
-from __future__ import annotations
-
 import inspect
 from pathlib import Path
 from typing import Any, override
@@ -13,7 +11,11 @@ from typing import Any, override
 import click
 
 from bengal.autodoc.base import DocElement, Extractor
-from bengal.autodoc.models import CLICommandMetadata, CLIGroupMetadata, CLIOptionMetadata
+from bengal.autodoc.models import (
+    CLICommandMetadata,
+    CLIGroupMetadata,
+    CLIOptionMetadata,
+)
 from bengal.autodoc.utils import sanitize_text
 from bengal.utils.observability.logger import get_logger
 
@@ -23,16 +25,16 @@ logger = get_logger(__name__)
 def _is_sentinel_value(value: Any) -> bool:
     """
     Check if a value is a Click sentinel (like UNSET).
-    
+
     Click uses sentinel objects to distinguish between "not provided" and None.
     These should not appear in user-facing documentation.
-    
+
     Args:
         value: Value to check
-    
+
     Returns:
         True if value is a sentinel that should be filtered
-        
+
     """
     if value is None:
         return False
@@ -46,20 +48,22 @@ def _is_sentinel_value(value: Any) -> bool:
 
     # Check if it's Click's actual _missing sentinel
     return (
-        hasattr(click, "core") and hasattr(click.core, "_missing") and value is click.core._missing
+        hasattr(click, "core")
+        and hasattr(click.core, "_missing")
+        and value is click.core._missing
     )
 
 
 def _format_default_value(value: Any) -> str | None:
     """
     Format a default value for display, filtering sentinel values.
-    
+
     Args:
         value: The default value to format
-    
+
     Returns:
         Formatted string or None if value should not be displayed
-        
+
     """
     if value is None:
         return None
@@ -73,21 +77,21 @@ def _format_default_value(value: Any) -> str | None:
 class CLIExtractor(Extractor):
     """
     Extract CLI documentation from Click/argparse/typer applications.
-    
+
     This extractor introspects CLI frameworks to build comprehensive documentation
     for commands, options, arguments, and their relationships.
-    
+
     Currently supported frameworks:
     - Click (full support)
     - argparse (planned)
     - Typer (planned)
-    
+
     Example:
             >>> from bengal.cli import main
             >>> extractor = CLIExtractor(framework='click')
             >>> elements = extractor.extract(main)
             >>> # Returns list of DocElements for all commands
-        
+
     """
 
     def __init__(self, framework: str = "click", include_hidden: bool = False):
@@ -239,7 +243,9 @@ class CLIExtractor(Extractor):
         description = sanitize_text(group.help)
 
         # Build typed metadata
-        callback_name = getattr(group.callback, "__name__", None) if group.callback else None
+        callback_name = (
+            getattr(group.callback, "__name__", None) if group.callback else None
+        )
         typed_meta = CLIGroupMetadata(
             callback=callback_name,
             command_count=len(children),
@@ -326,7 +332,9 @@ class CLIExtractor(Extractor):
         is_hidden = hasattr(cmd, "hidden") and cmd.hidden
 
         # Build typed metadata
-        cmd_callback_name = getattr(cmd.callback, "__name__", None) if cmd.callback else None
+        cmd_callback_name = (
+            getattr(cmd.callback, "__name__", None) if cmd.callback else None
+        )
         typed_meta = CLICommandMetadata(
             callback=cmd_callback_name,
             option_count=len(options),
@@ -354,7 +362,9 @@ class CLIExtractor(Extractor):
             deprecated=deprecated,
         )
 
-    def _extract_click_parameter(self, param: click.Parameter, parent_name: str) -> DocElement:
+    def _extract_click_parameter(
+        self, param: click.Parameter, parent_name: str
+    ) -> DocElement:
         """
         Extract Click parameter (option or argument) documentation.
 
@@ -488,7 +498,12 @@ class CLIExtractor(Extractor):
                 continue
 
             # Detect end of example section (next section header)
-            if in_example and stripped and stripped.endswith(":") and not line.startswith(" "):
+            if (
+                in_example
+                and stripped
+                and stripped.endswith(":")
+                and not line.startswith(" ")
+            ):
                 if current_example:
                     examples.append("\n".join(current_example))
                     current_example = []
@@ -585,7 +600,6 @@ class CLIExtractor(Extractor):
                     error_type=type(e).__name__,
                     action="trying_method_2",
                 )
-                pass
 
         # Method 2: Try using Typer's own conversion (most reliable)
         if click_app is None:
@@ -602,7 +616,6 @@ class CLIExtractor(Extractor):
                     error_type=type(e).__name__,
                     action="trying_method_3",
                 )
-                pass
 
         # Method 3: Direct attribute access (older Typer versions)
         if click_app is None and hasattr(app, "_click_group"):
@@ -646,7 +659,6 @@ class CLIExtractor(Extractor):
                 error_type=type(e).__name__,
                 action="returning_none",
             )
-            pass
 
         return None
 

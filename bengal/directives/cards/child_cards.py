@@ -30,7 +30,7 @@ __all__ = ["ChildCardsDirective", "ChildCardsOptions"]
 class ChildCardsOptions(DirectiveOptions):
     """
     Options for child-cards directive.
-    
+
     Attributes:
         columns: Column layout
         gap: Grid gap
@@ -38,7 +38,7 @@ class ChildCardsOptions(DirectiveOptions):
         fields: Fields to pull (comma-separated)
         layout: Card layout
         style: Visual style
-        
+
     """
 
     columns: str = "auto"
@@ -48,7 +48,7 @@ class ChildCardsOptions(DirectiveOptions):
     layout: str = "default"
     style: str = "default"
 
-    _allowed_values: ClassVar[dict[str, list[str]]] = {
+    _allowed_values: ClassVar[dict[str, list[str | int]]] = {
         "gap": list(VALID_GAPS),
         "include": ["sections", "pages", "all"],
         "layout": list(VALID_LAYOUTS),
@@ -59,14 +59,14 @@ class ChildCardsOptions(DirectiveOptions):
 class ChildCardsDirective(BengalDirective):
     """
     Auto-generate cards from current page's child sections/pages.
-    
+
     Syntax:
         :::{child-cards}
         :columns: 3
         :include: sections
         :fields: title, description, icon
         :::
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["child-cards"]
@@ -78,7 +78,7 @@ class ChildCardsDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: ChildCardsOptions,  # type: ignore[override]
+        options: ChildCardsOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -108,7 +108,9 @@ class ChildCardsDirective(BengalDirective):
         layout = attrs.get("layout", "default")
         style = attrs.get("style", "default")
 
-        no_content = '<div class="card-grid" data-columns="auto"><p><em>{}</em></p></div>'
+        no_content = (
+            '<div class="card-grid" data-columns="auto"><p><em>{}</em></p></div>'
+        )
 
         current_page = getattr(renderer, "_current_page", None)
         if not current_page:

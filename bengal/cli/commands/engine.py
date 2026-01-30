@@ -19,7 +19,6 @@ logger = get_logger(__name__)
 @click.group(cls=BengalGroup)
 def engine() -> None:
     """Template engine utilities (list, info)."""
-    pass
 
 
 @engine.command("list")
@@ -38,13 +37,13 @@ def engine() -> None:
 def list_engines(verbose: bool) -> None:
     """
     📋 List available template engines.
-    
+
     Shows all built-in engines and any registered third-party engines.
-    
+
     Examples:
         bengal engine list
         bengal engine list --verbose
-        
+
     """
     cli = get_cli_output()
     from bengal.rendering.engines import _ENGINES
@@ -97,9 +96,13 @@ def list_engines(verbose: bool) -> None:
         cli.info("[bold]Third-Party Engines[/bold]")
         cli.info("")
         for name, engine_class in _ENGINES.items():
-            cli.info(f"  🔌 [cyan]{name}[/cyan] - {engine_class.__doc__ or 'Custom engine'}")
+            cli.info(
+                f"  🔌 [cyan]{name}[/cyan] - {engine_class.__doc__ or 'Custom engine'}"
+            )
             if verbose:
-                cli.info(f"      Class: {engine_class.__module__}.{engine_class.__name__}")
+                cli.info(
+                    f"      Class: {engine_class.__module__}.{engine_class.__name__}"
+                )
                 cli.info("")
 
     cli.info("")
@@ -131,16 +134,18 @@ def list_engines(verbose: bool) -> None:
 def info(source: str, config: str | None) -> None:
     """
     Show current template engine configuration.
-    
+
     Displays the active template engine and its configuration for a site.
-    
+
     Examples:
         bengal engine info
         bengal engine info --source /path/to/site
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     engine_name = site.config.get("template_engine", "kida")
 

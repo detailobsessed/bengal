@@ -58,20 +58,20 @@ logger = get_logger(__name__)
 class QueryIndexRegistry:
     """
     Registry for all query indexes.
-    
+
     Manages the lifecycle of query indexes:
     - Registration (built-in + custom)
     - Building (full + incremental)
     - Persistence
     - Template access via site.indexes
-    
+
     Example:
         registry = QueryIndexRegistry(site, cache_dir)
         registry.build_all(site.pages, build_cache)
-    
+
         # Template access
         blog_posts = registry.get('section').get('blog')
-        
+
     """
 
     def __init__(self, site: Site, cache_dir: Path):
@@ -103,10 +103,16 @@ class QueryIndexRegistry:
             from bengal.cache.indexes.date_range_index import DateRangeIndex
             from bengal.cache.indexes.section_index import SectionIndex
 
-            self.register("section", SectionIndex(self.cache_dir / "section_index.json"))
+            self.register(
+                "section", SectionIndex(self.cache_dir / "section_index.json")
+            )
             self.register("author", AuthorIndex(self.cache_dir / "author_index.json"))
-            self.register("category", CategoryIndex(self.cache_dir / "category_index.json"))
-            self.register("date_range", DateRangeIndex(self.cache_dir / "date_range_index.json"))
+            self.register(
+                "category", CategoryIndex(self.cache_dir / "category_index.json")
+            )
+            self.register(
+                "date_range", DateRangeIndex(self.cache_dir / "date_range_index.json")
+            )
 
             logger.debug("builtin_indexes_registered", count=len(self.indexes))
         except Exception as e:
@@ -252,7 +258,9 @@ class QueryIndexRegistry:
 
         if name.startswith("_"):
             # Don't intercept private attributes
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
 
         index = self.indexes.get(name)
         if index is None:

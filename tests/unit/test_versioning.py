@@ -8,8 +8,6 @@ Tests cover:
 - Cross-version links (future)
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.core.version import Version, VersionBanner, VersionConfig
@@ -696,12 +694,12 @@ class TestCrossVersionLinks:
 
 class TestVersionDirectives:
     """Tests for version-aware directives (since, deprecated, changed).
-    
+
     Version directives now use Bengal's theme aesthetic with:
     - Luminescent left-edge glow animation
     - Palette-aware colors via CSS custom properties
     - Neumorphic badge styling with SVG icons
-        
+
     """
 
     def test_since_directive_badge(self) -> None:
@@ -1103,8 +1101,8 @@ class TestGitVersionAdapter:
         """Test version discovery from branches (mocked)."""
         from unittest.mock import MagicMock, patch
 
-        from bengal.core.version import GitBranchPattern, GitVersionConfig
         from bengal.content.versioning import GitVersionAdapter
+        from bengal.core.version import GitBranchPattern, GitVersionConfig
 
         config = GitVersionConfig(
             branches=[
@@ -1135,8 +1133,8 @@ class TestGitVersionAdapter:
 
     def test_is_version_changed(self, tmp_path: Path) -> None:
         """Test checking if a version has changed."""
-        from bengal.core.version import GitVersionConfig
         from bengal.content.versioning import GitVersionAdapter, GitWorktree
+        from bengal.core.version import GitVersionConfig
 
         config = GitVersionConfig()
         adapter = GitVersionAdapter(tmp_path, config)

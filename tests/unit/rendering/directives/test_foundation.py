@@ -4,8 +4,6 @@ Tests for directive system v2 foundation classes.
 Tests DirectiveToken, DirectiveOptions, and utility functions.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import ClassVar
 

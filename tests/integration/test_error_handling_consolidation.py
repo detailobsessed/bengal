@@ -12,9 +12,6 @@ See Also:
 
 """
 
-from __future__ import annotations
-
-import json
 from pathlib import Path
 
 import pytest
@@ -108,7 +105,7 @@ class TestWriteBehindErrors:
         collector = WriteBehindCollector()
 
         # Simulate an error in the writer thread
-        collector._error = IOError("Simulated disk error")
+        collector._error = OSError("Simulated disk error")
 
         with pytest.raises(BengalRenderingError) as exc_info:
             collector.enqueue(Path("/tmp/test.html"), "<html></html>")
@@ -132,7 +129,9 @@ class TestWriteBehindErrors:
             suggestion="Increase timeout or check for slow disk I/O",
         )
         assert error.code == ErrorCode.R010
-        assert "timeout" in error.suggestion.lower() or "disk" in error.suggestion.lower()
+        assert (
+            "timeout" in error.suggestion.lower() or "disk" in error.suggestion.lower()
+        )
 
 
 class TestErrorCodeConsistency:
@@ -174,7 +173,10 @@ class TestErrorSuggestions:
             code=ErrorCode.R010,
             suggestion="Check disk space and file permissions in output directory",
         )
-        assert "disk" in error.suggestion.lower() or "permission" in error.suggestion.lower()
+        assert (
+            "disk" in error.suggestion.lower()
+            or "permission" in error.suggestion.lower()
+        )
 
 
 class TestErrorInvestigationIntegration:

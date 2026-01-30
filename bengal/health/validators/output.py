@@ -19,14 +19,14 @@ if TYPE_CHECKING:
 class OutputValidator(BaseValidator):
     """
     Validates build output quality.
-    
+
     Checks:
     - Page sizes (detect suspiciously small pages)
     - Asset presence (CSS/JS files)
     - Output directory structure
-    
+
     Implements HasStats protocol for observability.
-        
+
     """
 
     name = "Output"
@@ -59,7 +59,9 @@ class OutputValidator(BaseValidator):
         sub_timings: dict[str, float] = {}
 
         # Count HTML files for stats
-        html_files = list(site.output_dir.rglob("*.html")) if site.output_dir.exists() else []
+        html_files = (
+            list(site.output_dir.rglob("*.html")) if site.output_dir.exists() else []
+        )
         stats = ValidatorStats(pages_total=len(html_files))
 
         # Check 1: Page sizes

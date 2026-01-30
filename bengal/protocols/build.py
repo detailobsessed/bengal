@@ -84,11 +84,20 @@ class BuildPhase(Enum):
         """
         module_map = {
             BuildPhase.INITIALIZATION: ["bengal/config/", "bengal/cli/"],
-            BuildPhase.DISCOVERY: ["bengal/content/discovery/", "bengal/content/sources/"],
+            BuildPhase.DISCOVERY: [
+                "bengal/content/discovery/",
+                "bengal/content/sources/",
+            ],
             BuildPhase.PARSING: ["bengal/parsing/", "bengal/core/page/"],
-            BuildPhase.RENDERING: ["bengal/rendering/", "bengal/orchestration/render.py"],
+            BuildPhase.RENDERING: [
+                "bengal/rendering/",
+                "bengal/orchestration/render.py",
+            ],
             BuildPhase.POSTPROCESSING: ["bengal/postprocess/"],
-            BuildPhase.ASSET_PROCESSING: ["bengal/assets/", "bengal/orchestration/asset.py"],
+            BuildPhase.ASSET_PROCESSING: [
+                "bengal/assets/",
+                "bengal/orchestration/asset.py",
+            ],
             BuildPhase.CACHE: ["bengal/cache/"],
             BuildPhase.SERVER: ["bengal/server/"],
             BuildPhase.OUTPUT: ["bengal/output/"],
@@ -207,17 +216,17 @@ class BuildStateProtocol(Protocol):
 # =============================================================================
 
 __all__ = [
-    # Build phase enum
-    "BuildPhase",
-    # Phase stats
-    "PhaseStats",
-    "PhaseTiming",
     # Build context
     "BuildContextDict",
     "BuildOptionsDict",
+    # Build phase enum
+    "BuildPhase",
+    # Protocols
+    "BuildStateProtocol",
+    # Phase stats
+    "PhaseStats",
+    "PhaseTiming",
     # Render
     "RenderContext",
     "RenderResult",
-    # Protocols
-    "BuildStateProtocol",
 ]

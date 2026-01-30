@@ -51,33 +51,33 @@ logger = get_logger(__name__)
 class IncrementalOrchestrator:
     """
     Orchestrates incremental build logic for efficient rebuilds.
-    
+
     Coordinates cache management, change detection, dependency tracking, and
     selective rebuilding using the unified EffectBasedDetector. Uses file hashes,
     dependency graphs, and taxonomy indexes to minimize rebuild work.
-    
+
     Component Delegation:
         - CacheManager: Cache loading, saving, and migration
         - EffectBasedDetector: Unified change detection (replaces old pipeline)
         - cleanup: Deleted file cleanup
-    
+
     Creation:
         Direct instantiation: IncrementalOrchestrator(site)
             - Created by BuildOrchestrator when incremental builds enabled
             - Requires Site instance with content populated
-    
+
     Attributes:
         site: Site instance for incremental builds
         cache: BuildCache instance for build state persistence
         tracker: DependencyTracker instance for dependency graph construction
         _cache_manager: CacheManager instance for cache operations
         _detector: EffectBasedDetector instance for change detection
-    
+
     Example:
             >>> orchestrator = IncrementalOrchestrator(site)
             >>> cache, tracker = orchestrator.initialize(enabled=True)
             >>> pages, assets, summary = orchestrator.find_work_early()
-        
+
     """
 
     def __init__(self, site: Site) -> None:
@@ -133,14 +133,18 @@ class IncrementalOrchestrator:
             # Use centralized cache registry for coordinated invalidation
             # This replaces manual NavTreeCache.invalidate() + invalidate_version_page_index()
             invalidated = invalidate_for_reason(InvalidationReason.CONFIG_CHANGED)
-            logger.debug("caches_invalidated", reason="config_changed", caches=invalidated)
+            logger.debug(
+                "caches_invalidated", reason="config_changed", caches=invalidated
+            )
 
             # Invalidate site version dict caches (site.versions, site.latest_version)
             # These cache .to_dict() results for template performance
             # Note: Site caches aren't in the registry (they're instance-level, not global)
             if hasattr(self.site, "invalidate_version_caches"):
                 self.site.invalidate_version_caches()
-                logger.debug("site_version_dict_cache_invalidated", reason="config_changed")
+                logger.debug(
+                    "site_version_dict_cache_invalidated", reason="config_changed"
+                )
 
         return config_changed
 
@@ -194,13 +198,17 @@ class IncrementalOrchestrator:
         has_structural_changes = bool(content_changed) or bool(nav_changed_sources)
         if has_structural_changes:
             invalidated = invalidate_for_reason(InvalidationReason.STRUCTURAL_CHANGE)
-            logger.debug("caches_invalidated", reason="structural_changes", caches=invalidated)
+            logger.debug(
+                "caches_invalidated", reason="structural_changes", caches=invalidated
+            )
 
         # Check for template changes
         template_changes = self._detect_template_changes()
 
         # Convert paths to page/asset objects
-        pages_to_build_objs, assets_to_process = self._convert_paths_to_objects(pages_to_rebuild)
+        pages_to_build_objs, assets_to_process = self._convert_paths_to_objects(
+            pages_to_rebuild
+        )
 
         extra_changes: dict[str, list[Any]] = {}
         if cascade_changes:
@@ -237,9 +245,11 @@ class IncrementalOrchestrator:
         # Check theme templates directory
         templates_dir = self._cache_manager._get_theme_templates_dir()
         if templates_dir and templates_dir.exists():
-            for template_file in templates_dir.rglob("*.html"):
-                if self.cache and self.cache.is_changed(template_file):
-                    template_changes.append(template_file)
+            template_changes.extend(
+                template_file
+                for template_file in templates_dir.rglob("*.html")
+                if self.cache and self.cache.is_changed(template_file)
+            )
 
         return template_changes
 
@@ -257,12 +267,16 @@ class IncrementalOrchestrator:
             return affected_pages
 
         for template_file in templates_dir.rglob("*.html"):
-            if self.cache and self.cache.is_changed(template_file):
+            get_affected_fn = getattr(self.cache, "get_affected_pages", None)
+            if (
+                self.cache
+                and self.cache.is_changed(template_file)
+                and get_affected_fn is not None
+            ):
                 # Get pages affected by this template
-                if hasattr(self.cache, "get_affected_pages"):
-                    affected_paths = self.cache.get_affected_pages(str(template_file))
-                    for path_str in affected_paths:
-                        affected_pages.add(Path(path_str))
+                affected_paths = get_affected_fn(template_file)
+                for path_str in affected_paths:
+                    affected_pages.add(Path(path_str))
 
         return affected_pages
 
@@ -296,7 +310,9 @@ class IncrementalOrchestrator:
         )
 
         # Convert paths to page/asset objects
-        pages_to_build_objs, assets_to_process = self._convert_paths_to_objects(pages_to_rebuild)
+        pages_to_build_objs, assets_to_process = self._convert_paths_to_objects(
+            pages_to_rebuild
+        )
 
         change_summary = ChangeSummary(
             modified_content=list(content_changed),
@@ -351,7 +367,7 @@ class IncrementalOrchestrator:
                 if page and self.tracker:
                     tags = page.metadata.get("tags", [])
                     if tags:
-                        self.tracker.track_taxonomy(page, set(tags))
+                        self.tracker.track_taxonomy(page.source_path, set(tags))
 
         # Handle cascade changes - pages with cascade mark all descendants
         cascade_pages = self._detect_cascade_changes(all_changed, verbose=verbose)
@@ -489,12 +505,9 @@ class IncrementalOrchestrator:
             if cached_hash is not None and cached_hash != current_hash:
                 # Find section for this _index.md and mark all its pages
                 for section in self.site.sections:
-                    if hasattr(section, "index_page") and section.index_page is page:
-                        if hasattr(section, "pages"):
-                            for section_page in section.pages:
-                                nav_rebuild.add(section_page.source_path)
-                        break
-                    elif hasattr(section, "path") and section.path == path.parent:
+                    if (
+                        hasattr(section, "index_page") and section.index_page is page
+                    ) or (hasattr(section, "path") and section.path == path.parent):
                         if hasattr(section, "pages"):
                             for section_page in section.pages:
                                 nav_rebuild.add(section_page.source_path)
@@ -527,7 +540,8 @@ class IncrementalOrchestrator:
 
         # Check for changed assets
         assets_to_process: list[Asset] = [
-            asset for asset in self.site.assets
+            asset
+            for asset in self.site.assets
             if self.cache and self.cache.should_bypass(asset.source_path)
         ]
 
@@ -556,7 +570,9 @@ class IncrementalOrchestrator:
                 "Use run() or full_build() for production builds."
             )
 
-        context = BuildContext(site=self.site, pages=self.site.pages, tracker=self.tracker)
+        context = BuildContext(
+            site=self.site, pages=self.site.pages, tracker=self.tracker
+        )
 
         path_set: set[Path] = {Path(p) for p in changed_paths}
         invalidated: set[Path]
@@ -608,7 +624,9 @@ class IncrementalOrchestrator:
         if self.cache:
             cleanup_deleted_files(self.site, self.cache)
 
-    def save_cache(self, pages_built: list[Page], assets_processed: list[Asset]) -> None:
+    def save_cache(
+        self, pages_built: list[Page], assets_processed: list[Asset]
+    ) -> None:
         """
         Update cache with processed files.
 

@@ -5,8 +5,6 @@ Ensures debug tools work correctly with real Site objects and don't
 crash on typical usage patterns.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -42,8 +40,12 @@ class TestDebugToolsInstantiation:
         # Create templates directory
         templates_dir = tmp_path / "templates"
         templates_dir.mkdir()
-        (templates_dir / "base.html").write_text("<html>{% block content %}{% endblock %}</html>")
-        (templates_dir / "page.html").write_text('{% extends "base.html" %}{% block content %}{{ page.content }}{% endblock %}')
+        (templates_dir / "base.html").write_text(
+            "<html>{% block content %}{% endblock %}</html>"
+        )
+        (templates_dir / "page.html").write_text(
+            '{% extends "base.html" %}{% block content %}{{ page.content }}{% endblock %}'
+        )
 
         return tmp_path
 

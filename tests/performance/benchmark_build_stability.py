@@ -66,7 +66,9 @@ minify = false
         section_dir.mkdir(exist_ok=True)
 
         if not (section_dir / "_index.md").exists():
-            (section_dir / "_index.md").write_text(f"---\ntitle: {section}\n---\n# {section}\n")
+            (section_dir / "_index.md").write_text(
+                f"---\ntitle: {section}\n---\n# {section}\n"
+            )
 
         page_content = f"""---
 title: "Page {i + 1}"
@@ -113,10 +115,10 @@ def measure_cache_size(site_root: Path) -> float:
 def run_stability_benchmark(num_builds: int = 100):
     """
     Run multiple consecutive incremental builds and track stability.
-    
+
     Args:
         num_builds: Number of consecutive builds to perform
-        
+
     """
     print("=" * 80)
     print(f"BUILD STABILITY BENCHMARK - {num_builds} CONSECUTIVE BUILDS")
@@ -184,7 +186,9 @@ def run_stability_benchmark(num_builds: int = 100):
             # Progress indicator
             if (i + 1) % 10 == 0:
                 avg_time = statistics.mean(build_times[-10:])
-                print(f"  Build {i + 1:3d}: {elapsed:.3f}s (avg last 10: {avg_time:.3f}s)")
+                print(
+                    f"  Build {i + 1:3d}: {elapsed:.3f}s (avg last 10: {avg_time:.3f}s)"
+                )
 
         # Analyze results
         print(f"\n{'=' * 80}")
@@ -232,23 +236,35 @@ def run_stability_benchmark(num_builds: int = 100):
 
         # Check for performance degradation
         if abs(degradation_pct) < 10:
-            checks.append(f"✅ Build time stable: {degradation_pct:+.1f}% change (target: <10%)")
+            checks.append(
+                f"✅ Build time stable: {degradation_pct:+.1f}% change (target: <10%)"
+            )
         else:
-            checks.append(f"❌ Build time degraded: {degradation_pct:+.1f}% change (target: <10%)")
+            checks.append(
+                f"❌ Build time degraded: {degradation_pct:+.1f}% change (target: <10%)"
+            )
 
         # Check for memory leaks
         memory_growth = memory_usage[-1] - memory_usage[0]
         if memory_growth < 50:  # Less than 50MB growth
-            checks.append(f"✅ Memory stable: {memory_growth:+.1f}MB growth (target: <50MB)")
+            checks.append(
+                f"✅ Memory stable: {memory_growth:+.1f}MB growth (target: <50MB)"
+            )
         else:
-            checks.append(f"⚠️  Possible memory leak: {memory_growth:+.1f}MB growth (target: <50MB)")
+            checks.append(
+                f"⚠️  Possible memory leak: {memory_growth:+.1f}MB growth (target: <50MB)"
+            )
 
         # Check for cache bloat
         cache_growth = cache_sizes[-1] - cache_sizes[0]
         if cache_growth < 5:  # Less than 5MB cache growth
-            checks.append(f"✅ Cache stable: {cache_growth:+.2f}MB growth (target: <5MB)")
+            checks.append(
+                f"✅ Cache stable: {cache_growth:+.2f}MB growth (target: <5MB)"
+            )
         else:
-            checks.append(f"⚠️  Cache growing: {cache_growth:+.2f}MB growth (target: <5MB)")
+            checks.append(
+                f"⚠️  Cache growing: {cache_growth:+.2f}MB growth (target: <5MB)"
+            )
 
         # Check build time consistency (low variance)
         cv = (statistics.stdev(build_times) / statistics.mean(build_times)) * 100
@@ -278,10 +294,10 @@ def run_stability_benchmark(num_builds: int = 100):
 def run_cache_corruption_test():
     """
     Test that cache remains valid after many updates.
-    
+
     Validates that incremental builds produce identical output to full builds
     even after hundreds of cache updates.
-        
+
     """
     print("=" * 80)
     print("CACHE INTEGRITY TEST")
@@ -302,7 +318,8 @@ def run_cache_corruption_test():
         # Read output
         output_dir = site_root / "public"
         initial_files = {
-            f.relative_to(output_dir): f.read_bytes() for f in output_dir.rglob("*.html")
+            f.relative_to(output_dir): f.read_bytes()
+            for f in output_dir.rglob("*.html")
         }
 
         # Make 50 incremental changes
@@ -330,20 +347,21 @@ def run_cache_corruption_test():
         site.build(BuildOptions(incremental=False))
 
         final_files = {
-            f.relative_to(output_dir): f.read_bytes() for f in output_dir.rglob("*.html")
+            f.relative_to(output_dir): f.read_bytes()
+            for f in output_dir.rglob("*.html")
         }
 
         # Compare outputs
-        mismatches = []
-        for path in initial_files:
-            if path not in final_files:
-                mismatches.append(f"Missing file: {path}")
-            elif initial_files[path] != final_files[path]:
-                mismatches.append(f"Content mismatch: {path}")
-
-        for path in final_files:
-            if path not in initial_files:
-                mismatches.append(f"Extra file: {path}")
+        mismatches = [
+            f"Missing file: {path}"
+            if path not in final_files
+            else f"Content mismatch: {path}"
+            for path in initial_files
+            if path not in final_files or initial_files[path] != final_files[path]
+        ]
+        mismatches.extend(
+            f"Extra file: {path}" for path in final_files if path not in initial_files
+        )
 
         # Report results
         print(f"\n{'=' * 80}")

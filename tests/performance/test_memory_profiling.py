@@ -35,9 +35,9 @@ from .memory_test_helpers import MemoryProfiler, profile_memory
 def site_generator(tmp_path):
     """
     Factory fixture for generating test sites.
-    
+
     NOTE: Memory used by this fixture is NOT included in build measurements.
-        
+
     """
 
     def _generate_site(page_count: int, sections: int = 5) -> Path:
@@ -280,7 +280,9 @@ class TestMemoryProfiling:
             avg_per_page = statistics.mean(per_page_costs)
             stddev = 0
 
-        print(f"\nMarginal per-page (excl. first build): {avg_per_page:.3f}MB ± {stddev:.3f}MB")
+        print(
+            f"\nMarginal per-page (excl. first build): {avg_per_page:.3f}MB ± {stddev:.3f}MB"
+        )
 
         # Check that memory doesn't grow quadratically
         # Total memory should be roughly: base + (pages * per_page)
@@ -291,7 +293,9 @@ class TestMemoryProfiling:
             total_400 = results[3]["rss_mb"]  # 400 pages
             growth_ratio = total_400 / total_100 if total_100 > 0 else 0
 
-            print(f"\nMemory growth 100→400 pages: {growth_ratio:.2f}x (expected: ~4x for linear)")
+            print(
+                f"\nMemory growth 100→400 pages: {growth_ratio:.2f}x (expected: ~4x for linear)"
+            )
 
             # Allow some overhead, but should be closer to 4x than 16x
             assert growth_ratio < 8, (
@@ -370,7 +374,9 @@ class TestMemoryProfiling:
         elif growth < 0:
             print(f"  ✓ No leak - memory decreased by {abs(growth):.1f}MB")
         else:
-            print(f"  ✓ No leak - growth {growth:+.1f}MB within threshold ({threshold:.1f}MB)")
+            print(
+                f"  ✓ No leak - growth {growth:+.1f}MB within threshold ({threshold:.1f}MB)"
+            )
 
     def test_build_with_detailed_allocators(self, site_generator):
         """Test build with detailed allocator tracking."""

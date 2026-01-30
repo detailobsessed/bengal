@@ -56,6 +56,8 @@ var x = [[doc/link]];
         code_html = html[code_block_start:code_block_end]
 
         if '<a href="' in code_html:
-            pytest.fail(f"Cross-reference was substituted inside code block: {code_html}")
+            pytest.fail(
+                f"Cross-reference was substituted inside code block: {code_html}"
+            )
 
         assert "[[doc/link]]" in code_html

@@ -54,13 +54,13 @@ from bengal.directives.contracts import (
 )
 from bengal.directives.options import DirectiveOptions
 from bengal.directives.tokens import DirectiveToken
-from bengal.utils.primitives.hashing import hash_str
 from bengal.utils.observability.logger import get_logger
+from bengal.utils.primitives.hashing import hash_str
 
 __all__ = [
     "TabItemDirective",
-    "TabSetDirective",
     "TabItemOptions",
+    "TabSetDirective",
     "TabSetOptions",
 ]
 
@@ -76,13 +76,13 @@ logger = get_logger(__name__)
 class TabItemOptions(DirectiveOptions):
     """
     Options for tab-item directive.
-    
+
     Attributes:
         selected: Whether this tab is initially selected
         icon: Icon name to show next to tab label
         badge: Badge text (e.g., "New", "Beta", "Pro")
         disabled: Mark tab as disabled/unavailable
-    
+
     Example:
         :::{tab-item} Python
         :selected:
@@ -90,7 +90,7 @@ class TabItemOptions(DirectiveOptions):
         :badge: Recommended
         Content here
         :::{/tab-item}
-        
+
     """
 
     selected: bool = False
@@ -102,16 +102,16 @@ class TabItemOptions(DirectiveOptions):
 class TabItemDirective(BengalDirective):
     """
     Individual tab directive (nested in tab-set).
-    
+
     Syntax:
         :::{tab-item} Tab Title
         :selected:
         Tab content with full **markdown** support.
         :::
-    
+
     Contract:
         MUST be nested inside a :::{tab-set} directive.
-        
+
     """
 
     # Support both "tab-item" and shorter "tab" alias
@@ -120,7 +120,7 @@ class TabItemDirective(BengalDirective):
     OPTIONS_CLASS: ClassVar[type[DirectiveOptions]] = TabItemOptions
 
     # Contract: tab-item MUST be inside tab-set
-    CONTRACT: ClassVar[DirectiveContract] = TAB_ITEM_CONTRACT
+    CONTRACT: ClassVar[DirectiveContract | None] = TAB_ITEM_CONTRACT
 
     # For backward compatibility with health check introspection
     DIRECTIVE_NAMES: ClassVar[list[str]] = ["tab-item", "tab"]
@@ -128,7 +128,7 @@ class TabItemDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: TabItemOptions,  # type: ignore[override]
+        options: TabItemOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -180,12 +180,12 @@ class TabItemDirective(BengalDirective):
 class TabSetOptions(DirectiveOptions):
     """
     Options for tab-set directive.
-    
+
     Attributes:
         id: Unique ID for the tab set
         sync: Sync key for synchronizing tabs across multiple tab-sets
         mode: Rendering mode - "enhanced" (JS) or "css_state_machine" (URL-driven)
-    
+
     Example:
         ::::{tab-set}
         :id: my-tabs
@@ -193,7 +193,7 @@ class TabSetOptions(DirectiveOptions):
         :mode: css_state_machine
             ...
         ::::
-        
+
     """
 
     id: str = ""
@@ -204,23 +204,23 @@ class TabSetOptions(DirectiveOptions):
 class TabSetDirective(BengalDirective):
     """
     Modern MyST-style tab container directive.
-    
+
     Syntax:
         ::::{tab-set}
         :sync: my-key
-    
+
         :::{tab-item} Python
         Python content with **markdown** support.
         :::
-    
+
         :::{tab-item} JavaScript
         JavaScript content here.
         :::
         ::::
-    
+
     Contract:
         REQUIRES at least one :::{tab-item} child directive.
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["tab-set", "tabs"]
@@ -228,7 +228,7 @@ class TabSetDirective(BengalDirective):
     OPTIONS_CLASS: ClassVar[type[DirectiveOptions]] = TabSetOptions
 
     # Contract: tab-set REQUIRES tab_item children
-    CONTRACT: ClassVar[DirectiveContract] = TAB_SET_CONTRACT
+    CONTRACT: ClassVar[DirectiveContract | None] = TAB_SET_CONTRACT
 
     # For backward compatibility with health check introspection
     DIRECTIVE_NAMES: ClassVar[list[str]] = ["tab-set", "tabs"]
@@ -236,7 +236,7 @@ class TabSetDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: TabSetOptions,  # type: ignore[override]
+        options: TabSetOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -282,7 +282,9 @@ class TabSetDirective(BengalDirective):
         matches = _extract_tab_items(text)
 
         if not matches:
-            return f'<div class="tabs" id="{tab_id}" data-bengal="tabs">\n{text}</div>\n'
+            return (
+                f'<div class="tabs" id="{tab_id}" data-bengal="tabs">\n{text}</div>\n'
+            )
 
         # Route to appropriate renderer
         if mode == "css_state_machine":
@@ -290,7 +292,9 @@ class TabSetDirective(BengalDirective):
         else:
             return self._render_enhanced(tab_id, sync_key, matches)
 
-    def _render_enhanced(self, tab_id: str, sync_key: str, matches: list[TabItemData]) -> str:
+    def _render_enhanced(
+        self, tab_id: str, sync_key: str, matches: list[TabItemData]
+    ) -> str:
         """Render JavaScript-enhanced tabs (default mode)."""
         # Build tab navigation
         nav_html = f'<div class="tabs" id="{tab_id}" data-bengal="tabs"'
@@ -300,7 +304,9 @@ class TabSetDirective(BengalDirective):
 
         for i, tab_data in enumerate(matches):
             # Determine active state
-            is_first_unselected = i == 0 and not any(t.selected == "true" for t in matches)
+            is_first_unselected = i == 0 and not any(
+                t.selected == "true" for t in matches
+            )
             is_active = tab_data.selected == "true" or is_first_unselected
             is_disabled = tab_data.disabled == "true"
 
@@ -333,7 +339,9 @@ class TabSetDirective(BengalDirective):
         # Build content panes
         content_html = '  <div class="tab-content">\n'
         for i, tab_data in enumerate(matches):
-            is_first_unselected = i == 0 and not any(t.selected == "true" for t in matches)
+            is_first_unselected = i == 0 and not any(
+                t.selected == "true" for t in matches
+            )
             is_active = tab_data.selected == "true" or is_first_unselected
             is_disabled = tab_data.disabled == "true"
 
@@ -342,9 +350,7 @@ class TabSetDirective(BengalDirective):
                 pane_classes.append("active")
             class_str = " ".join(pane_classes)
 
-            content_html += (
-                f'    <div id="{tab_id}-{i}" class="{class_str}">\n{tab_data.content}    </div>\n'
-            )
+            content_html += f'    <div id="{tab_id}-{i}" class="{class_str}">\n{tab_data.content}    </div>\n'
         content_html += "  </div>\n</div>\n"
 
         return nav_html + content_html
@@ -446,13 +452,13 @@ class TabItemData:
 def _extract_tab_items(text: str) -> list[TabItemData]:
     """
     Extract tab-item divs from rendered HTML, handling nested divs correctly.
-    
+
     Args:
         text: Rendered HTML containing tab-item divs
-    
+
     Returns:
         List of TabItemData with extracted attributes
-        
+
     """
     matches: list[TabItemData] = []
     pattern = re.compile(

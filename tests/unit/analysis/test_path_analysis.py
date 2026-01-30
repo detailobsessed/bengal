@@ -228,8 +228,14 @@ class TestPathAnalyzer:
         results = analyzer.analyze()
 
         # B should have highest betweenness (it's on the path from A to C)
-        assert results.betweenness_centrality[page_b] > results.betweenness_centrality[page_a]
-        assert results.betweenness_centrality[page_b] > results.betweenness_centrality[page_c]
+        assert (
+            results.betweenness_centrality[page_b]
+            > results.betweenness_centrality[page_a]
+        )
+        assert (
+            results.betweenness_centrality[page_b]
+            > results.betweenness_centrality[page_c]
+        )
 
         # Network diameter should be 2 (A to C)
         assert results.diameter == 2
@@ -240,7 +246,7 @@ class TestPathAnalyzer:
         spokes = [Mock(source_path=Path(f"spoke{i}.md"), metadata={}) for i in range(4)]
 
         graph = Mock()
-        graph.get_analysis_pages.return_value = [center] + spokes
+        graph.get_analysis_pages.return_value = [center, *spokes]
         graph.outgoing_refs = defaultdict(set)
 
         # Center connects to all spokes (directed out from center)
@@ -375,7 +381,9 @@ class TestPathAnalyzer:
         analyzer = PathAnalyzer(graph)
 
         # Very short timeout (should complete before timeout for simple graph)
-        result = analyzer.find_all_paths(page_a, page_b, max_length=10, timeout_seconds=10.0)
+        result = analyzer.find_all_paths(
+            page_a, page_b, max_length=10, timeout_seconds=10.0
+        )
 
         # Should complete (no path exists)
         assert result.complete is True
@@ -405,7 +413,9 @@ class TestPathAnalyzer:
     def test_filters_generated_pages(self):
         """Test that generated pages are excluded from analysis."""
         real_page = Mock(source_path=Path("real.md"), metadata={})
-        generated_page = Mock(source_path=Path("generated.md"), metadata={"_generated": True})
+        generated_page = Mock(
+            source_path=Path("generated.md"), metadata={"_generated": True}
+        )
 
         graph = Mock()
         graph.get_analysis_pages.return_value = [real_page, generated_page]
@@ -493,8 +503,14 @@ class TestApproximation:
 
         # Results should be identical
         for page in pages:
-            assert results1.betweenness_centrality[page] == results2.betweenness_centrality[page]
-            assert results1.closeness_centrality[page] == results2.closeness_centrality[page]
+            assert (
+                results1.betweenness_centrality[page]
+                == results2.betweenness_centrality[page]
+            )
+            assert (
+                results1.closeness_centrality[page]
+                == results2.closeness_centrality[page]
+            )
 
     def test_different_seeds_give_different_results(self):
         """Test that different seeds can give different results."""

@@ -192,16 +192,15 @@ def test_menu_build_hierarchy_scaling(benchmark, item_count):
         builder = MenuBuilder()
 
         # Create flat menu items
-        config = []
-        for i in range(item_count):
-            config.append(
-                {
-                    "name": f"Item {i}",
-                    "url": f"/item{i}/",
-                    "weight": item_count - i,  # Reverse order to force sorting
-                    "identifier": f"item{i}",
-                }
-            )
+        config = [
+            {
+                "name": f"Item {i}",
+                "url": f"/item{i}/",
+                "weight": item_count - i,  # Reverse order to force sorting
+                "identifier": f"item{i}",
+            }
+            for i in range(item_count)
+        ]
 
         builder.add_from_config(config)
         return builder.build_hierarchy()
@@ -255,42 +254,44 @@ def test_menu_hierarchical_build(benchmark):
 
     def build_hierarchical():
         builder = MenuBuilder()
-        config = []
 
         # Level 0: 5 root items
-        for i in range(5):
-            config.append(
-                {
-                    "name": f"Root {i}",
-                    "url": f"/root{i}/",
-                    "weight": i,
-                    "identifier": f"root{i}",
-                }
-            )
+        config = [
+            {
+                "name": f"Root {i}",
+                "url": f"/root{i}/",
+                "weight": i,
+                "identifier": f"root{i}",
+            }
+            for i in range(5)
+        ]
 
-            # Level 1: 4 children per root
-            for j in range(4):
-                config.append(
-                    {
-                        "name": f"L1-{i}-{j}",
-                        "url": f"/root{i}/l1-{j}/",
-                        "weight": j,
-                        "parent": f"root{i}",
-                        "identifier": f"l1-{i}-{j}",
-                    }
-                )
+        # Level 1: 4 children per root
+        config.extend(
+            {
+                "name": f"L1-{i}-{j}",
+                "url": f"/root{i}/l1-{j}/",
+                "weight": j,
+                "parent": f"root{i}",
+                "identifier": f"l1-{i}-{j}",
+            }
+            for i in range(5)
+            for j in range(4)
+        )
 
-                # Level 2: 3 children per L1
-                for k in range(3):
-                    config.append(
-                        {
-                            "name": f"L2-{i}-{j}-{k}",
-                            "url": f"/root{i}/l1-{j}/l2-{k}/",
-                            "weight": k,
-                            "parent": f"l1-{i}-{j}",
-                            "identifier": f"l2-{i}-{j}-{k}",
-                        }
-                    )
+        # Level 2: 3 children per L1
+        config.extend(
+            {
+                "name": f"L2-{i}-{j}-{k}",
+                "url": f"/root{i}/l1-{j}/l2-{k}/",
+                "weight": k,
+                "parent": f"l1-{i}-{j}",
+                "identifier": f"l2-{i}-{j}-{k}",
+            }
+            for i in range(5)
+            for j in range(4)
+            for k in range(3)
+        )
 
         builder.add_from_config(config)
         return builder.build_hierarchy()
@@ -341,8 +342,7 @@ def test_content_registry_page_lookup(benchmark, site_1000_pages):
         # Result may be None if path normalization differs
         if result is None:
             pytest.skip(
-                "Registry path lookup returned None. "
-                "Path normalization may have changed."
+                "Registry path lookup returned None. Path normalization may have changed."
             )
 
 

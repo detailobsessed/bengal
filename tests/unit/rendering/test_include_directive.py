@@ -1,7 +1,5 @@
 """Tests for include directive."""
 
-from __future__ import annotations
-
 import os
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -102,7 +100,9 @@ class TestIncludeDirective:
 
         # Mock the block parser and parse_tokens
         block = MagicMock()
-        directive.parse_tokens = MagicMock(return_value=[{"type": "paragraph", "children": []}])
+        directive.parse_tokens = MagicMock(
+            return_value=[{"type": "paragraph", "children": []}]
+        )
 
         result = directive.parse(block, match, mock_state_with_root)
 
@@ -110,7 +110,9 @@ class TestIncludeDirective:
         assert "error" not in result["attrs"]
         assert result["attrs"]["path"] == str(sample_markdown_file)
 
-    def test_parse_with_line_range(self, multi_line_markdown_file, mock_state_with_root):
+    def test_parse_with_line_range(
+        self, multi_line_markdown_file, mock_state_with_root
+    ):
         """Test parsing include directive with line range."""
         directive = IncludeDirective()
 
@@ -160,7 +162,9 @@ class TestIncludeDirective:
         assert "error" in result["attrs"]
         assert "no file path" in result["attrs"]["error"].lower()
 
-    def test_path_resolution_relative_to_page(self, temp_site_dir, mock_state_with_source):
+    def test_path_resolution_relative_to_page(
+        self, temp_site_dir, mock_state_with_source
+    ):
         """Test that paths resolve relative to current page's directory."""
         # Create a snippet in the same directory as the page
         guides_dir = temp_site_dir / "content" / "docs" / "guides"
@@ -182,7 +186,9 @@ class TestIncludeDirective:
         assert "error" not in result["attrs"]
         assert result["attrs"]["path"] == str(local_snippet)
 
-    def test_path_resolution_fallback_to_content(self, temp_site_dir, mock_state_with_source):
+    def test_path_resolution_fallback_to_content(
+        self, temp_site_dir, mock_state_with_source
+    ):
         """Test that paths fall back to content directory if not found relative to page."""
         # Create snippet in content/snippets (not in page's directory)
         snippets_dir = temp_site_dir / "content" / "snippets"
@@ -218,7 +224,10 @@ class TestIncludeDirective:
 
         assert result["type"] == "include"
         # Should either error or reject the path
-        assert "error" in result["attrs"] or "path_traversal" in str(result["attrs"]).lower()
+        assert (
+            "error" in result["attrs"]
+            or "path_traversal" in str(result["attrs"]).lower()
+        )
 
     def test_absolute_path_rejection(self, temp_site_dir, mock_state_with_root):
         """Test that absolute paths are rejected."""
@@ -235,14 +244,19 @@ class TestIncludeDirective:
         assert result["type"] == "include"
         # Should reject absolute path
         assert (
-            result["attrs"].get("error") is not None or "absolute" in str(result["attrs"]).lower()
+            result["attrs"].get("error") is not None
+            or "absolute" in str(result["attrs"]).lower()
         )
 
-    def test_load_file_with_line_range(self, multi_line_markdown_file, mock_state_with_root):
+    def test_load_file_with_line_range(
+        self, multi_line_markdown_file, mock_state_with_root
+    ):
         """Test loading file with line range."""
         directive = IncludeDirective()
 
-        content = directive._load_file(multi_line_markdown_file, start_line=3, end_line=7)
+        content = directive._load_file(
+            multi_line_markdown_file, start_line=3, end_line=7
+        )
 
         lines = content.split("\n")
         assert len(lines) == 5  # Lines 3-7 inclusive
@@ -251,11 +265,15 @@ class TestIncludeDirective:
         assert "Step 1" not in content
         assert "Step 10" not in content
 
-    def test_load_file_start_line_only(self, multi_line_markdown_file, mock_state_with_root):
+    def test_load_file_start_line_only(
+        self, multi_line_markdown_file, mock_state_with_root
+    ):
         """Test loading file with only start_line specified."""
         directive = IncludeDirective()
 
-        content = directive._load_file(multi_line_markdown_file, start_line=8, end_line=None)
+        content = directive._load_file(
+            multi_line_markdown_file, start_line=8, end_line=None
+        )
 
         lines = content.split("\n")
         assert len(lines) == 3  # Lines 8-10
@@ -263,11 +281,15 @@ class TestIncludeDirective:
         assert "Step 10" in content
         assert "Step 7" not in content
 
-    def test_load_file_end_line_only(self, multi_line_markdown_file, mock_state_with_root):
+    def test_load_file_end_line_only(
+        self, multi_line_markdown_file, mock_state_with_root
+    ):
         """Test loading file with only end_line specified."""
         directive = IncludeDirective()
 
-        content = directive._load_file(multi_line_markdown_file, start_line=None, end_line=3)
+        content = directive._load_file(
+            multi_line_markdown_file, start_line=None, end_line=3
+        )
 
         lines = content.split("\n")
         assert len(lines) == 3  # Lines 1-3
@@ -275,16 +297,22 @@ class TestIncludeDirective:
         assert "Step 3" in content
         assert "Step 4" not in content
 
-    def test_load_file_invalid_range(self, multi_line_markdown_file, mock_state_with_root):
+    def test_load_file_invalid_range(
+        self, multi_line_markdown_file, mock_state_with_root
+    ):
         """Test loading file with invalid line range."""
         directive = IncludeDirective()
 
         # Start > end
-        content = directive._load_file(multi_line_markdown_file, start_line=10, end_line=5)
+        content = directive._load_file(
+            multi_line_markdown_file, start_line=10, end_line=5
+        )
         assert content == ""
 
         # Start > file length
-        content = directive._load_file(multi_line_markdown_file, start_line=100, end_line=200)
+        content = directive._load_file(
+            multi_line_markdown_file, start_line=100, end_line=200
+        )
         assert content == ""
 
     def test_load_file_nonexistent(self, temp_site_dir):
@@ -319,7 +347,9 @@ class TestRenderInclude:
         """Test rendering successful include."""
         renderer = MagicMock()
 
-        html = render_include(renderer, "<p>Included content</p>", path="snippets/warning.md")
+        html = render_include(
+            renderer, "<p>Included content</p>", path="snippets/warning.md"
+        )
 
         assert html == "<p>Included content</p>"
 
@@ -341,7 +371,9 @@ class TestIncludeDirectiveIntegration:
         """Create a MistuneParser instance."""
         return MistuneParser()
 
-    def test_include_directive_in_markdown(self, parser, temp_site_dir, sample_markdown_file):
+    def test_include_directive_in_markdown(
+        self, parser, temp_site_dir, sample_markdown_file
+    ):
         """Test include directive works in full markdown parsing."""
         # Note: This test requires the directive to be registered and state to be set
         # In real usage, state would be set by the rendering pipeline
@@ -422,7 +454,9 @@ class TestIncludeDirectiveRobustness:
         assert "maximum include depth" in result["attrs"]["error"].lower()
         assert str(MAX_INCLUDE_DEPTH) in result["attrs"]["error"]
 
-    def test_depth_increments_for_nested_includes(self, temp_site_dir, mock_state_with_root):
+    def test_depth_increments_for_nested_includes(
+        self, temp_site_dir, mock_state_with_root
+    ):
         """Test that include depth is tracked and incremented."""
         directive = IncludeDirective()
 
@@ -656,15 +690,21 @@ class TestIncludeSymlinkRejection:
         symlink_file.symlink_to(real_file)
 
         # Real file should work
-        resolved_real = directive._resolve_path("snippets/real.md", mock_state_with_root)
+        resolved_real = directive._resolve_path(
+            "snippets/real.md", mock_state_with_root
+        )
         assert resolved_real is not None
 
         # Symlink should be rejected
-        resolved_symlink = directive._resolve_path("snippets/symlink.md", mock_state_with_root)
+        resolved_symlink = directive._resolve_path(
+            "snippets/symlink.md", mock_state_with_root
+        )
         assert resolved_symlink is None
 
     @pytest.mark.skipif(os.name == "nt", reason="Symlinks require admin on Windows")
-    def test_symlink_to_outside_rejected(self, temp_site_dir, mock_state_with_root, tmp_path):
+    def test_symlink_to_outside_rejected(
+        self, temp_site_dir, mock_state_with_root, tmp_path
+    ):
         """Test that symlinks pointing outside site root are rejected."""
         directive = IncludeDirective()
 
@@ -683,7 +723,9 @@ class TestIncludeSymlinkRejection:
         assert resolved is None
 
     @pytest.mark.skipif(os.name == "nt", reason="Symlinks require admin on Windows")
-    def test_directory_symlink_files_rejected(self, temp_site_dir, mock_state_with_root):
+    def test_directory_symlink_files_rejected(
+        self, temp_site_dir, mock_state_with_root
+    ):
         """Test that files in symlinked directories are still accessible via direct path."""
         directive = IncludeDirective()
 
@@ -708,7 +750,7 @@ class TestIncludeSymlinkRejection:
 
 class TestIncludeStateIsolation:
     """Test that include directive state doesn't leak between parses.
-    
+
     These tests verify the state.env storage pattern works correctly,
     particularly around empty dict handling (regression test for falsy {} bug).
     """
@@ -742,9 +784,11 @@ class TestIncludeStateIsolation:
         assert "_include_depth" in state.env
         assert "error" not in result["attrs"]
 
-    def test_state_env_empty_dict_not_replaced(self, temp_site_dir, mock_state_with_root):
+    def test_state_env_empty_dict_not_replaced(
+        self, temp_site_dir, mock_state_with_root
+    ):
         """Test that empty state.env dict is properly handled (not treated as falsy).
-        
+
         Regression test: Empty dict {} is falsy in Python, so `env or {}` would
         create a new dict instead of using the existing one. This test ensures
         we use `is None` check instead.
@@ -816,8 +860,8 @@ class TestIncludeStateIsolation:
         # Each state should only have its own file
         assert len(files1) == 1
         assert len(files2) == 1
-        assert "a.md" in str(list(files1)[0])
-        assert "b.md" in str(list(files2)[0])
+        assert "a.md" in str(next(iter(files1)))
+        assert "b.md" in str(next(iter(files2)))
         # No cross-contamination
         assert "b.md" not in str(files1)
         assert "a.md" not in str(files2)
@@ -844,7 +888,9 @@ class TestIncludeStateIsolation:
         # Depth should be restored to original value
         assert mock_state_with_root.env["_include_depth"] == 5
 
-    def test_included_files_persist_across_siblings(self, temp_site_dir, mock_state_with_root):
+    def test_included_files_persist_across_siblings(
+        self, temp_site_dir, mock_state_with_root
+    ):
         """Test that included files tracking persists across sibling includes."""
         directive = IncludeDirective()
 

@@ -31,14 +31,14 @@ logger = get_logger(__name__)
 class AssetValidator(BaseValidator):
     """
     Validates asset processing and optimization.
-    
+
     Checks:
     - Assets directory exists and has files
     - Asset types are present (CSS, JS, images)
     - No duplicate assets (same content, different names)
     - Asset sizes are reasonable
     - Minification hints (file size analysis)
-        
+
     """
 
     name = "Asset Processing"
@@ -267,7 +267,9 @@ class AssetValidator(BaseValidator):
         # Find large images
         large_images = []
         for img_file in itertools.chain(
-            assets_dir.rglob("*.jpg"), assets_dir.rglob("*.jpeg"), assets_dir.rglob("*.png")
+            assets_dir.rglob("*.jpg"),
+            assets_dir.rglob("*.jpeg"),
+            assets_dir.rglob("*.png"),
         ):
             size_kb = img_file.stat().st_size / 1024
             if size_kb > self.LARGE_IMAGE_KB:
@@ -284,7 +286,9 @@ class AssetValidator(BaseValidator):
             )
 
         # Calculate total asset size
-        total_size_kb = sum(f.stat().st_size / 1024 for f in assets_dir.rglob("*") if f.is_file())
+        total_size_kb = sum(
+            f.stat().st_size / 1024 for f in assets_dir.rglob("*") if f.is_file()
+        )
 
         if total_size_kb > 10000:  # > 10 MB
             results.append(
@@ -337,7 +341,9 @@ class AssetValidator(BaseValidator):
 
         return results
 
-    def _check_minification_hints(self, assets_dir: Path, site: SiteLike) -> list[CheckResult]:
+    def _check_minification_hints(
+        self, assets_dir: Path, site: SiteLike
+    ) -> list[CheckResult]:
         """Check if assets appear to be minified based on file size patterns."""
         results = []
 
@@ -355,12 +361,16 @@ class AssetValidator(BaseValidator):
                 if size_kb > 50:  # > 50 KB and not minified
                     # Check if file looks minified (no newlines in first 1000 chars)
                     try:
-                        content = css_file.read_text(encoding="utf-8", errors="ignore")[:1000]
+                        content = css_file.read_text(encoding="utf-8", errors="ignore")[
+                            :1000
+                        ]
                         newline_ratio = content.count("\n") / max(len(content), 1)
 
                         # If more than 5% newlines, probably not minified
                         if newline_ratio > 0.05:
-                            large_unminified_css.append(f"{css_file.name}: {size_kb:.0f} KB")
+                            large_unminified_css.append(
+                                f"{css_file.name}: {size_kb:.0f} KB"
+                            )
                     except Exception as e:
                         logger.debug(
                             "health_asset_css_check_failed",
@@ -376,11 +386,15 @@ class AssetValidator(BaseValidator):
                 size_kb = js_file.stat().st_size / 1024
                 if size_kb > 50:
                     try:
-                        content = js_file.read_text(encoding="utf-8", errors="ignore")[:1000]
+                        content = js_file.read_text(encoding="utf-8", errors="ignore")[
+                            :1000
+                        ]
                         newline_ratio = content.count("\n") / max(len(content), 1)
 
                         if newline_ratio > 0.05:
-                            large_unminified_js.append(f"{js_file.name}: {size_kb:.0f} KB")
+                            large_unminified_js.append(
+                                f"{js_file.name}: {size_kb:.0f} KB"
+                            )
                     except Exception as e:
                         logger.debug(
                             "health_asset_js_check_failed",

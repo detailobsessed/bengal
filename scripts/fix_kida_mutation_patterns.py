@@ -47,7 +47,9 @@ MUTATION_METHODS = {
 def find_templates(template_dir: Path) -> list[Path]:
     """Find all HTML template files."""
     if not template_dir.exists():
-        print(f"Error: Template directory does not exist: {template_dir}", file=sys.stderr)
+        print(
+            f"Error: Template directory does not exist: {template_dir}", file=sys.stderr
+        )
         sys.exit(1)
 
     return list(template_dir.rglob("*.html"))
@@ -102,7 +104,9 @@ def process_template(file_path: Path, dry_run: bool = False) -> int:
             # Show diff preview
             original_lines = content.splitlines()
             fixed_lines = fixed_content.splitlines()
-            for i, (orig, fixed) in enumerate(zip(original_lines, fixed_lines, strict=False), 1):
+            for i, (orig, fixed) in enumerate(
+                zip(original_lines, fixed_lines, strict=False), 1
+            ):
                 if orig != fixed:
                     print(f"  Line {i}:")
                     print(f"    - {orig.rstrip()}")
@@ -163,7 +167,9 @@ def main() -> None:
             total_replacements += replacements
             files_modified += 1
 
-    print(f"\n{'Would modify' if args.dry_run else 'Modified'} {files_modified} file(s)")
+    print(
+        f"\n{'Would modify' if args.dry_run else 'Modified'} {files_modified} file(s)"
+    )
     print(f"Total replacements: {total_replacements}")
 
     if args.dry_run:

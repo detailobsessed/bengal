@@ -43,17 +43,17 @@ logger = get_logger(__name__)
 class LinkCheckOrchestrator:
     """
     Orchestrates internal and external link checking.
-    
+
     Extracts links from built HTML files, classifies them, and delegates to
     specialized checkers. Provides consolidated results and multiple output
     formats (console, JSON).
-    
+
     Features:
         - HTML parsing to extract href attributes
         - Automatic internal/external classification
         - Concurrent checking with ignore policies
         - Console and JSON report formatting
-    
+
     Attributes:
         site: Site instance with output_dir
         check_internal: Whether to validate internal links
@@ -62,13 +62,13 @@ class LinkCheckOrchestrator:
         ignore_policy: IgnorePolicy instance for filtering
         internal_checker: InternalLinkChecker (if check_internal)
         external_checker: AsyncLinkChecker (if check_external)
-    
+
     Example:
             >>> orchestrator = LinkCheckOrchestrator(site, check_external=True)
             >>> results, summary = orchestrator.check_all_links()
             >>> if not summary.passed:
             ...     print(orchestrator.format_console_report(results, summary))
-        
+
     """
 
     def __init__(
@@ -139,7 +139,11 @@ class LinkCheckOrchestrator:
             logger.info(
                 "internal_links_checked",
                 count=len(internal_results),
-                broken=sum(1 for r in internal_results.values() if r.status == LinkStatus.BROKEN),
+                broken=sum(
+                    1
+                    for r in internal_results.values()
+                    if r.status == LinkStatus.BROKEN
+                ),
             )
 
         if self.check_external and external_links:
@@ -155,7 +159,9 @@ class LinkCheckOrchestrator:
                     "external_links_checked",
                     count=len(external_results),
                     broken=sum(
-                        1 for r in external_results.values() if r.status == LinkStatus.BROKEN
+                        1
+                        for r in external_results.values()
+                        if r.status == LinkStatus.BROKEN
                     ),
                 )
             finally:
@@ -221,7 +227,9 @@ class LinkCheckOrchestrator:
                 self.links: list[str] = []
                 self._in_code_block = 0  # Track nesting depth of code blocks
 
-            def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            def handle_starttag(
+                self, tag: str, attrs: list[tuple[str, str | None]]
+            ) -> None:
                 # Track code block tags
                 if tag in ("code", "pre"):
                     self._in_code_block += 1

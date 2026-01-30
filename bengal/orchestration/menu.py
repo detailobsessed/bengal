@@ -25,48 +25,49 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from bengal.utils.primitives.hashing import hash_str
 from bengal.utils.observability.logger import get_logger
+from bengal.utils.primitives.hashing import hash_str
 
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from bengal.core.page import Page
     from bengal.core.site import Site
+    from bengal.protocols.core import SiteLike
 
 
 class MenuOrchestrator:
     """
     Orchestrates navigation menu building with incremental caching.
-    
+
     Handles menu building from config definitions, page frontmatter, and section
     structure. Supports incremental menu building by caching menus when config
     and menu-related pages are unchanged.
-    
+
     Creation:
         Direct instantiation: MenuOrchestrator(site)
             - Created by BuildOrchestrator during build
             - Requires Site instance with pages and config populated
-    
+
     Attributes:
         site: Site instance containing menu configuration and pages
         _menu_cache_key: Cache key for incremental menu building
-    
+
     Relationships:
         - Uses: MenuBuilder for menu construction
         - Uses: MenuItem for menu item representation
         - Used by: BuildOrchestrator for menu building phase
         - Updates: site.menu with built menus
-    
+
     Thread Safety:
         Not thread-safe. Should be used from single thread during build.
-    
+
     Examples:
         orchestrator = MenuOrchestrator(site)
         rebuilt = orchestrator.build(changed_pages=changed, config_changed=False)
-        
+
     """
 
     def __init__(self, site: Site):
@@ -79,7 +80,9 @@ class MenuOrchestrator:
         self.site = site
         self._menu_cache_key: str | None = None
 
-    def build(self, changed_pages: set[Path] | None = None, config_changed: bool = False) -> bool:
+    def build(
+        self, changed_pages: set[Path] | None = None, config_changed: bool = False
+    ) -> bool:
         """
         Build all menus from config and page frontmatter.
 
@@ -166,17 +169,16 @@ class MenuOrchestrator:
         menu_config = self.site.menu_config
 
         # Get pages with menu frontmatter
-        menu_pages = []
-        for page in self.site.pages:
-            if "menu" in page.metadata:
-                menu_pages.append(
-                    {
-                        "path": str(page.source_path),
-                        "menu": page.metadata["menu"],
-                        "title": page.title,
-                        "url": getattr(page, "href", "/"),
-                    }
-                )
+        menu_pages = [
+            {
+                "path": str(page.source_path),
+                "menu": page.metadata["menu"],
+                "title": page.title,
+                "url": getattr(page, "href", "/"),
+            }
+            for page in self.site.pages
+            if "menu" in page.metadata
+        ]
 
         # Include dev params and section names in cache key
         # (sections affect dev menu bundling)
@@ -186,11 +188,11 @@ class MenuOrchestrator:
         }
 
         # Include section names that affect dev menu (api, cli)
-        dev_section_names = []
-        for section in self.site.sections:
-            if hasattr(section, "name") and section.name in ("api", "cli"):
-                dev_section_names.append(section.name)
-        dev_section_names.sort()
+        dev_section_names = sorted(
+            section.name
+            for section in self.site.sections
+            if hasattr(section, "name") and section.name in ("api", "cli")
+        )
 
         # Include dropdown configurations from section frontmatter
         dropdown_configs = []
@@ -207,7 +209,9 @@ class MenuOrchestrator:
                         }
                     )
                     # If data-driven, include the data keys
-                    if isinstance(dropdown_cfg, str) and dropdown_cfg.startswith("data:"):
+                    if isinstance(dropdown_cfg, str) and dropdown_cfg.startswith(
+                        "data:"
+                    ):
                         data_key = dropdown_cfg[5:]
                         if hasattr(self.site.data, data_key):
                             data = getattr(self.site.data, data_key)
@@ -280,7 +284,7 @@ class MenuOrchestrator:
             self.site._dev_menu_metadata["exclude_sections"] = list(sections_to_exclude)
 
         # Get auto-discovered sections (will exclude bundled sections)
-        auto_items = get_auto_nav(self.site)
+        auto_items = get_auto_nav(cast("SiteLike", self.site))
 
         # Clear the exclude flag after use
         if sections_to_exclude and self.site._dev_menu_metadata:
@@ -294,12 +298,16 @@ class MenuOrchestrator:
 
         # Add auto items with deduplication
         for item in auto_items:
-            if self._add_item_if_unique(item, menu_items, seen_identifiers, seen_urls, seen_names):
+            if self._add_item_if_unique(
+                item, menu_items, seen_identifiers, seen_urls, seen_names
+            ):
                 pass  # Item added
 
         # Add config-defined bundles
         for bundle in config_bundles:
-            self._add_bundle_to_menu(bundle, menu_items, seen_identifiers, seen_urls, seen_names)
+            self._add_bundle_to_menu(
+                bundle, menu_items, seen_identifiers, seen_urls, seen_names
+            )
 
         # Add default Dev bundle if applicable
         if dev_bundle:
@@ -368,7 +376,9 @@ class MenuOrchestrator:
         return assets
 
     def _process_config_bundles(
-        self, bundles_config: dict[str, Any], available_assets: dict[str, dict[str, Any]]
+        self,
+        bundles_config: dict[str, Any],
+        available_assets: dict[str, dict[str, Any]],
     ) -> list[dict[str, Any]]:
         """
         Process config-defined bundles from [menu.bundles.xxx].
@@ -537,7 +547,9 @@ class MenuOrchestrator:
 
         # Add child items
         order_map = {"github": 1, "api": 2, "cli": 3}
-        items = sorted(bundle.get("items", []), key=lambda x: order_map.get(x.get("type", ""), 99))
+        items = sorted(
+            bundle.get("items", []), key=lambda x: order_map.get(x.get("type", ""), 99)
+        )
 
         for i, item in enumerate(items):
             item_url = item["url"].rstrip("/")
@@ -616,7 +628,10 @@ class MenuOrchestrator:
             section_item = None
             for item in menu_items:
                 item_url = item.get("url", "").rstrip("/")
-                if item_url == section_url.rstrip("/") or item.get("identifier") == section.name:
+                if (
+                    item_url == section_url.rstrip("/")
+                    or item.get("identifier") == section.name
+                ):
                     section_item = item
                     break
 
@@ -631,9 +646,16 @@ class MenuOrchestrator:
             if dropdown_config is True:
                 # dropdown: true - add subsections as children
                 self._add_subsection_children(
-                    section, parent_id, menu_items, seen_identifiers, seen_urls, seen_names
+                    section,
+                    parent_id,
+                    menu_items,
+                    seen_identifiers,
+                    seen_urls,
+                    seen_names,
                 )
-            elif isinstance(dropdown_config, str) and dropdown_config.startswith("data:"):
+            elif isinstance(dropdown_config, str) and dropdown_config.startswith(
+                "data:"
+            ):
                 # dropdown: data:filename - load from data file
                 data_key = dropdown_config[5:]  # Remove "data:" prefix
                 self._add_data_children(
@@ -674,7 +696,9 @@ class MenuOrchestrator:
         for i, subsection in enumerate(section.subsections):
             # Get subsection info
             sub_name = getattr(subsection, "name", "")
-            sub_url = getattr(subsection, "_path", None) or f"/{section.name}/{sub_name}/"
+            sub_url = (
+                getattr(subsection, "_path", None) or f"/{section.name}/{sub_name}/"
+            )
             sub_title = get_nav_title(subsection, sub_name.replace("-", " ").title())
 
             # Check for nav_title in index page
@@ -844,7 +868,9 @@ class MenuOrchestrator:
         for menu_name, items in menu_config.items():
             if strategy == "none":
                 try:
-                    builder = MenuBuilder(diagnostics=getattr(self.site, "diagnostics", None))
+                    builder = MenuBuilder(
+                        diagnostics=getattr(self.site, "diagnostics", None)
+                    )
                     if isinstance(items, list):
                         builder.add_from_config(items)
                     for page in self.site.pages:
@@ -857,7 +883,9 @@ class MenuOrchestrator:
                     self.site.menu[menu_name] = builder.build_hierarchy()
                     self.site.menu_builders[menu_name] = builder
                     logger.info(
-                        "menu_built", menu_name=menu_name, item_count=len(self.site.menu[menu_name])
+                        "menu_built",
+                        menu_name=menu_name,
+                        item_count=len(self.site.menu[menu_name]),
                     )
                 except KeyError as e:
                     context = ErrorContext(
@@ -890,7 +918,9 @@ class MenuOrchestrator:
                 self.site.menu_localized.setdefault(menu_name, {})
                 for lang in sorted(languages):
                     try:
-                        builder = MenuBuilder(diagnostics=getattr(self.site, "diagnostics", None))
+                        builder = MenuBuilder(
+                            diagnostics=getattr(self.site, "diagnostics", None)
+                        )
                         # Config-defined items may have optional 'lang'
                         if isinstance(items, list):
                             filtered_items = []
@@ -912,10 +942,14 @@ class MenuOrchestrator:
                             if not isinstance(page_menu, dict):
                                 continue
                             if menu_name in page_menu:
-                                builder.add_from_page(page, menu_name, page_menu[menu_name])
+                                builder.add_from_page(
+                                    page, menu_name, page_menu[menu_name]
+                                )
                         menu_tree = builder.build_hierarchy()
                         self.site.menu_localized[menu_name][lang] = menu_tree
-                        self.site.menu_builders_localized.setdefault(menu_name, {})[lang] = builder
+                        self.site.menu_builders_localized.setdefault(menu_name, {})[
+                            lang
+                        ] = builder
                     except KeyError as e:
                         context = ErrorContext(
                             operation=f"building localized menu '{menu_name}' for language '{lang}'",
@@ -944,7 +978,11 @@ class MenuOrchestrator:
                             suggestion="Check menu configuration in site config",
                         )
                         raise
-                logger.info("menu_built_localized", menu_name=menu_name, languages=len(languages))
+                logger.info(
+                    "menu_built_localized",
+                    menu_name=menu_name,
+                    languages=len(languages),
+                )
 
         # Update cache key
         self._menu_cache_key = self._compute_menu_cache_key()

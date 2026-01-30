@@ -9,8 +9,6 @@ Tests content-aware CSS tree shaking functionality:
 - Force include/exclude configuration
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 

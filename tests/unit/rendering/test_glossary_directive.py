@@ -106,7 +106,9 @@ class TestGlossaryDirective:
         match.group.return_value = ""
 
         # Filter by both admonitions and layout tags
-        directive.parse_options = MagicMock(return_value=[("tags", "admonitions, layout")])
+        directive.parse_options = MagicMock(
+            return_value=[("tags", "admonitions, layout")]
+        )
 
         result = directive.parse(MagicMock(), match, mock_state)
 
@@ -207,7 +209,9 @@ class TestGlossaryDirective:
         match = MagicMock()
         match.group.return_value = ""
 
-        directive.parse_options = MagicMock(return_value=[("tags", "core"), ("collapsed", "true")])
+        directive.parse_options = MagicMock(
+            return_value=[("tags", "core"), ("collapsed", "true")]
+        )
 
         result = directive.parse(MagicMock(), match, mock_state)
 
@@ -221,7 +225,9 @@ class TestGlossaryDirective:
         match = MagicMock()
         match.group.return_value = ""
 
-        directive.parse_options = MagicMock(return_value=[("tags", "directives"), ("limit", "3")])
+        directive.parse_options = MagicMock(
+            return_value=[("tags", "directives"), ("limit", "3")]
+        )
 
         result = directive.parse(MagicMock(), match, mock_state)
 
@@ -235,7 +241,9 @@ class TestGlossaryDirective:
         match = MagicMock()
         match.group.return_value = ""
 
-        directive.parse_options = MagicMock(return_value=[("tags", "core"), ("limit", "invalid")])
+        directive.parse_options = MagicMock(
+            return_value=[("tags", "core"), ("limit", "invalid")]
+        )
 
         result = directive.parse(MagicMock(), match, mock_state)
 
@@ -288,7 +296,9 @@ class TestGlossaryRenderer:
     def test_render_with_tags_shown(self):
         """Test rendering with tag badges."""
         attrs = {
-            "terms": [{"term": "Test", "definition": "A test term.", "tags": ["foo", "bar"]}],
+            "terms": [
+                {"term": "Test", "definition": "A test term.", "tags": ["foo", "bar"]}
+            ],
             "tags": ["foo"],
             "show_tags": True,
         }

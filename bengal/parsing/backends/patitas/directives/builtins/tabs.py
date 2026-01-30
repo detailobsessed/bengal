@@ -46,7 +46,9 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from html import escape as html_escape
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, cast
+
+from patitas.nodes import Directive
 
 from bengal.parsing.backends.patitas.directives.contracts import (
     TAB_ITEM_CONTRACT,
@@ -54,7 +56,6 @@ from bengal.parsing.backends.patitas.directives.contracts import (
     DirectiveContract,
 )
 from bengal.parsing.backends.patitas.directives.options import StyledOptions
-from patitas.nodes import Directive
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
@@ -68,7 +69,9 @@ try:
 except ImportError:
     import hashlib
 
-    def hash_str(content: str, truncate: int | None = None, algorithm: str = "sha256") -> str:
+    def hash_str(
+        content: str, truncate: int | None = None, algorithm: str = "sha256"
+    ) -> str:
         """Fallback hash function."""
         return hashlib.md5(content.encode()).hexdigest()[: truncate or 12]
 
@@ -76,13 +79,13 @@ except ImportError:
 @dataclass(frozen=True, slots=True)
 class TabItemOptions(StyledOptions):
     """Options for tab-item directive.
-    
+
     Attributes:
         selected: Whether this tab is initially selected
         icon: Icon name to show next to tab label
         badge: Badge text (e.g., "New", "Beta", "Pro")
         disabled: Mark tab as disabled/unavailable
-        
+
     """
 
     selected: bool = False
@@ -95,12 +98,12 @@ class TabItemOptions(StyledOptions):
 @dataclass(frozen=True, slots=True)
 class TabSetOptions(StyledOptions):
     """Options for tab-set directive.
-    
+
     Attributes:
         id: Unique ID for the tab set
         sync: Sync key for synchronizing tabs across multiple tab-sets
         mode: Rendering mode - "enhanced" (JS) or "css_state_machine" (URL-driven)
-        
+
     """
 
     id: str | None = None
@@ -122,12 +125,12 @@ class TabItemData:
 
 class TabItemDirective:
     """Handler for tab-item directive.
-    
+
     Must be inside a tab-set container.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("tab-item", "tab")
@@ -149,13 +152,13 @@ class TabItemDirective:
             location=location,
             name=name,
             title=title or "Tab",
-            options=options,  # Pass typed options directly
+            options=cast(Any, options),
             children=tuple(children),
         )
 
     def render(
         self,
-        node: Directive[TabItemOptions],
+        node: Directive[Any],
         rendered_children: str,
         sb: StringBuilder,
     ) -> None:
@@ -185,12 +188,12 @@ class TabItemDirective:
 
 class TabSetDirective:
     """Handler for tab-set container directive.
-    
+
     Contains tab-item children that form a tabbed interface.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("tab-set", "tabs")
@@ -212,13 +215,13 @@ class TabSetDirective:
             location=location,
             name=name,
             title=title,
-            options=options,  # Pass typed options directly
+            options=cast(Any, options),
             children=tuple(children),
         )
 
     def render(
         self,
-        node: Directive[TabSetOptions],
+        node: Directive[Any],
         rendered_children: str,
         sb: StringBuilder,
     ) -> None:
@@ -242,7 +245,9 @@ class TabSetDirective:
         matches = _extract_tab_items(rendered_children)
 
         if not matches:
-            sb.append(f'<div class="tabs" id="{html_escape(tab_id)}" data-bengal="tabs">\n')
+            sb.append(
+                f'<div class="tabs" id="{html_escape(tab_id)}" data-bengal="tabs">\n'
+            )
             sb.append(rendered_children)
             sb.append("</div>\n")
             return
@@ -265,7 +270,9 @@ class TabSetDirective:
 
         for i, tab_data in enumerate(matches):
             # Determine active state
-            is_first_unselected = i == 0 and not any(t.selected == "true" for t in matches)
+            is_first_unselected = i == 0 and not any(
+                t.selected == "true" for t in matches
+            )
             is_active = tab_data.selected == "true" or is_first_unselected
             is_disabled = tab_data.disabled == "true"
 
@@ -285,7 +292,9 @@ class TabSetDirective:
                 )
             label_parts.append(html_escape(tab_data.title))
             if tab_data.badge:
-                label_parts.append(f'<span class="tab-badge">{html_escape(tab_data.badge)}</span>')
+                label_parts.append(
+                    f'<span class="tab-badge">{html_escape(tab_data.badge)}</span>'
+                )
             label = "".join(label_parts)
 
             # Build link attributes
@@ -298,7 +307,9 @@ class TabSetDirective:
         # Build content panes
         sb.append('  <div class="tab-content">\n')
         for i, tab_data in enumerate(matches):
-            is_first_unselected = i == 0 and not any(t.selected == "true" for t in matches)
+            is_first_unselected = i == 0 and not any(
+                t.selected == "true" for t in matches
+            )
             is_active = tab_data.selected == "true" or is_first_unselected
             is_disabled = tab_data.disabled == "true"
 
@@ -341,7 +352,9 @@ class TabSetDirective:
                 )
             label_parts.append(f"<span>{html_escape(tab_data.title)}</span>")
             if tab_data.badge:
-                label_parts.append(f'<span class="tab-badge">{html_escape(tab_data.badge)}</span>')
+                label_parts.append(
+                    f'<span class="tab-badge">{html_escape(tab_data.badge)}</span>'
+                )
             label = "".join(label_parts)
 
             # ARIA attributes for accessibility
@@ -380,13 +393,13 @@ class TabSetDirective:
 
 def _extract_tab_items(text: str) -> list[TabItemData]:
     """Extract tab-item divs from rendered HTML, handling nested divs correctly.
-    
+
     Args:
         text: Rendered HTML containing tab-item divs
-    
+
     Returns:
         List of TabItemData with extracted attributes
-        
+
     """
     matches: list[TabItemData] = []
     pattern = re.compile(

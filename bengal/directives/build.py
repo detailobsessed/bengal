@@ -43,7 +43,7 @@ __all__ = ["BuildDirective", "BuildOptions"]
 class BuildOptions(DirectiveOptions):
     """
     Options for build directive.
-    
+
     Attributes:
         json: If True, wrap the badge in a link to build.json.
         inline: If True, render as inline content (useful inside sentences).
@@ -51,7 +51,7 @@ class BuildOptions(DirectiveOptions):
         css_class: Additional CSS classes on wrapper.
         alt: Image alt text.
         dir_name: Directory name used for artifacts (default: "bengal").
-        
+
     """
 
     json: bool = False
@@ -66,7 +66,7 @@ class BuildOptions(DirectiveOptions):
         "dir": "dir_name",
     }
 
-    _allowed_values: ClassVar[dict[str, list[str]]] = {
+    _allowed_values: ClassVar[dict[str, list[str | int]]] = {
         "align": ["", "left", "center", "right"],
     }
 
@@ -74,10 +74,10 @@ class BuildOptions(DirectiveOptions):
 class BuildDirective(BengalDirective):
     """
     Build badge directive.
-    
+
     Emits HTML that references the generated build badge (SVG) and optionally
     links to the build stats JSON.
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["build"]
@@ -89,7 +89,7 @@ class BuildDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: BuildOptions,  # type: ignore[override]
+        options: BuildOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -118,7 +118,9 @@ class BuildDirective(BengalDirective):
         css_class = str(attrs.get("css_class") or "").strip()
         alt = str(attrs.get("alt") or "Built in badge")
 
-        svg_url, json_url = _resolve_build_artifact_urls(site, page=page, dir_name=dir_name)
+        svg_url, json_url = _resolve_build_artifact_urls(
+            site, page=page, dir_name=dir_name
+        )
 
         wrapper_classes = ["bengal-build-badge"]
         if inline:
@@ -130,7 +132,9 @@ class BuildDirective(BengalDirective):
         class_attr = escape_html(" ".join(wrapper_classes))
 
         wrapper_style, img_style = _resolve_layout_styles(inline=inline, align=align)
-        wrapper_style_attr = f' style="{escape_html(wrapper_style)}"' if wrapper_style else ""
+        wrapper_style_attr = (
+            f' style="{escape_html(wrapper_style)}"' if wrapper_style else ""
+        )
         img_style_attr = f' style="{escape_html(img_style)}"' if img_style else ""
 
         img_html = (
@@ -150,12 +154,12 @@ class BuildDirective(BengalDirective):
 def _resolve_layout_styles(*, inline: bool, align: str) -> tuple[str, str]:
     """
     Return (wrapper_style, img_style) to control placement.
-    
+
     Why inline styles:
         The default theme applies global `img { display: block; margin: auto; }`
         rules inside prose. Inline styles let authors place the badge inline or
         align it without needing custom CSS.
-        
+
     """
     # Default: preserve existing theme behavior (do not force styles).
     if not inline and align not in ("left", "center", "right"):
@@ -175,10 +179,12 @@ def _resolve_layout_styles(*, inline: bool, align: str) -> tuple[str, str]:
     )
 
 
-def _resolve_build_artifact_urls(site: Any, *, page: Any, dir_name: str) -> tuple[str, str]:
+def _resolve_build_artifact_urls(
+    site: Any, *, page: Any, dir_name: str
+) -> tuple[str, str]:
     """
     Resolve URLs for build artifacts, considering baseurl and i18n prefix strategy.
-        
+
     """
     baseurl = ""
     prefix = ""
@@ -210,15 +216,21 @@ def _resolve_build_artifact_urls(site: Any, *, page: Any, dir_name: str) -> tupl
                 svg_fs = Path(out_root) / dir_name / "build.svg"
                 json_fs = Path(out_root) / dir_name / "build.json"
                 from_dir = Path(page_output).parent
-                svg_rel = svg_fs.relative_to(from_dir) if svg_fs.is_relative_to(from_dir) else None
+                svg_rel = (
+                    svg_fs.relative_to(from_dir)
+                    if svg_fs.is_relative_to(from_dir)
+                    else None
+                )
                 json_rel = (
-                    json_fs.relative_to(from_dir) if json_fs.is_relative_to(from_dir) else None
+                    json_fs.relative_to(from_dir)
+                    if json_fs.is_relative_to(from_dir)
+                    else None
                 )
                 if svg_rel is None or json_rel is None:
                     svg_rel_str = Path(
-                        Path(svg_fs).as_posix()
-                    )  # fallback, but should not happen in normal layouts
-                    json_rel_str = Path(Path(json_fs).as_posix())
+                        svg_fs
+                    ).as_posix()  # fallback, but should not happen in normal layouts
+                    json_rel_str = Path(json_fs).as_posix()
                 else:
                     svg_rel_str = svg_rel.as_posix()
                     json_rel_str = json_rel.as_posix()
@@ -245,10 +257,10 @@ def _resolve_build_artifact_urls(site: Any, *, page: Any, dir_name: str) -> tupl
 def _resolve_output_root_for_page(site: Any, page: Any) -> Path:
     """
     Determine which output root should be used for the current page.
-    
+
     For i18n prefix strategy, pages may render into `output_dir/<lang>/...`.
     In that case, build artifacts may also exist under `output_dir/<lang>/bengal/...`.
-        
+
     """
     output_dir = Path(site.output_dir)
     page_output = Path(page.output_path)

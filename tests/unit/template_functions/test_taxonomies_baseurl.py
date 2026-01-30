@@ -304,7 +304,11 @@ tags: ["api", "core"]
 
         # Create page object for API reference
         page = Page(source_path=Path("content/api/module.md"))
-        page.metadata = {"title": "module", "type": "python-module", "tags": ["api", "core"]}
+        page.metadata = {
+            "title": "module",
+            "type": "python-module",
+            "tags": ["api", "core"],
+        }
         page.output_path = site_dir / "public" / "api" / "module" / "index.html"
         page._site = site
 
@@ -355,7 +359,11 @@ tags: ["cli", "build"]
 
         # Create page object for CLI reference
         page = Page(source_path=Path("content/cli/build.md"))
-        page.metadata = {"title": "build", "type": "autodoc/cli", "tags": ["cli", "build"]}
+        page.metadata = {
+            "title": "build",
+            "type": "autodoc/cli",
+            "tags": ["cli", "build"],
+        }
         page.output_path = site_dir / "public" / "cli" / "build" / "index.html"
         page._site = site
 

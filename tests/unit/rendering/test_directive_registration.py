@@ -5,8 +5,6 @@ This test ensures we don't forget to register directives in the
 create_documentation_directives() function.
 """
 
-from __future__ import annotations
-
 import inspect
 
 import pytest
@@ -80,7 +78,11 @@ class TestDirectiveRegistration:
             ("tabs", ":::{tabs}\n:::{tab-item} One\nContent\n:::\n:::", "tabs"),
             ("dropdown", ":::{dropdown} Title\nContent\n:::", "dropdown"),
             ("rubric", ":::{rubric} Heading\n:::", "rubric"),
-            ("button", ":::{button} https://example.com\nClick me\n:::", "button button-primary"),
+            (
+                "button",
+                ":::{button} https://example.com\nClick me\n:::",
+                "button button-primary",
+            ),
             ("card", ":::{card} Title\nContent\n:::", "card-title"),
             ("checklist", ":::{checklist}\n- Item one\n- Item two\n:::", "checklist"),
             ("list-table", ":::{list-table}\n* - Row 1\n  - Col 1\n:::", "list-table"),

@@ -10,10 +10,6 @@ configuration and team/product data.
 See: plan/rfc-warm-build-test-expansion.md
 """
 
-from __future__ import annotations
-
-import pytest
-
 from tests.integration.warm_build.conftest import WarmBuildTestSite
 
 
@@ -235,9 +231,7 @@ main_menu:
 class TestWarmBuildDataFilesEdgeCases:
     """Edge cases for data file warm builds."""
 
-    def test_empty_data_file(
-        self, site_with_data: WarmBuildTestSite
-    ) -> None:
+    def test_empty_data_file(self, site_with_data: WarmBuildTestSite) -> None:
         """
         Empty data file is handled gracefully.
 
@@ -295,7 +289,7 @@ members:
         # Build 2: Try incremental build - should handle error gracefully
         # Bengal may warn about invalid YAML but should not crash
         try:
-            stats2 = site_with_data.incremental_build()
+            site_with_data.incremental_build()
             # If build succeeds, it handled the error gracefully
             assert True
         except Exception as e:

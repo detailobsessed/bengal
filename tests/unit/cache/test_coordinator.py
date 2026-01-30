@@ -5,19 +5,17 @@ RFC: rfc-cache-invalidation-architecture
 Tests unified page-level cache invalidation through CacheCoordinator.
 """
 
-from __future__ import annotations
-
 import threading
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from bengal.orchestration.build.coordinator import (
+    _MAX_EVENTS,
     CacheCoordinator,
     InvalidationEvent,
     PageInvalidationReason,
-    _MAX_EVENTS,
 )
 
 
@@ -220,7 +218,9 @@ class TestCacheCoordinator:
 
         assert count == 2
         assert len(coordinator.events) == 2
-        assert all(e.reason == PageInvalidationReason.FULL_BUILD for e in coordinator.events)
+        assert all(
+            e.reason == PageInvalidationReason.FULL_BUILD for e in coordinator.events
+        )
 
     def test_events_property_returns_copy(self, coordinator, mock_cache):
         """events property returns a copy for thread safety."""
@@ -312,7 +312,9 @@ class TestCacheCoordinatorThreadSafety:
             except Exception as e:
                 errors.append(e)
 
-        threads = [threading.Thread(target=invalidate_pages, args=(i,)) for i in range(4)]
+        threads = [
+            threading.Thread(target=invalidate_pages, args=(i,)) for i in range(4)
+        ]
         for t in threads:
             t.start()
         for t in threads:

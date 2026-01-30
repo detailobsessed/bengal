@@ -5,8 +5,6 @@ Provides utilities for building signature strings from AST nodes and
 extracting structured argument information.
 """
 
-from __future__ import annotations
-
 import ast
 from typing import Any
 
@@ -60,7 +58,9 @@ def build_signature(node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
 
         # Check for defaults in args (applied from right to left)
         if i >= num_args - args_defaults_count:
-            default_idx = i - (num_args - args_defaults_count) + max(0, num_defaults - num_args)
+            default_idx = (
+                i - (num_args - args_defaults_count) + max(0, num_defaults - num_args)
+            )
             part += f" = {expr_to_string(node.args.defaults[default_idx])}"
 
         args_parts.append(part)
@@ -83,8 +83,9 @@ def build_signature(node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
                 part += f": {annotation_to_string(arg.annotation)}"
 
             # kw_defaults is 1:1 with kwonlyargs
-            if node.args.kw_defaults[i] is not None:
-                part += f" = {expr_to_string(node.args.kw_defaults[i])}"
+            kw_default = node.args.kw_defaults[i]
+            if kw_default is not None:
+                part += f" = {expr_to_string(kw_default)}"
 
             args_parts.append(part)
 
@@ -106,7 +107,9 @@ def build_signature(node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
     return signature
 
 
-def extract_arguments(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[dict[str, Any]]:
+def extract_arguments(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> list[dict[str, Any]]:
     """
     Extract argument information from function AST node.
 
@@ -135,7 +138,9 @@ def extract_arguments(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[dict
             args.append(
                 {
                     "name": arg.arg,
-                    "type": annotation_to_string(arg.annotation) if arg.annotation else None,
+                    "type": annotation_to_string(arg.annotation)
+                    if arg.annotation
+                    else None,
                     "default": default,
                     "kind": "positional_only",
                 }
@@ -149,13 +154,17 @@ def extract_arguments(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[dict
     for i, arg in enumerate(node.args.args):
         default = None
         if i >= num_args - args_defaults_count:
-            default_idx = i - (num_args - args_defaults_count) + max(0, num_defaults - num_args)
+            default_idx = (
+                i - (num_args - args_defaults_count) + max(0, num_defaults - num_args)
+            )
             default = expr_to_string(node.args.defaults[default_idx])
 
         args.append(
             {
                 "name": arg.arg,
-                "type": annotation_to_string(arg.annotation) if arg.annotation else None,
+                "type": annotation_to_string(arg.annotation)
+                if arg.annotation
+                else None,
                 "default": default,
                 "kind": "positional_or_keyword",
             }
@@ -178,13 +187,16 @@ def extract_arguments(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[dict
     if hasattr(node.args, "kwonlyargs"):
         for i, arg in enumerate(node.args.kwonlyargs):
             default = None
-            if node.args.kw_defaults[i] is not None:
-                default = expr_to_string(node.args.kw_defaults[i])
+            kw_default = node.args.kw_defaults[i]
+            if kw_default is not None:
+                default = expr_to_string(kw_default)
 
             args.append(
                 {
                     "name": arg.arg,
-                    "type": annotation_to_string(arg.annotation) if arg.annotation else None,
+                    "type": annotation_to_string(arg.annotation)
+                    if arg.annotation
+                    else None,
                     "default": default,
                     "kind": "keyword_only",
                 }
@@ -209,13 +221,13 @@ def extract_arguments(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[dict
 def annotation_to_string(annotation: ast.expr | None) -> str | None:
     """
     Convert AST type annotation to string representation.
-    
+
     Args:
         annotation: AST annotation expression
-    
+
     Returns:
         String representation of the type annotation, or None
-        
+
     """
     if annotation is None:
         return None
@@ -236,13 +248,13 @@ def annotation_to_string(annotation: ast.expr | None) -> str | None:
 def expr_to_string(expr: ast.expr) -> str:
     """
     Convert AST expression to string representation.
-    
+
     Args:
         expr: AST expression
-    
+
     Returns:
         String representation of the expression
-        
+
     """
     try:
         return ast.unparse(expr)
@@ -259,12 +271,12 @@ def expr_to_string(expr: ast.expr) -> str:
 def has_yield(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """
     Check if function contains yield statement (is a generator).
-    
+
     Args:
         node: Function AST node
-    
+
     Returns:
         True if function is a generator
-        
+
     """
     return any(isinstance(child, ast.Yield | ast.YieldFrom) for child in ast.walk(node))

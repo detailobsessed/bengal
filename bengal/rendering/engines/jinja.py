@@ -22,8 +22,8 @@ from jinja2 import TemplateSyntaxError
 
 from bengal.assets.manifest import AssetManifestEntry
 from bengal.errors import ErrorCode, record_error
-from bengal.rendering.engines.errors import TemplateError
 from bengal.protocols import EngineCapability
+from bengal.rendering.engines.errors import TemplateError
 from bengal.rendering.template_engine.asset_url import AssetURLMixin
 from bengal.rendering.template_engine.environment import (
     create_jinja_environment,
@@ -55,19 +55,19 @@ _template_compilation_locks = PerKeyLockManager()
 class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin):
     """
     Jinja2 template engine for rendering pages.
-    
+
     Provides Jinja2 template rendering with theme inheritance, template function
     registration, asset manifest access, and optional template profiling.
-    
+
     Attributes:
         site: Site instance with theme and configuration
         template_dirs: List of template directories (populated during init)
         env: Jinja2 Environment instance
-    
+
     Example:
         engine = JinjaTemplateEngine(site, profile=True)
         html = engine.render_template("page.html", {"page": page})
-        
+
     """
 
     def __init__(self, site: Site, *, profile: bool = False) -> None:
@@ -79,7 +79,9 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
             profile: Enable template profiling for performance analysis
         """
         logger.debug(
-            "initializing_template_engine", theme=site.theme, root_path=str(site.root_path)
+            "initializing_template_engine",
+            theme=site.theme,
+            root_path=str(site.root_path),
         )
 
         self.site = site
@@ -125,7 +127,7 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
         self._referenced_template_paths_cache: dict[str, tuple[Path, ...]] = {}
         # Template path cache is DISABLED in dev mode (templates may change frequently)
         # and ENABLED in production mode (paths are stable, cache improves performance)
-        # 
+        #
         # dev_mode can be:
         # - Site attribute: site.dev_mode (bool)
         # - Config dict: config.get("development", {}).get("dev_mode", False)
@@ -149,14 +151,20 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
         Returns:
             Rendered HTML string
         """
-        logger.debug("rendering_template", template=name, context_keys=list(context.keys()))
+        logger.debug(
+            "rendering_template", template=name, context_keys=list(context.keys())
+        )
 
         # Track template dependency
         if self._dependency_tracker:
             template_path = self.get_template_path(name)
             if template_path:
                 self._dependency_tracker.track_template(template_path)
-                logger.debug("tracked_template_dependency", template=name, path=str(template_path))
+                logger.debug(
+                    "tracked_template_dependency",
+                    template=name,
+                    path=str(template_path),
+                )
             self._track_referenced_templates(name)
 
         # Add site to context
@@ -190,7 +198,9 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
             record_error(e, file_path=name, build_phase="rendering")
 
             # Generate more specific suggestion for TypeError
-            suggestion = "Check template syntax and ensure all context variables are defined"
+            suggestion = (
+                "Check template syntax and ensure all context variables are defined"
+            )
             error_str = str(e).lower()
             if isinstance(e, TypeError) and (
                 "'nonetype' object is not callable" in error_str
@@ -342,7 +352,9 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
 
                 try:
                     self.env.get_template(rel_name)
-                    logger.debug("template_validated", template=rel_name, dir=str(template_dir))
+                    logger.debug(
+                        "template_validated", template=rel_name, dir=str(template_dir)
+                    )
                 except TemplateSyntaxError as e:
                     logger.warning(
                         "template_syntax_error",
@@ -388,7 +400,9 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
         """Find the path to a template file."""
         return self.get_template_path(template_name)
 
-    def validate_templates(self, include_patterns: list[str] | None = None) -> list[Any]:
+    def validate_templates(
+        self, include_patterns: list[str] | None = None
+    ) -> list[Any]:
         """
         Validate templates and return TemplateRenderError objects.
         """
@@ -402,7 +416,9 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
                 # TemplateSyntaxError requires lineno (int), not optional
                 lineno = err.line if err.line is not None else 0
                 exc = TemplateSyntaxError(err.message, lineno=lineno)
-            render_error = TemplateRenderError.from_jinja2_error(exc, err.template, err.path, self)
+            render_error = TemplateRenderError.from_jinja2_error(
+                exc, err.template, err.path, self
+            )
             render_errors.append(render_error)
         return render_errors
 
@@ -461,7 +477,9 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
             try:
                 from jinja2 import meta
 
-                source, _filename, _uptodate = self.env.loader.get_source(self.env, template_name)
+                source, _filename, _uptodate = self.env.loader.get_source(
+                    self.env, template_name
+                )
                 ast = self.env.parse(source)
                 for ref in meta.find_referenced_templates(ast) or []:
                     if isinstance(ref, str):
@@ -488,10 +506,14 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
                 try:
                     from jinja2 import meta
 
-                    src, _filename, _uptodate = self.env.loader.get_source(self.env, ref_name)
+                    src, _filename, _uptodate = self.env.loader.get_source(
+                        self.env, ref_name
+                    )
                     ast = self.env.parse(src)
                     self._referenced_template_cache[ref_name] = {
-                        r for r in (meta.find_referenced_templates(ast) or []) if isinstance(r, str)
+                        r
+                        for r in (meta.find_referenced_templates(ast) or [])
+                        if isinstance(r, str)
                     }
                 except Exception:
                     self._referenced_template_cache[ref_name] = set()
@@ -529,9 +551,9 @@ class JinjaTemplateEngine(MenuHelpersMixin, ManifestHelpersMixin, AssetURLMixin)
 def clear_template_locks() -> None:
     """
     Clear all template compilation locks.
-    
+
     Call this at the end of a build session to reset lock state.
     Safe to call when no threads are actively compiling templates.
-        
+
     """
     _template_compilation_locks.clear()

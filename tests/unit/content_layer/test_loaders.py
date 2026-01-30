@@ -1,7 +1,5 @@
 """Tests for loader factory functions."""
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.content.sources.loaders import local_loader

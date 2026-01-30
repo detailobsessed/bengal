@@ -1,6 +1,9 @@
 """Tests for environment detection."""
 
-from bengal.config.environment import detect_environment, get_environment_file_candidates
+from bengal.config.environment import (
+    detect_environment,
+    get_environment_file_candidates,
+)
 
 
 class TestDetectEnvironment:

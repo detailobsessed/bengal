@@ -7,19 +7,15 @@ which is critical for Python 3.14t free-threading support.
 RFC: rfc-free-threading-hardening.md
 """
 
-from __future__ import annotations
-
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from bengal.rendering.block_cache import BlockCache
 
 if TYPE_CHECKING:
-    from bengal.core.site import Site
+    pass
 
 
 class TestBlockCacheThreadSafety:
@@ -83,7 +79,7 @@ class TestBlockCacheThreadSafety:
                 futures.append(executor.submit(reader))
                 futures.append(executor.submit(writer, i))
 
-            for f in as_completed(futures):
+            for _f in as_completed(futures):
                 pass
 
         assert not errors, f"Thread safety errors: {errors}"
@@ -121,42 +117,42 @@ class TestBlockCacheThreadSafety:
 
     def test_clear_is_safe_when_no_readers(self) -> None:
         """Verify clear() is safe when called between build phases.
-        
+
         Note: BlockCache is designed for the pattern:
         1. Populate cache (warm_site_blocks)
         2. Read during parallel rendering
         3. Clear between builds
-        
+
         clear() is NOT designed to be called while readers are active.
         This test verifies the safe pattern works correctly.
         """
         cache = BlockCache()
-        
+
         # Phase 1: Populate
         for i in range(10):
             cache.set("base.html", f"block_{i}", f"<div>{i}</div>")
-        
+
         # Phase 2: Concurrent reads (no clear)
         errors: list[Exception] = []
-        
+
         def reader() -> None:
             try:
                 for _ in range(100):
                     cache.get("base.html", "block_0")
             except Exception as e:
                 errors.append(e)
-        
+
         threads = [threading.Thread(target=reader) for _ in range(10)]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
-        
+
         assert not errors, f"Thread safety errors during reads: {errors}"
-        
+
         # Phase 3: Clear between builds (no readers)
         cache.clear()
-        
+
         assert cache.get("base.html", "block_0") is None
         assert cache.get_stats()["site_blocks_cached"] == 0
 
@@ -239,7 +235,9 @@ class TestAssetTrackerThreadSafety:
                 errors.append(e)
 
         with tracker:
-            threads = [threading.Thread(target=track_assets, args=(i,)) for i in range(10)]
+            threads = [
+                threading.Thread(target=track_assets, args=(i,)) for i in range(10)
+            ]
             for t in threads:
                 t.start()
             for t in threads:
@@ -281,7 +279,9 @@ class TestAssetTrackerThreadSafety:
             except Exception as e:
                 errors.append(e)
 
-        threads = [threading.Thread(target=use_nested_trackers, args=(i,)) for i in range(10)]
+        threads = [
+            threading.Thread(target=use_nested_trackers, args=(i,)) for i in range(10)
+        ]
         for t in threads:
             t.start()
         for t in threads:
@@ -295,7 +295,7 @@ class TestRendererCacheThreadSafety:
 
     def test_tag_pages_cache_initialization(self) -> None:
         """Verify tag pages cache initializes safely under concurrent access."""
-        from unittest.mock import MagicMock, PropertyMock
+        from unittest.mock import MagicMock
 
         from bengal.rendering.renderer import Renderer
 
@@ -327,7 +327,7 @@ class TestRendererCacheThreadSafety:
         # Spawn many threads that all try to initialize the cache simultaneously
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(get_tag_pages) for _ in range(50)]
-            for future in as_completed(futures):
+            for _future in as_completed(futures):
                 pass
 
         assert not errors, f"Thread safety errors: {errors}"

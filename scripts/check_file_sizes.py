@@ -112,7 +112,9 @@ def find_python_files(root: Path) -> list[Path]:
     return sorted(root.rglob("*.py"))
 
 
-def check_file_sizes(strict: bool = False) -> tuple[list[tuple[Path, int]], list[tuple[Path, int]]]:
+def check_file_sizes(
+    strict: bool = False,
+) -> tuple[list[tuple[Path, int]], list[tuple[Path, int]]]:
     """
     Check all Python files against the line limit.
 

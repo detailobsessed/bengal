@@ -45,20 +45,20 @@ if TYPE_CHECKING:
 class CascadeEngine:
     """
     Isolated cascade application logic with pre-computed O(1) lookups.
-    
+
     Handles metadata cascading where section _index.md files can define
     cascade metadata that propagates to descendant pages. This allows
     setting common metadata at the section level rather than repeating
     it on every page.
-    
+
     Pre-computes page-section relationships to avoid O(n²) lookups
     when determining if a page is top-level (not in any section).
-    
+
     Attributes:
         pages: All pages in the site
         sections: All sections in the site
         _pages_in_sections: Pre-computed set of pages that belong to sections (O(1) lookup)
-        
+
     """
 
     def __init__(self, pages: list[Any], sections: list[Any]) -> None:
@@ -142,7 +142,9 @@ class CascadeEngine:
         # Process all top-level sections with root cascade
         # (they will recurse to subsections)
         for section in self.sections:
-            self._apply_section_cascade(section, parent_cascade=root_cascade, stats=stats)
+            self._apply_section_cascade(
+                section, parent_cascade=root_cascade, stats=stats
+            )
 
         # Also apply root cascade to other top-level pages
         if root_cascade:
@@ -196,7 +198,9 @@ class CascadeEngine:
                     # Page metadata takes precedence over cascade
                     if key not in page.metadata:
                         page.metadata[key] = value
-                        stats["pages_with_cascade"] = stats.get("pages_with_cascade", 0) + 1
+                        stats["pages_with_cascade"] = (
+                            stats.get("pages_with_cascade", 0) + 1
+                        )
                         cascade_keys = stats.setdefault("cascade_keys_applied", {})
                         if not isinstance(cascade_keys, dict):
                             cascade_keys = {}

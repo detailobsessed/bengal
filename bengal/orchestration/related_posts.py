@@ -39,8 +39,8 @@ from __future__ import annotations
 import concurrent.futures
 from typing import TYPE_CHECKING, Any
 
-from bengal.utils.observability.logger import get_logger
 from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
+from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -56,36 +56,36 @@ if TYPE_CHECKING:
 class RelatedPostsOrchestrator:
     """
     Builds related posts relationships during the build phase.
-    
+
     Uses the taxonomy index for efficient tag-based matching. For each page,
     finds other pages with overlapping tags and scores by shared tag count.
-    
+
     Complexity:
         Build: O(n·t) where n=pages, t=average tags per page (typically 2-5)
         Access: O(1) via page.related_posts attribute
-    
+
     Creation:
         Direct instantiation: RelatedPostsOrchestrator(site)
             - Created by BuildOrchestrator during build
             - Requires Site instance with taxonomies populated
-    
+
     Attributes:
         site: Site instance containing pages and taxonomies
-    
+
     Relationships:
         - Uses: site.taxonomies['tags'] for tag-to-page mapping
         - Updates: page.related_posts for each processed page
         - Used by: BuildOrchestrator for Phase 10 (related posts)
-    
+
     Thread Safety:
         Supports parallel processing for sites with 100+ pages.
         Each page's computation is independent and thread-safe.
-    
+
     Example:
         orchestrator = RelatedPostsOrchestrator(site)
         orchestrator.build_index(limit=5, parallel=True)
         # page.related_posts now contains list of related Page objects
-        
+
     """
 
     def __init__(self, site: Site):
@@ -98,7 +98,10 @@ class RelatedPostsOrchestrator:
         self.site = site
 
     def build_index(
-        self, limit: int = 5, parallel: bool = True, affected_pages: list[Page] | None = None
+        self,
+        limit: int = 5,
+        parallel: bool = True,
+        affected_pages: list[Page] | None = None,
     ) -> None:
         """
         Compute related posts for pages using tag-based matching.
@@ -139,7 +142,9 @@ class RelatedPostsOrchestrator:
         # Determine which pages to process
         if affected_pages is not None:
             # Incremental: only process affected pages (filter out generated)
-            pages_to_process = [p for p in affected_pages if not p.metadata.get("_generated")]
+            pages_to_process = [
+                p for p in affected_pages if not p.metadata.get("_generated")
+            ]
         else:
             # Full build: process all regular pages (use cached property)
             pages_to_process = list(self.site.regular_pages)
@@ -187,7 +192,9 @@ class RelatedPostsOrchestrator:
         pages_with_related = 0
 
         for page in pages:
-            page.related_posts = self._find_related_posts(page, page_tags_map, tags_dict, limit)
+            page.related_posts = self._find_related_posts(
+                page, page_tags_map, tags_dict, limit
+            )
             if page.related_posts:
                 pages_with_related += 1
 
@@ -228,8 +235,9 @@ class RelatedPostsOrchestrator:
         # Get optimal workers based on workload (CPU-bound tag matching)
         # Access from build section (supports both Config and dict)
         config = self.site.config
-        if hasattr(config, "build"):
-            max_workers_override = config.build.max_workers
+        build_obj = getattr(config, "build", None)
+        if build_obj is not None:
+            max_workers_override = getattr(build_obj, "max_workers", None)
         else:
             build_section = config.get("build", {})
             max_workers_override = (
@@ -301,7 +309,9 @@ class RelatedPostsOrchestrator:
                 # Convert tags to slugs for consistent matching (same as taxonomy)
                 # Filter out None tags (YAML parses 'null' as None)
                 page_tags[page] = {
-                    str(tag).lower().replace(" ", "-") for tag in page.tags if tag is not None
+                    str(tag).lower().replace(" ", "-")
+                    for tag in page.tags
+                    if tag is not None
                 }
             else:
                 page_tags[page] = set()

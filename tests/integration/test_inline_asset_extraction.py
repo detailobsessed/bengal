@@ -77,7 +77,8 @@ class TestInlineAssetExtraction:
         assert ctx.accumulated_asset_count == 100
 
         pages = [
-            MagicMock(source_path=Path(f"page{i}.md"), rendered_html="<html>") for i in range(100)
+            MagicMock(source_path=Path(f"page{i}.md"), rendered_html="<html>")
+            for i in range(100)
         ]
         phase_track_assets(orchestrator, pages, cli=None, build_context=ctx)
 

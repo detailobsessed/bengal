@@ -5,8 +5,6 @@ These tests ensure that documentation pages can show template examples
 without those examples being processed by the template engine.
 """
 
-from __future__ import annotations
-
 from datetime import datetime
 
 import pytest
@@ -27,7 +25,9 @@ class TestVariableSubstitutionEscaping:
         result = plugin.restore_placeholders(result)
 
         # Should be HTML-escaped so Jinja2 won't process it
-        assert result == "Use &#123;&#123; page.title &#125;&#125; to display the title."
+        assert (
+            result == "Use &#123;&#123; page.title &#125;&#125; to display the title."
+        )
         # Browser will render this as: Use {{ page.title }} to display the title.
 
     def test_escape_with_filters(self):
@@ -39,7 +39,10 @@ class TestVariableSubstitutionEscaping:
         result = plugin._substitute_variables(text)
         result = plugin.restore_placeholders(result)
 
-        assert result == "Example: &#123;&#123; post.content | truncatewords(50) &#125;&#125;"
+        assert (
+            result
+            == "Example: &#123;&#123; post.content | truncatewords(50) &#125;&#125;"
+        )
 
     def test_escape_with_complex_expression(self):
         """Test escaping complex template expressions."""
@@ -51,7 +54,8 @@ class TestVariableSubstitutionEscaping:
         result = plugin.restore_placeholders(result)
 
         assert (
-            result == "Use &#123;&#123; page.date | format_date('%Y-%m-%d') &#125;&#125; for dates."
+            result
+            == "Use &#123;&#123; page.date | format_date('%Y-%m-%d') &#125;&#125; for dates."
         )
 
     def test_normal_variables_still_work(self):
@@ -66,7 +70,10 @@ class TestVariableSubstitutionEscaping:
 
         # First {{ page.title }} should be substituted
         # Second {{/* page.title */}} should become HTML-escaped
-        assert result == "Title: My Page. Show syntax: &#123;&#123; page.title &#125;&#125;"
+        assert (
+            result
+            == "Title: My Page. Show syntax: &#123;&#123; page.title &#125;&#125;"
+        )
 
     def test_multiple_escapes_in_text(self):
         """Test multiple escape patterns in same text."""
@@ -211,7 +218,9 @@ To show dates, use {{/* page.date | format_date */}}.
 
         # Simulate processing
         page = type(
-            "obj", (), {"metadata": {"author": "Bengal Team"}, "date": datetime(2025, 10, 4)}
+            "obj",
+            (),
+            {"metadata": {"author": "Bengal Team"}, "date": datetime(2025, 10, 4)},
         )
         context = {"page": page}
         plugin = VariableSubstitutionPlugin(context)
@@ -309,16 +318,20 @@ def mock_site():
     return type(
         "Site",
         (),
-        {"title": "Test Site", "baseurl": "https://example.com", "config": {"title": "Test Site"}},
+        {
+            "title": "Test Site",
+            "baseurl": "https://example.com",
+            "config": {"title": "Test Site"},
+        },
     )
 
 
 class TestVariableSubstitutionSecurity:
     """Security tests for variable substitution sandboxing.
-    
+
     These tests ensure that malicious template expressions cannot
     access private/dunder attributes to escape the sandbox.
-        
+
     """
 
     def test_blocks_dunder_class(self):
@@ -329,7 +342,9 @@ class TestVariableSubstitutionSecurity:
         context = {"page": page}
         plugin = VariableSubstitutionPlugin(context)
 
-        with pytest.raises(BengalRenderingError, match="private/protected attributes denied"):
+        with pytest.raises(
+            BengalRenderingError, match="private/protected attributes denied"
+        ):
             plugin._eval_expression("page.__class__")
 
     def test_blocks_dunder_init(self):
@@ -340,7 +355,9 @@ class TestVariableSubstitutionSecurity:
         context = {"page": page}
         plugin = VariableSubstitutionPlugin(context)
 
-        with pytest.raises(BengalRenderingError, match="private/protected attributes denied"):
+        with pytest.raises(
+            BengalRenderingError, match="private/protected attributes denied"
+        ):
             plugin._eval_expression("page.__init__")
 
     def test_blocks_dunder_globals(self):
@@ -350,7 +367,9 @@ class TestVariableSubstitutionSecurity:
         context = {"config": {"key": "value"}}
         plugin = VariableSubstitutionPlugin(context)
 
-        with pytest.raises(BengalRenderingError, match="private/protected attributes denied"):
+        with pytest.raises(
+            BengalRenderingError, match="private/protected attributes denied"
+        ):
             plugin._eval_expression("config.__class__.__init__.__globals__")
 
     def test_blocks_dunder_bases(self):
@@ -361,7 +380,9 @@ class TestVariableSubstitutionSecurity:
         context = {"page": page}
         plugin = VariableSubstitutionPlugin(context)
 
-        with pytest.raises(BengalRenderingError, match="private/protected attributes denied"):
+        with pytest.raises(
+            BengalRenderingError, match="private/protected attributes denied"
+        ):
             plugin._eval_expression("page.__class__.__bases__")
 
     def test_blocks_single_underscore_private(self):
@@ -372,7 +393,9 @@ class TestVariableSubstitutionSecurity:
         context = {"page": page}
         plugin = VariableSubstitutionPlugin(context)
 
-        with pytest.raises(BengalRenderingError, match="private/protected attributes denied"):
+        with pytest.raises(
+            BengalRenderingError, match="private/protected attributes denied"
+        ):
             plugin._eval_expression("page._secret")
 
     def test_blocks_nested_dunder_access(self):
@@ -383,7 +406,9 @@ class TestVariableSubstitutionSecurity:
         context = {"page": page}
         plugin = VariableSubstitutionPlugin(context)
 
-        with pytest.raises(BengalRenderingError, match="private/protected attributes denied"):
+        with pytest.raises(
+            BengalRenderingError, match="private/protected attributes denied"
+        ):
             plugin._eval_expression("page.metadata.__class__")
 
     def test_allows_normal_attribute_access(self):

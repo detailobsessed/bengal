@@ -6,14 +6,13 @@ Integrates the existing ConfigValidator into the health check system.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any, cast, override
 
 from bengal.health.base import BaseValidator
 from bengal.health.report import CheckResult
 from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
 
 if TYPE_CHECKING:
-    from bengal.config.accessor import Config
     from bengal.orchestration.build_context import BuildContext
     from bengal.protocols import SiteLike
 
@@ -24,11 +23,11 @@ ConfigLike = "Config | dict[str, Any]"
 class ConfigValidatorWrapper(BaseValidator):
     """
     Wrapper for config validation.
-    
+
     Note: Config validation happens at load time, so by the time we get to
     health checks, the config has already been validated. This validator
     confirms that validation occurred and reports any config-related concerns.
-        
+
     """
 
     name = "Configuration"
@@ -45,15 +44,18 @@ class ConfigValidatorWrapper(BaseValidator):
         # Config is already validated at load time, so we just do sanity checks
         config = site.config
 
+        # Cast config to dict for type compatibility (Config supports .get())
+        config_dict = cast("dict[str, Any]", config)
+
         # Check essential fields are present
-        results.extend(self._check_essential_fields(config))
+        results.extend(self._check_essential_fields(config_dict))
 
         # Check for common misconfigurations
-        results.extend(self._check_common_issues(config))
+        results.extend(self._check_common_issues(config_dict))
 
         return results
 
-    def _check_essential_fields(self, config: Config | dict[str, Any]) -> list[CheckResult]:
+    def _check_essential_fields(self, config: dict[str, Any]) -> list[CheckResult]:
         """Check that essential config fields are present."""
         results = []
 
@@ -74,7 +76,7 @@ class ConfigValidatorWrapper(BaseValidator):
 
         return results
 
-    def _check_common_issues(self, config: Config | dict[str, Any]) -> list[CheckResult]:
+    def _check_common_issues(self, config: dict[str, Any]) -> list[CheckResult]:
         """Check for common configuration issues."""
         results = []
 
@@ -97,16 +99,26 @@ class ConfigValidatorWrapper(BaseValidator):
                 parallel = build_dict.get("parallel", True)
                 # Fall back to top-level if not present in build.*
                 if max_workers_override is None:
-                    max_workers_override = config.get("max_workers") if hasattr(config, "get") else None
+                    max_workers_override = (
+                        config.get("max_workers") if hasattr(config, "get") else None
+                    )
                 if incremental is None:
-                    incremental = config.get("incremental") if hasattr(config, "get") else None
+                    incremental = (
+                        config.get("incremental") if hasattr(config, "get") else None
+                    )
                 if "parallel" not in build_dict and hasattr(config, "get"):
                     parallel = config.get("parallel", parallel)
             else:
                 # Fallback to flat access for backward compatibility
-                max_workers_override = config.get("max_workers") if hasattr(config, "get") else None
-                incremental = config.get("incremental") if hasattr(config, "get") else None
-                parallel = config.get("parallel", True) if hasattr(config, "get") else True
+                max_workers_override = (
+                    config.get("max_workers") if hasattr(config, "get") else None
+                )
+                incremental = (
+                    config.get("incremental") if hasattr(config, "get") else None
+                )
+                parallel = (
+                    config.get("parallel", True) if hasattr(config, "get") else True
+                )
 
         max_workers = get_optimal_workers(
             100,

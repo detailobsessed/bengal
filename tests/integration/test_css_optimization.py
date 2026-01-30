@@ -5,8 +5,6 @@ Tests the end-to-end CSS tree shaking functionality using skeleton-based test fi
 This dogfoods Bengal's skeleton manifest system for test site generation.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from bengal.orchestration.css_optimizer import CSSOptimizer, optimize_css_for_site
@@ -73,7 +71,9 @@ class TestCSSOptimizationIntegration:
         optimizer = CSSOptimizer(site)
         required_files = optimizer.get_required_css_files()
 
-        assert any("mermaid.css" in f for f in required_files), "Should include mermaid.css"
+        assert any("mermaid.css" in f for f in required_files), (
+            "Should include mermaid.css"
+        )
 
     def test_css_generation_returns_valid_css(self, site_factory) -> None:
         """Test that generated CSS is valid (non-empty with proper structure)."""
@@ -179,12 +179,18 @@ class TestSkeletonBasedFixtures:
         section_paths = [str(s.path) for s in site.sections]
         assert any("blog" in p for p in section_paths), "Should have blog section"
         assert any("docs" in p for p in section_paths), "Should have docs section"
-        assert any("tutorials" in p for p in section_paths), "Should have tutorials section"
+        assert any("tutorials" in p for p in section_paths), (
+            "Should have tutorials section"
+        )
 
     def test_mermaid_skeleton_contains_mermaid_content(self, site_factory) -> None:
         """Verify the mermaid skeleton has mermaid code blocks."""
         site: Site = site_factory("test-mermaid-feature")
 
         # Should have pages with mermaid content (check raw source, not rendered HTML)
-        mermaid_pages = [p for p in site.pages if p._source and "```mermaid" in p._source]
-        assert len(mermaid_pages) >= 1, "Should have at least 1 page with mermaid diagrams"
+        mermaid_pages = [
+            p for p in site.pages if p._source and "```mermaid" in p._source
+        ]
+        assert len(mermaid_pages) >= 1, (
+            "Should have at least 1 page with mermaid diagrams"
+        )

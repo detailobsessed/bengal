@@ -31,7 +31,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from collections.abc import Iterator
-from typing import Any
+from typing import Any, cast
 
 from bengal.parsing.ast.types import ASTNode, is_heading, is_link, is_text
 
@@ -39,48 +39,48 @@ from bengal.parsing.ast.types import ASTNode, is_heading, is_link, is_text
 def walk_ast(ast: list[ASTNode]) -> Iterator[ASTNode]:
     """
     Recursively walk all nodes in an AST.
-    
+
     Yields each node in depth-first order, enabling O(n) traversal
     for extraction operations.
-    
+
     Args:
         ast: Root-level AST nodes
-    
+
     Yields:
         Each ASTNode in the tree
-    
+
     Example:
             >>> ast = [{"type": "heading", "level": 1, "children": [{"type": "text", "raw": "Hello"}]}]
             >>> nodes = list(walk_ast(ast))
             >>> len(nodes)
         2
-        
+
     """
     for node in ast:
         yield node
         # Check for children in various formats
         children = node.get("children")
         if children and isinstance(children, list):
-            yield from walk_ast(children)
+            yield from walk_ast(cast("list[ASTNode]", children))
 
 
 def generate_heading_id(node: ASTNode) -> str:
     """
     Generate a URL-friendly ID from a heading node.
-    
+
     Extracts text content and converts to a slug suitable for anchor links.
-    
+
     Args:
         node: A heading node
-    
+
     Returns:
         URL-friendly slug (e.g., "getting-started")
-    
+
     Example:
             >>> node = {"type": "heading", "level": 1, "children": [{"type": "text", "raw": "Getting Started!"}]}
             >>> generate_heading_id(node)
             'getting-started'
-        
+
     """
     text = extract_text_from_node(node)
     return _slugify(text)
@@ -89,13 +89,13 @@ def generate_heading_id(node: ASTNode) -> str:
 def extract_text_from_node(node: ASTNode) -> str:
     """
     Extract all text content from a single node and its children.
-    
+
     Args:
         node: AST node to extract text from
-    
+
     Returns:
         Concatenated text content
-        
+
     """
     parts: list[str] = []
 
@@ -104,8 +104,7 @@ def extract_text_from_node(node: ASTNode) -> str:
 
     children = node.get("children")
     if children and isinstance(children, list):
-        for child in children:
-            parts.append(extract_text_from_node(child))
+        parts.extend(extract_text_from_node(child) for child in children)
 
     return "".join(parts)
 
@@ -113,13 +112,13 @@ def extract_text_from_node(node: ASTNode) -> str:
 def _slugify(text: str) -> str:
     """
     Convert text to a URL-friendly slug.
-    
+
     Args:
         text: Text to slugify
-    
+
     Returns:
         Lowercase, hyphenated slug
-        
+
     """
     # Normalize unicode
     text = unicodedata.normalize("NFKD", text)
@@ -136,16 +135,16 @@ def _slugify(text: str) -> str:
 def extract_toc_from_ast(ast: list[ASTNode]) -> list[dict[str, Any]]:
     """
     Extract TOC structure from AST (replaces HTMLParser in toc.py).
-    
+
     Walks the AST and extracts all heading nodes, building a structured
     table of contents.
-    
+
     Args:
         ast: Root-level AST nodes
-    
+
     Returns:
         List of TOC items with id, title, and level
-    
+
     Example:
             >>> ast = [
             ...     {"type": "heading", "level": 2, "children": [{"type": "text", "raw": "Introduction"}]},
@@ -154,17 +153,18 @@ def extract_toc_from_ast(ast: list[ASTNode]) -> list[dict[str, Any]]:
             >>> toc = extract_toc_from_ast(ast)
             >>> toc[0]
         {'id': 'introduction', 'title': 'Introduction', 'level': 1}
-        
+
     """
     toc_items: list[dict[str, Any]] = []
 
     for node in walk_ast(ast):
         if is_heading(node):
             # Get level from node or attrs
-            level = node.get("level")
-            if level is None:
+            level_raw = node.get("level")
+            if level_raw is None:
                 attrs = node.get("attrs", {})
-                level = attrs.get("level", 1)
+                level_raw = attrs.get("level", 1)
+            level = int(level_raw) if level_raw is not None else 1
 
             title = extract_text_from_node(node)
             heading_id = generate_heading_id(node)
@@ -187,13 +187,13 @@ def extract_toc_from_ast(ast: list[ASTNode]) -> list[dict[str, Any]]:
 def extract_links_from_ast(ast: list[ASTNode]) -> list[str]:
     """
     Extract all links from AST.
-    
+
     Args:
         ast: Root-level AST nodes
-    
+
     Returns:
         List of link URLs
-    
+
     Example:
             >>> ast = [
             ...     {"type": "paragraph", "children": [
@@ -203,7 +203,7 @@ def extract_links_from_ast(ast: list[ASTNode]) -> list[str]:
             >>> links = extract_links_from_ast(ast)
             >>> links
         ['/docs/']
-        
+
     """
     links: list[str] = []
 
@@ -227,16 +227,16 @@ def extract_links_from_ast(ast: list[ASTNode]) -> list[str]:
 def extract_plain_text(ast: list[ASTNode]) -> str:
     """
     Extract plain text for search indexing (replaces regex strip in content.py).
-    
+
     Walks the AST and concatenates all text content, adding appropriate
     spacing for block elements.
-    
+
     Args:
         ast: Root-level AST nodes
-    
+
     Returns:
         Plain text content
-    
+
     Example:
             >>> ast = [
             ...     {"type": "heading", "level": 1, "children": [{"type": "text", "raw": "Hello"}]},
@@ -245,7 +245,7 @@ def extract_plain_text(ast: list[ASTNode]) -> str:
             >>> text = extract_plain_text(ast)
             >>> text
             'Hello\nWorld'
-        
+
     """
     parts: list[str] = []
 
@@ -267,10 +267,16 @@ def extract_plain_text(ast: list[ASTNode]) -> str:
             # Recurse into children
             children = node.get("children")
             if children and isinstance(children, list):
-                _walk_for_text(children)
+                _walk_for_text(cast("list[ASTNode]", children))
 
             # Add spacing for block elements
-            if node_type in ("paragraph", "heading", "list", "block_code", "block_quote"):
+            if node_type in (
+                "paragraph",
+                "heading",
+                "list",
+                "block_code",
+                "block_quote",
+            ):
                 parts.append("\n")
 
     _walk_for_text(ast)

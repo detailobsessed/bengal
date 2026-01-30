@@ -40,8 +40,6 @@ See Also:
 
 """
 
-from __future__ import annotations
-
 import random
 from collections import defaultdict
 from dataclasses import dataclass
@@ -60,17 +58,17 @@ logger = get_logger(__name__)
 class Community:
     """
     A community of related pages discovered through link structure.
-    
+
     Represents a group of pages that are densely connected to each other
     and share similar topics or themes. Useful for understanding content
     organization and identifying topic clusters.
-    
+
     Attributes:
         id: Unique community identifier
         pages: Set of pages belonging to this community
         size: Number of pages in the community
         density: Internal connection density (0.0-1.0)
-        
+
     """
 
     id: int
@@ -91,15 +89,15 @@ class Community:
 class CommunityDetectionResults:
     """
     Results from community detection analysis.
-    
+
     Contains discovered communities and quality metrics. Communities
     represent natural groupings of related pages based on link structure.
-    
+
     Attributes:
         communities: List of detected communities
         modularity: Modularity score (quality metric, -1.0 to 1.0, higher is better)
         num_communities: Total number of communities detected
-        
+
     """
 
     communities: list[Community]
@@ -115,7 +113,9 @@ class CommunityDetectionResults:
 
     def get_largest_communities(self, limit: int = 10) -> list[Community]:
         """Get largest communities by page count."""
-        sorted_communities = sorted(self.communities, key=lambda c: c.size, reverse=True)
+        sorted_communities = sorted(
+            self.communities, key=lambda c: c.size, reverse=True
+        )
         return sorted_communities[:limit]
 
     def get_communities_above_size(self, min_size: int) -> list[Community]:
@@ -126,29 +126,32 @@ class CommunityDetectionResults:
 class LouvainCommunityDetector:
     """
     Detect communities using the Louvain method.
-    
+
     The Louvain algorithm is a greedy optimization method that attempts to
     optimize the modularity of a partition of the network. It runs in two phases:
-    
+
     1. Modularity Optimization: Each node is moved to the community that yields
        the largest increase in modularity.
-    
+
     2. Community Aggregation: A new network is built where nodes are communities
        and edges represent connections between communities.
-    
+
     These phases are repeated until no further improvement is possible.
-    
+
     Example:
             >>> detector = LouvainCommunityDetector(knowledge_graph)
             >>> results = detector.detect()
             >>> print(f"Found {len(results.communities)} communities")
             >>> for community in results.get_largest_communities(5):
             ...     print(f"Community {community.id}: {community.size} pages")
-        
+
     """
 
     def __init__(
-        self, graph: KnowledgeGraph, resolution: float = 1.0, random_seed: int | None = None
+        self,
+        graph: KnowledgeGraph,
+        resolution: float = 1.0,
+        random_seed: int | None = None,
     ):
         """
         Initialize Louvain community detector.
@@ -179,12 +182,20 @@ class LouvainCommunityDetector:
 
         if len(pages) == 0:
             logger.warning("community_detection_no_pages")
-            return CommunityDetectionResults(communities=[], modularity=0.0, iterations=0)
+            return CommunityDetectionResults(
+                communities=[], modularity=0.0, iterations=0
+            )
 
-        logger.info("community_detection_start", total_pages=len(pages), resolution=self.resolution)
+        logger.info(
+            "community_detection_start",
+            total_pages=len(pages),
+            resolution=self.resolution,
+        )
 
         # Initialize: each page in its own community
-        page_to_community: dict[PageLike, int] = {page: i for i, page in enumerate(pages)}
+        page_to_community: dict[PageLike, int] = {
+            page: i for i, page in enumerate(pages)
+        }
 
         # Build edge weights (use bidirectional edges for undirected graph)
         edge_weights = self._build_edge_weights(pages)
@@ -193,8 +204,12 @@ class LouvainCommunityDetector:
         if total_weight == 0:
             # No connections - each page is its own community
             logger.warning("community_detection_no_connections")
-            communities = [Community(id=i, pages={page}) for i, page in enumerate(pages)]
-            return CommunityDetectionResults(communities=communities, modularity=0.0, iterations=0)
+            communities = [
+                Community(id=i, pages={page}) for i, page in enumerate(pages)
+            ]
+            return CommunityDetectionResults(
+                communities=communities, modularity=0.0, iterations=0
+            )
 
         # Compute node degrees
         node_degrees = self._compute_node_degrees(pages, edge_weights)
@@ -283,7 +298,9 @@ class LouvainCommunityDetector:
             communities=communities, modularity=best_modularity, iterations=iteration
         )
 
-    def _build_edge_weights(self, pages: list[PageLike]) -> dict[frozenset[PageLike], float]:
+    def _build_edge_weights(
+        self, pages: list[PageLike]
+    ) -> dict[frozenset[PageLike], float]:
         """
         Build edge weights from the graph.
 
@@ -331,7 +348,7 @@ class LouvainCommunityDetector:
         neighboring_communities.add(page_to_community[page])
 
         # Find all pages connected to this page
-        for edge, _weight in edge_weights.items():
+        for edge in edge_weights:
             if page in edge:
                 for neighbor in edge:
                     if neighbor != page:
@@ -362,7 +379,9 @@ class LouvainCommunityDetector:
                         k_i_in += weight
 
         # Sum of degrees in to_community
-        sigma_tot = sum(node_degrees[p] for p, c in page_to_community.items() if c == to_community)
+        sigma_tot = sum(
+            node_degrees[p] for p, c in page_to_community.items() if c == to_community
+        )
 
         # Degree of page
         k_i = node_degrees.get(page, 0.0)
@@ -408,21 +427,23 @@ def detect_communities(
 ) -> CommunityDetectionResults:
     """
     Convenience function to detect communities.
-    
+
     Args:
         graph: KnowledgeGraph with page connections
         resolution: Resolution parameter (higher = more communities)
         random_seed: Random seed for reproducibility
-    
+
     Returns:
         CommunityDetectionResults with discovered communities
-    
+
     Example:
             >>> graph = KnowledgeGraph(site)
             >>> graph.build()
             >>> results = detect_communities(graph)
             >>> print(f"Found {len(results.communities)} communities")
-        
+
     """
-    detector = LouvainCommunityDetector(graph, resolution=resolution, random_seed=random_seed)
+    detector = LouvainCommunityDetector(
+        graph, resolution=resolution, random_seed=random_seed
+    )
     return detector.detect()

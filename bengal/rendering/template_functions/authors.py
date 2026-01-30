@@ -29,12 +29,12 @@ if TYPE_CHECKING:
 class AuthorView:
     """
     Normalized view of an author for templates.
-    
+
     Consolidates author data from multiple sources:
     - site.data.authors registry
     - Page metadata/params
     - Social link extraction
-    
+
     Attributes:
         name: Author display name
         key: Author key/slug for lookups
@@ -50,7 +50,7 @@ class AuthorView:
         email: Email address
         href: URL to author page
         post_count: Number of posts by author
-        
+
     """
 
     name: str
@@ -123,23 +123,39 @@ class AuthorView:
 
         bio = author_data.get("bio") or metadata.get("bio") or params.get("bio") or ""
 
-        avatar = author_data.get("avatar") or metadata.get("avatar") or params.get("avatar") or ""
+        avatar = (
+            author_data.get("avatar")
+            or metadata.get("avatar")
+            or params.get("avatar")
+            or ""
+        )
 
         company = author_data.get("company") or metadata.get("company") or ""
         location = author_data.get("location") or metadata.get("location") or ""
         title = author_data.get("title") or metadata.get("title") or ""
 
         # Social links - check both nested social dict and direct properties
-        social = author_data.get("social") or metadata.get("social") or params.get("social") or {}
+        social = (
+            author_data.get("social")
+            or metadata.get("social")
+            or params.get("social")
+            or {}
+        )
         if not hasattr(social, "get"):
             social = {}
 
         # Extract social handles (check registry, then metadata, then social dict)
         twitter = _extract_handle(
-            author_data.get("twitter") or metadata.get("twitter") or social.get("twitter") or ""
+            author_data.get("twitter")
+            or metadata.get("twitter")
+            or social.get("twitter")
+            or ""
         )
         github = _extract_github(
-            author_data.get("github") or metadata.get("github") or social.get("github") or ""
+            author_data.get("github")
+            or metadata.get("github")
+            or social.get("github")
+            or ""
         )
         linkedin = social.get("linkedin") or ""
         website = social.get("website") or author_data.get("website") or ""
@@ -207,8 +223,12 @@ class AuthorView:
             social = {}
 
         # Extract social handles
-        twitter = _extract_handle(author_data.get("twitter") or social.get("twitter") or "")
-        github = _extract_github(author_data.get("github") or social.get("github") or "")
+        twitter = _extract_handle(
+            author_data.get("twitter") or social.get("twitter") or ""
+        )
+        github = _extract_github(
+            author_data.get("github") or social.get("github") or ""
+        )
         linkedin = social.get("linkedin") or ""
         website = social.get("website") or author_data.get("website") or ""
         email = social.get("email") or author_data.get("email") or ""
@@ -258,7 +278,9 @@ def _extract_handle(value: str) -> str:
     value = value.lstrip("@")
     # Extract from URL
     if "twitter.com" in value:
-        value = value.replace("https://twitter.com/", "").replace("http://twitter.com/", "")
+        value = value.replace("https://twitter.com/", "").replace(
+            "http://twitter.com/", ""
+        )
     return value.strip("/")
 
 
@@ -267,30 +289,32 @@ def _extract_github(value: str) -> str:
     if not value:
         return ""
     if "github.com" in value:
-        value = value.replace("https://github.com/", "").replace("http://github.com/", "")
+        value = value.replace("https://github.com/", "").replace(
+            "http://github.com/", ""
+        )
     return value.strip("/")
 
 
 # Store site reference for filter access
-_site_ref: "SiteLike | None" = None
+_site_ref: SiteLike | None = None
 
 
 def author_view_filter(page: Any) -> AuthorView | None:
     """
     Convert an author page to an AuthorView.
-    
+
     Uses site.data.authors and site.indexes.author for enrichment.
-    
+
     Args:
         page: Author page object
-    
+
     Returns:
         AuthorView object or None if conversion fails
-    
+
     Example:
         {% let author = page | author_view %}
         <h1>{{ author.name }}</h1>
-        
+
     """
     if not page:
         return None
@@ -313,18 +337,18 @@ def author_view_filter(page: Any) -> AuthorView | None:
 def authors_filter(pages: Any) -> list[AuthorView]:
     """
     Convert a list of author pages to AuthorView objects.
-    
+
     Args:
         pages: List of author Page objects
-    
+
     Returns:
         List of AuthorView objects
-    
+
     Example:
         {% for author in pages | authors %}
           <a href="{{ author.href }}">{{ author.name }}</a>
         {% end %}
-        
+
     """
     if not pages:
         return []

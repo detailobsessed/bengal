@@ -10,8 +10,6 @@ Tests cover:
 RFC: rfc-versioned-docs-pipeline-integration
 """
 
-from __future__ import annotations
-
 import shutil
 import tempfile
 from pathlib import Path
@@ -140,7 +138,9 @@ title: Changelog
         trigger = BuildTrigger(site)
 
         # Simulate v1 content change
-        v1_file = temp_versioned_site / "content" / "_versions" / "v1" / "docs" / "guide.md"
+        v1_file = (
+            temp_versioned_site / "content" / "_versions" / "v1" / "docs" / "guide.md"
+        )
         changed_paths = {v1_file}
 
         # Should NOT be detected as shared content change
@@ -183,7 +183,9 @@ baseurl = "/"
 
         # Create content directories
         (temp_dir / "content" / "docs").mkdir(parents=True)
-        (temp_dir / "content" / "docs" / "guide.md").write_text("---\ntitle: Guide\n---\n")
+        (temp_dir / "content" / "docs" / "guide.md").write_text(
+            "---\ntitle: Guide\n---\n"
+        )
         (temp_dir / "content" / "_versions" / "v2" / "docs").mkdir(parents=True)
         (temp_dir / "content" / "_versions" / "v2" / "docs" / "guide.md").write_text(
             "---\ntitle: Guide v2\n---\n"
@@ -337,7 +339,9 @@ baseurl = "/"
             "---\ntitle: Guide v1\n---\n"
         )
         (content_dir / "_shared").mkdir(parents=True)
-        (content_dir / "_shared" / "changelog.md").write_text("---\ntitle: Changelog\n---\n")
+        (content_dir / "_shared" / "changelog.md").write_text(
+            "---\ntitle: Changelog\n---\n"
+        )
 
         yield temp_dir
         shutil.rmtree(temp_dir)
@@ -348,24 +352,30 @@ baseurl = "/"
         site.discover_content()
 
         orchestrator = IncrementalOrchestrator(site)
-        cache, tracker = orchestrator.initialize(enabled=True)
+        cache, _tracker = orchestrator.initialize(enabled=True)
 
         # On first call, files are new (not in cache) so is_changed returns True
         result = orchestrator._check_shared_content_changes(set())
         assert result is True  # New files detected as changes
 
         # Update file hashes in cache (simulate first build complete)
-        shared_file = temp_versioned_site_with_cache / "content" / "_shared" / "changelog.md"
+        shared_file = (
+            temp_versioned_site_with_cache / "content" / "_shared" / "changelog.md"
+        )
         cache.update_file(shared_file)
 
         # After caching, no changes should be detected
         result = orchestrator._check_shared_content_changes(set())
         assert result is False  # No changes after caching
 
-    def test_check_shared_content_changes_disabled(self, temp_versioned_site_with_cache):
+    def test_check_shared_content_changes_disabled(
+        self, temp_versioned_site_with_cache
+    ):
         """Test that shared content checking returns False when versioning disabled."""
         # Modify config to disable versioning
-        config_file = temp_versioned_site_with_cache / "config" / "_default" / "versioning.yaml"
+        config_file = (
+            temp_versioned_site_with_cache / "config" / "_default" / "versioning.yaml"
+        )
         config_file.write_text("""
 versioning:
   enabled: false
@@ -429,7 +439,9 @@ class TestVersionedBuildIntegration:
     def test_versioned_site_output_paths(self, site):
         """Test that versioned pages have correct output paths."""
         # Find v2 page
-        v2_page = next(p for p in site.pages if "_versions/v2/docs/guide.md" in str(p.source_path))
+        v2_page = next(
+            p for p in site.pages if "_versions/v2/docs/guide.md" in str(p.source_path)
+        )
 
         # Should have version set to 'v2'
         assert v2_page.version == "v2"
@@ -438,7 +450,9 @@ class TestVersionedBuildIntegration:
         assert "docs/v2/guide/index.html" in str(v2_page.output_path)
 
         # Find v1 page
-        v1_page = next(p for p in site.pages if "_versions/v1/docs/guide.md" in str(p.source_path))
+        v1_page = next(
+            p for p in site.pages if "_versions/v1/docs/guide.md" in str(p.source_path)
+        )
 
         # Should have version set to 'v1'
         assert v1_page.version == "v1"

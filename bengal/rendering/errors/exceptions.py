@@ -22,7 +22,11 @@ from jinja2.exceptions import TemplateAssertionError, TemplateRuntimeError
 # Bengal now uses Kida as its template engine, so we need to handle both
 from kida.environment.exceptions import (
     TemplateRuntimeError as KidaRuntimeError,
+)
+from kida.environment.exceptions import (
     TemplateSyntaxError as KidaSyntaxError,
+)
+from kida.environment.exceptions import (
     UndefinedError as KidaUndefinedError,
 )
 
@@ -94,7 +98,11 @@ class TemplateRenderError(BengalRenderingError):
 
     @classmethod
     def from_jinja2_error(
-        cls, error: Exception, template_name: str, page_source: Path | None, template_engine: Any
+        cls,
+        error: Exception,
+        template_name: str,
+        page_source: Path | None,
+        template_engine: Any,
     ) -> TemplateRenderError:
         """
         Extract rich error information from Jinja2 exception.
@@ -174,8 +182,14 @@ class TemplateRenderError(BengalRenderingError):
         # Check for filter errors first (can be TemplateAssertionError or part of other errors)
         if (
             "no filter named" in error_str
-            or ("filter" in error_str and ("unknown" in error_str or "not found" in error_str))
-            or (isinstance(error, TemplateAssertionError) and "unknown filter" in error_str)
+            or (
+                "filter" in error_str
+                and ("unknown" in error_str or "not found" in error_str)
+            )
+            or (
+                isinstance(error, TemplateAssertionError)
+                and "unknown filter" in error_str
+            )
         ):
             return "filter"
 
@@ -224,7 +238,10 @@ class TemplateRenderError(BengalRenderingError):
                             filename = parts[-1]
                     break
                 # Also check for Jinja2/Kida internal frames that have template info
-                if "jinja2" in frame.filename.lower() or "kida" in frame.filename.lower():
+                if (
+                    "jinja2" in frame.filename.lower()
+                    or "kida" in frame.filename.lower()
+                ):
                     # The previous frame might have the actual template line
                     continue
 
@@ -244,9 +261,11 @@ class TemplateRenderError(BengalRenderingError):
                 # This happens when compiled templates don't preserve line info
                 if line_number == 1 and lines:
                     first_line = lines[0].strip()
-                    if first_line.startswith("{#") or first_line.startswith("#"):
+                    if first_line.startswith(("{#", "#")):
                         # Find the first non-comment, non-empty line with actual code
-                        line_number = TemplateRenderError._find_first_code_line(lines, error)
+                        line_number = TemplateRenderError._find_first_code_line(
+                            lines, error
+                        )
 
                 if line_number and 1 <= line_number <= len(lines):
                     # Get the error line
@@ -256,8 +275,9 @@ class TemplateRenderError(BengalRenderingError):
                     start = max(0, line_number - 4)
                     end = min(len(lines), line_number + 3)
 
-                    for i in range(start, end):
-                        surrounding_lines.append((i + 1, lines[i].rstrip()))
+                    surrounding_lines.extend(
+                        (i + 1, lines[i].rstrip()) for i in range(start, end)
+                    )
             except (OSError, IndexError):
                 pass
 
@@ -329,7 +349,9 @@ class TemplateRenderError(BengalRenderingError):
         return first_code_line
 
     @staticmethod
-    def _build_inclusion_chain(error: Exception, template_engine: Any) -> InclusionChain | None:
+    def _build_inclusion_chain(
+        error: Exception, template_engine: Any
+    ) -> InclusionChain | None:
         """Build template inclusion chain from traceback."""
         # Parse Python traceback to find template includes
         import traceback
@@ -357,7 +379,9 @@ class TemplateRenderError(BengalRenderingError):
 
         if error_type == "callable":
             # Try to identify what was None from the traceback and template
-            callable_info = TemplateRenderError._identify_none_callable(error, template_path)
+            callable_info = TemplateRenderError._identify_none_callable(
+                error, template_path
+            )
             if callable_info:
                 return callable_info
             return (
@@ -386,16 +410,16 @@ class TemplateRenderError(BengalRenderingError):
 
         elif error_type == "syntax":
             if "with" in error_str:
-                return (
-                    "Jinja2 doesn't support 'with' in include. Use {% set %} before {% include %}"
-                )
+                return "Jinja2 doesn't support 'with' in include. Use {% set %} before {% include %}"
             elif "default=" in error_str:
                 return "The 'default' parameter in sort() is not supported. Remove it or use a custom filter."
 
         return None
 
     @staticmethod
-    def _identify_none_callable(error: Exception, template_path: Path | None = None) -> str | None:
+    def _identify_none_callable(
+        error: Exception, template_path: Path | None = None
+    ) -> str | None:
         """
         Analyze traceback and template source to identify what None callable was being called.
 
@@ -459,7 +483,9 @@ class TemplateRenderError(BengalRenderingError):
         # If we have the template path, scan it for likely suspects
         if template_path and template_path.exists():
             try:
-                template_suspects = TemplateRenderError._scan_template_for_callables(template_path)
+                template_suspects = TemplateRenderError._scan_template_for_callables(
+                    template_path
+                )
                 suspects.extend(template_suspects)
             except Exception:
                 pass
@@ -572,7 +598,9 @@ class TemplateRenderError(BengalRenderingError):
         return suspects
 
     @staticmethod
-    def _find_alternatives(error: Exception, error_type: str, template_engine: Any) -> list[str]:
+    def _find_alternatives(
+        error: Exception, error_type: str, template_engine: Any
+    ) -> list[str]:
         """Find alternative filters/variables that might work."""
         if error_type != "filter":
             return []
@@ -592,6 +620,8 @@ class TemplateRenderError(BengalRenderingError):
         # Find similar filters (Levenshtein distance or simple matching)
         from difflib import get_close_matches
 
-        suggestions = get_close_matches(unknown_filter, available_filters, n=3, cutoff=0.6)
+        suggestions = get_close_matches(
+            unknown_filter, available_filters, n=3, cutoff=0.6
+        )
 
         return suggestions

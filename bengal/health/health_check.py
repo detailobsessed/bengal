@@ -42,7 +42,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from bengal.health.base import BaseValidator
 from bengal.health.report import CheckResult, HealthReport, ValidatorReport
@@ -57,10 +57,10 @@ if TYPE_CHECKING:
 class HealthCheckStats:
     """
     Statistics about health check execution.
-    
+
     Provides observability into parallel execution performance, useful for
     diagnosing slow builds and validating that parallelization is effective.
-    
+
     Attributes:
         total_duration_ms: Wall-clock time for entire health check run
         execution_mode: Either 'parallel' or 'sequential'
@@ -68,7 +68,7 @@ class HealthCheckStats:
         worker_count: Number of worker threads used (1 for sequential)
         cpu_count: Available CPU cores on system
         sum_validator_duration_ms: Sum of individual validator durations
-        
+
     """
 
     total_duration_ms: float
@@ -118,22 +118,22 @@ class HealthCheckStats:
 class HealthCheck:
     """
     Orchestrates health check validators and produces unified health reports.
-    
+
     By default, registers all standard validators. You can disable auto-registration
     by passing auto_register=False, then manually register validators.
-    
+
     Usage:
         # Default: auto-registers all validators
         health = HealthCheck(site)
         report = health.run()
         print(report.format_console())
-    
+
         # Manual registration:
         health = HealthCheck(site, auto_register=False)
         health.register(ConfigValidator())
         health.register(OutputValidator())
         report = health.run()
-        
+
     """
 
     def __init__(self, site: SiteLike, auto_register: bool = True):
@@ -324,7 +324,12 @@ class HealthCheck:
             if verbose and len(enabled_validators) > 0:
                 print(f"  📝 Running {len(enabled_validators)} validators sequentially")
             self._run_validators_sequential(
-                enabled_validators, report, build_context, verbose, cache, files_to_validate
+                enabled_validators,
+                report,
+                build_context,
+                verbose,
+                cache,
+                files_to_validate,
             )
 
         # Calculate and store stats
@@ -366,7 +371,10 @@ class HealthCheck:
         """
         from bengal.config.defaults import get_feature_config
 
-        health_config = get_feature_config(self.site.config, "health_check")
+        # Get config for get_feature_config - config already supports dict-like access
+        health_config = get_feature_config(
+            cast("dict[str, Any]", self.site.config), "health_check"
+        )
 
         # Get tier validator lists
         build_validators = health_config.get("build_validators", [])
@@ -416,11 +424,16 @@ class HealthCheck:
             # Check config for explicit override (normalized to handle bool/dict)
             from bengal.config.defaults import get_feature_config
 
-            health_config = get_feature_config(self.site.config, "health_check")
+            # Get config for get_feature_config - config already supports dict-like access
+            health_config = get_feature_config(
+                cast("dict[str, Any]", self.site.config), "health_check"
+            )
             validators_config = health_config.get("validators", {})
             validator_key = validator.name.lower().replace(" ", "_")
             config_explicit = validator_key in validators_config
-            config_value = validators_config.get(validator_key) if config_explicit else None
+            config_value = (
+                validators_config.get(validator_key) if config_explicit else None
+            )
 
             if profile_allows:
                 # Profile allows it - check if config explicitly disables
@@ -442,6 +455,7 @@ class HealthCheck:
                     return False
         else:
             # No profile - use config/default
+            # Config already supports dict-like access via is_enabled's Any type
             if not validator.is_enabled(self.site.config):
                 if verbose:
                     print(f"  Skipping {validator.name} (disabled in config)")
@@ -464,7 +478,7 @@ class HealthCheck:
         """
         if context:
             # Explicit context provided - validate only these files
-            return set(Path(p) for p in context)
+            return {Path(p) for p in context}
         elif incremental and cache:
             # Incremental mode - find changed files
             files_to_validate: set[Path] = set()
@@ -511,14 +525,19 @@ class HealthCheck:
             # Try to get cached results for unchanged files
             for page in self.site.pages:
                 if not page.source_path or (
-                    files_to_validate is not None and page.source_path in files_to_validate
+                    files_to_validate is not None
+                    and page.source_path in files_to_validate
                 ):
                     continue  # Skip changed files or pages without source
 
-                cached = cache.get_cached_validation_results(page.source_path, validator.name)
+                cached = cache.get_cached_validation_results(
+                    page.source_path, validator.name
+                )
                 if cached:
                     # Deserialize cached results
-                    cached_results.extend([CheckResult.from_cache_dict(r) for r in cached])
+                    cached_results.extend(
+                        [CheckResult.from_cache_dict(r) for r in cached]
+                    )
 
         # Run validator and time it
         start_time = time.time()
@@ -535,7 +554,9 @@ class HealthCheck:
             # Filter out ignored codes
             ignore_codes = getattr(self, "_ignore_codes", set())
             if ignore_codes:
-                results = [r for r in results if not (r.code and r.code in ignore_codes)]
+                results = [
+                    r for r in results if not (r.code and r.code in ignore_codes)
+                ]
 
         except Exception as e:
             # If validator crashes, record as error and track in session
@@ -636,7 +657,11 @@ class HealthCheck:
             # Submit all validators for parallel execution
             futures = {
                 executor.submit(
-                    self._run_single_validator, v, build_context, cache, files_to_validate
+                    self._run_single_validator,
+                    v,
+                    build_context,
+                    cache,
+                    files_to_validate,
                 ): v
                 for v in validators
             }

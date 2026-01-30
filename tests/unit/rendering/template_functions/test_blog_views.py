@@ -1,7 +1,5 @@
 """Tests for blog view filters (PostView, posts filter)."""
 
-from __future__ import annotations
-
 from datetime import datetime
 from unittest.mock import MagicMock
 

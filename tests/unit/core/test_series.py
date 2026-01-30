@@ -1,7 +1,5 @@
 """Tests for bengal.core.series module."""
 
-from __future__ import annotations
-
 from bengal.core.series import Series
 
 

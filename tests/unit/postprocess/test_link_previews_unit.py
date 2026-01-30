@@ -7,8 +7,6 @@ for Wikipedia-style hover cards on internal links.
 See: plan/drafted/rfc-link-previews.md
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.config.defaults import DEFAULTS, normalize_bool_or_dict
@@ -95,10 +93,10 @@ class TestLinkPreviewsNormalization:
 class TestJsonUrlConversion:
     """
     Test JSON URL conversion logic.
-    
+
     Note: The actual toJsonUrl() is in JavaScript. These tests document
     the expected behavior for parity testing.
-        
+
     """
 
     @pytest.mark.parametrize(

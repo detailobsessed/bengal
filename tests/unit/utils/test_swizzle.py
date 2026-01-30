@@ -28,8 +28,12 @@ def temp_site(tmp_path):
     # Create common test templates with unique names to avoid conflicts with real theme
     (partials_dir / "test-component.html").write_text("<div>Test Component</div>")
     (partials_dir / "test-nav.html").write_text("<nav>Test Navigation</nav>")
-    (theme_dir / "test-base.html").write_text("<!DOCTYPE html><html><body>Base</body></html>")
-    (theme_dir / "test-page.html").write_text("<!DOCTYPE html><html><body>Test Page</body></html>")
+    (theme_dir / "test-base.html").write_text(
+        "<!DOCTYPE html><html><body>Base</body></html>"
+    )
+    (theme_dir / "test-page.html").write_text(
+        "<!DOCTYPE html><html><body>Test Page</body></html>"
+    )
 
     return root
 
@@ -73,11 +77,17 @@ class TestSwizzleManager:
 
         assert manager.site == mock_site
         assert manager.root == mock_site.root_path
-        assert manager.registry_path == mock_site.root_path / ".bengal" / "themes" / "sources.json"
+        assert (
+            manager.registry_path
+            == mock_site.root_path / ".bengal" / "themes" / "sources.json"
+        )
 
     def test_registry_path_structure(self, swizzle_manager, temp_site):
         """Test registry path has correct structure."""
-        assert swizzle_manager.registry_path == temp_site / ".bengal" / "themes" / "sources.json"
+        assert (
+            swizzle_manager.registry_path
+            == temp_site / ".bengal" / "themes" / "sources.json"
+        )
 
 
 class TestSwizzle:
@@ -222,17 +232,20 @@ class TestDetectModifications:
     def test_unmodified_template(self, swizzle_manager, temp_site):
         """Test detecting unmodified template."""
         from bengal.themes.swizzle import ModificationStatus
-        
+
         swizzle_manager.swizzle("partials/test-component.html")
 
         # Template not modified - use public API
         assert swizzle_manager.is_modified("partials/test-component.html") is False
-        assert swizzle_manager.get_modification_status("partials/test-component.html") == ModificationStatus.UNCHANGED
+        assert (
+            swizzle_manager.get_modification_status("partials/test-component.html")
+            == ModificationStatus.UNCHANGED
+        )
 
     def test_modified_template(self, swizzle_manager, temp_site):
         """Test detecting modified template."""
         from bengal.themes.swizzle import ModificationStatus
-        
+
         swizzle_manager.swizzle("partials/test-component.html")
 
         # Modify the local template
@@ -241,15 +254,21 @@ class TestDetectModifications:
 
         # Use public API
         assert swizzle_manager.is_modified("partials/test-component.html") is True
-        assert swizzle_manager.get_modification_status("partials/test-component.html") == ModificationStatus.MODIFIED
+        assert (
+            swizzle_manager.get_modification_status("partials/test-component.html")
+            == ModificationStatus.MODIFIED
+        )
 
     def test_modified_detection_for_missing_template(self, swizzle_manager):
         """Test modification detection for template not in registry."""
         from bengal.themes.swizzle import ModificationStatus
-        
+
         # Template never swizzled - use public API
         assert swizzle_manager.is_modified("partials/nonexistent.html") is False
-        assert swizzle_manager.get_modification_status("partials/nonexistent.html") == ModificationStatus.NOT_SWIZZLED
+        assert (
+            swizzle_manager.get_modification_status("partials/nonexistent.html")
+            == ModificationStatus.NOT_SWIZZLED
+        )
 
 
 class TestChecksumCalculation:
@@ -299,7 +318,12 @@ class TestFindThemeTemplate:
         template = swizzle_manager._find_theme_template("partials/test-component.html")
 
         expected = (
-            temp_site / "themes" / "default" / "templates" / "partials" / "test-component.html"
+            temp_site
+            / "themes"
+            / "default"
+            / "templates"
+            / "partials"
+            / "test-component.html"
         )
         assert template == expected
 
@@ -462,7 +486,9 @@ class TestRealWorldScenarios:
         partials = ["header.html", "footer.html", "sidebar.html"]
 
         for partial in partials:
-            theme_file = temp_site / "themes" / "default" / "templates" / "partials" / partial
+            theme_file = (
+                temp_site / "themes" / "default" / "templates" / "partials" / partial
+            )
             theme_file.parent.mkdir(parents=True, exist_ok=True)
             theme_file.write_text(f"<div>Original {partial}</div>")
 
@@ -471,7 +497,9 @@ class TestRealWorldScenarios:
             swizzle_manager.swizzle(f"partials/{partial}")
 
         # Customize some
-        (temp_site / "templates" / "partials" / "header.html").write_text("<header>Custom</header>")
+        (temp_site / "templates" / "partials" / "header.html").write_text(
+            "<header>Custom</header>"
+        )
 
         # Check modification detection using public API
         assert swizzle_manager.is_modified("partials/header.html") is True
@@ -480,7 +508,11 @@ class TestRealWorldScenarios:
     def test_list_and_inspect_swizzled_files(self, swizzle_manager, temp_site):
         """Test listing swizzled files for inspection."""
         # Swizzle some templates
-        templates = ["test-base.html", "partials/test-component.html", "partials/test-nav.html"]
+        templates = [
+            "test-base.html",
+            "partials/test-component.html",
+            "partials/test-nav.html",
+        ]
 
         for template in templates:
             swizzle_manager.swizzle(template)

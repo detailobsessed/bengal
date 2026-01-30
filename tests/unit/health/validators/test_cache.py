@@ -4,8 +4,6 @@ Tests health/validators/cache.py:
 - CacheValidator: incremental build cache integrity checks
 """
 
-from __future__ import annotations
-
 import json
 from unittest.mock import MagicMock
 
@@ -71,7 +69,10 @@ class TestCacheValidatorNoCacheFile:
         results = validator.validate(mock_site)
         info_results = [r for r in results if r.status == CheckStatus.INFO]
         assert len(info_results) >= 1
-        assert any("No cache file" in r.message or "first build" in r.message for r in info_results)
+        assert any(
+            "No cache file" in r.message or "first build" in r.message
+            for r in info_results
+        )
 
 
 class TestCacheValidatorLegacyLocation:
@@ -144,7 +145,9 @@ class TestCacheValidatorStructure:
         cache_dir = mock_site.root_path / ".bengal"
         cache_dir.mkdir(parents=True, exist_ok=True)
         cache_path = cache_dir / "cache.json"
-        cache_path.write_text(json.dumps({"file_hashes": "not a dict", "dependencies": {}}))
+        cache_path.write_text(
+            json.dumps({"file_hashes": "not a dict", "dependencies": {}})
+        )
 
         results = validator.validate(mock_site)
         error_results = [r for r in results if r.status == CheckStatus.ERROR]
@@ -164,7 +167,9 @@ class TestCacheValidatorSize:
 
         results = validator.validate(mock_site)
         # Should have a success message about size
-        size_results = [r for r in results if "size" in r.message.lower() or "MB" in r.message]
+        size_results = [
+            r for r in results if "size" in r.message.lower() or "MB" in r.message
+        ]
         assert len(size_results) >= 1
 
     def test_warns_on_large_file_count(self, validator, mock_site):
@@ -175,11 +180,16 @@ class TestCacheValidatorSize:
 
         # Create cache with many files (over 10000)
         file_hashes = {f"file_{i}.md": f"hash_{i}" for i in range(11000)}
-        cache_path.write_text(json.dumps({"file_hashes": file_hashes, "dependencies": {}}))
+        cache_path.write_text(
+            json.dumps({"file_hashes": file_hashes, "dependencies": {}})
+        )
 
         results = validator.validate(mock_site)
         warning_results = [r for r in results if r.status == CheckStatus.WARNING]
-        assert any("large" in r.message.lower() or "10,000" in r.message for r in warning_results)
+        assert any(
+            "large" in r.message.lower() or "10,000" in r.message
+            for r in warning_results
+        )
 
 
 class TestCacheValidatorDependencies:

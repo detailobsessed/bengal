@@ -15,8 +15,8 @@ from bengal.cli.helpers import (
     load_site_from_cli,
 )
 from bengal.core.theme import get_installed_themes, get_theme_package
-from bengal.utils.observability.logger import get_logger
 from bengal.themes.swizzle import SwizzleManager
+from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -24,7 +24,6 @@ logger = get_logger(__name__)
 @click.group(cls=BengalGroup)
 def theme() -> None:
     """Theme utilities (list/info/discover/install, swizzle)."""
-    pass
 
 
 @theme.command()
@@ -44,22 +43,24 @@ def theme() -> None:
 def swizzle(template_path: str, source: str) -> None:
     """
     Copy a theme template/partial to project templates.
-    
+
     Swizzling copies a template from the active theme to your project's
     templates/ directory, allowing you to customize it while tracking
     provenance for future updates.
-    
+
     Examples:
         bengal theme swizzle layouts/article.html
         bengal theme swizzle partials/header.html
-    
+
     See also:
         bengal theme swizzle-list - List swizzled templates
         bengal theme swizzle-update - Update swizzled templates
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
     mgr = SwizzleManager(site)
     dest = mgr.swizzle(template_path)
     cli.success(f"✓ Swizzled to {dest}")
@@ -78,20 +79,22 @@ def swizzle(template_path: str, source: str) -> None:
 def swizzle_list(source: str) -> None:
     """
     📋 List swizzled templates.
-    
+
     Shows all templates that have been copied from themes to your project,
     along with their source theme for tracking.
-    
+
     Examples:
         bengal theme swizzle-list
-    
+
     See also:
         bengal theme swizzle - Copy a template from theme
         bengal theme swizzle-update - Update swizzled templates
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
     mgr = SwizzleManager(site)
     records = mgr.list()
     if not records:
@@ -114,20 +117,22 @@ def swizzle_list(source: str) -> None:
 def swizzle_update(source: str) -> None:
     """
     Update swizzled templates if unchanged locally.
-    
+
     Checks swizzled templates and updates them from the theme if you haven't
     modified them locally. Templates you've customized are skipped.
-    
+
     Examples:
         bengal theme swizzle-update
-    
+
     See also:
         bengal theme swizzle - Copy a template from theme
         bengal theme swizzle-list - List swizzled templates
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
     mgr = SwizzleManager(site)
     summary = mgr.update()
     cli.info(
@@ -148,22 +153,24 @@ def swizzle_update(source: str) -> None:
 def list_themes(source: str) -> None:
     """
     📋 List available themes.
-    
+
     Shows themes from three sources:
     - Project themes: themes/ directory in your site
     - Installed themes: Themes installed via pip/uv
     - Bundled themes: Themes included with Bengal
-    
+
     Examples:
         bengal theme list
-    
+
     See also:
         bengal theme info - Show details about a specific theme
         bengal theme install - Install a theme package
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
 
     # Project themes
     themes_dir = site.root_path / "themes"
@@ -193,7 +200,6 @@ def list_themes(source: str) -> None:
             error_type=type(e).__name__,
             action="treating_as_no_bundled_themes",
         )
-        pass
 
     cli.header("Project themes:")
     if project:
@@ -233,22 +239,24 @@ def list_themes(source: str) -> None:
 def info(slug: str, source: str) -> None:
     """
     Show theme info for a slug.
-    
+
     Displays information about a theme including:
     - Source location (project, installed, or bundled)
     - Version (if installed)
     - Template and asset paths
-    
+
     Examples:
         bengal theme info default
         bengal theme info my-theme
-    
+
     See also:
         bengal theme list - List all available themes
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
     cli.header(f"Theme: {slug}")
 
     # Project theme
@@ -286,7 +294,6 @@ def info(slug: str, source: str) -> None:
             error_type=type(e).__name__,
             action="treating_as_not_found",
         )
-        pass
 
 
 @theme.command("discover")
@@ -302,19 +309,21 @@ def info(slug: str, source: str) -> None:
 def discover(source: str) -> None:
     """
     List swizzlable templates from the active theme chain.
-    
+
     Shows all templates available in your active theme(s) that can be
     swizzled (copied) to your project for customization.
-    
+
     Examples:
         bengal theme discover
-    
+
     See also:
         bengal theme swizzle - Copy a template from theme
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
     from bengal.rendering.engines import create_engine
 
     engine = create_engine(site)
@@ -342,25 +351,27 @@ def discover(source: str) -> None:
 def debug(source: str, template: str | None) -> None:
     """
     🐛 Debug theme resolution and template paths.
-    
+
     Shows comprehensive information about:
     - Active theme chain (inheritance order)
     - Template resolution paths (priority order)
     - Template source locations
     - Theme validation (circular inheritance, missing themes)
     - Specific template resolution (if --template provided)
-    
+
     Examples:
         bengal theme debug
         bengal theme debug --template page.html
-    
+
     See also:
         bengal theme info - Show details about a specific theme
         bengal theme list - List available themes
-        
+
     """
     cli = get_cli_output()
-    site = load_site_from_cli(source=source, config=None, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=None, environment=None, profile=None, cli=cli
+    )
     from bengal.core.theme import resolve_theme_chain
     from bengal.rendering.engines import create_engine
 
@@ -408,7 +419,9 @@ def debug(source: str, template: str | None) -> None:
         for tpl_name in common_templates:
             tpl_path = engine.get_template_path(tpl_name)
             if tpl_path:
-                source_type = _get_template_dir_source_type(site.root_path, tpl_path.parent)
+                source_type = _get_template_dir_source_type(
+                    site.root_path, tpl_path.parent
+                )
                 cli.info(f"  {tpl_name}: {tpl_path} ({source_type})")
             else:
                 cli.info(f"  {tpl_name}: (not found)")
@@ -457,7 +470,7 @@ def _validate_theme_chain(site_root: Path, active_theme: str | None) -> list[str
         if current in visited:
             # Found a cycle - show the cycle path
             cycle_start = chain_path.index(current)
-            cycle = " → ".join(chain_path[cycle_start:] + [current])
+            cycle = " → ".join([*chain_path[cycle_start:], current])
             issues.append(f"Circular inheritance detected: {cycle}")
             break
         visited.add(current)
@@ -475,11 +488,11 @@ def _validate_theme_chain(site_root: Path, active_theme: str | None) -> list[str
     from bengal.core.theme import resolve_theme_chain
 
     chain = resolve_theme_chain(site_root, active_theme)
-    for theme_name in chain:
-        if not _theme_exists(site_root, theme_name):
-            issues.append(
-                f"Theme '{theme_name}' not found in any location (site, installed, or bundled)"
-            )
+    issues.extend(
+        f"Theme '{theme_name}' not found in any location (site, installed, or bundled)"
+        for theme_name in chain
+        if not _theme_exists(site_root, theme_name)
+    )
 
     return issues
 
@@ -600,17 +613,17 @@ SAFE_PACKAGE_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9._-]*$")
 def install(name: str, force: bool) -> None:
     """
     Install a theme via uv pip.
-    
+
     Installs a theme package from PyPI. NAME may be a package name or a slug.
     If a slug without prefix is provided, suggests canonical 'bengal-theme-<slug>'.
-    
+
     Examples:
         bengal theme install bengal-theme-minimal
         bengal theme install minimal --force
-    
+
     See also:
         bengal theme list - List available themes
-        
+
     """
     cli = get_cli_output()
 
@@ -667,7 +680,9 @@ def _sanitize_slug(slug: str) -> str:
     slugified = re.sub(r"[^a-z0-9\-]", "-", slug.lower()).strip("-")
     slugified = re.sub(r"-+", "-", slugified)
     if not slugified:
-        raise click.ClickException("Invalid slug; must contain letters, numbers, or dashes")
+        raise click.ClickException(
+            "Invalid slug; must contain letters, numbers, or dashes"
+        )
     return slugified
 
 
@@ -701,17 +716,17 @@ def _sanitize_slug(slug: str) -> str:
 def new(slug: str, mode: str, output: str, extends: str, force: bool) -> None:
     """
     Create a new theme scaffold.
-    
+
     Creates a new theme with templates, partials, and assets. SLUG is the
     theme identifier used in config (e.g., [site].theme = SLUG).
-    
+
     Examples:
         bengal theme new my-theme
         bengal theme new my-theme --mode package
-    
+
     See also:
         bengal theme list - List available themes
-        
+
     """
     cli = get_cli_output()
     slug = _sanitize_slug(slug)
@@ -791,7 +806,9 @@ def new(slug: str, mode: str, output: str, extends: str, force: bool) -> None:
         ),
         encoding="utf-8",
     )
-    (pkg_root / "bengal_themes" / "__init__.py").write_text("__all__ = []\n", encoding="utf-8")
+    (pkg_root / "bengal_themes" / "__init__.py").write_text(
+        "__all__ = []\n", encoding="utf-8"
+    )
     (theme_pkg_dir / "__init__.py").write_text("__all__ = []\n", encoding="utf-8")
     (theme_pkg_dir / "templates" / "page.html").write_text(
         "{% extends 'page.html' %}\n{% block content %}<main>{{ content|default('Hello from ' ~ site.theme) }}</main>{% endblock %}\n",

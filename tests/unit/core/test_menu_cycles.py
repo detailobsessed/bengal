@@ -49,16 +49,18 @@ class TestMenuCircularDependencies:
 
 class TestCycleDetectionEdgeCases:
     """Edge case tests for cycle detection algorithm.
-    
+
     The _has_cycle() method uses backtracking with O(d) space complexity
     instead of O(n × d) from copying the path set on each recursive call.
-        
+
     """
 
     def test_self_referencing_item(self):
         """Test that a self-referencing item is detected as a cycle."""
         builder = MenuBuilder()
-        builder.add_from_config([{"name": "Self", "url": "/self", "identifier": "self"}])
+        builder.add_from_config(
+            [{"name": "Self", "url": "/self", "identifier": "self"}]
+        )
         builder.build_hierarchy()
 
         # Manually create self-reference
@@ -93,15 +95,15 @@ class TestCycleDetectionEdgeCases:
         builder = MenuBuilder()
         config = [{"name": "Level 0", "url": "/l0", "identifier": "l0"}]
 
-        for i in range(1, 15):
-            config.append(
-                {
-                    "name": f"Level {i}",
-                    "url": f"/l{i}",
-                    "parent": f"l{i - 1}",
-                    "identifier": f"l{i}",
-                }
-            )
+        config.extend(
+            {
+                "name": f"Level {i}",
+                "url": f"/l{i}",
+                "parent": f"l{i - 1}",
+                "identifier": f"l{i}",
+            }
+            for i in range(1, 15)
+        )
 
         builder.add_from_config(config)
         roots = builder.build_hierarchy()
@@ -124,16 +126,16 @@ class TestCycleDetectionEdgeCases:
         config = [{"name": "Root", "url": "/root", "identifier": "root"}]
 
         # Add 50 children to root
-        for i in range(50):
-            config.append(
-                {
-                    "name": f"Child {i}",
-                    "url": f"/child{i}",
-                    "parent": "root",
-                    "identifier": f"child{i}",
-                    "weight": i,
-                }
-            )
+        config.extend(
+            {
+                "name": f"Child {i}",
+                "url": f"/child{i}",
+                "parent": "root",
+                "identifier": f"child{i}",
+                "weight": i,
+            }
+            for i in range(50)
+        )
 
         builder.add_from_config(config)
         roots = builder.build_hierarchy()

@@ -32,13 +32,17 @@ def validate_css_syntax(css: str) -> list[str]:
     open_parens = css.count("(")
     close_parens = css.count(")")
     if open_parens != close_parens:
-        issues.append(f"Unmatched parentheses: {open_parens} open, {close_parens} close")
+        issues.append(
+            f"Unmatched parentheses: {open_parens} open, {close_parens} close"
+        )
 
     # Check for unmatched brackets
     open_brackets = css.count("[")
     close_brackets = css.count("]")
     if open_brackets != close_brackets:
-        issues.append(f"Unmatched brackets: {open_brackets} open, {close_brackets} close")
+        issues.append(
+            f"Unmatched brackets: {open_brackets} open, {close_brackets} close"
+        )
 
     # Check for unmatched quotes (simple check)
     single_quotes = css.count("'")
@@ -67,7 +71,10 @@ def test_real_world_patterns():
         ("Complex selector chain", ".a > .b + .c ~ .d { color: red; }"),
         ("Nested @layer", "@layer a { @layer b { div { color: red; } } }"),
         ("Multiple @imports", '@import "a.css"; @import "b.css"; body { }'),
-        ("@media with @layer", "@media (min-width: 768px) { @layer tokens { :root { } } }"),
+        (
+            "@media with @layer",
+            "@media (min-width: 768px) { @layer tokens { :root { } } }",
+        ),
         ("CSS Grid", "div { display: grid; grid-template-columns: repeat(3, 1fr); }"),
         ("Flexbox", "div { display: flex; gap: 1rem; }"),
         ("Custom properties in calc", ":root { --spacing: calc(1rem + 2px); }"),
@@ -76,8 +83,14 @@ def test_real_world_patterns():
         ("Complex :not()", "div:not(.a):not(.b) { }"),
         ("@supports with @layer", "@supports (display: grid) { @layer base { } }"),
         ("URLs with spaces", 'div { background: url("path with spaces.png"); }'),
-        ("Color functions", "div { color: rgb(255, 0, 0); background: hsl(0, 100%, 50%); }"),
-        ("Transform functions", "div { transform: translate(10px, 20px) rotate(45deg); }"),
+        (
+            "Color functions",
+            "div { color: rgb(255, 0, 0); background: hsl(0, 100%, 50%); }",
+        ),
+        (
+            "Transform functions",
+            "div { transform: translate(10px, 20px) rotate(45deg); }",
+        ),
         ("Multiple selectors", ".a, .b, .c { color: red; }"),
         ("Descendant selector", ".parent .child { }"),
         ("Adjacent sibling", ".prev + .next { }"),
@@ -87,7 +100,10 @@ def test_real_world_patterns():
         ("@keyframes", "@keyframes fade { from { opacity: 0; } to { opacity: 1; } }"),
         ("@font-face", '@font-face { font-family: "Custom"; src: url("font.woff2"); }'),
         ("CSS nesting with &", ".btn { color: blue; &:hover { color: red; } }"),
-        ("Multiple properties", "div { margin: 0; padding: 1rem; border: 1px solid #000; }"),
+        (
+            "Multiple properties",
+            "div { margin: 0; padding: 1rem; border: 1px solid #000; }",
+        ),
         ("!important", "div { color: red !important; margin: 0 !important; }"),
         ("Comments in strings", 'div { content: "/* not a comment */"; }'),
         ("Escaped characters", 'div { content: "Say \\"hello\\""; }'),

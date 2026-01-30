@@ -5,8 +5,6 @@ Tests the page explanation functionality including source info extraction,
 template chain resolution, dependency tracking, cache status, and diagnostics.
 """
 
-from __future__ import annotations
-
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -118,7 +116,9 @@ class TestPageExplainer:
         page1 = MagicMock()
         page1.source_path = Path("content/docs/guide.md")
         page1.content = "# Guide\n\nSome content here.\n"
-        page1._source = "# Guide\n\nSome content here.\n"  # Required: source code uses page._source
+        page1._source = (
+            "# Guide\n\nSome content here.\n"  # Required: source code uses page._source
+        )
         page1.metadata = {"title": "Guide", "type": "doc", "tags": ["tutorial"]}
         page1.is_virtual = False
         page1.href = "/docs/guide/"
@@ -131,9 +131,7 @@ class TestPageExplainer:
         page2 = MagicMock()
         page2.source_path = Path("content/posts/hello.md")
         page2.content = "# Hello\n\n:::note\nA note\n:::\n"
-        page2._source = (
-            "# Hello\n\n:::note\nA note\n:::\n"  # Required: source code uses page._source
-        )
+        page2._source = "# Hello\n\n:::note\nA note\n:::\n"  # Required: source code uses page._source
         page2.metadata = {"title": "Hello", "type": "post"}
         page2.is_virtual = False
         page2.href = "/posts/hello/"

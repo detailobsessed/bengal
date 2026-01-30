@@ -13,8 +13,6 @@ These tests verify that:
 - Incremental builds can leverage cached data
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -96,7 +94,11 @@ date: 2025-01-02
         # Create site for testing with minimal config
         config = {
             "site": {"title": "Test Site", "baseurl": "http://localhost:8080"},
-            "build": {"output_dir": "public", "generate_sitemap": False, "generate_rss": False},
+            "build": {
+                "output_dir": "public",
+                "generate_sitemap": False,
+                "generate_rss": False,
+            },
         }
         site = Site.for_testing(root_path=tmpdir_path, config=config)
         yield site
@@ -204,7 +206,9 @@ class TestAssetDependencyMapTracking:
 
         # Check for specific assets - these are converted to img tags by markdown
         assert any("/images/python.png" in a for a in assets), "Image not tracked"
-        assert any("/js/highlight.js" in a for a in assets), "Highlight script not tracked"
+        assert any("/js/highlight.js" in a for a in assets), (
+            "Highlight script not tracked"
+        )
 
     def test_asset_dependency_map_tracks_multiple_asset_types(self, site_with_content):
         """Verify AssetDependencyMap tracks different asset types (images, scripts, styles)."""
@@ -242,7 +246,9 @@ class TestTaxonomyIndexPersistence:
         cache_dir = site_with_content.root_path / ".bengal"
         taxonomy_file = cache_dir / "taxonomy_index.json"
         compressed_file = cache_dir / "taxonomy_index.json.zst"
-        assert compressed_file.exists() or taxonomy_file.exists(), "TaxonomyIndex not saved to disk"
+        assert compressed_file.exists() or taxonomy_file.exists(), (
+            "TaxonomyIndex not saved to disk"
+        )
 
         # Load index and verify content (TaxonomyIndex handles both formats via load_auto)
         index = TaxonomyIndex(taxonomy_file)
@@ -259,7 +265,9 @@ class TestTaxonomyIndexPersistence:
         index = TaxonomyIndex(taxonomy_file)
 
         # Verify expected tags exist
-        assert "python" in index.tags or "programming" in index.tags, "Expected tags not found"
+        assert "python" in index.tags or "programming" in index.tags, (
+            "Expected tags not found"
+        )
 
         # Verify tag entries have pages
         for tag_slug, entry in index.tags.items():
@@ -309,9 +317,9 @@ class TestCacheIntegrationEndToEnd:
         assert asset_cache.exists() or (cache_dir / "asset_deps.json").exists(), (
             "AssetDependencyMap missing"
         )
-        assert taxonomy_cache.exists() or (cache_dir / "taxonomy_index.json").exists(), (
-            "TaxonomyIndex missing"
-        )
+        assert (
+            taxonomy_cache.exists() or (cache_dir / "taxonomy_index.json").exists()
+        ), "TaxonomyIndex missing"
 
     def test_cache_data_persistence_across_reloads(self, site_with_content):
         """Verify cache data persists and can be reloaded."""
@@ -356,7 +364,9 @@ class TestCacheIntegrationEndToEnd:
         compressed_taxonomy_cache = cache_dir / "taxonomy_index.json.zst"
 
         assert compressed_page_cache.exists(), "PageDiscoveryCache should be compressed"
-        assert compressed_asset_cache.exists(), "AssetDependencyMap should be compressed"
+        assert compressed_asset_cache.exists(), (
+            "AssetDependencyMap should be compressed"
+        )
         assert compressed_taxonomy_cache.exists(), "TaxonomyIndex should be compressed"
 
         # Verify compression ratios (should be ~92-93% reduction)

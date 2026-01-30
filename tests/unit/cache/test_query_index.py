@@ -441,7 +441,9 @@ class TestQueryIndexThreadSafety:
 class TestQueryIndexInvariantViolation:
     """Tests for handling invariant violations in QueryIndex."""
 
-    def test_save_clears_index_on_invariant_violation(self, build_cache, temp_cache_path):
+    def test_save_clears_index_on_invariant_violation(
+        self, build_cache, temp_cache_path
+    ):
         """save_to_disk clears index if invariants are violated."""
         from bengal.cache.query_index import IndexEntry
 

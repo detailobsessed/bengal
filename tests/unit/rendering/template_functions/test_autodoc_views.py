@@ -5,8 +5,6 @@ These views normalize access to Python and CLI autodoc data for theme developers
 providing a consistent API regardless of how data is stored in DocElements.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -152,7 +150,9 @@ class TestMemberViewFromDocElement:
             signature="def process(data: str) -> bool",
             parameters=(
                 MockParameterInfo(name="self"),
-                MockParameterInfo(name="data", type_hint="str", description="Input data"),
+                MockParameterInfo(
+                    name="data", type_hint="str", description="Input data"
+                ),
             ),
             return_type="bool",
             is_async=True,

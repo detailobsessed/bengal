@@ -4,8 +4,6 @@ Unit tests for bengal.icons.resolver module.
 Tests the theme-aware icon resolution system.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -40,7 +38,9 @@ class TestIconResolutionOrder:
 
         second_dir = tmp_path / "second" / "icons"
         second_dir.mkdir(parents=True)
-        (second_dir / "fallback.svg").write_text('<svg id="fallback"><!-- fallback --></svg>')
+        (second_dir / "fallback.svg").write_text(
+            '<svg id="fallback"><!-- fallback --></svg>'
+        )
 
         # Set up search paths with fallthrough
         icon_resolver._search_paths = [first_dir, second_dir]

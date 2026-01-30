@@ -54,25 +54,25 @@ logger = get_logger(__name__)
 class ContentTypeStrategy:
     """
     Base strategy for content type behavior.
-    
+
     ContentTypeStrategy defines the interface for content type-specific behavior.
     Each content type (blog, doc, tutorial, changelog, etc.) can have its own
     strategy that customizes:
-    
+
     - **Sorting**: How pages are ordered in list views (e.g., by date, weight)
     - **Filtering**: Which pages appear in section listings
     - **Pagination**: Whether and how pagination is applied
     - **Template Selection**: Which templates are used for list/single views
-    
+
     Subclasses should override methods to provide custom behavior. The base
     implementation provides sensible defaults that work for generic content.
-    
+
     Class Attributes:
         default_template: Fallback template path when no specific template
             is found. Subclasses should override this.
         allows_pagination: Whether this content type supports pagination.
             Set to True for content types with many items (e.g., blog).
-    
+
     Example:
             >>> class NewsStrategy(ContentTypeStrategy):
             ...     default_template = "news/list.html"
@@ -84,11 +84,11 @@ class ContentTypeStrategy:
             ...
             ...     def detect_from_section(self, section):
             ...         return section.name.lower() in ("news", "announcements")
-    
+
     See Also:
         - BlogStrategy: Example of chronological content strategy
         - DocsStrategy: Example of weight-based content strategy
-        
+
     """
 
     # Class-level defaults
@@ -118,9 +118,13 @@ class ContentTypeStrategy:
             >>> def sort_pages(self, pages):
             ...     return sorted(pages, key=lambda p: p.date or datetime.min, reverse=True)
         """
-        return sorted(pages, key=lambda p: (p.metadata.get("weight", 999999), p.title.lower()))
+        return sorted(
+            pages, key=lambda p: (p.metadata.get("weight", 999999), p.title.lower())
+        )
 
-    def filter_display_pages(self, pages: list[Page], index_page: Page | None = None) -> list[Page]:
+    def filter_display_pages(
+        self, pages: list[Page], index_page: Page | None = None
+    ) -> list[Page]:
         """
         Filter which pages to show in list views.
 
@@ -180,7 +184,9 @@ class ContentTypeStrategy:
         threshold = config.get("pagination", {}).get("threshold", 20)
         return page_count > threshold
 
-    def get_template(self, page: Page | None = None, template_engine: Any | None = None) -> str:
+    def get_template(
+        self, page: Page | None = None, template_engine: Any | None = None
+    ) -> str:
         """
         Determine which template to use for a page.
 

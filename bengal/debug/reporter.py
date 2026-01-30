@@ -55,21 +55,21 @@ if TYPE_CHECKING:
 class ExplanationReporter:
     """
     Format and display page explanations in terminal.
-    
+
     Uses Rich library for colorful, well-formatted terminal output.
     Designed for quick scanning and visual clarity.
-    
+
     Creation:
         Direct instantiation: ExplanationReporter(console=None)
             - Uses provided Console or creates new one
-    
+
     Attributes:
         console: Rich Console instance for output
-    
+
     Examples:
         reporter = ExplanationReporter()
         reporter.print(explanation)
-        
+
     """
 
     def __init__(self, console: Console | None = None) -> None:
@@ -91,7 +91,9 @@ class ExplanationReporter:
         """
         # Header
         self.console.print()
-        self.console.print(f"📄 [bold]Page Explanation: {explanation.source.path}[/bold]")
+        self.console.print(
+            f"📄 [bold]Page Explanation: {explanation.source.path}[/bold]"
+        )
         self.console.print()
 
         # Source panel
@@ -140,7 +142,9 @@ class ExplanationReporter:
             lines.append(f"Modified: {source.modified.strftime('%Y-%m-%d %H:%M:%S')}")
         lines.append(f"Encoding: {source.encoding}")
 
-        self.console.print(Panel("\n".join(lines), title="📁 Source", border_style="blue"))
+        self.console.print(
+            Panel("\n".join(lines), title="📁 Source", border_style="blue")
+        )
 
     def _print_frontmatter(self, frontmatter: dict[str, Any]) -> None:
         """
@@ -151,7 +155,15 @@ class ExplanationReporter:
         """
         lines = []
         # Show key fields first
-        priority_keys = ["title", "description", "date", "tags", "type", "template", "weight"]
+        priority_keys = [
+            "title",
+            "description",
+            "date",
+            "tags",
+            "type",
+            "template",
+            "weight",
+        ]
         for key in priority_keys:
             if key in frontmatter:
                 value = frontmatter[key]
@@ -183,7 +195,10 @@ class ExplanationReporter:
         if isinstance(value, list):
             if len(value) <= 5:
                 return f"[{', '.join(str(v) for v in value)}]"
-            return f"[{', '.join(str(v) for v in value[:5])}, ... +{len(value) - 5} more]"
+            first_five = list(value)[:5]
+            return (
+                f"[{', '.join(str(v) for v in first_five)}, ... +{len(value) - 5} more]"
+            )
         elif isinstance(value, dict):
             return f"{{...}} ({len(value)} keys)"
         elif isinstance(value, str) and len(value) > 50:
@@ -205,10 +220,9 @@ class ExplanationReporter:
             theme_str = f" [dim]({tpl.theme})[/dim]" if tpl.theme else ""
             node_text = f"{tpl.name}{theme_str}"
 
-            if i == 0:
-                node = tree.add(node_text)
-            else:
-                node = node.add(f"↳ extends: {node_text}")
+            node = (
+                tree.add(node_text) if i == 0 else node.add(f"↳ extends: {node_text}")
+            )
 
             # Add includes
             for include in tpl.includes[:5]:  # Limit to 5
@@ -244,12 +258,13 @@ class ExplanationReporter:
         lines = []
         for section_name, items in sections:
             lines.append(f"[bold]{section_name}:[/bold]")
-            for item in items[:5]:  # Limit to 5 per section
-                lines.append(f"  • {item}")
+            lines.extend(f"  • {item}" for item in items[:5])  # Limit to 5 per section
             if len(items) > 5:
                 lines.append(f"  [dim]... +{len(items) - 5} more[/dim]")
 
-        self.console.print(Panel("\n".join(lines), title="🔗 Dependencies", border_style="cyan"))
+        self.console.print(
+            Panel("\n".join(lines), title="🔗 Dependencies", border_style="cyan")
+        )
 
     def _print_shortcodes(self, shortcodes: list[ShortcodeUsage]) -> None:
         """
@@ -312,7 +327,9 @@ class ExplanationReporter:
         if layers:
             lines.append(f"Cached:    {', '.join(layers)}")
 
-        self.console.print(Panel("\n".join(lines), title="💾 Cache Status", border_style="blue"))
+        self.console.print(
+            Panel("\n".join(lines), title="💾 Cache Status", border_style="blue")
+        )
 
     def _print_output(self, output: OutputInfo) -> None:
         """
@@ -326,7 +343,9 @@ class ExplanationReporter:
         if output.size_human:
             lines.append(f"Size: {output.size_human}")
 
-        self.console.print(Panel("\n".join(lines), title="📤 Output", border_style="green"))
+        self.console.print(
+            Panel("\n".join(lines), title="📤 Output", border_style="green")
+        )
 
     def _print_issues(self, issues: list[Issue]) -> None:
         """
@@ -360,7 +379,9 @@ class ExplanationReporter:
 
             # Suggestion
             if issue.suggestion:
-                self.console.print(f"   └─ [green]Suggestion: {issue.suggestion}[/green]")
+                self.console.print(
+                    f"   └─ [green]Suggestion: {issue.suggestion}[/green]"
+                )
 
             self.console.print()
 
@@ -377,7 +398,9 @@ class ExplanationReporter:
             for phase, duration in performance.breakdown.items():
                 lines.append(f"  {phase}: {duration:.1f}ms")
 
-        self.console.print(Panel("\n".join(lines), title="⏱️  Performance", border_style="red"))
+        self.console.print(
+            Panel("\n".join(lines), title="⏱️  Performance", border_style="red")
+        )
 
     def format_summary(self, explanation: PageExplanation) -> str:
         """
@@ -390,7 +413,11 @@ class ExplanationReporter:
             Single-line summary string
         """
         title = explanation.frontmatter.get("title", explanation.source.path.name)
-        template = explanation.template_chain[0].name if explanation.template_chain else "default"
+        template = (
+            explanation.template_chain[0].name
+            if explanation.template_chain
+            else "default"
+        )
         cache = explanation.cache.status
         deps = (
             len(explanation.dependencies.templates)

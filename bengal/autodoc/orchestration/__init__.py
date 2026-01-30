@@ -37,13 +37,11 @@ Related:
 
 """
 
-from __future__ import annotations
-
 from bengal.autodoc.orchestration.orchestrator import VirtualAutodocOrchestrator
 from bengal.autodoc.orchestration.result import AutodocRunResult, PageContext
 
 __all__ = [
-    "VirtualAutodocOrchestrator",
     "AutodocRunResult",
     "PageContext",
+    "VirtualAutodocOrchestrator",
 ]

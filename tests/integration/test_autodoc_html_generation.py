@@ -11,8 +11,6 @@ These tests ensure:
 4. No missing HTML files after a clean build
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -30,7 +28,9 @@ def built_site_output() -> Path:
 class TestAutodocHTMLGeneration:
     """Test that all autodoc pages generate HTML files."""
 
-    def test_all_python_api_directories_have_html(self, built_site_output: Path) -> None:
+    def test_all_python_api_directories_have_html(
+        self, built_site_output: Path
+    ) -> None:
         """Every Python API directory should have index.html."""
         api_dir = built_site_output / "api" / "bengal"
         if not api_dir.exists():
@@ -46,7 +46,11 @@ class TestAutodocHTMLGeneration:
         assert not missing_html, (
             "Python API directories missing index.html:\n"
             + "\n".join(f"  - {p}" for p in missing_html[:10])
-            + (f"\n  ... and {len(missing_html) - 10} more" if len(missing_html) > 10 else "")
+            + (
+                f"\n  ... and {len(missing_html) - 10} more"
+                if len(missing_html) > 10
+                else ""
+            )
         )
 
     def test_all_cli_directories_have_html(self, built_site_output: Path) -> None:
@@ -65,10 +69,16 @@ class TestAutodocHTMLGeneration:
         assert not missing_html, (
             "CLI directories missing index.html:\n"
             + "\n".join(f"  - {p}" for p in missing_html[:10])
-            + (f"\n  ... and {len(missing_html) - 10} more" if len(missing_html) > 10 else "")
+            + (
+                f"\n  ... and {len(missing_html) - 10} more"
+                if len(missing_html) > 10
+                else ""
+            )
         )
 
-    def test_python_api_html_file_count_matches_txt(self, built_site_output: Path) -> None:
+    def test_python_api_html_file_count_matches_txt(
+        self, built_site_output: Path
+    ) -> None:
         """Python API should have equal HTML and TXT files (1:1 ratio)."""
         api_dir = built_site_output / "api" / "bengal"
         if not api_dir.exists():
@@ -167,7 +177,9 @@ class TestAutodocPageTypes:
 
         # Find a deeply nested page (3+ levels)
         deep_pages = [
-            p for p in base_dir.rglob("index.html") if len(p.relative_to(base_dir).parts) >= 3
+            p
+            for p in base_dir.rglob("index.html")
+            if len(p.relative_to(base_dir).parts) >= 3
         ]
 
         if not deep_pages:
@@ -186,7 +198,9 @@ class TestAutodocPageTypes:
 class TestAutodocPageStructure:
     """Test that autodoc pages have proper HTML structure."""
 
-    def test_python_module_page_has_article_element(self, built_site_output: Path) -> None:
+    def test_python_module_page_has_article_element(
+        self, built_site_output: Path
+    ) -> None:
         """Python module pages should have article with data-element='module'."""
         # Find a module page (not a section index)
         api_dir = built_site_output / "api" / "bengal"
@@ -203,7 +217,9 @@ class TestAutodocPageStructure:
         # If no module pages found, that's okay - skip
         pytest.skip("No module pages found")
 
-    def test_cli_command_page_has_article_element(self, built_site_output: Path) -> None:
+    def test_cli_command_page_has_article_element(
+        self, built_site_output: Path
+    ) -> None:
         """CLI command pages should have article with data-element='command'."""
         cli_dir = built_site_output / "cli"
         if not cli_dir.exists():
@@ -219,7 +235,9 @@ class TestAutodocPageStructure:
         # If no command pages found, that's okay - skip
         pytest.skip("No command pages found")
 
-    def test_section_index_pages_have_section_element(self, built_site_output: Path) -> None:
+    def test_section_index_pages_have_section_element(
+        self, built_site_output: Path
+    ) -> None:
         """Section index pages should have data-element='section-index'."""
         api_dir = built_site_output / "api" / "bengal"
         if not api_dir.exists():
@@ -230,9 +248,10 @@ class TestAutodocPageStructure:
         if root_index.exists():
             html = root_index.read_text()
             # Root or section index should have section-index element
-            assert 'data-element="section-index"' in html or 'data-element="module"' in html, (
-                "Root index page missing expected data-element attribute"
-            )
+            assert (
+                'data-element="section-index"' in html
+                or 'data-element="module"' in html
+            ), "Root index page missing expected data-element attribute"
 
 
 class TestAutodocHTMLContent:
@@ -267,7 +286,9 @@ class TestAutodocHTMLContent:
 
         for page_path in list(api_dir.rglob("index.html"))[:10]:
             html = page_path.read_text()
-            assert "<title>" in html and "</title>" in html, f"Page {page_path} missing title tag"
+            assert "<title>" in html and "</title>" in html, (
+                f"Page {page_path} missing title tag"
+            )
 
     def test_pages_have_navigation(self, built_site_output: Path) -> None:
         """All autodoc pages should have navigation elements."""
@@ -279,13 +300,17 @@ class TestAutodocHTMLContent:
         for page_path in list(api_dir.rglob("index.html"))[:5]:
             html = page_path.read_text()
             # Should have some form of navigation
-            assert "<nav" in html or "nav-" in html, f"Page {page_path} missing navigation element"
+            assert "<nav" in html or "nav-" in html, (
+                f"Page {page_path} missing navigation element"
+            )
 
 
 class TestAutodocGenerationConsistency:
     """Test consistency of autodoc generation across types."""
 
-    def test_python_and_cli_have_similar_structure(self, built_site_output: Path) -> None:
+    def test_python_and_cli_have_similar_structure(
+        self, built_site_output: Path
+    ) -> None:
         """Python API and CLI should have similar output structure."""
         api_dir = built_site_output / "api" / "bengal"
         cli_dir = built_site_output / "cli"

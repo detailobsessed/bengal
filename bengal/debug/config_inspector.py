@@ -50,7 +50,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from bengal.debug.base import DebugFinding, DebugReport, DebugTool, Severity
 from bengal.utils.observability.logger import get_logger
@@ -62,7 +62,7 @@ logger = get_logger(__name__)
 class ConfigDiff:
     """
     A single configuration key difference between two sources.
-    
+
     Attributes:
         path: Dot-separated key path (e.g., "site.title", "build.parallel").
         type: Type of change: "added", "removed", or "changed".
@@ -71,7 +71,7 @@ class ConfigDiff:
         old_origin: Source file where old value came from.
         new_origin: Source file where new value comes from.
         impact: Potential impact description of this change.
-    
+
     Example:
             >>> diff = ConfigDiff(
             ...     path="site.baseurl",
@@ -80,7 +80,7 @@ class ConfigDiff:
             ...     new_value="https://example.com",
             ...     impact="Changes output URLs and may break links",
             ... )
-        
+
     """
 
     path: str
@@ -110,22 +110,22 @@ class ConfigDiff:
 class ConfigComparisonResult:
     """
     Complete result of comparing two configuration sources.
-    
+
     Contains all differences found, categorized by type, with the
     full configuration dictionaries for reference.
-    
+
     Attributes:
         source1: Name of first (earlier/base) configuration source.
         source2: Name of second (later/target) configuration source.
         diffs: List of all ConfigDiff instances found.
         config1: Complete configuration dictionary from source1.
         config2: Complete configuration dictionary from source2.
-    
+
     Example:
             >>> result = inspector.compare("local", "production")
             >>> if result.has_changes:
             ...     print(f"{len(result.changed)} keys changed")
-        
+
     """
 
     source1: str
@@ -191,7 +191,9 @@ class ConfigComparisonResult:
         if self.removed:
             lines.append("Removed:")
             for diff in self.removed:
-                origin_info = f" (was from {diff.old_origin})" if diff.old_origin else ""
+                origin_info = (
+                    f" (was from {diff.old_origin})" if diff.old_origin else ""
+                )
                 lines.append(f"  - {diff.path}: {diff.old_value}{origin_info}")
             lines.append("")
 
@@ -214,10 +216,10 @@ class ConfigComparisonResult:
 class KeyExplanation:
     """
     Explanation of how a configuration key got its effective value.
-    
+
     Shows the complete resolution chain through defaults, environment,
     and profile layers, indicating which layer provided the final value.
-    
+
     Attributes:
         key_path: Dot-separated key path (e.g., "site.baseurl").
         effective_value: The final resolved value for this key.
@@ -226,7 +228,7 @@ class KeyExplanation:
         is_default: Whether the value comes from _default layer.
         deprecated: Whether this key is deprecated.
         deprecation_message: Message explaining deprecation.
-    
+
     Example:
             >>> explanation = inspector.explain_key("build.parallel")
             >>> print(explanation.format())
@@ -235,7 +237,7 @@ class KeyExplanation:
           Resolution chain:
             ○ _default: False
             → environments/production: True
-        
+
     """
 
     key_path: str
@@ -278,11 +280,11 @@ class KeyExplanation:
 class ConfigInspector(DebugTool):
     """
     Advanced configuration inspector and diff tool.
-    
+
     Provides deep comparison between configuration sources (environments,
     profiles), explains how values are resolved through the layer system,
     and identifies potential configuration issues.
-    
+
     Capabilities:
         - Deep comparison between any config sources
         - Origin tracking for each value
@@ -291,11 +293,11 @@ class ConfigInspector(DebugTool):
         - Default value detection
         - Deprecation warnings
         - Issue detection (missing protocols, trailing slashes)
-    
+
     Creation:
         Instantiate with a Site instance:
             inspector = ConfigInspector(site)
-    
+
     Example:
             >>> inspector = ConfigInspector(site)
             >>> diff = inspector.compare("local", "production")
@@ -303,14 +305,16 @@ class ConfigInspector(DebugTool):
             >>>
             >>> explanation = inspector.explain_key("site.baseurl")
             >>> print(explanation.format())
-        
+
     """
 
     name: str = "config"
-    description: str = "Inspect and compare configuration with origin tracking and impact analysis."
+    description: str = (
+        "Inspect and compare configuration with origin tracking and impact analysis."
+    )
 
     # Known impact patterns
-    IMPACT_PATTERNS: dict[str, str] = {
+    IMPACT_PATTERNS: ClassVar[dict[str, str]] = {
         "baseurl": "Changes output URLs and may break links",
         "theme": "Changes site appearance and available templates",
         "parallel": "Affects build performance",
@@ -451,14 +455,12 @@ class ConfigInspector(DebugTool):
             # Environments
             env_dir = self._config_dir / "environments"
             if env_dir.exists():
-                for f in env_dir.glob("*.yaml"):
-                    sources.append(f"env:{f.stem}")
+                sources.extend(f"env:{f.stem}" for f in env_dir.glob("*.yaml"))
 
             # Profiles
             profile_dir = self._config_dir / "profiles"
             if profile_dir.exists():
-                for f in profile_dir.glob("*.yaml"):
-                    sources.append(f"profile:{f.stem}")
+                sources.extend(f"profile:{f.stem}" for f in profile_dir.glob("*.yaml"))
 
         # Always include standard environments
         for env in ["local", "preview", "production"]:
@@ -567,7 +569,7 @@ class ConfigInspector(DebugTool):
         all_keys = set(config1.keys()) | set(config2.keys())
 
         for key in sorted(all_keys):
-            key_path = ".".join(path + [key])
+            key_path = ".".join([*path, key])
 
             in_config1 = key in config1
             in_config2 = key in config2
@@ -603,7 +605,7 @@ class ConfigInspector(DebugTool):
                         config2[key],
                         origins1,
                         origins2,
-                        path + [key],
+                        [*path, key],
                         diffs,
                     )
                 else:
@@ -650,7 +652,9 @@ class ConfigInspector(DebugTool):
         current_env = detect_environment()
         config_obj = loader.load(site_root, environment=current_env)
         # Extract raw dict from Config object if available
-        config: dict[str, Any] = config_obj.raw if hasattr(config_obj, "raw") else dict(config_obj)
+        config: dict[str, Any] = (
+            config_obj.raw if hasattr(config_obj, "raw") else dict(config_obj)
+        )
 
         # Get value
         value = self._get_nested_value(config, key_path)
@@ -658,7 +662,11 @@ class ConfigInspector(DebugTool):
             return None
 
         # Get origin
-        origin = loader.origin_tracker.origins.get(key_path) if loader.origin_tracker else None
+        origin = (
+            loader.origin_tracker.origins.get(key_path)
+            if loader.origin_tracker
+            else None
+        )
 
         # Build layer values by loading each layer separately
         layer_values: list[tuple[str, Any]] = []

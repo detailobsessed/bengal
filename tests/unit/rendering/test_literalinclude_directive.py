@@ -1,7 +1,5 @@
 """Tests for literalinclude directive."""
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -276,7 +274,9 @@ class TestLiteralIncludeDirective:
         assert directive._detect_language("file.unknown") is None
         assert directive._detect_language("noextension") is None
 
-    def test_path_resolution_relative_to_page(self, temp_site_dir, mock_state_with_source):
+    def test_path_resolution_relative_to_page(
+        self, temp_site_dir, mock_state_with_source
+    ):
         """Test that paths resolve relative to current page's directory."""
         # Create a code file in the same directory as the page
         guides_dir = temp_site_dir / "content" / "docs" / "guides"
@@ -311,7 +311,10 @@ class TestLiteralIncludeDirective:
 
         assert result["type"] == "literalinclude"
         # Should either error or reject the path
-        assert "error" in result["attrs"] or "path_traversal" in str(result["attrs"]).lower()
+        assert (
+            "error" in result["attrs"]
+            or "path_traversal" in str(result["attrs"]).lower()
+        )
 
     def test_absolute_path_rejection(self, temp_site_dir, mock_state_with_root):
         """Test that absolute paths are rejected."""
@@ -328,10 +331,13 @@ class TestLiteralIncludeDirective:
         assert result["type"] == "literalinclude"
         # Should reject absolute path
         assert (
-            result["attrs"].get("error") is not None or "absolute" in str(result["attrs"]).lower()
+            result["attrs"].get("error") is not None
+            or "absolute" in str(result["attrs"]).lower()
         )
 
-    def test_load_file_with_line_range(self, multi_line_code_file, mock_state_with_root):
+    def test_load_file_with_line_range(
+        self, multi_line_code_file, mock_state_with_root
+    ):
         """Test loading file with line range."""
         directive = LiteralIncludeDirective()
 
@@ -353,14 +359,19 @@ class TestLiteralIncludeDirective:
         directive = LiteralIncludeDirective()
 
         content = directive._load_file(
-            multi_line_code_file, start_line=None, end_line=None, emphasize_lines="5,6,7"
+            multi_line_code_file,
+            start_line=None,
+            end_line=None,
+            emphasize_lines="5,6,7",
         )
 
         # Content should be loaded (emphasis is handled in render)
         assert "# Line 1" in content
         assert "# Line 5" in content
 
-    def test_load_file_with_emphasize_range(self, multi_line_code_file, mock_state_with_root):
+    def test_load_file_with_emphasize_range(
+        self, multi_line_code_file, mock_state_with_root
+    ):
         """Test loading file with emphasize line range."""
         directive = LiteralIncludeDirective()
 
@@ -394,7 +405,7 @@ class TestRenderLiteralInclude:
         )
 
         html = render_literalinclude(
-            renderer, "", code="def example(): pass", language="python", **{}
+            renderer, "", code="def example(): pass", language="python"
         )
 
         assert "python" in html.lower() or "code" in html.lower()
@@ -405,7 +416,7 @@ class TestRenderLiteralInclude:
         renderer = MagicMock()
         renderer.block_code = MagicMock(return_value="<pre><code>code</code></pre>\n")
 
-        html = render_literalinclude(renderer, "", code="plain text", language=None, **{})
+        html = render_literalinclude(renderer, "", code="plain text", language=None)
 
         assert "code" in html.lower()
 
@@ -415,7 +426,7 @@ class TestRenderLiteralInclude:
         renderer.block_code = MagicMock(return_value="<pre><code>code</code></pre>\n")
 
         html = render_literalinclude(
-            renderer, "", code="def example(): pass", language="python", linenos=True, **{}
+            renderer, "", code="def example(): pass", language="python", linenos=True
         )
 
         assert "linenos" in html.lower() or "line" in html.lower()
@@ -431,7 +442,6 @@ class TestRenderLiteralInclude:
             code="def example(): pass",
             language="python",
             emphasize_lines="2,3,4",
-            **{},
         )
 
         assert "emphasize" in html.lower() or "data-emphasize" in html.lower()
@@ -441,7 +451,7 @@ class TestRenderLiteralInclude:
         renderer = MagicMock()
 
         html = render_literalinclude(
-            renderer, "", error="File not found: examples/missing.py", **{}
+            renderer, "", error="File not found: examples/missing.py"
         )
 
         assert "literalinclude-error" in html
@@ -452,7 +462,7 @@ class TestRenderLiteralInclude:
         renderer = MagicMock(spec=[])  # Empty spec means no block_code attribute
 
         html = render_literalinclude(
-            renderer, "", code="def example(): pass", language="python", **{}
+            renderer, "", code="def example(): pass", language="python"
         )
 
         # Should fall back to simple code block
@@ -467,7 +477,9 @@ class TestLiteralIncludeDirectiveIntegration:
         """Create a MistuneParser instance."""
         return MistuneParser()
 
-    def test_literalinclude_directive_in_markdown(self, parser, temp_site_dir, sample_python_file):
+    def test_literalinclude_directive_in_markdown(
+        self, parser, temp_site_dir, sample_python_file
+    ):
         """Test literalinclude directive works in full markdown parsing."""
         content = """
 ```{literalinclude} content/examples/api.py
@@ -481,7 +493,9 @@ class TestLiteralIncludeDirectiveIntegration:
         # Should either process the directive or leave it as-is if state not set
         assert isinstance(result, str)
 
-    def test_literalinclude_with_options(self, parser, temp_site_dir, sample_python_file):
+    def test_literalinclude_with_options(
+        self, parser, temp_site_dir, sample_python_file
+    ):
         """Test literalinclude with various options."""
         content = """
 ```{literalinclude} content/examples/api.py

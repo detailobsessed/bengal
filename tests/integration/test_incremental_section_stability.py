@@ -394,7 +394,9 @@ Archive section.
     assert archive_section is not None
 
     # Blog should now be a subsection of archive
-    blog_subsection = next((s for s in archive_section.subsections if s.name == "blog"), None)
+    blog_subsection = next(
+        (s for s in archive_section.subsections if s.name == "blog"), None
+    )
     assert blog_subsection is not None
 
     # Blog posts should reference the moved section

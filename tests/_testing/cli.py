@@ -36,7 +36,9 @@ class CLIResult:
         """Assert that command failed, optionally with specific code."""
         assert self.returncode != 0, "Expected CLI to fail but it succeeded"
         if code is not None:
-            assert self.returncode == code, f"Expected code {code}, got {self.returncode}"
+            assert self.returncode == code, (
+                f"Expected code {code}, got {self.returncode}"
+            )
 
     def assert_stdout_contains(self, text: str):
         """Assert that stdout contains the given text."""
@@ -56,22 +58,22 @@ def run_cli(
 ) -> CLIResult:
     """
     Run bengal CLI as subprocess with output sanitization.
-    
+
     Args:
         args: CLI arguments (e.g., ["site", "build"])
         cwd: Working directory (defaults to current)
         env: Environment variables (merged with os.environ)
         capture_ansi: If False (default), strip ANSI codes for easier assertions
         timeout: Command timeout in seconds
-    
+
     Returns:
         CLIResult with returncode, stdout, stderr
-    
+
     Example:
         result = run_cli(["site", "build"], cwd="/path/to/site")
         result.assert_ok()
         result.assert_stdout_contains("Build complete")
-        
+
     """
     result = subprocess.run(
         [sys.executable, "-m", "bengal.cli", *args],

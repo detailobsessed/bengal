@@ -4,19 +4,15 @@ Unit tests for bengal.build.provenance.filter.
 Tests ProvenanceFilter for incremental filtering and thread safety.
 """
 
-from __future__ import annotations
-
 import threading
 from pathlib import Path
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock
 
 import pytest
 
-from bengal.build.contracts.keys import CacheKey
 from bengal.build.provenance.filter import ProvenanceFilter, ProvenanceFilterResult
 from bengal.build.provenance.store import ProvenanceCache
 from bengal.build.provenance.types import ContentHash, Provenance
-
 
 # =============================================================================
 # Fixtures
@@ -46,7 +42,9 @@ def mock_site(tmp_path: Path) -> MagicMock:
 
 
 @pytest.fixture
-def provenance_filter(mock_site: MagicMock, provenance_cache: ProvenanceCache) -> ProvenanceFilter:
+def provenance_filter(
+    mock_site: MagicMock, provenance_cache: ProvenanceCache
+) -> ProvenanceFilter:
     """Create ProvenanceFilter instance."""
     return ProvenanceFilter(site=mock_site, cache=provenance_cache)
 
@@ -64,7 +62,7 @@ class TestProvenanceFilterBasics:
     ) -> None:
         """Filter initializes with site and cache."""
         pf = ProvenanceFilter(site=mock_site, cache=provenance_cache)
-        
+
         assert pf.site == mock_site
         assert pf.cache == provenance_cache
 
@@ -73,7 +71,7 @@ class TestProvenanceFilterBasics:
     ) -> None:
         """Filtering empty page list returns empty result."""
         result = provenance_filter.filter(pages=[], assets=[])
-        
+
         assert result.pages_to_build == []
         assert result.assets_to_process == []
         assert result.pages_skipped == []
@@ -87,13 +85,13 @@ class TestProvenanceFilterBasics:
         page.source_path.parent.mkdir(parents=True, exist_ok=True)
         page.source_path.write_text("# About")
         page.metadata = {}
-        
+
         result = provenance_filter.filter(
             pages=[page],
             assets=[],
             incremental=False,
         )
-        
+
         assert len(result.pages_to_build) == 1
         assert result.cache_hits == 0
 
@@ -116,13 +114,13 @@ class TestCacheHitMiss:
         page.source_path.write_text("# About")
         page.metadata = {}
         page._virtual = False
-        
+
         result = provenance_filter.filter(
             pages=[page],
             assets=[],
             forced_changed={page.source_path},
         )
-        
+
         assert len(result.pages_to_build) == 1
         assert page.source_path in result.changed_page_paths
 
@@ -136,9 +134,9 @@ class TestCacheHitMiss:
         page.source_path.write_text("# New Page")
         page.metadata = {}
         page._virtual = False
-        
+
         result = provenance_filter.filter(pages=[page], assets=[])
-        
+
         assert len(result.pages_to_build) == 1
         assert result.cache_misses == 1
 
@@ -161,13 +159,13 @@ class TestFileHashCaching:
         page.source_path.write_text("# About")
         page.metadata = {}
         page._virtual = False
-        
+
         # First call computes hash
         hash1 = provenance_filter._get_file_hash(page.source_path)
-        
+
         # Second call should return cached value
         hash2 = provenance_filter._get_file_hash(page.source_path)
-        
+
         assert hash1 == hash2
         assert page.source_path in provenance_filter._file_hashes
 
@@ -188,9 +186,9 @@ class TestOSErrorHandling:
         page.source_path = mock_site.root_path / "content" / "nonexistent.md"
         page.metadata = {}
         page._virtual = False
-        
+
         result = provenance_filter._compute_provenance_fast(page)
-        
+
         assert result is None
 
     def test_asset_change_detection_handles_missing_file(
@@ -199,9 +197,9 @@ class TestOSErrorHandling:
         """Asset change detection returns True for missing file."""
         asset = MagicMock()
         asset.source_path = mock_site.root_path / "static" / "missing.css"
-        
+
         result = provenance_filter._is_asset_changed(asset)
-        
+
         assert result is True
 
 
@@ -220,16 +218,16 @@ class TestProvenanceFilterThreadSafety:
         # Create test files
         content_dir = mock_site.root_path / "content"
         content_dir.mkdir(parents=True, exist_ok=True)
-        
+
         paths = []
         for i in range(10):
             path = content_dir / f"page{i}.md"
             path.write_text(f"# Page {i}")
             paths.append(path)
-        
+
         results: dict[int, ContentHash] = {}
         errors: list[Exception] = []
-        
+
         def compute_hash(idx: int, path: Path) -> None:
             try:
                 # Each thread computes the same file's hash multiple times
@@ -242,17 +240,17 @@ class TestProvenanceFilterThreadSafety:
                         assert results[idx] == hash_val
             except Exception as e:
                 errors.append(e)
-        
+
         threads = [
             threading.Thread(target=compute_hash, args=(i, paths[i % len(paths)]))
             for i in range(20)
         ]
-        
+
         for t in threads:
             t.start()
         for t in threads:
             t.join()
-        
+
         assert not errors, f"Thread errors: {errors}"
 
     def test_concurrent_provenance_computation(
@@ -262,38 +260,38 @@ class TestProvenanceFilterThreadSafety:
         # Create test pages
         content_dir = mock_site.root_path / "content"
         content_dir.mkdir(parents=True, exist_ok=True)
-        
+
         pages = []
         for i in range(5):
             path = content_dir / f"page{i}.md"
             path.write_text(f"# Page {i}")
-            
+
             page = MagicMock()
             page.source_path = path
             page.metadata = {}
             page._virtual = False
             pages.append(page)
-        
+
         results: dict[int, Provenance] = {}
         errors: list[Exception] = []
-        
+
         def compute_provenance(idx: int, page: MagicMock) -> None:
             try:
                 prov = provenance_filter._compute_provenance(page)
                 results[idx] = prov
             except Exception as e:
                 errors.append(e)
-        
+
         threads = [
             threading.Thread(target=compute_provenance, args=(i, pages[i % len(pages)]))
             for i in range(20)
         ]
-        
+
         for t in threads:
             t.start()
         for t in threads:
             t.join()
-        
+
         assert not errors, f"Thread errors: {errors}"
 
 
@@ -313,9 +311,9 @@ class TestVirtualPages:
         page.source_path = mock_site.root_path / "_generated" / "tags" / "python.md"
         page.metadata = {"_generated": True}
         page._virtual = True
-        
+
         result = provenance_filter._compute_provenance_fast(page)
-        
+
         assert result is None
 
     def test_virtual_page_uses_full_provenance(
@@ -326,9 +324,9 @@ class TestVirtualPages:
         page.source_path = mock_site.root_path / "_generated" / "tags" / "python.md"
         page.metadata = {"_generated": True, "template": "tag.html", "title": "Python"}
         page._virtual = True
-        
+
         prov = provenance_filter._compute_provenance(page)
-        
+
         # Should have at least config input
         assert prov.input_count >= 1
 
@@ -351,7 +349,7 @@ class TestProvenanceFilterResult:
             cache_hits=3,
             cache_misses=7,
         )
-        
+
         assert result.hit_rate == 30.0
 
     def test_hit_rate_zero_pages(self) -> None:
@@ -364,7 +362,7 @@ class TestProvenanceFilterResult:
             cache_hits=0,
             cache_misses=0,
         )
-        
+
         assert result.hit_rate == 0.0
 
     def test_is_skip_true_when_nothing_to_build(self) -> None:
@@ -374,7 +372,7 @@ class TestProvenanceFilterResult:
             assets_to_process=[],
             pages_skipped=[MagicMock()],
         )
-        
+
         assert result.is_skip is True
 
     def test_is_skip_false_when_pages_to_build(self) -> None:
@@ -384,5 +382,5 @@ class TestProvenanceFilterResult:
             assets_to_process=[],
             pages_skipped=[],
         )
-        
+
         assert result.is_skip is False

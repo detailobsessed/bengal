@@ -15,7 +15,7 @@ Example:
 content/**
 config/**
 ../bengal/**/*.py
-    
+
     >>> # Get hash for CI cache key
     >>> bengal cache hash
 a1b2c3d4e5f6g7h8
@@ -43,7 +43,6 @@ from bengal.cli.helpers import (
     handle_cli_errors,
     load_site_from_cli,
 )
-from bengal.utils.primitives.hashing import hash_file
 
 if TYPE_CHECKING:
     from bengal.core.site import Site
@@ -52,16 +51,16 @@ if TYPE_CHECKING:
 def get_input_globs(site: Site) -> list[tuple[str, str]]:
     """
     Return list of (glob_pattern, source_description) tuples.
-    
+
     Patterns are relative to site_root or use ../ for external paths.
     These represent all inputs that can affect the build output.
-    
+
     Args:
         site: Loaded Site instance
-    
+
     Returns:
         List of tuples: (glob_pattern, source_description)
-    
+
     Example:
             >>> globs = get_input_globs(site)
             >>> for pattern, source in globs:
@@ -69,7 +68,7 @@ def get_input_globs(site: Site) -> list[tuple[str, str]]:
         content/** <- built-in
         config/** <- built-in
         ../bengal/**/*.py <- autodoc.python.source_dirs
-        
+
     """
     inputs: list[tuple[str, str]] = []
     site_root = site.root_path
@@ -101,9 +100,10 @@ def get_input_globs(site: Site) -> list[tuple[str, str]]:
     python_config = autodoc_config.get("python", {})
     if python_config.get("enabled", False):
         source_dirs = python_config.get("source_dirs", [])
-        for source_dir in source_dirs:
-            # Source dirs are relative to site root
-            inputs.append((f"{source_dir}/**/*.py", "autodoc.python.source_dirs"))
+        inputs.extend(
+            (f"{source_dir}/**/*.py", "autodoc.python.source_dirs")
+            for source_dir in source_dirs
+        )
 
     # Autodoc CLI (derive package from app_module)
     cli_config = autodoc_config.get("cli", {})
@@ -150,19 +150,18 @@ def get_input_globs(site: Site) -> list[tuple[str, str]]:
 def cache_cli() -> None:
     """
     Cache management commands.
-    
+
     Commands for managing Bengal's build cache and generating cache keys
     for CI systems. Use `bengal cache inputs` to list all paths that affect
     the build, or `bengal cache hash` to get a deterministic hash for CI
     cache keys.
-    
+
     Examples:
         bengal cache inputs              # List input patterns
         bengal cache inputs --verbose    # Show pattern sources
         bengal cache hash                # Get cache key hash
-        
+
     """
-    pass
 
 
 @cache_cli.command("inputs", cls=BengalCommand)
@@ -200,30 +199,32 @@ def cache_cli() -> None:
 def inputs(output_format: str, verbose: bool, config: str | None, source: str) -> None:
     """
     List all input paths/globs that affect the build.
-    
+
     Use this to construct CI cache keys that properly invalidate
     when any build input changes. The output includes:
-    
+
     - Content and config directories (always)
     - Custom templates and static assets (if present)
     - Autodoc source directories (if enabled)
     - External reference indexes (local paths only)
     - Theme paths (if external theme configured)
-    
+
     Examples:
         bengal cache inputs                  # One pattern per line
         bengal cache inputs --verbose        # Show where each pattern comes from
         bengal cache inputs --format json    # JSON output for scripting
-    
+
     For CI (GitHub Actions):
         inputs=$(bengal cache inputs | tr '\n' ' ')
         key: bengal-${{ hashFiles(inputs) }}
-        
+
     """
     cli = get_cli_output()
 
     # Load site
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     # Get input globs
     input_globs = get_input_globs(site)
@@ -269,27 +270,29 @@ def inputs(output_format: str, verbose: bool, config: str | None, source: str) -
 def cache_hash(include_version: bool, config: str | None, source: str) -> None:
     """
     Compute deterministic hash of all build inputs.
-    
+
     Use this as a CI cache key for accurate invalidation.
     The hash includes:
-    
+
     - All input file contents (from `bengal cache inputs`)
     - Relative file paths (for determinism across machines)
     - Bengal version (by default, for cache invalidation on upgrades)
-    
+
     Examples:
         bengal cache hash                     # Include version (recommended)
         bengal cache hash --no-include-version  # Exclude version
-    
+
     For CI (GitHub Actions):
         hash=$(bengal cache hash)
         key: bengal-${{ runner.os }}-$hash
-        
+
     """
     cli = get_cli_output()
 
     # Load site
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     # Get input globs
     input_globs = get_input_globs(site)
@@ -322,7 +325,9 @@ def cache_hash(include_version: bool, config: str | None, source: str) -> None:
         try:
             matched_files = sorted(base_path.glob(resolved_pattern))
         except Exception as e:
-            click.echo(f"Warning: Error matching pattern '{glob_pattern}': {e}", err=True)
+            click.echo(
+                f"Warning: Error matching pattern '{glob_pattern}': {e}", err=True
+            )
             continue
 
         for file_path in matched_files:
@@ -350,7 +355,9 @@ def cache_hash(include_version: bool, config: str | None, source: str) -> None:
                 hasher.update(rel_path.as_posix().encode())
                 hasher.update(file_path.read_bytes())
             except OSError as e:
-                raise click.ClickException(f"Cannot read file '{file_path}': {e}") from e
+                raise click.ClickException(
+                    f"Cannot read file '{file_path}': {e}"
+                ) from e
 
     # Output truncated hash (16 chars is sufficient for cache keys)
     click.echo(hasher.hexdigest()[:16])

@@ -37,13 +37,13 @@ import math
 def format_duration_ms_compact(ms: float) -> str:
     """
     Format milliseconds into a compact, human-friendly string.
-    
+
     Examples:
         - 950 -> "950ms"
         - 1200 -> "1.2s"
         - 62_000 -> "1m 02s"
         - 3_726_000 -> "1h 02m"
-        
+
     """
     if ms <= 0:
         return "0ms"
@@ -56,11 +56,11 @@ def format_duration_ms_compact(ms: float) -> str:
         # One decimal place, trimmed (e.g. 1.0s -> 1s)
         s = round(total_seconds, 1)
         if math.isclose(s, round(s)):
-            return f"{int(round(s))}s"
+            return f"{round(s)}s"
         return f"{s:.1f}s"
 
     total_minutes = int(total_seconds // 60)
-    seconds = int(round(total_seconds - (total_minutes * 60)))
+    seconds = round(total_seconds - (total_minutes * 60))
     if seconds == 60:
         total_minutes += 1
         seconds = 0
@@ -83,10 +83,10 @@ def build_shields_like_badge_svg(
 ) -> str:
     """
     Generate a small "shields.io-like" SVG badge.
-    
+
     This is intentionally minimal and self-contained (no external fonts, no images).
     Width is estimated from character counts; rendering is stable across platforms.
-        
+
     """
     # Rough width estimate (similar to shields.io rendering): 7px per char + padding.
     # This does not need pixel-perfect accuracy for our use case.

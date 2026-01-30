@@ -15,8 +15,6 @@ Covers:
 - Edge cases and empty input
 """
 
-from __future__ import annotations
-
 
 class TestMinifyCssBasics:
     """Test basic minify_css functionality."""
@@ -197,7 +195,9 @@ class TestMinifyCssCalcFunction:
         result = minify_css(css)
 
         # calc requires space around + and -
-        assert "100% - 20px" in result or "100%- 20px" in result or "100% -20px" in result
+        assert (
+            "100% - 20px" in result or "100%- 20px" in result or "100% -20px" in result
+        )
 
     def test_calc_with_addition(self) -> None:
         """Test calc() with addition."""

@@ -16,10 +16,11 @@ Related:
 
 """
 
-from __future__ import annotations
-
 from bengal.analysis.links.patterns import LinkPatternAnalyzer, LinkPatternReport
-from bengal.analysis.links.suggestions import LinkSuggestionEngine, LinkSuggestionResults
+from bengal.analysis.links.suggestions import (
+    LinkSuggestionEngine,
+    LinkSuggestionResults,
+)
 from bengal.analysis.links.types import LinkMetrics, LinkType
 
 __all__ = [

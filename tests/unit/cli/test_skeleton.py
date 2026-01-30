@@ -2,8 +2,6 @@
 Tests for the Skeleton system (CLI).
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.cli.skeleton.hydrator import Hydrator

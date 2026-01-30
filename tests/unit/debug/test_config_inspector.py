@@ -5,8 +5,6 @@ Tests the configuration inspection functionality including comparisons,
 origin tracking, key explanations, and issue detection.
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -106,7 +104,9 @@ class TestConfigComparisonResult:
                     new_value="https://example.com",
                 ),
                 ConfigDiff(path="build.debug", type="removed", old_value=True),
-                ConfigDiff(path="site.analytics_id", type="added", new_value="GA-123456"),
+                ConfigDiff(
+                    path="site.analytics_id", type="added", new_value="GA-123456"
+                ),
             ],
         )
 
@@ -269,7 +269,9 @@ class TestConfigInspector:
 
         # Create config files
         (defaults / "site.yaml").write_text("site:\n  title: Test Site\n  baseurl: /\n")
-        (defaults / "build.yaml").write_text("build:\n  parallel: true\n  incremental: true\n")
+        (defaults / "build.yaml").write_text(
+            "build:\n  parallel: true\n  incremental: true\n"
+        )
         (envs / "local.yaml").write_text("build:\n  debug: true\n")
         (envs / "production.yaml").write_text(
             "site:\n  baseurl: https://example.com\nbuild:\n  debug: false\n"
@@ -410,7 +412,8 @@ class TestConfigInspector:
         trailing_slash_findings = [
             f
             for f in findings
-            if "trailing slash" in f.title.lower() or "trailing slash" in f.description.lower()
+            if "trailing slash" in f.title.lower()
+            or "trailing slash" in f.description.lower()
         ]
         assert len(trailing_slash_findings) == 1
 
@@ -465,11 +468,15 @@ class TestConfigInspectorExplainKey:
         with patch.object(inspector, "_get_nested_value") as mock_get:
             mock_get.return_value = "My Site"
 
-            with patch("bengal.config.directory_loader.ConfigDirectoryLoader") as mock_loader:
+            with patch(
+                "bengal.config.directory_loader.ConfigDirectoryLoader"
+            ) as mock_loader:
                 mock_instance = MagicMock()
                 mock_instance.load.return_value = {"site": {"title": "My Site"}}
                 mock_instance.origin_tracker = MagicMock()
-                mock_instance.origin_tracker.origins = {"site.title": "_default/site.yaml"}
+                mock_instance.origin_tracker.origins = {
+                    "site.title": "_default/site.yaml"
+                }
                 mock_loader.return_value = mock_instance
 
                 explanation = inspector.explain_key("site.title")
@@ -482,7 +489,9 @@ class TestConfigInspectorExplainKey:
         with patch.object(inspector, "_get_nested_value") as mock_get:
             mock_get.return_value = None
 
-            with patch("bengal.config.directory_loader.ConfigDirectoryLoader") as mock_loader:
+            with patch(
+                "bengal.config.directory_loader.ConfigDirectoryLoader"
+            ) as mock_loader:
                 mock_instance = MagicMock()
                 mock_instance.load.return_value = {}
                 mock_loader.return_value = mock_instance

@@ -38,8 +38,6 @@ See Also:
 
 """
 
-from __future__ import annotations
-
 import json
 import re
 from dataclasses import asdict, dataclass
@@ -63,7 +61,7 @@ _TEMPLATE_PATH = Path(__file__).parent / "templates" / "graph_visualizer.html"
 class GraphNode:
     """
     Node in the graph visualization.
-    
+
     Attributes:
         id: Unique identifier for the node
         label: Display label (page title)
@@ -76,7 +74,7 @@ class GraphNode:
         reading_time: Content depth (minutes to read)
         size: Visual size (based on connectivity + content depth)
         color: Node color (based on type or connectivity)
-        
+
     """
 
     id: str
@@ -96,12 +94,12 @@ class GraphNode:
 class GraphEdge:
     """
     Edge in the graph visualization.
-    
+
     Attributes:
         source: Source node ID
         target: Target node ID
         weight: Edge weight (link strength)
-        
+
     """
 
     source: str
@@ -112,19 +110,19 @@ class GraphEdge:
 class GraphVisualizer:
     """
     Generate interactive D3.js visualizations of knowledge graphs.
-    
+
     Creates standalone HTML files with:
     - Force-directed graph layout
     - Interactive node exploration
     - Search and filtering
     - Responsive design
     - Customizable styling
-    
+
     Example:
             >>> visualizer = GraphVisualizer(site, graph)
             >>> html = visualizer.generate_html()
             >>> Path('graph.html').write_text(html)
-        
+
     """
 
     def __init__(self, site: SiteLike, graph: KnowledgeGraph):
@@ -175,7 +173,8 @@ class GraphVisualizer:
             p
             for p in analysis_pages
             if not p.metadata.get("_generated")
-            or p.metadata.get("type") not in ("tag", "tag-index", "category", "category-index")
+            or p.metadata.get("type")
+            not in ("tag", "tag-index", "category", "category-index")
         ]
 
         logger.info(
@@ -209,14 +208,22 @@ class GraphVisualizer:
             # - Reading time: how substantial (content depth)
             # Formula: base + connectivity bonus + content depth bonus
             base_size = 8
-            connectivity_bonus = min(connectivity.connectivity_score * 1.5, 20)  # max +20
-            content_bonus = min(reading_time * 0.8, 15)  # max +15 (long articles get bigger)
+            connectivity_bonus = min(
+                connectivity.connectivity_score * 1.5, 20
+            )  # max +20
+            content_bonus = min(
+                reading_time * 0.8, 15
+            )  # max +15 (long articles get bigger)
             size = int(min(50, base_size + connectivity_bonus + content_bonus))
 
             # Get tags safely
-            tags = []
+            tags: list[str] = []
             if hasattr(page, "tags") and page.tags:
-                tags = list(page.tags) if isinstance(page.tags, (list, tuple, set)) else [page.tags]
+                raw_tags = page.tags
+                if isinstance(raw_tags, (list, tuple, set)):
+                    tags = [str(t) for t in raw_tags]
+                else:
+                    tags = [str(raw_tags)]
 
             # Get page URL - use the page's url property which computes from output_path
             # The url property is a cached property that handles all the logic
@@ -229,7 +236,9 @@ class GraphVisualizer:
                 page_url = f"/tags/{tag_slug}/"
             elif page.metadata.get("type") == "tag-index":
                 page_url = "/tags/"
-            elif page.metadata.get("type") == "category" and page.metadata.get("_category_slug"):
+            elif page.metadata.get("type") == "category" and page.metadata.get(
+                "_category_slug"
+            ):
                 category_slug = page.metadata.get("_category_slug")
                 page_url = f"/categories/{category_slug}/"
             elif page.metadata.get("type") == "category-index":
@@ -254,13 +263,20 @@ class GraphVisualizer:
                         try:
                             # Type narrowing: output_path should be a Path
                             from pathlib import Path
+
                             output_path = page.output_path
-                            if isinstance(output_path, Path) and isinstance(self.site.output_dir, Path):
+                            if isinstance(output_path, Path) and isinstance(
+                                self.site.output_dir, Path
+                            ):
                                 # Compute relative URL from output_dir
                                 rel_path = output_path.relative_to(self.site.output_dir)
-                                page_url = f"/{rel_path}".replace("\\", "/").replace("/index.html", "/")
+                                page_url = f"/{rel_path}".replace("\\", "/").replace(
+                                    "/index.html", "/"
+                                )
                             else:
-                                raise ValueError("output_path or output_dir is not a Path")
+                                raise ValueError(
+                                    "output_path or output_dir is not a Path"
+                                )
                             if not page_url.endswith("/"):
                                 page_url += "/"
                             # Apply baseurl for fallback path (since we computed it manually)
@@ -274,7 +290,9 @@ class GraphVisualizer:
                     else:
                         # Final fallback: use slug-based URL with baseurl
                         baseurl = (self.site.baseurl or "").rstrip("/")
-                        page_url = f"{baseurl}/{getattr(page, 'slug', page.source_path.stem)}/"
+                        page_url = (
+                            f"{baseurl}/{getattr(page, 'slug', page.source_path.stem)}/"
+                        )
             else:
                 # Taxonomy URLs need baseurl applied (they're constructed without it)
                 baseurl = (self.site.baseurl or "").rstrip("/")
@@ -334,7 +352,9 @@ class GraphVisualizer:
             is_bidirectional = (target_id, source_id) in edge_set
             weight = 2 if is_bidirectional else 1
 
-            edges.append(asdict(GraphEdge(source=source_id, target=target_id, weight=weight)))
+            edges.append(
+                asdict(GraphEdge(source=source_id, target=target_id, weight=weight))
+            )
 
         logger.info("graph_viz_generate_complete", nodes=len(nodes), edges=len(edges))
 
@@ -445,13 +465,13 @@ class GraphVisualizer:
             if not manifest_path.exists():
                 # Fallback to .bengal cache location
                 # Type narrowing: paths may not be on SiteLike protocol
-                if hasattr(self.site, "paths") and self.site.paths:
-                    paths = self.site.paths
-                    manifest_path = getattr(paths, "asset_manifest", None)
+                site_paths = getattr(self.site, "paths", None)
+                if site_paths is not None:
+                    manifest_path = getattr(site_paths, "asset_manifest", None)
                 else:
                     manifest_path = None
 
-            if manifest_path and manifest_path.exists():
+            if manifest_path is not None and manifest_path.exists():
                 manifest = AssetManifest.load(manifest_path)
                 if manifest:
                     css_entry = manifest.get("css/style.css")

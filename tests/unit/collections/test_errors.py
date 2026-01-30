@@ -4,8 +4,6 @@ Unit tests for collection errors.
 Tests error formatting, serialization, and error types.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -119,7 +117,9 @@ class TestContentValidationError:
             message="Validation failed",
             path=Path("content/post.md"),
             errors=[
-                ValidationError(field="title", message="Required field 'title' is missing"),
+                ValidationError(
+                    field="title", message="Required field 'title' is missing"
+                ),
                 ValidationError(field="date", message="Cannot parse as datetime"),
             ],
         )

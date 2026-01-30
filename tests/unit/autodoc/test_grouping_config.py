@@ -1,7 +1,5 @@
 """Unit tests for autodoc configuration."""
 
-from __future__ import annotations
-
 from bengal.autodoc.config import (
     _merge_autodoc_config,
     get_grouping_config,

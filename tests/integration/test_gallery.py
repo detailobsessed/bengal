@@ -7,8 +7,6 @@ Tests gallery directive functionality:
 - Custom column options
 """
 
-from __future__ import annotations
-
 import pytest
 
 
@@ -18,7 +16,9 @@ class TestGalleryDirective:
 
     def test_gallery_page_exists(self, site) -> None:
         """Gallery test page should be discovered."""
-        gallery_pages = [p for p in site.pages if "gallery" in str(p.source_path).lower()]
+        gallery_pages = [
+            p for p in site.pages if "gallery" in str(p.source_path).lower()
+        ]
         assert len(gallery_pages) >= 1, "Should have at least 1 gallery page"
 
     def test_gallery_builds_successfully(self, site, build_site) -> None:
@@ -26,7 +26,9 @@ class TestGalleryDirective:
         build_site()
 
         output = site.output_dir
-        assert (output / "gallery" / "index.html").exists(), "Gallery page should be generated"
+        assert (output / "gallery" / "index.html").exists(), (
+            "Gallery page should be generated"
+        )
 
     def test_gallery_renders_grid(self, site, build_site) -> None:
         """Gallery should render with CSS grid class."""
@@ -67,7 +69,9 @@ class TestGalleryDirective:
         html = (site.output_dir / "gallery" / "index.html").read_text()
 
         # Should have custom column CSS variable
-        assert "--gallery-columns" in html, "Gallery should use --gallery-columns CSS variable"
+        assert "--gallery-columns" in html, (
+            "Gallery should use --gallery-columns CSS variable"
+        )
 
 
 class TestGalleryDirectiveUnit:
@@ -154,7 +158,9 @@ class TestGalleryCSS:
         """Gallery CSS file should exist."""
         from pathlib import Path
 
-        themes_dir = Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        themes_dir = (
+            Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        )
         css_path = themes_dir / "assets" / "css" / "components" / "gallery.css"
 
         assert css_path.exists(), f"Gallery CSS should exist at {css_path}"
@@ -163,7 +169,9 @@ class TestGalleryCSS:
         """Gallery CSS should contain expected selectors."""
         from pathlib import Path
 
-        themes_dir = Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        themes_dir = (
+            Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        )
         css_path = themes_dir / "assets" / "css" / "components" / "gallery.css"
 
         content = css_path.read_text()

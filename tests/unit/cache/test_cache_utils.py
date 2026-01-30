@@ -4,8 +4,6 @@ Tests for bengal.cache.utils functions.
 Tests clear_build_cache, clear_output_directory, and clear_template_cache utilities.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.cache import clear_build_cache, clear_output_directory, clear_template_cache

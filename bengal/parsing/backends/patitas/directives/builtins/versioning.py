@@ -25,16 +25,17 @@ from dataclasses import dataclass
 from html import escape as html_escape
 from typing import TYPE_CHECKING, ClassVar
 
-from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 from patitas.directives.options import DirectiveOptions
 from patitas.nodes import Directive
+
+from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
     from patitas.nodes import Block
     from patitas.stringbuilder import StringBuilder
 
-__all__ = ["SinceDirective", "DeprecatedDirective", "ChangedDirective"]
+__all__ = ["ChangedDirective", "DeprecatedDirective", "SinceDirective"]
 
 
 # =============================================================================
@@ -89,21 +90,21 @@ class SinceOptions(DirectiveOptions):
 class SinceDirective:
     """
     Directive for marking when a feature was introduced.
-    
+
     Syntax:
         :::{since} v2.0
         :::
-    
+
         :::{since} v2.0
         This feature was added in version 2.0.
         :::
-    
+
     Output (inline badge):
         <span class="version-badge version-badge-since">
           <svg ...>...</svg>
           <span>New in v2.0</span>
         </span>
-    
+
     Output (with content):
         <div class="version-directive version-since">
           <div class="version-directive-header">
@@ -111,10 +112,10 @@ class SinceDirective:
           </div>
           <div class="version-directive-content">...</div>
         </div>
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("since", "versionadded")
@@ -177,7 +178,9 @@ class SinceDirective:
             # Full directive container with Bengal theme aesthetic
             sb.append(f'<div class="version-directive {css_class}">')
             sb.append(f'<div class="version-directive-header">{badge_html}</div>')
-            sb.append(f'<div class="version-directive-content">{rendered_children}</div>')
+            sb.append(
+                f'<div class="version-directive-content">{rendered_children}</div>'
+            )
             sb.append("</div>")
         else:
             sb.append(badge_html)
@@ -202,21 +205,21 @@ class DeprecatedOptions(DirectiveOptions):
 class DeprecatedDirective:
     """
     Directive for marking deprecated features.
-    
+
     Syntax:
         :::{deprecated} v3.0
         :::
-    
+
         :::{deprecated} v3.0
         Use new_function() instead.
         :::
-    
+
     Output (inline badge):
         <span class="version-badge version-badge-deprecated">
           <svg ...>...</svg>
           <span>Deprecated since v3.0</span>
         </span>
-    
+
     Output (with content):
         <div class="version-directive version-deprecated">
           <div class="version-directive-header">
@@ -224,10 +227,10 @@ class DeprecatedDirective:
           </div>
           <div class="version-directive-content">...</div>
         </div>
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("deprecated", "versionremoved")
@@ -275,7 +278,9 @@ class DeprecatedDirective:
         css_class = opts.css_class
         has_content = getattr(opts, "has_content", False)
 
-        version_text = "Deprecated" if not version else f"Deprecated since {html_escape(version)}"
+        version_text = (
+            "Deprecated" if not version else f"Deprecated since {html_escape(version)}"
+        )
 
         # Badge with icon
         badge_html = (
@@ -289,7 +294,9 @@ class DeprecatedDirective:
             # Full directive container with warning theme
             sb.append(f'<div class="version-directive {css_class}">')
             sb.append(f'<div class="version-directive-header">{badge_html}</div>')
-            sb.append(f'<div class="version-directive-content">{rendered_children}</div>')
+            sb.append(
+                f'<div class="version-directive-content">{rendered_children}</div>'
+            )
             sb.append("</div>")
         else:
             # Inline badge for simple deprecation notice
@@ -315,21 +322,21 @@ class ChangedOptions(DirectiveOptions):
 class ChangedDirective:
     """
     Directive for marking behavior changes.
-    
+
     Syntax:
         :::{changed} v2.5
         :::
-    
+
         :::{changed} v2.5
         The default value changed from 10 to 20.
         :::
-    
+
     Output (inline badge):
         <span class="version-badge version-badge-changed">
           <svg ...>...</svg>
           <span>Changed in v2.5</span>
         </span>
-    
+
     Output (with content):
         <div class="version-directive version-changed">
           <div class="version-directive-header">
@@ -337,10 +344,10 @@ class ChangedDirective:
           </div>
           <div class="version-directive-content">...</div>
         </div>
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("changed", "versionchanged")
@@ -388,7 +395,9 @@ class ChangedDirective:
         css_class = opts.css_class
         has_content = getattr(opts, "has_content", False)
 
-        version_text = "Changed" if not version else f"Changed in {html_escape(version)}"
+        version_text = (
+            "Changed" if not version else f"Changed in {html_escape(version)}"
+        )
 
         # Badge with icon
         badge_html = (
@@ -402,7 +411,9 @@ class ChangedDirective:
             # Full directive container with info theme
             sb.append(f'<div class="version-directive {css_class}">')
             sb.append(f'<div class="version-directive-header">{badge_html}</div>')
-            sb.append(f'<div class="version-directive-content">{rendered_children}</div>')
+            sb.append(
+                f'<div class="version-directive-content">{rendered_children}</div>'
+            )
             sb.append("</div>")
         else:
             # Inline badge for simple change notice

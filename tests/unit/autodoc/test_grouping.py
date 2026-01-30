@@ -1,7 +1,5 @@
 """Unit tests for autodoc URL grouping functionality."""
 
-from __future__ import annotations
-
 from bengal.autodoc.utils import apply_grouping, auto_detect_prefix_map
 
 
@@ -46,7 +44,9 @@ class TestAutoDetectPrefixMap:
         core_dir.mkdir(parents=True)
         (core_dir / "__init__.py").touch()
 
-        prefix_map = auto_detect_prefix_map([tmp_path / "mypackage"], strip_prefix="mypackage.")
+        prefix_map = auto_detect_prefix_map(
+            [tmp_path / "mypackage"], strip_prefix="mypackage."
+        )
 
         # Should have "core", not "mypackage.core"
         assert "core" in prefix_map
@@ -284,7 +284,9 @@ class TestGroupingIntegration:
         (blog_dir / "template.py").write_text("# template")
 
         # Auto-detect
-        prefix_map = auto_detect_prefix_map([tmp_path / "mypackage"], strip_prefix="mypackage.")
+        prefix_map = auto_detect_prefix_map(
+            [tmp_path / "mypackage"], strip_prefix="mypackage."
+        )
 
         # Apply grouping
         config = {"mode": "auto", "prefix_map": prefix_map}
@@ -315,7 +317,9 @@ class TestGroupingIntegration:
         (scaffolds_dir / "__init__.py").touch()
 
         # Auto-detect
-        prefix_map = auto_detect_prefix_map([tmp_path / "bengal"], strip_prefix="bengal.")
+        prefix_map = auto_detect_prefix_map(
+            [tmp_path / "bengal"], strip_prefix="bengal."
+        )
 
         # Verify structure
         assert "core" in prefix_map

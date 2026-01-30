@@ -17,12 +17,14 @@ from .constants import MAX_TABS_PER_BLOCK
 logger = get_logger(__name__)
 
 
-def get_line_with_context(file_path: Path, line_number: int, context_lines: int = 2) -> str:
+def get_line_with_context(
+    file_path: Path, line_number: int, context_lines: int = 2
+) -> str:
     """
     Get a line from a file with context (lines before/after).
-    
+
     Returns formatted string with line numbers and content.
-        
+
     """
     try:
         if not file_path.exists():
@@ -56,10 +58,10 @@ def get_line_with_context(file_path: Path, line_number: int, context_lines: int 
 def _get_relative_content_path(file_path: Path) -> str:
     """
     Get a user-friendly relative path for display.
-    
+
     Tries to show path relative to 'content' directory for wayfinding.
     Falls back to showing last 3 path components if content dir not found.
-        
+
     """
     parts = file_path.parts
 
@@ -145,13 +147,15 @@ def check_directive_syntax(data: dict[str, Any]) -> list[CheckResult]:
             details.append(f"{detail_msg}\n{context}")
 
             if len(warnings) > 1:
-                other_lines = sorted(set(w["line"] for w in warnings[1:]))
+                other_lines = sorted({w["line"] for w in warnings[1:]})
                 details.append(
                     f"  ... and {len(warnings) - 1} more at lines: {', '.join(map(str, other_lines))}"
                 )
 
         if len(fence_warnings) > 3:
-            remaining = len(fence_warnings) - sum(len(w) for w in list(file_groups.values())[:3])
+            remaining = len(fence_warnings) - sum(
+                len(w) for w in list(file_groups.values())[:3]
+            )
             if remaining > 0:
                 details.append(f"... and {remaining} more")
 
@@ -178,7 +182,9 @@ def check_directive_completeness(data: dict[str, Any]) -> list[CheckResult]:
 
     if errors:
         warning_keywords = ["only 1 tab", "consider using", "has no tab markers"]
-        warnings = [e for e in errors if any(kw in e["error"] for kw in warning_keywords)]
+        warnings = [
+            e for e in errors if any(kw in e["error"] for kw in warning_keywords)
+        ]
         hard_errors = [e for e in errors if e not in warnings]
 
         if hard_errors:
@@ -238,7 +244,9 @@ def check_directive_performance(data: dict[str, Any]) -> list[CheckResult]:
                     recommendation="Consider splitting into multiple tabs blocks or separate pages. Large tabs blocks slow rendering.",
                     details=[
                         f"{_get_relative_content_path(w['page'])}:{w['line']}: {w['count']} tabs"
-                        for w in sorted(too_many_tabs, key=lambda x: x["count"], reverse=True)[:5]
+                        for w in sorted(
+                            too_many_tabs, key=lambda x: x["count"], reverse=True
+                        )[:5]
                     ],
                 )
             )

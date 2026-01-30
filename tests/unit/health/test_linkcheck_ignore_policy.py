@@ -2,8 +2,6 @@
 Unit tests for linkcheck ignore policy.
 """
 
-from __future__ import annotations
-
 from bengal.health.linkcheck.ignore_policy import IgnorePolicy
 
 
@@ -40,13 +38,13 @@ def test_ignore_policy_domain_substring():
     """Test domain exclusion with substring match."""
     policy = IgnorePolicy(domains=["example.com"])
 
-    should_ignore, reason = policy.should_ignore_url("https://www.example.com/page")
+    should_ignore, _reason = policy.should_ignore_url("https://www.example.com/page")
     assert should_ignore
 
-    should_ignore, reason = policy.should_ignore_url("https://api.example.com")
+    should_ignore, _reason = policy.should_ignore_url("https://api.example.com")
     assert should_ignore
 
-    should_ignore, reason = policy.should_ignore_url("https://different.org")
+    should_ignore, _unused_reason = policy.should_ignore_url("https://different.org")
     assert not should_ignore
 
 

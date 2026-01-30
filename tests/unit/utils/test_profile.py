@@ -41,11 +41,19 @@ class TestBuildProfile:
     def test_from_cli_args_precedence(self):
         """Test CLI argument precedence."""
         # dev flag takes priority
-        assert BuildProfile.from_cli_args(dev=True, theme_dev=True) == BuildProfile.DEVELOPER
-        assert BuildProfile.from_cli_args(dev=True, debug=True) == BuildProfile.DEVELOPER
+        assert (
+            BuildProfile.from_cli_args(dev=True, theme_dev=True)
+            == BuildProfile.DEVELOPER
+        )
+        assert (
+            BuildProfile.from_cli_args(dev=True, debug=True) == BuildProfile.DEVELOPER
+        )
 
         # theme_dev flag is second priority
-        assert BuildProfile.from_cli_args(theme_dev=True, debug=True) == BuildProfile.THEME_DEV
+        assert (
+            BuildProfile.from_cli_args(theme_dev=True, debug=True)
+            == BuildProfile.THEME_DEV
+        )
 
         # profile option is third
         assert BuildProfile.from_cli_args(profile="writer") == BuildProfile.WRITER

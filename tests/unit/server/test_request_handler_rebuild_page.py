@@ -6,8 +6,6 @@ yet (e.g., autodoc pages being regenerated), the server should show a
 friendly "rebuilding" page instead of an ugly directory listing.
 """
 
-from __future__ import annotations
-
 import io
 from unittest.mock import MagicMock
 
@@ -116,7 +114,9 @@ class TestListDirectoryOverride:
         finally:
             BengalRequestHandler.set_build_in_progress(False)
 
-    def test_list_directory_does_not_show_rebuilding_when_build_not_in_progress(self, tmp_path):
+    def test_list_directory_does_not_show_rebuilding_when_build_not_in_progress(
+        self, tmp_path
+    ):
         """Test that API paths without index.html fall through to parent when build is not in progress.
 
         This test verifies that when build is NOT in progress, the handler does NOT
@@ -221,7 +221,10 @@ class TestRebuildingPageContent:
         # Should have Bengal brand name
         assert b"Bengal" in REBUILDING_PAGE_HTML
         # Should have the rosette logo (SVG with characteristic ellipses)
-        assert b"rosette" in REBUILDING_PAGE_HTML.lower() or b"ellipse" in REBUILDING_PAGE_HTML
+        assert (
+            b"rosette" in REBUILDING_PAGE_HTML.lower()
+            or b"ellipse" in REBUILDING_PAGE_HTML
+        )
 
 
 class TestRebuildingPagePalette:
@@ -246,7 +249,7 @@ class TestRebuildingPagePalette:
         html = get_rebuilding_page_html("/test/")
 
         # Get the expected accent color for the default palette
-        accent, accent_rgb, _, _, _ = PALETTE_COLORS[DEFAULT_PALETTE]
+        accent, _accent_rgb, _, _, _ = PALETTE_COLORS[DEFAULT_PALETTE]
 
         assert accent.encode() in html
         assert b"%ACCENT%" not in html

@@ -82,7 +82,9 @@ def analyze_profile(profile_path: Path, top: int = 30, sort_by: str = "cumulativ
     # Sort by total time and take top 20
     stats_list.sort(key=lambda x: x["total_time"], reverse=True)
 
-    print(f"\n{'Function':<40} {'File':<50} {'Time (s)':<10} {'Cum Time':<10} {'Calls'}")
+    print(
+        f"\n{'Function':<40} {'File':<50} {'Time (s)':<10} {'Cum Time':<10} {'Calls'}"
+    )
     print("-" * 120)
 
     total_time = sum(s["total_time"] for s in stats_list)
@@ -105,7 +107,9 @@ def analyze_profile(profile_path: Path, top: int = 30, sort_by: str = "cumulativ
 
     # Check for regex compilation
     regex_time = sum(
-        s["total_time"] for s in stats_list if "re." in s["function"] or "compile" in s["function"]
+        s["total_time"]
+        for s in stats_list
+        if "re." in s["function"] or "compile" in s["function"]
     )
     if regex_time > 0.1:
         recommendations.append(
@@ -116,7 +120,9 @@ def analyze_profile(profile_path: Path, top: int = 30, sort_by: str = "cumulativ
     io_time = sum(
         s["total_time"]
         for s in stats_list
-        if "read" in s["function"] or "write" in s["function"] or "open" in s["function"]
+        if "read" in s["function"]
+        or "write" in s["function"]
+        or "open" in s["function"]
     )
     if io_time > 0.5:
         recommendations.append(
@@ -124,7 +130,9 @@ def analyze_profile(profile_path: Path, top: int = 30, sort_by: str = "cumulativ
         )
 
     # Check for Jinja2
-    jinja_time = sum(s["total_time"] for s in stats_list if "jinja2" in s["file"].lower())
+    jinja_time = sum(
+        s["total_time"] for s in stats_list if "jinja2" in s["file"].lower()
+    )
     if jinja_time > 0.5:
         recommendations.append(
             f"• Template rendering is significant ({jinja_time:.2f}s) - check bytecode caching"
@@ -150,7 +158,9 @@ def analyze_profile(profile_path: Path, top: int = 30, sort_by: str = "cumulativ
     print("\n" + "=" * 80)
 
 
-def compare_profiles(current_path: Path, baseline_path: Path, fail_threshold: float = None):
+def compare_profiles(
+    current_path: Path, baseline_path: Path, fail_threshold: float | None = None
+):
     """Compare two profiles and detect regressions."""
     if not baseline_path.exists():
         print(f"❌ Baseline profile not found: {baseline_path}")
@@ -171,7 +181,7 @@ def compare_profiles(current_path: Path, baseline_path: Path, fail_threshold: fl
     def extract_times(stats):
         times = {}
         for func, (_cc, nc, tt, ct, _callers) in stats.stats.items():
-            filename, line, func_name = func
+            filename, _line, func_name = func
             key = f"{Path(filename).name}::{func_name}"
             times[key] = {"tottime": tt, "cumtime": ct, "ncalls": nc}
         return times
@@ -229,7 +239,9 @@ def compare_profiles(current_path: Path, baseline_path: Path, fail_threshold: fl
     if fail_threshold and regressions:
         max_regression = regressions[0][1]
         if max_regression > fail_threshold:
-            print(f"\n❌ REGRESSION THRESHOLD EXCEEDED: {max_regression:.1f}% > {fail_threshold}%")
+            print(
+                f"\n❌ REGRESSION THRESHOLD EXCEEDED: {max_regression:.1f}% > {fail_threshold}%"
+            )
             return False
 
     print("\n" + "=" * 80)
@@ -246,7 +258,9 @@ def generate_flamegraph(profile_path: Path):
 
     print("\n🔥 Generating flame graph...")
     try:
-        subprocess.run([sys.executable, str(flamegraph_script), str(profile_path)], check=True)
+        subprocess.run(
+            [sys.executable, str(flamegraph_script), str(profile_path)], check=True
+        )
         return True
     except subprocess.CalledProcessError:
         print("❌ Failed to generate flame graph")
@@ -267,7 +281,11 @@ Examples:
 
     parser.add_argument("profile", type=Path, help="Path to profile data file (.stats)")
     parser.add_argument(
-        "--top", "-n", type=int, default=30, help="Number of top functions to show (default: 30)"
+        "--top",
+        "-n",
+        type=int,
+        default=30,
+        help="Number of top functions to show (default: 30)",
     )
     parser.add_argument(
         "--sort",
@@ -277,7 +295,10 @@ Examples:
         help="Sort by cumulative time, total time, or call count",
     )
     parser.add_argument(
-        "--compare", "-c", type=Path, help="Compare with baseline profile to detect regressions"
+        "--compare",
+        "-c",
+        type=Path,
+        help="Compare with baseline profile to detect regressions",
     )
     parser.add_argument(
         "--fail-on-regression",

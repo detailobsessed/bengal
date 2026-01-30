@@ -17,14 +17,14 @@ Install dependency if not present:
 Reference: https://textual.textualize.io/guide/testing/#snapshot-testing
 """
 
-from __future__ import annotations
-
 import pytest
 
 from tests.dashboard.conftest import APP_PATH
 
 # Skip all tests in this module if pytest-textual-snapshot is not installed
-pytest.importorskip("pytest_textual_snapshot", reason="pytest-textual-snapshot not installed")
+pytest.importorskip(
+    "pytest_textual_snapshot", reason="pytest-textual-snapshot not installed"
+)
 
 # Skip all snapshot tests - dashboard UI is still evolving
 # Re-enable once the Textual dashboard feature is stable

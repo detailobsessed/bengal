@@ -16,11 +16,12 @@ parser/renderer instances with no shared state.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
-from bengal.parsing.base import BaseMarkdownParser
-from bengal.parsing.backends.patitas import create_markdown, parse_to_ast
 from patitas.nodes import Block
+
+from bengal.parsing.backends.patitas import create_markdown, parse_to_ast
+from bengal.parsing.base import BaseMarkdownParser
 from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -28,13 +29,13 @@ logger = get_logger(__name__)
 
 class PatitasParser(BaseMarkdownParser):
     """Parser using Patitas library (modern Markdown parser).
-    
+
     Provides:
     - O(n) guaranteed parsing (no regex backtracking)
     - Thread-safe by design (immutable AST)
     - Typed AST with frozen dataclasses
     - StringBuilder O(n) rendering
-    
+
     Supported features:
     - ATX/setext headings
     - Fenced/indented code blocks
@@ -46,18 +47,24 @@ class PatitasParser(BaseMarkdownParser):
     - Inline code
     - Hard/soft breaks
     - Raw HTML
-    
+
     Supported features (via plugins):
     - Tables (GFM)
     - Strikethrough
     - Task lists
     - Math (inline and block)
     - Cross-references ([[link]] syntax)
-        
+
     """
 
     # Default plugins to enable (matches mistune's plugins)
-    DEFAULT_PLUGINS = ["table", "strikethrough", "task_lists", "math", "footnotes"]
+    DEFAULT_PLUGINS: ClassVar[list[str]] = [
+        "table",
+        "strikethrough",
+        "task_lists",
+        "math",
+        "footnotes",
+    ]
 
     def __init__(
         self,
@@ -107,7 +114,9 @@ class PatitasParser(BaseMarkdownParser):
             if self._xref_enabled and self._xref_plugin:
                 # Set current page version for version-aware anchor resolution
                 page_version = (
-                    metadata.get("version") or metadata.get("_version") if metadata else None
+                    metadata.get("version") or metadata.get("_version")
+                    if metadata
+                    else None
                 )
                 self._xref_plugin.current_version = page_version
 
@@ -117,7 +126,9 @@ class PatitasParser(BaseMarkdownParser):
                     from pathlib import Path
 
                     self._xref_plugin.current_source_page = (
-                        Path(source_path) if isinstance(source_path, str) else source_path
+                        Path(source_path)
+                        if isinstance(source_path, str)
+                        else source_path
                     )
                 else:
                     self._xref_plugin.current_source_page = None
@@ -261,7 +272,9 @@ class PatitasParser(BaseMarkdownParser):
             content = var_plugin.preprocess(content)
 
             # 2. Parse & Substitute in ONE pass (the "window thing")
-            ast = self._md.parse_to_ast(content, text_transformer=var_plugin.substitute_variables)
+            ast = self._md.parse_to_ast(
+                content, text_transformer=var_plugin.substitute_variables
+            )
 
             # 3. Render HTML with single-pass TOC extraction (RFC: rfc-path-to-200-pgs)
             # Heading IDs are injected during render, TOC collected in same pass
@@ -301,7 +314,11 @@ class PatitasParser(BaseMarkdownParser):
         # Post-process cross-references if enabled
         if self._xref_enabled and self._xref_plugin:
             # Set current page version for version-aware anchor resolution
-            page_version = metadata.get("version") or metadata.get("_version") if metadata else None
+            page_version = (
+                metadata.get("version") or metadata.get("_version")
+                if metadata
+                else None
+            )
             self._xref_plugin.current_version = page_version
 
             # Set current page source path for cross-version dependency tracking
@@ -332,7 +349,9 @@ class PatitasParser(BaseMarkdownParser):
         """
         return True
 
-    def parse_to_ast(self, content: str, metadata: dict[str, Any]) -> list[dict[str, Any]]:
+    def parse_to_ast(
+        self, content: str, metadata: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Parse Markdown content to AST tokens.
 
         Note: Returns dict representation for compatibility with BaseMarkdownParser.

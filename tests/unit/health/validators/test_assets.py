@@ -128,7 +128,8 @@ def test_asset_validator_total_size(mock_site, tmp_path):
     # Small assets should not trigger size warnings
     # Validators follow "silence is golden" - no warnings for reasonable sizes
     assert not any(
-        r.status == CheckStatus.WARNING and "very large" in r.message.lower() for r in results
+        r.status == CheckStatus.WARNING and "very large" in r.message.lower()
+        for r in results
     )
 
 
@@ -210,7 +211,9 @@ def test_asset_validator_minified_assets_ok(mock_site, tmp_path):
 
     # Should not complain about minification
     assert not any(
-        "not be minified" in r.message.lower() for r in results if r.status == CheckStatus.WARNING
+        "not be minified" in r.message.lower()
+        for r in results
+        if r.status == CheckStatus.WARNING
     )
 
 
@@ -252,7 +255,8 @@ def test_asset_validator_with_images(mock_site, tmp_path):
     # Small images should not trigger size warnings
     assert not any(r.status == CheckStatus.ERROR for r in results)
     assert not any(
-        r.status == CheckStatus.WARNING and "image(s) are very large" in r.message for r in results
+        r.status == CheckStatus.WARNING and "image(s) are very large" in r.message
+        for r in results
     )
 
 
@@ -268,11 +272,11 @@ def test_asset_validator_name_and_description():
 class TestCriticalAssetChecks:
     """
     Tests for critical asset checks that FAIL the build when essential assets are missing.
-    
+
     Regression tests for: Theme assets skipped when Bengal installed in .venv
-    
+
     These tests are theme-agnostic - they should work for any theme, not just the default.
-        
+
     """
 
     def test_no_css_files_is_error(self, mock_site, tmp_path):
@@ -313,7 +317,9 @@ class TestCriticalAssetChecks:
 
         # Should NOT have the critical errors
         error_results = [r for r in results if r.status == CheckStatus.ERROR]
-        assert len(error_results) == 0, f"Valid assets should not trigger errors: {error_results}"
+        assert len(error_results) == 0, (
+            f"Valid assets should not trigger errors: {error_results}"
+        )
 
     def test_js_dir_empty_is_error(self, mock_site, tmp_path):
         """Test that having a js/ directory but no JS files triggers an ERROR.
@@ -373,16 +379,18 @@ class TestCriticalAssetChecks:
 
         # Should NOT have the critical errors
         error_results = [r for r in results if r.status == CheckStatus.ERROR]
-        assert len(error_results) == 0, f"Fingerprinted assets should be detected: {error_results}"
+        assert len(error_results) == 0, (
+            f"Fingerprinted assets should be detected: {error_results}"
+        )
 
 
 class TestEmptyAssetDetection:
     """
     Tests for empty (0-byte) asset file detection.
-    
+
     Empty CSS/JS files are almost always a bug - they load but do nothing,
     causing silent failures that are hard to debug.
-        
+
     """
 
     def test_empty_css_is_error(self, mock_site, tmp_path):
@@ -400,7 +408,8 @@ class TestEmptyAssetDetection:
         # Should be an ERROR - empty CSS is useless
         error_results = [r for r in results if r.status == CheckStatus.ERROR]
         assert any(
-            "empty" in r.message.lower() and "css" in r.message.lower() for r in error_results
+            "empty" in r.message.lower() and "css" in r.message.lower()
+            for r in error_results
         ), f"Empty CSS should trigger ERROR: {error_results}"
 
     def test_empty_js_is_error(self, mock_site, tmp_path):
@@ -461,6 +470,8 @@ class TestEmptyAssetDetection:
 
         # Should be a WARNING (not error) for other empty files
         warning_results = [
-            r for r in results if r.status == CheckStatus.WARNING and "empty" in r.message.lower()
+            r
+            for r in results
+            if r.status == CheckStatus.WARNING and "empty" in r.message.lower()
         ]
         assert len(warning_results) > 0, "Many empty files should trigger a warning"

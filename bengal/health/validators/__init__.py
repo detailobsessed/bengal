@@ -65,7 +65,11 @@ from bengal.health.validators.cross_ref import CrossReferenceValidator
 from bengal.health.validators.directives import DirectiveValidator
 from bengal.health.validators.external_refs import ExternalRefValidator
 from bengal.health.validators.fonts import FontValidator
-from bengal.health.validators.links import LinkValidator, LinkValidatorWrapper, validate_links
+from bengal.health.validators.links import (
+    LinkValidator,
+    LinkValidatorWrapper,
+    validate_links,
+)
 from bengal.health.validators.menu import MenuValidator
 from bengal.health.validators.navigation import NavigationValidator
 from bengal.health.validators.output import OutputValidator
@@ -92,12 +96,12 @@ __all__ = [
     # Phase 3
     "CacheValidator",
     "ConfigValidatorWrapper",
-    "ExternalRefValidator",
     # Phase 5
     "ConnectivityValidator",
     # Cross-reference validation
     "CrossReferenceValidator",
     "DirectiveValidator",
+    "ExternalRefValidator",
     "FontValidator",
     # Link validation (consolidated from rendering/)
     "LinkValidator",
@@ -105,10 +109,10 @@ __all__ = [
     "MenuValidator",
     # Phase 2
     "NavigationValidator",
-    # Ownership policy validation (RFC: plan/drafted/plan-url-ownership-architecture.md)
-    "OwnershipPolicyValidator",
     # Phase 1
     "OutputValidator",
+    # Ownership policy validation (RFC: plan/drafted/plan-url-ownership-architecture.md)
+    "OwnershipPolicyValidator",
     "PerformanceValidator",
     # Phase 4
     "RSSValidator",

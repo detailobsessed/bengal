@@ -7,8 +7,6 @@ Thread Safety (Free-Threading / PEP 703):
     thread isolation for asset manifest access during parallel rendering.
 """
 
-from __future__ import annotations
-
 import threading
 import time
 
@@ -141,19 +139,18 @@ class TestAssetManifestContextManager:
         reset_asset_manifest()
         ctx = AssetManifestContext(entries={"test": "test"})
 
-        with pytest.raises(ValueError):
-            with asset_manifest_context(ctx):
-                assert get_asset_manifest() is ctx
-                raise ValueError("Test exception")
+        with pytest.raises(ValueError), asset_manifest_context(ctx):
+            assert get_asset_manifest() is ctx
+            raise ValueError("Test exception")
 
         assert get_asset_manifest() is None
 
 
 class TestThreadIsolation:
     """Tests for thread isolation of asset manifest ContextVar.
-    
+
     RFC: rfc-global-build-state-dependencies.md (Phase 2)
-    
+
     These tests verify that ContextVar provides proper thread isolation,
     which is essential for free-threaded Python (PEP 703) support.
     """
@@ -220,7 +217,9 @@ class TestThreadIsolation:
             except Exception as e:
                 errors.append(f"Thread {thread_id}: {e}")
 
-        threads = [threading.Thread(target=worker, args=(i,)) for i in range(num_threads)]
+        threads = [
+            threading.Thread(target=worker, args=(i,)) for i in range(num_threads)
+        ]
 
         for t in threads:
             t.start()
@@ -233,7 +232,9 @@ class TestThreadIsolation:
         # Each thread should have seen its own unique value
         for i in range(num_threads):
             expected = f"assets/css/style.{i:03d}.css"
-            assert results[i] == expected, f"Thread {i} saw {results[i]}, expected {expected}"
+            assert results[i] == expected, (
+                f"Thread {i} saw {results[i]}, expected {expected}"
+            )
 
     def test_main_thread_not_affected_by_worker_threads(self):
         """Worker thread context should not affect main thread context."""

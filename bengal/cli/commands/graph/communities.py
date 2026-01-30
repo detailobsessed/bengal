@@ -14,7 +14,11 @@ from bengal.cli.helpers import (
     handle_cli_errors,
     load_site_from_cli,
 )
-from bengal.utils.observability.logger import LogLevel, close_all_loggers, configure_logging
+from bengal.utils.observability.logger import (
+    LogLevel,
+    close_all_loggers,
+    configure_logging,
+)
 
 
 @click.command(cls=BengalCommand)
@@ -31,7 +35,11 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
 )
 @handle_cli_errors(show_art=False)
 @click.option(
-    "--min-size", "-m", default=2, type=int, help="Minimum community size to show (default: 2)"
+    "--min-size",
+    "-m",
+    default=2,
+    type=int,
+    help="Minimum community size to show (default: 2)",
 )
 @click.option(
     "--resolution",
@@ -41,7 +49,11 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
     help="Resolution parameter (higher = more communities, default: 1.0)",
 )
 @click.option(
-    "--top-n", "-n", default=10, type=int, help="Number of communities to show (default: 10)"
+    "--top-n",
+    "-n",
+    default=10,
+    type=int,
+    help="Number of communities to show (default: 10)",
 )
 @click.option(
     "--format",
@@ -52,37 +64,45 @@ from bengal.utils.observability.logger import LogLevel, close_all_loggers, confi
 )
 @click.option("--seed", type=int, help="Random seed for reproducibility")
 @click.option(
-    "--config", type=click.Path(exists=True), help="Path to config file (default: bengal.toml)"
+    "--config",
+    type=click.Path(exists=True),
+    help="Path to config file (default: bengal.toml)",
 )
 @click.argument("source", type=click.Path(exists=True), default=".")
 def communities(
-    min_size: int, resolution: float, top_n: int, format: str, seed: int, config: str, source: str
+    min_size: int,
+    resolution: float,
+    top_n: int,
+    format: str,
+    seed: int,
+    config: str,
+    source: str,
 ) -> None:
     """
     Discover topical communities in your content.
-    
+
     Uses the Louvain algorithm to find natural clusters of related pages.
     Communities represent topic areas or content groups based on link structure.
-    
+
     Use community detection to:
     - Discover hidden content structure
     - Organize content into logical groups
     - Identify topic clusters
     - Guide taxonomy creation
-    
+
     Examples:
         # Show top 10 communities
         bengal communities
-    
+
         # Show only large communities (10+ pages)
         bengal communities --min-size 10
-    
+
         # Find more granular communities
         bengal communities --resolution 2.0
-    
+
         # Export as JSON
         bengal communities --format json > communities.json
-        
+
     """
     from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
@@ -90,7 +110,9 @@ def communities(
     configure_logging(level=LogLevel.WARNING)
 
     # Load site using helper
-    site = load_site_from_cli(source=source, config=config, environment=None, profile=None, cli=cli)
+    site = load_site_from_cli(
+        source=source, config=config, environment=None, profile=None, cli=cli
+    )
 
     # Discover content
     cli.info("🔍 Discovering site content...")
@@ -101,7 +123,7 @@ def communities(
 
     # Build knowledge graph
     cli.info(f"📊 Building knowledge graph from {len(site.pages)} pages...")
-    graph_obj = KnowledgeGraph(site)
+    graph_obj = KnowledgeGraph(site)  # type: ignore[arg-type]
     graph_obj.build()
 
     # Detect communities

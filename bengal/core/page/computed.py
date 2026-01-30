@@ -48,6 +48,12 @@ class HasMetadata(Protocol):
     metadata: dict[str, Any]
     _raw_content: str
 
+    @property
+    def _source(self) -> str: ...
+
+    @property
+    def word_count(self) -> int: ...
+
 
 @runtime_checkable
 class HasDate(Protocol):
@@ -64,23 +70,25 @@ class HasSiteAndMetadata(Protocol):
     _site: Site | None
     source_path: Path
 
+    def _get_series_neighbor(self, offset: int) -> Any: ...
+
 
 class PageComputedMixin:
     """
     Mixin providing cached computed properties for pages.
-    
+
     This mixin handles expensive operations that are cached after first access:
     - meta_description - SEO-friendly description
     - word_count - Word count from source content
     - reading_time - Estimated reading time
     - excerpt - Content excerpt
-    
+
     Underscore Convention:
         Properties prefixed with `_` are for internal/advanced use:
         - _source: Raw markdown source (for plugins, custom analysis)
         Properties without `_` are template-ready:
         - word_count, reading_time: Pre-computed for templates
-        
+
     """
 
     @property
@@ -186,7 +194,9 @@ class PageComputedMixin:
         truncated = text[:length]
 
         # Try to end at sentence boundary
-        sentence_end = max(truncated.rfind(". "), truncated.rfind("! "), truncated.rfind("? "))
+        sentence_end = max(
+            truncated.rfind(". "), truncated.rfind("! "), truncated.rfind("? ")
+        )
 
         if sentence_end > length * 0.6:  # At least 60% of desired length
             return truncated[: sentence_end + 1].strip()
@@ -507,7 +517,9 @@ class PageComputedMixin:
 
             # Check this page's part number
             page_series = page.metadata.get("series")
-            page_part = int(page_series.get("part", 1)) if isinstance(page_series, dict) else 1
+            page_part = (
+                int(page_series.get("part", 1)) if isinstance(page_series, dict) else 1
+            )
 
             if page_part == target_part:
                 return page

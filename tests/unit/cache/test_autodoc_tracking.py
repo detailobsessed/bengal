@@ -5,8 +5,6 @@ Tests the autodoc source file → page dependency tracking used for
 selective incremental rebuilds of autodoc pages.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.cache.build_cache import BuildCache
@@ -24,7 +22,6 @@ def add_dep(cache: BuildCache, source: str, page: str) -> None:
     )
 
 
-
 class TestAutodocTrackingMixin:
     """Test autodoc dependency tracking in BuildCache."""
 
@@ -35,7 +32,10 @@ class TestAutodocTrackingMixin:
         add_dep(cache, "bengal/core/page.py", "python/api/bengal/core/page.md")
 
         assert "bengal/core/page.py" in cache.autodoc_dependencies
-        assert "python/api/bengal/core/page.md" in cache.autodoc_dependencies["bengal/core/page.py"]
+        assert (
+            "python/api/bengal/core/page.md"
+            in cache.autodoc_dependencies["bengal/core/page.py"]
+        )
 
     def test_add_multiple_dependencies_same_source(self) -> None:
         """Test adding multiple pages from the same source file."""
@@ -137,7 +137,10 @@ class TestAutodocDependencySerialization:
         loaded_cache = BuildCache.load(cache_path, use_lock=False)
 
         assert "bengal/core/page.py" in loaded_cache.autodoc_dependencies
-        assert "python/api/page.md" in loaded_cache.autodoc_dependencies["bengal/core/page.py"]
+        assert (
+            "python/api/page.md"
+            in loaded_cache.autodoc_dependencies["bengal/core/page.py"]
+        )
         assert "bengal/core/site.py" in loaded_cache.autodoc_dependencies
 
     def test_load_cache_without_autodoc_dependencies(self, tmp_path: Path) -> None:

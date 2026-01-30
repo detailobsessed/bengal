@@ -95,10 +95,10 @@ if TYPE_CHECKING:
 class TracebackConfig:
     """
     Configuration for traceback display and Rich installation.
-    
+
     Controls how exceptions are rendered in Bengal CLI output. Can be
     loaded from environment variables via ``from_environment()``.
-    
+
     Attributes:
         style: Traceback verbosity style (default: COMPACT).
         show_locals: Whether to show local variables in tracebacks
@@ -107,14 +107,14 @@ class TracebackConfig:
             (default: 10, 25 for FULL, 5 for MINIMAL).
         suppress: Module names to suppress from tracebacks
             (default: click, jinja2).
-    
+
     Example:
             >>> config = TracebackConfig.from_environment()
             >>> config.style
         <TracebackStyle.COMPACT: 'compact'>
             >>> config.install()  # Install Rich handler
             >>> renderer = config.get_renderer()
-        
+
     """
 
     style: TracebackStyle = TracebackStyle.COMPACT
@@ -158,7 +158,11 @@ class TracebackConfig:
             else show_locals_env.strip() in {"1", "true", "True", "yes"}
         )
         try:
-            max_frames = default_max_frames if not max_frames_env else int(max_frames_env.strip())
+            max_frames = (
+                default_max_frames
+                if not max_frames_env
+                else int(max_frames_env.strip())
+            )
         except ValueError:
             max_frames = default_max_frames
 
@@ -168,7 +172,12 @@ class TracebackConfig:
             if parts:
                 suppress = tuple(parts)
 
-        return cls(style=style, show_locals=show_locals, max_frames=max_frames, suppress=suppress)
+        return cls(
+            style=style,
+            show_locals=show_locals,
+            max_frames=max_frames,
+            suppress=suppress,
+        )
 
     def install(self) -> None:
         """Install Rich traceback handler according to config and environment.
@@ -183,7 +192,10 @@ class TracebackConfig:
         try:
             from rich.traceback import install as rich_install
 
-            from bengal.utils.observability.rich_console import get_console, should_use_rich
+            from bengal.utils.observability.rich_console import (
+                get_console,
+                should_use_rich,
+            )
 
             if not should_use_rich():
                 return
@@ -203,7 +215,6 @@ class TracebackConfig:
                         error_type=type(e).__name__,
                         action="skipping_module",
                     )
-                    pass
 
             rich_install(
                 console=get_console(),
@@ -241,10 +252,10 @@ class TracebackConfig:
 
 def set_effective_style_from_cli(style_value: str | None) -> None:
     """Helper to set the process env for traceback style from a CLI flag.
-    
+
     This allows downstream code that calls TracebackConfig.from_environment()
     to see the user choice consistently.
-        
+
     """
     if not style_value:
         return
@@ -261,7 +272,7 @@ def map_debug_flag_to_traceback(debug: bool, current: str | None = None) -> None
 
 def apply_file_traceback_to_env(site_config: dict[str, Any] | None) -> None:
     """Apply file-based traceback config ([dev.traceback]) to environment.
-    
+
     Precedence: existing env vars win. Only set if not already present.
     Expected structure:
         site_config["dev"]["traceback"] = {
@@ -270,7 +281,7 @@ def apply_file_traceback_to_env(site_config: dict[str, Any] | None) -> None:
             "max_frames": int,
             "suppress": ["click", "jinja2"],
         }
-        
+
     """
     if not isinstance(site_config, dict):
         return
@@ -289,12 +300,16 @@ def apply_file_traceback_to_env(site_config: dict[str, Any] | None) -> None:
 
     # show_locals
     if os.getenv("BENGAL_TRACEBACK_SHOW_LOCALS") is None and "show_locals" in tb_cfg:
-        os.environ["BENGAL_TRACEBACK_SHOW_LOCALS"] = "1" if tb_cfg.get("show_locals") else "0"
+        os.environ["BENGAL_TRACEBACK_SHOW_LOCALS"] = (
+            "1" if tb_cfg.get("show_locals") else "0"
+        )
 
     # max_frames
     if os.getenv("BENGAL_TRACEBACK_MAX_FRAMES") is None and "max_frames" in tb_cfg:
         with contextlib.suppress(Exception):
-            os.environ["BENGAL_TRACEBACK_MAX_FRAMES"] = str(int(tb_cfg.get("max_frames")))
+            os.environ["BENGAL_TRACEBACK_MAX_FRAMES"] = str(
+                int(tb_cfg.get("max_frames"))
+            )
 
     # suppress (comma-separated)
     if os.getenv("BENGAL_TRACEBACK_SUPPRESS") is None and "suppress" in tb_cfg:

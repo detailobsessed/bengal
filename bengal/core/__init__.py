@@ -55,7 +55,13 @@ from __future__ import annotations
 from bengal.core.asset import Asset
 from bengal.core.build_state import BuildState
 from bengal.core.menu import MenuBuilder, MenuItem
-from bengal.core.nav_tree import NavNode, NavNodeProxy, NavTree, NavTreeCache, NavTreeContext
+from bengal.core.nav_tree import (
+    NavNode,
+    NavNodeProxy,
+    NavTree,
+    NavTreeCache,
+    NavTreeContext,
+)
 from bengal.core.page import Page
 from bengal.core.section import Section
 from bengal.core.site import Site
@@ -72,10 +78,9 @@ __all__ = [
     # Primary models
     "Asset",
     "BuildState",
-    "Page",
-    "Section",
-    "Site",
-    "Theme",
+    # Versioning
+    "GitBranchPattern",
+    "GitVersionConfig",
     # Navigation
     "MenuBuilder",
     "MenuItem",
@@ -84,13 +89,14 @@ __all__ = [
     "NavTree",
     "NavTreeCache",
     "NavTreeContext",
-    # Versioning
-    "GitBranchPattern",
-    "GitVersionConfig",
-    "Version",
-    "VersionConfig",
+    "Page",
+    "Section",
+    "Site",
+    "Theme",
     # URL ownership
     "URLClaim",
     "URLCollisionError",
     "URLRegistry",
+    "Version",
+    "VersionConfig",
 ]

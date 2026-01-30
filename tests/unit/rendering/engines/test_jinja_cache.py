@@ -5,16 +5,12 @@ These tests verify that template path caching is correctly enabled/disabled
 based on dev_mode configuration.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 if TYPE_CHECKING:
-    from bengal.core.site import Site
+    pass
 
 
 def make_mock_site(
@@ -121,7 +117,7 @@ class TestJinjaTemplateCaching:
             engine._template_path_cache["test.html"] = template_dir / "test.html"
 
             # Should return cached value without checking filesystem
-            with patch.object(Path, "exists", return_value=False) as mock_exists:
+            with patch.object(Path, "exists", return_value=False):
                 result = engine.get_template_path("test.html")
 
             # Cache hit - should NOT have called exists()
@@ -205,7 +201,10 @@ class TestJinjaCacheInvalidation:
             assert isinstance(engine._referenced_template_cache, dict)
 
             # Add some entries
-            engine._referenced_template_cache["page.html"] = {"base.html", "header.html"}
+            engine._referenced_template_cache["page.html"] = {
+                "base.html",
+                "header.html",
+            }
 
             assert "base.html" in engine._referenced_template_cache["page.html"]
             assert "header.html" in engine._referenced_template_cache["page.html"]
@@ -224,7 +223,9 @@ class TestJinjaMenuCacheInvalidation:
             "bengal.rendering.engines.jinja.create_jinja_environment"
         ) as mock_create_env:
             mock_env = MagicMock()
-            mock_env.get_template = MagicMock(return_value=MagicMock(render=MagicMock(return_value="")))
+            mock_env.get_template = MagicMock(
+                return_value=MagicMock(render=MagicMock(return_value=""))
+            )
             mock_create_env.return_value = (mock_env, [])
 
             engine = JinjaTemplateEngine(mock_site)

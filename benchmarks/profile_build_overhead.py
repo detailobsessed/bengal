@@ -30,8 +30,6 @@ Why it matters:
     - Discovery overhead scales with content size
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import os
@@ -236,7 +234,9 @@ def generate_recommendations(
 
     # Health check recommendations
     if health_total > 1000:
-        recs.append(f"⚠️  Health checks taking {health_total:.0f}ms (>1s) - review slow validators")
+        recs.append(
+            f"⚠️  Health checks taking {health_total:.0f}ms (>1s) - review slow validators"
+        )
 
     for v in validators[:3]:  # Top 3 slowest
         if v.avg_ms > 100 and v.issues_found == 0:
@@ -249,9 +249,13 @@ def generate_recommendations(
     # Phase recommendations
     for p in phases:
         if "TemplateEngine" in p.name and p.avg_ms > 100:
-            recs.append(f"💡 {p.name}: {p.avg_ms:.0f}ms - consider caching or lazy initialization")
+            recs.append(
+                f"💡 {p.name}: {p.avg_ms:.0f}ms - consider caching or lazy initialization"
+            )
         if "discovery" in p.name.lower() and p.avg_ms > 500:
-            recs.append(f"⚠️  {p.name}: {p.avg_ms:.0f}ms - consider incremental discovery")
+            recs.append(
+                f"⚠️  {p.name}: {p.avg_ms:.0f}ms - consider incremental discovery"
+            )
 
     if not recs:
         recs.append("✅ All metrics within acceptable ranges")
@@ -284,7 +288,9 @@ def compare_to_baseline(report: ProfileReport, baseline_path: Path) -> list[str]
             )
 
     # Compare individual validators
-    old_validators = {v["name"]: v["avg_ms"] for v in baseline.get("health_validators", [])}
+    old_validators = {
+        v["name"]: v["avg_ms"] for v in baseline.get("health_validators", [])
+    }
     for v in report.health_validators:
         if v.name in old_validators:
             old = old_validators[v.name]

@@ -11,6 +11,7 @@ The tests use 'run_cli' which invokes Bengal via 'python -m bengal.cli'.
 """
 
 import pytest
+
 from tests._testing.cli import run_cli
 
 
@@ -29,7 +30,7 @@ class TestCLICommandSmoke:
         """Verify 'bengal validate' works (checks fix for cache redefinition)."""
         # Run build first to ensure output and cache exist
         run_cli(["site", "build"], cwd=str(site.root_path)).assert_ok()
-        
+
         # Test full validation
         result = run_cli(["validate"], cwd=str(site.root_path))
         result.assert_ok()
@@ -53,11 +54,13 @@ class TestCLICommandSmoke:
         """Verify 'bengal provenance lineage' works (checks fix for CacheKey normalization)."""
         # Provenance requires a build to generate records
         run_cli(["site", "build"], cwd=str(site.root_path)).assert_ok()
-        
+
         # Test lineage for the index page
         # Note: test-basic has content/index.md
-        result = run_cli(["provenance", "lineage", "content/index.md"], cwd=str(site.root_path))
-        
+        result = run_cli(
+            ["provenance", "lineage", "content/index.md"], cwd=str(site.root_path)
+        )
+
         # If the fix for CacheKey normalization works, this should succeed
         result.assert_ok()
         assert "Provenance for content/index.md" in result.stdout
@@ -68,8 +71,10 @@ class TestCLICommandSmoke:
         """Verify 'bengal health linkcheck' works (checks fix for BuildOptions)."""
         # This command triggers a build if output is missing
         # test-basic has a broken link (/index.txt), so we expect failure
-        result = run_cli(["health", "linkcheck", "--internal-only"], cwd=str(site.root_path))
-        
+        result = run_cli(
+            ["health", "linkcheck", "--internal-only"], cwd=str(site.root_path)
+        )
+
         # We expect it to FAIL because of broken links, but not CRASH with AttributeError
         result.assert_fail_with()
         assert "Link Check Report" in result.stdout

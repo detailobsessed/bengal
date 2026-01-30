@@ -4,8 +4,6 @@ Unit tests for Bengal dashboard custom widgets.
 Tests widget initialization, state management, and message posting.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.cli.dashboard.widgets import BengalThrobber, BuildFlash, QuickAction

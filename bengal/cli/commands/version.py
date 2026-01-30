@@ -24,14 +24,13 @@ from bengal.core.version import Version, VersionConfig
 def version_cli() -> None:
     """
     Version management for documentation.
-    
+
     Commands:
         list     Display all configured versions
         create   Create a new version snapshot
         info     Show details about a specific version
-        
+
     """
-    pass
 
 
 @version_cli.command("list")
@@ -57,17 +56,17 @@ def version_cli() -> None:
 def list_versions(output_format: str, source: str) -> None:
     """
     📋 Display all configured versions.
-    
+
     Shows version ID, label, source directory, and status (latest, deprecated).
-    
+
     Examples:
         bengal version list
         bengal version list --format json
-    
+
     See also:
         bengal version info - Show details about a specific version
         bengal version create - Create a new version snapshot
-        
+
     """
     cli = get_cli_output()
 
@@ -81,7 +80,9 @@ def list_versions(output_format: str, source: str) -> None:
 
     if not version_config.versions:
         cli.warning("No versions configured.")
-        cli.info("Add versions to your config or use 'bengal version create' to create one.")
+        cli.info(
+            "Add versions to your config or use 'bengal version create' to create one."
+        )
         return
 
     cli.header("📚 Documentation Versions")
@@ -127,16 +128,16 @@ def list_versions(output_format: str, source: str) -> None:
 def info(version_id: str, source: str) -> None:
     """
     Show details about a specific version.
-    
+
     Accepts version ID or alias (e.g., 'v2', 'latest', 'stable').
-    
+
     Examples:
         bengal version info v2
         bengal version info latest
-    
+
     See also:
         bengal version list - List all versions
-        
+
     """
     cli = get_cli_output()
 
@@ -237,23 +238,23 @@ def create(
 ) -> None:
     """
     Create a new version snapshot.
-    
+
     Copies the current documentation to a versioned directory and updates
     configuration to include the new version.
-    
+
     Examples:
         bengal version create v2
         bengal version create v2 --label '2.0 (Stable)'
         bengal version create v1 --from docs --to _versions/v1/docs
-    
+
     Workflow:
         1. Copy docs/ → _versions/v2/docs/
         2. Update config with new version entry
         3. Current docs/ becomes the new "latest" version
-    
+
     See also:
         bengal version list - List all versions
-        
+
     """
     cli = get_cli_output()
 
@@ -261,7 +262,11 @@ def create(
 
     # Determine paths
     source_dir = root_path / from_path
-    dest_dir = root_path / to_path if to_path else root_path / "_versions" / version_id / from_path
+    dest_dir = (
+        root_path / to_path
+        if to_path
+        else root_path / "_versions" / version_id / from_path
+    )
 
     # Validate source exists
     if not source_dir.exists():
@@ -413,22 +418,22 @@ def diff_versions(
 ) -> None:
     """
     Compare documentation between two versions.
-    
+
     Shows added, removed, and modified pages between versions.
-    
+
     Examples:
         bengal version diff v2 v3
         bengal version diff main release/0.1.6 --git
         bengal version diff v1 v2 --output markdown
-    
+
     Output formats:
         summary  - Brief summary of changes (default)
         markdown - Markdown changelog suitable for release notes
         json     - JSON output for automation
-    
+
     See also:
         bengal version list - List all versions
-        
+
     """
     cli = get_cli_output()
 
@@ -493,7 +498,8 @@ def diff_versions(
             "added": [p.path for p in result.added_pages],
             "removed": [p.path for p in result.removed_pages],
             "modified": [
-                {"path": p.path, "change_pct": p.change_percentage} for p in result.modified_pages
+                {"path": p.path, "change_pct": p.change_percentage}
+                for p in result.modified_pages
             ],
             "unchanged_count": len(result.unchanged_pages),
         }
@@ -523,9 +529,9 @@ def diff_versions(
 
         if result.modified_pages:
             cli.info("📝 Modified pages:")
-            for p in sorted(result.modified_pages, key=lambda x: x.change_percentage, reverse=True)[
-                :10
-            ]:
+            for p in sorted(
+                result.modified_pages, key=lambda x: x.change_percentage, reverse=True
+            )[:10]:
                 cli.info(f"  ~ {p.path} ({p.change_percentage:.1f}% changed)")
             if len(result.modified_pages) > 10:
                 cli.info(f"  ... and {len(result.modified_pages) - 10} more")

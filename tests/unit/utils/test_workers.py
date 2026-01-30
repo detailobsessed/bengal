@@ -9,8 +9,6 @@ Tests the unified worker auto-tune utility including:
 - Complexity ordering
 """
 
-from __future__ import annotations
-
 import os
 from unittest.mock import MagicMock, patch
 
@@ -32,7 +30,7 @@ from bengal.utils.concurrency.workers import (
 def _make_page_mock(raw_content: str, metadata: dict | None = None) -> MagicMock:
     """
     Create a properly configured page mock for estimate_page_weight tests.
-    
+
     MagicMock auto-creates attributes, so hasattr(mock, "_source") is always True.
     The estimate_page_weight function checks _source first, then _raw_content.
     We set _source to the content so it works correctly.
@@ -90,7 +88,9 @@ class TestDetectEnvironment:
 
     def test_jenkins_detection(self) -> None:
         """Detects Jenkins environment."""
-        with patch.dict(os.environ, {"JENKINS_URL": "http://jenkins.example.com"}, clear=True):
+        with patch.dict(
+            os.environ, {"JENKINS_URL": "http://jenkins.example.com"}, clear=True
+        ):
             assert detect_environment() == Environment.CI
 
     def test_buildkite_detection(self) -> None:
@@ -536,7 +536,10 @@ class TestIntegration:
 
     def test_full_workflow_local(self) -> None:
         """Full workflow in local environment."""
-        with patch.dict(os.environ, {}, clear=True), patch("os.cpu_count", return_value=8):
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch("os.cpu_count", return_value=8),
+        ):
             # Detect environment
             env = detect_environment()
             assert env == Environment.LOCAL

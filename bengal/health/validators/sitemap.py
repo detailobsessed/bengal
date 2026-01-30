@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 class SitemapValidator(BaseValidator):
     """
     Validates sitemap.xml for SEO.
-    
+
     Checks:
     - Sitemap file exists
     - XML is well-formed
@@ -33,7 +33,7 @@ class SitemapValidator(BaseValidator):
     - No duplicate URLs
     - URLs are absolute and properly formatted
     - Sitemap includes expected pages
-        
+
     """
 
     name = "Sitemap"
@@ -120,7 +120,9 @@ class SitemapValidator(BaseValidator):
 
         return results
 
-    def _check_sitemap_urls(self, root: ET.Element, site: SiteLike) -> list[CheckResult]:
+    def _check_sitemap_urls(
+        self, root: ET.Element, site: SiteLike
+    ) -> list[CheckResult]:
         """Check URLs in sitemap are properly formatted."""
         results = []
 
@@ -223,7 +225,9 @@ class SitemapValidator(BaseValidator):
 
         return results
 
-    def _check_sitemap_coverage(self, root: ET.Element, site: SiteLike) -> list[CheckResult]:
+    def _check_sitemap_coverage(
+        self, root: ET.Element, site: SiteLike
+    ) -> list[CheckResult]:
         """Check sitemap includes expected pages."""
         results = []
 
@@ -235,21 +239,22 @@ class SitemapValidator(BaseValidator):
         sitemap_count = len(urls)
 
         # Count non-draft pages
-        publishable_pages = [p for p in site.pages if not p.metadata.get("draft", False)]
+        publishable_pages = [
+            p for p in site.pages if not p.metadata.get("draft", False)
+        ]
         total_pages = len(publishable_pages)
 
         # Calculate coverage
-        if total_pages > 0:
-            if sitemap_count < total_pages:
-                missing = total_pages - sitemap_count
-                results.append(
-                    CheckResult.warning(
-                        f"Sitemap has {sitemap_count} URLs but site has {total_pages} publishable pages ({missing} missing)",
-                        code="H509",
-                        recommendation="Ensure all pages are included in sitemap. Check if some pages have output_path issues.",
-                    )
+        if total_pages > 0 and sitemap_count < total_pages:
+            missing = total_pages - sitemap_count
+            results.append(
+                CheckResult.warning(
+                    f"Sitemap has {sitemap_count} URLs but site has {total_pages} publishable pages ({missing} missing)",
+                    code="H509",
+                    recommendation="Ensure all pages are included in sitemap. Check if some pages have output_path issues.",
                 )
-            # Extra URLs (sitemap_count > total_pages) is normal - generated pages like tags/archives
-            # No success message - if coverage is good, silence is golden
+            )
+        # Extra URLs (sitemap_count > total_pages) is normal - generated pages like tags/archives
+        # No success message - if coverage is good, silence is golden
 
         return results

@@ -12,6 +12,8 @@ Usage:
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
@@ -21,15 +23,15 @@ from textual.widgets import Static
 class QuickAction(Static, can_focus=True):
     """
     Quick action grid item for landing screen.
-    
+
     Displays an emoji icon, title, and description.
     Emits Selected message when clicked or activated.
-    
+
     Attributes:
         emoji: Icon emoji to display
         title: Action title (e.g., "Build Site")
         description: Short description of the action
-    
+
     Example:
         action = QuickAction(
             "🔨",
@@ -37,7 +39,7 @@ class QuickAction(Static, can_focus=True):
             "Run a full site build",
             id="action-build"
         )
-        
+
     """
 
     DEFAULT_CSS = """
@@ -75,7 +77,7 @@ class QuickAction(Static, can_focus=True):
     }
     """
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[tuple[str, str, str]]] = [
         ("enter", "select", "Select"),
         ("space", "select", "Select"),
     ]

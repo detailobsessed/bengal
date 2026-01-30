@@ -7,8 +7,6 @@ Covers:
 - Mistune [[link]] plugin
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.core.page import Page
@@ -137,7 +135,9 @@ class TestCrossReferenceTemplateFunctions:
         assert '<a href="/docs/installation/">Installation</a>' in result
 
         # Test reference with custom text
-        result = crossref.ref("docs/installation", index, baseurl="", text="Install Guide")
+        result = crossref.ref(
+            "docs/installation", index, baseurl="", text="Install Guide"
+        )
         assert '<a href="/docs/installation/">Install Guide</a>' in result
 
     def test_ref_function_broken_link(self):

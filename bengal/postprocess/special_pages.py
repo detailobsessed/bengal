@@ -50,7 +50,7 @@ Related:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from bengal.core.page.utils import create_synthetic_page
 from bengal.errors import ErrorCode
@@ -61,46 +61,60 @@ from bengal.utils.observability.logger import get_logger
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from bengal.core.site import Site
+    from jinja2 import Environment
+
     from bengal.orchestration.build_context import BuildContext
     from bengal.protocols import SiteLike
+
+
+class TemplateEngineLike(Protocol):
+    """Protocol for template engines with env and render methods."""
+
+    @property
+    def env(self) -> Environment:
+        """Jinja2-compatible environment."""
+        ...
+
+    def render(self, template_name: str, context: dict[str, Any]) -> str:
+        """Render a template with context."""
+        ...
 
 
 class SpecialPagesGenerator:
     """
     Generates special utility pages with site styling.
-    
+
     These pages use templates from the theme but don't have corresponding
     markdown source files. They are rendered during the build process to
     ensure proper styling, navigation, and integration with site features.
-    
+
     Creation:
         Direct instantiation: SpecialPagesGenerator(site)
             - Created by PostprocessOrchestrator for special page generation
             - Requires Site instance with template engine
-    
+
     Attributes:
         site: Site instance with configuration and template engine
-    
+
     Relationships:
         - Used by: PostprocessOrchestrator for special page generation
         - Uses: Site for config, TemplateEngine for rendering
         - Uses: GraphVisualizer for knowledge graph page
-    
+
     Currently Generates:
         - 404.html: Custom error page with site styling and navigation
         - search.html: Client-side search with Lunr.js integration
         - graph.html: Interactive D3.js knowledge graph visualization
-    
+
     Graceful Degradation:
         - Missing templates are silently skipped (not errors)
         - User content at same path takes precedence (priority system)
         - Generation failures are logged but don't stop the build
-    
+
     Example:
             >>> generator = SpecialPagesGenerator(site)
             >>> generator.generate(build_context=context)
-        
+
     """
 
     def __init__(self, site: SiteLike) -> None:
@@ -168,14 +182,17 @@ class SpecialPagesGenerator:
             is not critical for site functionality
         """
         try:
+            from bengal.core.site import Site
             from bengal.rendering.engines import create_engine
 
             # Get template engine (reuse site's if available)
-            if hasattr(self.site, "template_engine"):
-                template_engine = self.site.template_engine
+            raw_engine = getattr(self.site, "template_engine", None)
+            if raw_engine is not None:
+                template_engine = cast(TemplateEngineLike, raw_engine)
             else:
                 # Create new template engine for rendering
-                template_engine = create_engine(self.site)
+                site = cast(Site, self.site)
+                template_engine = cast(TemplateEngineLike, create_engine(site))
 
             # Check if 404.html template exists
             try:
@@ -221,11 +238,9 @@ class SpecialPagesGenerator:
 
             # Claim URL in registry before writing (claim-before-write pattern)
             # Priority 10 = special pages (fallback utility pages)
-            # Type narrowing: SiteLike doesn't have url_registry, but Site does
-            if hasattr(self.site, "url_registry") and self.site.url_registry:
+            url_registry = getattr(self.site, "url_registry", None)
+            if url_registry is not None:
                 try:
-                    # Type narrowing: we know url_registry exists from hasattr check
-                    url_registry = getattr(self.site, "url_registry")
                     url_registry.claim_output_path(
                         output_path=output_path,
                         site=self.site,
@@ -308,16 +323,16 @@ class SpecialPagesGenerator:
             if not raw_path.endswith("/"):
                 raw_path = raw_path + "/"
 
+            from bengal.core.site import Site
             from bengal.rendering.engines import create_engine
 
             # Get template engine (reuse site's if available)
-            if hasattr(self.site, "template_engine"):
-                template_engine = self.site.template_engine
+            raw_engine = getattr(self.site, "template_engine", None)
+            if raw_engine is not None:
+                template_engine = cast(TemplateEngineLike, raw_engine)
             else:
-                # Cast SiteLike to Site for create_engine (which expects concrete Site)
-                from bengal.core.site import Site
                 site = cast(Site, self.site)
-                template_engine = create_engine(site)
+                template_engine = cast(TemplateEngineLike, create_engine(site))
 
             try:
                 template_engine.env.get_template(template_name)
@@ -365,11 +380,9 @@ class SpecialPagesGenerator:
 
             # Claim URL in registry before writing (claim-before-write pattern)
             # Priority 10 = special pages (fallback utility pages)
-            # Type narrowing: SiteLike doesn't have url_registry, but Site does
-            if hasattr(self.site, "url_registry") and self.site.url_registry:
+            url_registry = getattr(self.site, "url_registry", None)
+            if url_registry is not None:
                 try:
-                    # Type narrowing: we know url_registry exists from hasattr check
-                    url_registry = getattr(self.site, "url_registry")
                     url_registry.claim_output_path(
                         output_path=output_path,
                         site=self.site,
@@ -466,11 +479,9 @@ class SpecialPagesGenerator:
 
             # Claim URL in registry before writing (claim-before-write pattern)
             # Priority 10 = special pages (fallback utility pages)
-            # Type narrowing: SiteLike doesn't have url_registry, but Site does
-            if hasattr(self.site, "url_registry") and self.site.url_registry:
+            url_registry = getattr(self.site, "url_registry", None)
+            if url_registry is not None:
                 try:
-                    # Type narrowing: we know url_registry exists from hasattr check
-                    url_registry = getattr(self.site, "url_registry")
                     url_registry.claim_output_path(
                         output_path=output_path,
                         site=self.site,

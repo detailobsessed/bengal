@@ -179,10 +179,14 @@ class TestLouvainCommunityDetector:
     def test_two_clusters(self):
         """Test detection with two distinct clusters."""
         # Cluster 1: pages 0-2
-        cluster1_pages = [Mock(source_path=Path(f"page{i}.md"), metadata={}) for i in range(3)]
+        cluster1_pages = [
+            Mock(source_path=Path(f"page{i}.md"), metadata={}) for i in range(3)
+        ]
 
         # Cluster 2: pages 3-5
-        cluster2_pages = [Mock(source_path=Path(f"page{i}.md"), metadata={}) for i in range(3, 6)]
+        cluster2_pages = [
+            Mock(source_path=Path(f"page{i}.md"), metadata={}) for i in range(3, 6)
+        ]
 
         all_pages = cluster1_pages + cluster2_pages
 
@@ -252,7 +256,7 @@ class TestLouvainCommunityDetector:
         center = Mock(source_path=Path("center.md"), metadata={})
         spokes = [Mock(source_path=Path(f"spoke{i}.md"), metadata={}) for i in range(5)]
 
-        all_pages = [center] + spokes
+        all_pages = [center, *spokes]
 
         site = Mock()
         site.pages = all_pages
@@ -348,7 +352,9 @@ class TestLouvainCommunityDetector:
     def test_filters_generated_pages(self):
         """Test that generated pages are excluded."""
         real_page = Mock(source_path=Path("real.md"), metadata={})
-        generated_page = Mock(source_path=Path("generated.md"), metadata={"_generated": True})
+        generated_page = Mock(
+            source_path=Path("generated.md"), metadata={"_generated": True}
+        )
 
         site = Mock()
         site.pages = [real_page, generated_page]

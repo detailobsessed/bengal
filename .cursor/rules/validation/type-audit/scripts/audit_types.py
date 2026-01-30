@@ -148,7 +148,9 @@ def find_any_usages(target: Path) -> list[AnyUsage]:
 
                         if (
                             "TYPE_CHECKING"
-                            in content[max(0, content.find(line) - 200) : content.find(line)]
+                            in content[
+                                max(0, content.find(line) - 200) : content.find(line)
+                            ]
                         ):
                             classification = "type_checking_block"
                             acceptable = True

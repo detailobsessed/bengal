@@ -17,7 +17,9 @@ def simple_site(tmp_path):
 
     # Create pages (slug is auto-derived from title)
     page1 = Page(
-        source_path=tmp_path / "page1.md", _raw_content="# Page 1", metadata={"title": "Page 1"}
+        source_path=tmp_path / "page1.md",
+        _raw_content="# Page 1",
+        metadata={"title": "Page 1"},
     )
 
     page2 = Page(
@@ -44,23 +46,31 @@ def site_with_links(tmp_path):
 
     # Create hub page (slug is auto-derived from title)
     hub = Page(
-        source_path=tmp_path / "hub.md", _raw_content="# Hub Page", metadata={"title": "Hub"}
+        source_path=tmp_path / "hub.md",
+        _raw_content="# Hub Page",
+        metadata={"title": "Hub"},
     )
 
     # Create leaf pages that link to hub
     leaf1 = Page(
-        source_path=tmp_path / "leaf1.md", _raw_content="# Leaf 1", metadata={"title": "Leaf 1"}
+        source_path=tmp_path / "leaf1.md",
+        _raw_content="# Leaf 1",
+        metadata={"title": "Leaf 1"},
     )
     leaf1.related_posts = [hub]  # Simulates link
 
     leaf2 = Page(
-        source_path=tmp_path / "leaf2.md", _raw_content="# Leaf 2", metadata={"title": "Leaf 2"}
+        source_path=tmp_path / "leaf2.md",
+        _raw_content="# Leaf 2",
+        metadata={"title": "Leaf 2"},
     )
     leaf2.related_posts = [hub]  # Simulates link
 
     # Create orphan (no connections)
     orphan = Page(
-        source_path=tmp_path / "orphan.md", _raw_content="# Orphan", metadata={"title": "Orphan"}
+        source_path=tmp_path / "orphan.md",
+        _raw_content="# Orphan",
+        metadata={"title": "Orphan"},
     )
 
     site.pages = [hub, leaf1, leaf2, orphan]
@@ -164,7 +174,7 @@ class TestConnectivity:
         graph = KnowledgeGraph(site_with_links)
         graph.build()
 
-        hub = [p for p in site_with_links.pages if p.slug == "hub"][0]
+        hub = next(p for p in site_with_links.pages if p.slug == "hub")
         score = graph.get_connectivity_score(hub)
 
         # Hub has 2 incoming refs (from leaf1 and leaf2)
@@ -175,7 +185,7 @@ class TestConnectivity:
         graph = KnowledgeGraph(site_with_links)
         graph.build()
 
-        hub = [p for p in site_with_links.pages if p.slug == "hub"][0]
+        hub = next(p for p in site_with_links.pages if p.slug == "hub")
         conn = graph.get_connectivity(hub)
 
         assert isinstance(conn, PageConnectivity)
@@ -189,7 +199,7 @@ class TestConnectivity:
         graph = KnowledgeGraph(site_with_links)
         graph.build()
 
-        orphan = [p for p in site_with_links.pages if p.slug == "orphan"][0]
+        orphan = next(p for p in site_with_links.pages if p.slug == "orphan")
         conn = graph.get_connectivity(orphan)
 
         assert conn.is_orphan is True
@@ -213,7 +223,7 @@ class TestLayers:
         assert isinstance(layers, PageLayers)
 
         # Test tuple unpacking (backward compatibility)
-        hubs, mid_tier, leaves = layers
+        _hubs, _mid_tier, _leaves = layers
 
         # All pages should be in one of the layers
         total = len(layers.hubs) + len(layers.mid_tier) + len(layers.leaves)
@@ -231,7 +241,7 @@ class TestLayers:
         layers = graph.get_layers()
 
         # Test tuple unpacking (backward compatibility)
-        hubs, mid_tier, leaves = layers
+        _hubs, _mid_tier, _leaves = layers
 
         # If we have pages in multiple layers,
         # hubs should have higher connectivity than leaves
@@ -301,8 +311,16 @@ class TestFormatStats:
         site = Site(root_path=tmp_path, config={})
 
         # Create pages that all reference each other
-        page1 = Page(source_path=tmp_path / "p1.md", _raw_content="", metadata={"title": "Page 1"})
-        page2 = Page(source_path=tmp_path / "p2.md", _raw_content="", metadata={"title": "Page 2"})
+        page1 = Page(
+            source_path=tmp_path / "p1.md",
+            _raw_content="",
+            metadata={"title": "Page 1"},
+        )
+        page2 = Page(
+            source_path=tmp_path / "p2.md",
+            _raw_content="",
+            metadata={"title": "Page 2"},
+        )
         page1.related_posts = [page2]
         page2.related_posts = [page1]
 
@@ -324,7 +342,10 @@ class TestTaxonomyAnalysis:
         simple_site.taxonomies = {
             "tags": {
                 "python": {
-                    "pages": [simple_site.pages[1], simple_site.pages[2]]  # page2, page3
+                    "pages": [
+                        simple_site.pages[1],
+                        simple_site.pages[2],
+                    ]  # page2, page3
                 }
             }
         }

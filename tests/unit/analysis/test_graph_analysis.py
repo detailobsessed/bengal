@@ -5,8 +5,6 @@ Verifies the extracted graph analysis functionality works correctly
 both directly and through KnowledgeGraph delegation.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.analysis import GraphAnalyzer, KnowledgeGraph
@@ -186,7 +184,9 @@ class TestGraphAnalyzerDelegation:
         # Compare results
         page1 = simple_site.pages[0]
 
-        assert graph.get_connectivity_score(page1) == analyzer.get_connectivity_score(page1)
+        assert graph.get_connectivity_score(page1) == analyzer.get_connectivity_score(
+            page1
+        )
         assert graph.get_hubs() == analyzer.get_hubs()
         assert graph.get_leaves() == analyzer.get_leaves()
         assert graph.get_orphans() == analyzer.get_orphans()

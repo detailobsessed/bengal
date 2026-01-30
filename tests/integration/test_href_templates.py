@@ -81,7 +81,9 @@ class TestHrefGitHubPagesDeployment:
             assert page._path.startswith("/"), (
                 f"_path should not include baseurl, got: {page._path}"
             )
-            assert not page._path.startswith("/bengal/"), "_path should not include baseurl"
+            assert not page._path.startswith("/bengal/"), (
+                "_path should not include baseurl"
+            )
 
     def test_section_href_includes_baseurl(self, site, build_site):
         """Test that section.href includes baseurl for GitHub Pages."""
@@ -95,7 +97,9 @@ class TestHrefGitHubPagesDeployment:
             assert section._path.startswith("/"), (
                 f"_path should not include baseurl, got: {section._path}"
             )
-            assert not section._path.startswith("/bengal/"), "_path should not include baseurl"
+            assert not section._path.startswith("/bengal/"), (
+                "_path should not include baseurl"
+            )
 
     def test_href_filter_works(self, site, build_site):
         """Test that href filter works for manual paths."""
@@ -125,11 +129,15 @@ class TestHrefLocalDevServer:
         if pages:
             page = pages[0]
             # href should equal _path when baseurl is empty
-            assert page.href == page._path, "href should equal _path when baseurl is empty"
+            assert page.href == page._path, (
+                "href should equal _path when baseurl is empty"
+            )
             assert page.href.startswith("/"), "href should start with /"
 
 
-@pytest.mark.bengal(testroot="test-basic", confoverrides={"site.baseurl": "https://example.com"})
+@pytest.mark.bengal(
+    testroot="test-basic", confoverrides={"site.baseurl": "https://example.com"}
+)
 class TestHrefCustomDomain:
     """Test href property for custom domain (baseurl="https://example.com")."""
 

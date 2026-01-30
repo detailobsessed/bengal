@@ -4,8 +4,6 @@ Test inline icon plugin.
 Validates {icon}`name` syntax for inline icons in tables, paragraphs, etc.
 """
 
-from __future__ import annotations
-
 import textwrap
 
 

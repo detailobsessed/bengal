@@ -5,8 +5,6 @@ These filters normalize access to endpoint and schema data in templates,
 providing a consistent API regardless of consolidation mode.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -284,7 +282,10 @@ class TestSchemaViewFromDocElement:
         assert view.description == "A user in the system"
         assert view.href == "/api/schemas/user/"
         assert view.has_page is True
-        assert view.properties == {"id": {"type": "integer"}, "name": {"type": "string"}}
+        assert view.properties == {
+            "id": {"type": "integer"},
+            "name": {"type": "string"},
+        }
         assert view.required == ("id",)
         assert view.example == {"id": 1, "name": "Test"}
 
@@ -393,7 +394,11 @@ class TestEndpointsFilter:
             metadata={},  # No endpoints in metadata
             pages=[
                 MockPage(
-                    metadata={"method": "GET", "path": "/items", "type": "openapi_endpoint"},
+                    metadata={
+                        "method": "GET",
+                        "path": "/items",
+                        "type": "openapi_endpoint",
+                    },
                     href="/api/items/list/",
                 ),
                 MockPage(
@@ -437,7 +442,9 @@ class TestEndpointsFilter:
         section = MockSection(
             metadata={
                 "endpoints": [
-                    MockDocElement(name="valid", typed_metadata=MockOpenAPIEndpointMetadata()),
+                    MockDocElement(
+                        name="valid", typed_metadata=MockOpenAPIEndpointMetadata()
+                    ),
                     MockDocElement(name="invalid", typed_metadata=None),
                 ]
             }
@@ -497,7 +504,9 @@ class TestSchemasFilter:
         section = MockSection(
             metadata={
                 "schemas": [
-                    MockDocElement(name="Valid", typed_metadata=MockOpenAPISchemaMetadata()),
+                    MockDocElement(
+                        name="Valid", typed_metadata=MockOpenAPISchemaMetadata()
+                    ),
                     MockDocElement(name="Invalid", typed_metadata=None),
                 ]
             }

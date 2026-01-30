@@ -31,11 +31,11 @@ logger = get_logger(__name__)
 
 class ResourcesProxy:
     """Proxy object for resources.get() and resources.match() in templates.
-    
+
     Provides Hugo-style resource access syntax:
         resources.get("images/hero.jpg")
         resources.match("gallery/*.jpg")
-        
+
     """
 
     def __init__(self, site: SiteLike):
@@ -119,11 +119,11 @@ class ResourcesProxy:
             ".bmp",
             ".tiff",
         }
-        results = []
-
-        for match in self._assets_dir.glob(pattern):
-            if match.is_file() and match.suffix.lower() in image_extensions:
-                results.append(ImageResource(source_path=match, site=self._site))
+        results = [
+            ImageResource(source_path=match, site=self._site)
+            for match in self._assets_dir.glob(pattern)
+            if match.is_file() and match.suffix.lower() in image_extensions
+        ]
 
         # Sort by path for deterministic ordering
         results.sort(key=lambda r: str(r.source_path))
@@ -133,13 +133,13 @@ class ResourcesProxy:
 
 def register(env: TemplateEnvironment, site: SiteLike) -> None:
     """Register functions with template environment.
-    
+
     Adds the `resources` proxy object to template globals.
-    
+
     Args:
         env: Jinja2 Environment
         site: Site instance
-        
+
     """
     resources_proxy = ResourcesProxy(site)
 

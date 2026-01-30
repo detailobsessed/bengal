@@ -12,8 +12,6 @@ Success Criteria:
     - Unknown scope: Conservative rebuild (safe fallback)
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from textwrap import dedent
 from typing import TYPE_CHECKING
@@ -35,7 +33,9 @@ try:
 except ImportError:
     HAS_KIDA = False
 
-requires_kida = pytest.mark.skipif(not HAS_KIDA, reason="Kida environment not available")
+requires_kida = pytest.mark.skipif(
+    not HAS_KIDA, reason="Kida environment not available"
+)
 
 
 @requires_kida
@@ -392,17 +392,16 @@ class TestBlockDetectionPerformance:
         templates_dir.mkdir()
 
         # Create a large base.html with many blocks
-        blocks = []
-        for i in range(50):
-            blocks.append(
-                f"""
+        blocks = [
+            f"""
                 {{%- block block_{i} -%}}
                 <div class="block-{i}">
                     {{{{ site.data.item_{i} }}}}
                 </div>
                 {{%- end -%}}
             """
-            )
+            for i in range(50)
+        ]
 
         base_html = templates_dir / "base.html"
         base_html.write_text(
@@ -420,7 +419,9 @@ class TestBlockDetectionPerformance:
         env.loader = env.create_loader(str(templates_dir))
         return env
 
-    def test_block_hash_computation_performance(self, large_template_env, benchmark, tmp_path):
+    def test_block_hash_computation_performance(
+        self, large_template_env, benchmark, tmp_path
+    ):
         """Benchmark block hash computation for large templates."""
         from bengal.rendering.block_cache import BlockCache
 
@@ -436,7 +437,9 @@ class TestBlockDetectionPerformance:
         # Should have 50 block hashes
         assert len(result) == 50
 
-    def test_change_detection_performance(self, large_template_env, benchmark, tmp_path):
+    def test_change_detection_performance(
+        self, large_template_env, benchmark, tmp_path
+    ):
         """Benchmark change detection for large templates."""
         from bengal.rendering.block_cache import BlockCache
 

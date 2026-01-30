@@ -29,24 +29,24 @@ VALID_SIZES = frozenset(["small", "medium", "large"])
 class ButtonOptions(DirectiveOptions):
     """
     Options for button directive.
-    
+
     Attributes:
         color: Button color theme (primary, secondary, success, danger, etc.)
         style: Button style (default, pill, outline)
         size: Button size (small, medium, large)
         icon: Optional icon name
         target: Link target (_blank for external links)
-    
+
     Example:
         :::{button} /get-started/
         :color: primary
         :style: pill
         :size: large
         :icon: rocket
-    
+
         Get Started
         :::
-        
+
     """
 
     color: str = "primary"
@@ -55,7 +55,7 @@ class ButtonOptions(DirectiveOptions):
     icon: str = ""
     target: str = ""
 
-    _allowed_values: ClassVar[dict[str, list[str]]] = {
+    _allowed_values: ClassVar[dict[str, list[str | int]]] = {
         "color": list(VALID_COLORS),
         "style": list(VALID_STYLES),
         "size": list(VALID_SIZES),
@@ -65,7 +65,7 @@ class ButtonOptions(DirectiveOptions):
 class ButtonDirective(BengalDirective):
     """
     Button directive for creating styled link buttons.
-    
+
     Syntax:
         :::{button} /path/to/page/
         :color: primary
@@ -73,32 +73,32 @@ class ButtonDirective(BengalDirective):
         :size: large
         :icon: rocket
         :target: _blank
-    
+
         Button Text
         :::
-    
+
     Options:
         color: primary, secondary, success, danger, warning, info, light, dark
         style: default (rounded), pill (fully rounded), outline
         size: small, medium (default), large
         icon: Icon name (same as cards)
         target: _blank for external links (optional)
-    
+
     Examples:
         # Basic button
         :::{button} /docs/
         Get Started
         :::
-    
+
         # Primary CTA
         :::{button} /signup/
         :color: primary
         :style: pill
         :size: large
-    
+
         Sign Up Free
         :::
-        
+
     """
 
     NAMES: ClassVar[list[str]] = ["button"]
@@ -111,7 +111,7 @@ class ButtonDirective(BengalDirective):
     def parse_directive(
         self,
         title: str,
-        options: ButtonOptions,  # type: ignore[override]
+        options: ButtonOptions,
         content: str,
         children: list[Any],
         state: Any,
@@ -127,7 +127,9 @@ class ButtonDirective(BengalDirective):
             type=self.TOKEN_TYPE,
             attrs={
                 "url": title.strip() if title else "#",
-                "label": content.strip() if content else "Button",  # 'label' avoids conflict
+                "label": content.strip()
+                if content
+                else "Button",  # 'label' avoids conflict
                 "color": options.color,
                 "style": options.style,
                 "size": options.size,
@@ -193,9 +195,13 @@ class ButtonDirective(BengalDirective):
         if icon:
             rendered_icon = self._render_icon(icon, button_text=button_text)
             if rendered_icon:
-                content_parts.append(f'<span class="button-icon">{rendered_icon}</span>')
+                content_parts.append(
+                    f'<span class="button-icon">{rendered_icon}</span>'
+                )
 
-        content_parts.append(f'<span class="button-text">{self.escape_html(button_text)}</span>')
+        content_parts.append(
+            f'<span class="button-text">{self.escape_html(button_text)}</span>'
+        )
 
         content_html = "".join(content_parts)
 

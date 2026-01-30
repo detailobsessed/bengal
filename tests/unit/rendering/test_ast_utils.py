@@ -1,7 +1,5 @@
 """Tests for AST utilities (walk, extract, transform)."""
 
-from __future__ import annotations
-
 from bengal.parsing.ast.types import ASTNode
 from bengal.parsing.ast.utils import (
     extract_links_from_ast,
@@ -202,7 +200,10 @@ class TestExtractLinksFromAST:
     def test_no_links(self) -> None:
         """extract_links_from_ast returns empty for no links."""
         ast: list[ASTNode] = [
-            {"type": "paragraph", "children": [{"type": "text", "raw": "No links here"}]}
+            {
+                "type": "paragraph",
+                "children": [{"type": "text", "raw": "No links here"}],
+            }
         ]
         links = extract_links_from_ast(ast)
         assert links == []
@@ -341,7 +342,10 @@ class TestExtractPlainText:
                     {
                         "type": "strong",
                         "children": [
-                            {"type": "emphasis", "children": [{"type": "text", "raw": "world"}]}
+                            {
+                                "type": "emphasis",
+                                "children": [{"type": "text", "raw": "world"}],
+                            }
                         ],
                     },
                 ],

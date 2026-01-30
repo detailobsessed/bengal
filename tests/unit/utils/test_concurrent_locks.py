@@ -5,8 +5,6 @@ Tests thread safety, lock creation, and cleanup behavior for the per-key
 lock pattern used to prevent duplicate work in parallel builds.
 """
 
-from __future__ import annotations
-
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -207,7 +205,9 @@ class TestPerKeyLockManager:
         # If serialized, would take ~80ms (4 × 20ms)
         # If parallel, should take ~20-30ms (just one work unit + overhead)
         # Allow some tolerance for thread scheduling
-        assert total_time < 0.06, f"Expected parallel execution but took {total_time:.3f}s"
+        assert total_time < 0.06, (
+            f"Expected parallel execution but took {total_time:.3f}s"
+        )
 
     def test_same_key_serializes(self) -> None:
         """Same key should serialize, taking longer."""
@@ -228,7 +228,9 @@ class TestPerKeyLockManager:
 
         # Should take ~40ms (4 × 10ms serialized) plus overhead
         # Definitely more than 30ms if properly serialized
-        assert total_time >= 0.03, f"Expected serialization but took only {total_time:.3f}s"
+        assert total_time >= 0.03, (
+            f"Expected serialization but took only {total_time:.3f}s"
+        )
 
 
 class TestPerKeyLockManagerEdgeCases:

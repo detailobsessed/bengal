@@ -29,8 +29,8 @@ except ImportError as e:
     ) from e
 
 from bengal.content.sources.entry import ContentEntry
-from bengal.content.sources.source import ContentSource
 from bengal.content.sources.local import _parse_frontmatter
+from bengal.content.sources.source import ContentSource
 from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -39,22 +39,22 @@ logger = get_logger(__name__)
 class GitHubSource(ContentSource):
     """
     Content source for GitHub repositories.
-    
+
     Fetches markdown files from a GitHub repo using the GitHub API.
     Supports both public repos and private repos with token authentication.
-    
+
     Configuration:
         repo: str - Repository in "owner/repo" format (required)
         branch: str - Branch name (default: "main")
         path: str - Directory path within repo (default: "")
         token: str - GitHub token (optional, uses GITHUB_TOKEN env var)
         glob: str - File pattern to match (default: "*.md")
-    
+
     Performance:
         Files are fetched in parallel with a configurable concurrency limit.
         Rate limit responses (429/403) trigger automatic retry with exponential backoff.
         Results are streamed as they complete (order is non-deterministic).
-    
+
     Example:
             >>> source = GitHubSource("api-docs", {
             ...     "repo": "myorg/api-docs",
@@ -63,7 +63,7 @@ class GitHubSource(ContentSource):
             ... })
             >>> async for entry in source.fetch_all():
             ...     print(entry.title)
-        
+
     """
 
     source_type = "github"
@@ -121,11 +121,17 @@ class GitHubSource(ContentSource):
         """
         async with aiohttp.ClientSession(headers=self._headers) as session:
             # Get tree recursively in one API call
-            tree_url = f"{self.api_base}/repos/{self.repo}/git/trees/{self.branch}?recursive=1"
+            tree_url = (
+                f"{self.api_base}/repos/{self.repo}/git/trees/{self.branch}?recursive=1"
+            )
 
             async with session.get(tree_url) as resp:
                 if resp.status == 404:
-                    from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                    from bengal.errors import (
+                        BengalDiscoveryError,
+                        ErrorCode,
+                        record_error,
+                    )
 
                     not_found_error = BengalDiscoveryError(
                         f"GitHub repository not found: {self.repo}",
@@ -135,7 +141,11 @@ class GitHubSource(ContentSource):
                     record_error(not_found_error)
                     raise not_found_error
                 if resp.status == 403:
-                    from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                    from bengal.errors import (
+                        BengalDiscoveryError,
+                        ErrorCode,
+                        record_error,
+                    )
 
                     access_error = BengalDiscoveryError(
                         f"Access denied to GitHub repository: {self.repo}",
@@ -145,7 +155,11 @@ class GitHubSource(ContentSource):
                     record_error(access_error)
                     raise access_error
                 if resp.status == 401:
-                    from bengal.errors import BengalDiscoveryError, ErrorCode, record_error
+                    from bengal.errors import (
+                        BengalDiscoveryError,
+                        ErrorCode,
+                        record_error,
+                    )
 
                     auth_error = BengalDiscoveryError(
                         f"Authentication failed for GitHub repository: {self.repo}",
@@ -177,9 +191,14 @@ class GitHubSource(ContentSource):
                 async with semaphore:
                     for attempt in range(self.MAX_RETRIES):
                         try:
-                            return await self._fetch_file(session, item["path"], item["sha"])
+                            return await self._fetch_file(
+                                session, item["path"], item["sha"]
+                            )
                         except aiohttp.ClientResponseError as e:
-                            if e.status in (429, 403) and attempt < self.MAX_RETRIES - 1:
+                            if (
+                                e.status in (429, 403)
+                                and attempt < self.MAX_RETRIES - 1
+                            ):
                                 # Rate limited: exponential backoff
                                 delay = self.RETRY_BACKOFF_BASE * (2**attempt)
                                 logger.warning(
@@ -204,7 +223,11 @@ class GitHubSource(ContentSource):
                     if entry:
                         yield entry
                 except Exception as e:
-                    from bengal.errors import BengalContentError, ErrorCode, record_error
+                    from bengal.errors import (
+                        BengalContentError,
+                        ErrorCode,
+                        record_error,
+                    )
 
                     failed_count += 1
                     fetch_error = BengalContentError(
@@ -217,7 +240,9 @@ class GitHubSource(ContentSource):
                     logger.error(f"Failed to fetch file: {e}")
 
             if failed_count > 0:
-                logger.warning(f"Failed to fetch {failed_count}/{len(matching_files)} files")
+                logger.warning(
+                    f"Failed to fetch {failed_count}/{len(matching_files)} files"
+                )
 
     async def fetch_one(self, id: str) -> ContentEntry | None:
         """

@@ -102,7 +102,9 @@ class TestParseDateProperties:
         )
 
     @pytest.mark.hypothesis
-    @given(invalid=st.text(alphabet="abcdefghijklmnopqrstuvwxyz", min_size=1, max_size=20))
+    @given(
+        invalid=st.text(alphabet="abcdefghijklmnopqrstuvwxyz", min_size=1, max_size=20)
+    )
     def test_invalid_strings_return_none(self, invalid):
         """
         Property: Invalid strings return None (don't crash).
@@ -114,7 +116,9 @@ class TestParseDateProperties:
 
         result = parse_date(invalid)
 
-        assert result is None, f"Invalid string should return None: '{invalid}' → {result}"
+        assert result is None, (
+            f"Invalid string should return None: '{invalid}' → {result}"
+        )
 
     @pytest.mark.hypothesis
     @given(invalid=st.text(min_size=1, max_size=20))
@@ -129,7 +133,9 @@ class TestParseDateProperties:
         try:
             result = parse_date(invalid, on_error="raise")
             # If we get here, it parsed successfully
-            assert result is not None, f"Successful parse should not return None: '{invalid}'"
+            assert result is not None, (
+                f"Successful parse should not return None: '{invalid}'"
+            )
         except ValueError:
             # Expected for invalid strings - primitives raise ValueError, not BengalError
             pass
@@ -160,7 +166,9 @@ class TestFormatDateIsoProperties:
 
         if formatted:  # Empty string for None input
             reparsed = parse_date(formatted)
-            assert reparsed is not None, f"Formatted string should be parseable: '{formatted}'"
+            assert reparsed is not None, (
+                f"Formatted string should be parseable: '{formatted}'"
+            )
 
     @pytest.mark.hypothesis
     @given(dt=dates_strategy())
@@ -174,9 +182,13 @@ class TestFormatDateIsoProperties:
 
         if formatted:
             # Should have at least YYYY-MM-DD
-            assert "-" in formatted, f"ISO format should have date separators: '{formatted}'"
+            assert "-" in formatted, (
+                f"ISO format should have date separators: '{formatted}'"
+            )
             # Should have year at start (4 digits)
-            assert formatted[:4].isdigit(), f"ISO format should start with year: '{formatted}'"
+            assert formatted[:4].isdigit(), (
+                f"ISO format should start with year: '{formatted}'"
+            )
 
 
 class TestFormatDateRfc822Properties:
@@ -212,7 +224,10 @@ class TestFormatDateHumanProperties:
     """Property tests for format_date_human function."""
 
     @pytest.mark.hypothesis
-    @given(dt=dates_strategy(), fmt=st.sampled_from(["%Y-%m-%d", "%B %d, %Y", "%d/%m/%Y", "%Y"]))
+    @given(
+        dt=dates_strategy(),
+        fmt=st.sampled_from(["%Y-%m-%d", "%B %d, %Y", "%d/%m/%Y", "%Y"]),
+    )
     def test_always_returns_string(self, dt, fmt):
         """
         Property: format_date_human always returns a string for valid formats.
@@ -239,7 +254,9 @@ class TestTimeAgoProperties:
 
     @pytest.mark.hypothesis
     @given(
-        offset_seconds=st.integers(min_value=0, max_value=365 * 24 * 60 * 60)  # Up to 1 year
+        offset_seconds=st.integers(
+            min_value=0, max_value=365 * 24 * 60 * 60
+        )  # Up to 1 year
     )
     def test_always_returns_string(self, offset_seconds):
         """
@@ -331,7 +348,9 @@ class TestIsRecentProperties:
 
         result = is_recent(boundary, days=days, now=now)
 
-        assert result, f"Date exactly {days} days ago should be recent with threshold {days}"
+        assert result, (
+            f"Date exactly {days} days ago should be recent with threshold {days}"
+        )
 
 
 class TestDateRangeOverlapProperties:
@@ -356,7 +375,9 @@ class TestDateRangeOverlapProperties:
         overlap1 = date_range_overlap(start1, end1, start2, end2)
         overlap2 = date_range_overlap(start2, end2, start1, end1)
 
-        assert overlap1 == overlap2, f"Overlap should be symmetric: {overlap1} != {overlap2}"
+        assert overlap1 == overlap2, (
+            f"Overlap should be symmetric: {overlap1} != {overlap2}"
+        )
 
     @pytest.mark.hypothesis
     @given(start=dates_strategy(), duration=st.integers(min_value=1, max_value=365))

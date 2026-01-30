@@ -5,8 +5,6 @@ Ensures the rendering pipeline correctly selects the markdown parser
 based on different configuration formats.
 """
 
-from __future__ import annotations
-
 from unittest.mock import Mock
 
 import pytest
@@ -91,7 +89,9 @@ class TestParserSelection:
         # Should default to PatitasParser (Bengal's native parser)
         from bengal.parsing.backends.patitas import PatitasParser
 
-        assert isinstance(pipeline.parser, PatitasParser), "Failed to default to patitas parser"
+        assert isinstance(pipeline.parser, PatitasParser), (
+            "Failed to default to patitas parser"
+        )
 
     @pytest.mark.skipif(
         not HAS_MARKDOWN, reason="python-markdown not installed (optional dependency)"
@@ -167,7 +167,9 @@ This is a note directive.
         html = parser.parse(markdown, {})
 
         # Should contain admonition HTML (not raw text)
-        assert '<div class="admonition' in html, "Mistune parser should process note directive"
+        assert '<div class="admonition' in html, (
+            "Mistune parser should process note directive"
+        )
         assert "This is a note directive" in html
         # Should NOT contain the raw directive syntax
         assert ":::{note}" not in html

@@ -22,11 +22,9 @@ Design Principles (from rosettes investigation):
     - Error imports should be deferred to exception-raising code paths
 """
 
-from __future__ import annotations
-
 import subprocess
 import sys
-from typing import NamedTuple
+from typing import ClassVar, NamedTuple
 
 import pytest
 
@@ -90,11 +88,11 @@ import {module_path}
 elapsed = (time.perf_counter() - start) * 1000
 
 # Check which heavy modules were loaded
-heavy = {repr(list(HEAVY_MODULES))}
+heavy = {list(HEAVY_MODULES)!r}
 heavy_loaded = [m for m in heavy if m in sys.modules]
 
 # Check which optional deps were loaded
-optional = {repr(list(OPTIONAL_DEPS))}
+optional = {list(OPTIONAL_DEPS)!r}
 optional_loaded = [m for m in optional if m in sys.modules]
 
 # Output as simple parseable format
@@ -156,7 +154,9 @@ class TestLightweightModules:
             f"{module} took {result.time_ms:.1f}ms (threshold: {THRESHOLDS['lightweight']}ms)"
         )
 
-        assert not result.heavy_loaded, f"{module} loaded heavy modules: {result.heavy_loaded}"
+        assert not result.heavy_loaded, (
+            f"{module} loaded heavy modules: {result.heavy_loaded}"
+        )
 
     def test_rosettes_highlight_function(self):
         """The highlight() function should work without heavy deps."""
@@ -194,7 +194,9 @@ class TestOptionalDependencies:
         """psutil should only load when collecting performance metrics."""
         result = measure_import("bengal.utils.logger")
 
-        assert "psutil" not in result.optional_loaded, "psutil loaded by logger - should be lazy"
+        assert "psutil" not in result.optional_loaded, (
+            "psutil loaded by logger - should be lazy"
+        )
 
     def test_aiohttp_not_loaded_by_content_layer(self):
         """aiohttp should only load when using REST/external sources."""
@@ -301,7 +303,9 @@ class TestPackageInits:
         print(f"  Optional loaded: {result.optional_loaded or 'none'}")
 
         # Current threshold - should improve
-        assert result.time_ms < THRESHOLDS["heavy"], f"bengal.utils took {result.time_ms:.1f}ms"
+        assert result.time_ms < THRESHOLDS["heavy"], (
+            f"bengal.utils took {result.time_ms:.1f}ms"
+        )
 
 
 # =============================================================================
@@ -344,7 +348,7 @@ class TestRegressionDetection:
     """Detect regressions in import performance."""
 
     # Baseline times from after optimization (update when improving)
-    BASELINES = {
+    BASELINES: ClassVar[dict[str, float]] = {
         "rosettes": 15.0,  # External package
         "kida": 10.0,
         "bengal.rendering.highlighting": 25.0,

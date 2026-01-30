@@ -4,8 +4,6 @@ Test icon directive.
 Validates inline SVG icon rendering from Bengal's icon library.
 """
 
-from __future__ import annotations
-
 import textwrap
 
 

@@ -22,11 +22,10 @@ except ImportError:
 def sample_cli():
     """
     A sample CLI application.
-    
+
     This is used for testing the CLI extractor.
-        
+
     """
-    pass
 
 
 @sample_cli.command()
@@ -36,11 +35,10 @@ def sample_cli():
 def process(filename, verbose, count):
     """
     Process a file.
-    
+
     This command processes the specified file with various options.
-        
+
     """
-    pass
 
 
 @sample_cli.command()
@@ -48,11 +46,10 @@ def process(filename, verbose, count):
 def clean(force):
     """
     Clean up resources.
-    
+
     Removes temporary files and caches.
-        
+
     """
-    pass
 
 
 # Nested command group for testing
@@ -60,11 +57,10 @@ def clean(force):
 def manage():
     """
     Manage resources and configuration.
-    
+
     Commands for managing system resources.
-        
+
     """
-    pass
 
 
 @manage.command()
@@ -73,11 +69,10 @@ def manage():
 def create(name, description):
     """
     Create a new resource.
-    
+
     Creates a resource with the given name.
-        
+
     """
-    pass
 
 
 @manage.command()
@@ -86,11 +81,10 @@ def create(name, description):
 def delete(name, force):
     """
     Delete a resource.
-    
+
     Removes the specified resource.
-        
+
     """
-    pass
 
 
 class TestCLIExtractor:
@@ -130,7 +124,7 @@ class TestCLIExtractor:
         elements = extractor.extract(sample_cli)
 
         root = elements[0]
-        process_cmd = [c for c in root.children if c.name == "process"][0]
+        process_cmd = next(c for c in root.children if c.name == "process")
 
         assert process_cmd.element_type == "command"
         assert "Process a file" in process_cmd.description
@@ -146,7 +140,7 @@ class TestCLIExtractor:
         elements = extractor.extract(sample_cli)
 
         root = elements[0]
-        process_cmd = [c for c in root.children if c.name == "process"][0]
+        process_cmd = next(c for c in root.children if c.name == "process")
 
         # Check for options
         params = process_cmd.children
@@ -165,7 +159,7 @@ class TestCLIExtractor:
         elements = extractor.extract(sample_cli)
 
         root = elements[0]
-        process_cmd = [c for c in root.children if c.name == "process"][0]
+        process_cmd = next(c for c in root.children if c.name == "process")
 
         # Find the count option
         count_params = [p for p in process_cmd.children if "count" in p.name.lower()]
@@ -175,7 +169,10 @@ class TestCLIExtractor:
             assert "type" in count_param.metadata
             assert "default" in count_param.metadata
             # Default values are stored as strings
-            assert count_param.metadata["default"] == "1" or count_param.metadata["default"] == 1
+            assert (
+                count_param.metadata["default"] == "1"
+                or count_param.metadata["default"] == 1
+            )
 
     def test_sanitizes_descriptions(self):
         """Test that descriptions are sanitized (no leading indentation)."""
@@ -201,7 +198,7 @@ class TestCLIExtractor:
         # Click normalizes names to use dashes
         assert root.qualified_name == "sample-cli"
 
-        process_cmd = [c for c in root.children if c.name == "process"][0]
+        process_cmd = next(c for c in root.children if c.name == "process")
         assert process_cmd.qualified_name == "sample-cli.process"
 
     def test_get_output_path(self):
@@ -210,7 +207,10 @@ class TestCLIExtractor:
 
         # Mock element
         element = DocElement(
-            name="process", qualified_name="cli.process", description="Test", element_type="command"
+            name="process",
+            qualified_name="cli.process",
+            description="Test",
+            element_type="command",
         )
 
         path = extractor.get_output_path(element)
@@ -242,7 +242,6 @@ class TestCLIExtractorEdgeCases:
         @click.argument("name")
         def cmd_with_arg(name):
             """Command with argument."""
-            pass
 
         extractor = CLIExtractor()
         elements = extractor.extract(cmd_with_arg)
@@ -276,7 +275,6 @@ class TestCLIExtractorEdgeCases:
         @click.option("--hidden", hidden=True, help="Hidden option")
         def cmd_with_hidden(hidden):
             """Command with hidden option."""
-            pass
 
         extractor = CLIExtractor()
         elements = extractor.extract(cmd_with_hidden)
@@ -319,7 +317,7 @@ class TestCLIExtractorMetadata:
         elements = extractor.extract(sample_cli)
 
         root = elements[0]
-        process_cmd = [c for c in root.children if c.name == "process"][0]
+        process_cmd = next(c for c in root.children if c.name == "process")
 
         # Check parameter types
         for param in process_cmd.children:
@@ -346,9 +344,11 @@ class TestNestedCommandGroups:
         extractor = CLIExtractor()
         elements = extractor.extract(sample_cli)
 
-        manage_group = [
-            e for e in elements if e.name == "manage" and e.element_type == "command-group"
-        ][0]
+        manage_group = next(
+            e
+            for e in elements
+            if e.name == "manage" and e.element_type == "command-group"
+        )
         # Click normalizes names to use dashes
         assert manage_group.qualified_name == "sample-cli.manage"
 
@@ -367,8 +367,8 @@ class TestNestedCommandGroups:
         extractor = CLIExtractor()
         elements = extractor.extract(sample_cli)
 
-        create_cmd = [e for e in elements if e.name == "create"][0]
-        delete_cmd = [e for e in elements if e.name == "delete"][0]
+        create_cmd = next(e for e in elements if e.name == "create")
+        delete_cmd = next(e for e in elements if e.name == "delete")
 
         # Click normalizes names to use dashes
         assert create_cmd.qualified_name == "sample-cli.manage.create"
@@ -415,9 +415,11 @@ class TestNestedCommandGroups:
         assert extractor.get_output_path(root) == Path("_index.md")
 
         # Nested group should go to {name}/_index.md to avoid path collision
-        manage_group = [
-            e for e in elements if e.name == "manage" and e.element_type == "command-group"
-        ][0]
+        manage_group = next(
+            e
+            for e in elements
+            if e.name == "manage" and e.element_type == "command-group"
+        )
         assert extractor.get_output_path(manage_group) == Path("manage/_index.md")
 
     def test_nested_subcommand_output_path(self):
@@ -425,8 +427,8 @@ class TestNestedCommandGroups:
         extractor = CLIExtractor()
         elements = extractor.extract(sample_cli)
 
-        create_cmd = [e for e in elements if e.name == "create"][0]
-        delete_cmd = [e for e in elements if e.name == "delete"][0]
+        create_cmd = next(e for e in elements if e.name == "create")
+        delete_cmd = next(e for e in elements if e.name == "delete")
 
         # Nested subcommands should be namespaced under their parent group
         assert extractor.get_output_path(create_cmd) == Path("manage/create.md")
@@ -451,9 +453,11 @@ class TestNestedCommandGroups:
             element_paths[path] = e
 
         # Specifically check that manage group generates _index.md, not both
-        manage_group = [
-            e for e in elements if e.name == "manage" and e.element_type == "command-group"
-        ][0]
+        manage_group = next(
+            e
+            for e in elements
+            if e.name == "manage" and e.element_type == "command-group"
+        )
         manage_path = extractor.get_output_path(manage_group)
 
         # Should generate _index.md for the group
@@ -475,24 +479,28 @@ if TYPER_AVAILABLE:
     @typer_app.command()
     def process(
         filename: str = typer.Argument(..., help="File to process"),
-        verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
-        count: int = typer.Option(1, "--count", "-c", help="Number of times to process"),
+        verbose: bool = typer.Option(
+            False, "--verbose", "-v", help="Enable verbose output"
+        ),
+        count: int = typer.Option(
+            1, "--count", "-c", help="Number of times to process"
+        ),
     ):
         """
         Process a file.
 
         This command processes the specified file with various options.
         """
-        pass
 
     @typer_app.command()
-    def clean(force: bool = typer.Option(False, "--force", "-f", help="Force the operation")):
+    def clean(
+        force: bool = typer.Option(False, "--force", "-f", help="Force the operation"),
+    ):
         """
         Clean up resources.
 
         Removes temporary files and caches.
         """
-        pass
 
     # Nested Typer app for testing subcommands
     manage_app = typer.Typer(help="Manage resources and configuration")
@@ -500,14 +508,15 @@ if TYPER_AVAILABLE:
     @manage_app.command()
     def create(
         name: str = typer.Argument(..., help="Resource name"),
-        description: str = typer.Option(None, "--description", "-d", help="Resource description"),
+        description: str = typer.Option(
+            None, "--description", "-d", help="Resource description"
+        ),
     ):
         """
         Create a new resource.
 
         Creates a resource with the given name.
         """
-        pass
 
     @manage_app.command()
     def delete(
@@ -519,7 +528,6 @@ if TYPER_AVAILABLE:
 
         Removes the specified resource.
         """
-        pass
 
     # Add nested app to main app
     typer_app.add_typer(manage_app, name="manage")
@@ -573,9 +581,9 @@ class TestTyperExtractor:
         extractor = CLIExtractor(framework="typer")
         elements = extractor.extract(typer_app)
 
-        process_cmd = [e for e in elements if e.name == "process" and e.element_type == "command"][
-            0
-        ]
+        process_cmd = next(
+            e for e in elements if e.name == "process" and e.element_type == "command"
+        )
 
         # Check for filename argument
         params = process_cmd.children
@@ -587,9 +595,9 @@ class TestTyperExtractor:
         extractor = CLIExtractor(framework="typer")
         elements = extractor.extract(typer_app)
 
-        process_cmd = [e for e in elements if e.name == "process" and e.element_type == "command"][
-            0
-        ]
+        process_cmd = next(
+            e for e in elements if e.name == "process" and e.element_type == "command"
+        )
 
         # Check for options
         params = process_cmd.children
@@ -603,7 +611,7 @@ class TestTyperExtractor:
         elements = extractor.extract(typer_app)
 
         # Find nested subcommand
-        create_cmd = [e for e in elements if e.name == "create"][0]
+        create_cmd = next(e for e in elements if e.name == "create")
 
         # Should have hierarchical qualified name
         assert "manage" in create_cmd.qualified_name
@@ -615,9 +623,11 @@ class TestTyperExtractor:
         elements = extractor.extract(typer_app)
 
         # Get manage group
-        manage_group = [
-            e for e in elements if e.name == "manage" and e.element_type == "command-group"
-        ][0]
+        manage_group = next(
+            e
+            for e in elements
+            if e.name == "manage" and e.element_type == "command-group"
+        )
 
         # Should generate _index.md for nested group
         assert extractor.get_output_path(manage_group) == Path("manage/_index.md")

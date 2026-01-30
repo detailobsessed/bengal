@@ -5,11 +5,7 @@ These tests ensure that TypedDicts are correctly defined and inherited,
 and document the actual field names used in the directive type system.
 """
 
-from __future__ import annotations
-
 from typing import get_type_hints
-
-import pytest
 
 from bengal.directives.types import (
     AdmonitionAttrs,
@@ -22,7 +18,6 @@ from bengal.directives.types import (
     ImageAttrs,
     IncludeAttrs,
     StepAttrs,
-    StyledAttrs,
     TabItemAttrs,
     TabSetAttrs,
     TitledAttrs,
@@ -73,7 +68,7 @@ class TestTypedDictInheritance:
     def test_all_typed_dicts_have_base_fields(self):
         """All directive TypedDicts should have the base fields from DirectiveAttrs."""
         base_fields = {"class_", "id", "title"}
-        
+
         directive_types = [
             DirectiveAttrs,
             TitledAttrs,
@@ -109,7 +104,7 @@ class TestDirectiveTokenIntegrity:
     def test_directive_token_type_field(self):
         """DirectiveToken.type should be str."""
         hints = get_type_hints(DirectiveToken)
-        assert hints["type"] == str
+        assert hints["type"] is str
 
 
 class TestTypedDictTotality:
@@ -260,8 +255,7 @@ class TestTypeHintConsistency:
             first_type = title_types[0][1]
             for name, hint in title_types[1:]:
                 assert hint == first_type, (
-                    f"Inconsistent title type: {name} has {hint}, "
-                    f"expected {first_type}"
+                    f"Inconsistent title type: {name} has {hint}, expected {first_type}"
                 )
 
     def test_class_field_consistent(self):

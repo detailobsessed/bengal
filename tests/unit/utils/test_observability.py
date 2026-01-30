@@ -7,9 +7,11 @@ Verifies:
 - Logging context generation
 """
 
-from __future__ import annotations
-
-from bengal.utils.observability.observability import ComponentStats, HasStats, format_phase_stats
+from bengal.utils.observability.observability import (
+    ComponentStats,
+    HasStats,
+    format_phase_stats,
+)
 
 
 class TestComponentStats:
@@ -109,7 +111,9 @@ class TestComponentStats:
 
     def test_format_summary_with_cache(self) -> None:
         """Test format_summary with cache stats."""
-        stats = ComponentStats(items_total=100, items_processed=100, cache_hits=80, cache_misses=20)
+        stats = ComponentStats(
+            items_total=100, items_processed=100, cache_hits=80, cache_misses=20
+        )
         result = stats.format_summary()
         assert "processed=100/100" in result
         assert "cache=80/100 (80%)" in result
@@ -289,5 +293,7 @@ class TestFormatPhaseStats:
         assert result is not None
 
         # 500ms is fast with 1000ms threshold
-        result = format_phase_stats("Test", 500, MockComponent(), slow_threshold_ms=1000)
+        result = format_phase_stats(
+            "Test", 500, MockComponent(), slow_threshold_ms=1000
+        )
         assert result is None

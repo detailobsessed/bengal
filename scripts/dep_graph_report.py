@@ -179,7 +179,8 @@ def build_report(repo_root: Path) -> GraphReport:
     package_root = next((p for p in candidates if (p / "__init__.py").exists()), None)
     if package_root is None:
         raise FileNotFoundError(
-            "Could not find package root. Tried:\n" + "\n".join(f"  - {p}" for p in candidates)
+            "Could not find package root. Tried:\n"
+            + "\n".join(f"  - {p}" for p in candidates)
         )
 
     nodes: set[str] = set()
@@ -215,7 +216,7 @@ def build_report(repo_root: Path) -> GraphReport:
     sccs = _tarjan_scc(graph)
     nontrivial = [sorted(scc) for scc in sccs if len(scc) > 1]
     nontrivial.sort(key=len, reverse=True)
-    largest = tuple(nontrivial[0]) if nontrivial else tuple()
+    largest = tuple(nontrivial[0]) if nontrivial else ()
 
     fan_out_counts = sorted(
         ((m, len(deps)) for m, deps in graph.items()), key=lambda x: x[1], reverse=True
@@ -225,7 +226,9 @@ def build_report(repo_root: Path) -> GraphReport:
         for dst in deps:
             reverse[dst].add(src)
     fan_in_counts = sorted(
-        ((m, len(reverse.get(m, set()))) for m in nodes), key=lambda x: x[1], reverse=True
+        ((m, len(reverse.get(m, set()))) for m in nodes),
+        key=lambda x: x[1],
+        reverse=True,
     )
 
     return GraphReport(

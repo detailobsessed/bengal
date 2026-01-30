@@ -5,15 +5,10 @@ BUG FIX: Signal handler exception safety - cleanup exceptions should not
 prevent sys.exit() from being called.
 """
 
-from __future__ import annotations
-
 import signal
 import sys
 from pathlib import Path
-from typing import Any
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from bengal.server.resource_manager import ResourceManager
 
@@ -124,7 +119,7 @@ class TestResourceManagerContextManager:
 class TestResourceManagerSignalHandler:
     """
     Tests for ResourceManager signal handling.
-    
+
     BUG FIX: Signal handler should call sys.exit() even if cleanup raises.
     """
 
@@ -143,7 +138,7 @@ class TestResourceManagerSignalHandler:
     def test_signal_handler_exits_even_if_cleanup_raises(self):
         """
         Test that sys.exit is called even if cleanup raises an exception.
-        
+
         BUG FIX: Previously, if cleanup() raised an exception, sys.exit()
         would never be called, leaving the process in an undefined state.
         """

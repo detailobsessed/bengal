@@ -10,27 +10,28 @@ RFC: rfc-incremental-build-dependency-gaps (Phase 1)
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from bengal.rendering.context.data_wrappers import ParamsContext, SmartDict
 
 if TYPE_CHECKING:
     from bengal.core.theme import Theme
     from bengal.protocols import SiteLike
+    from bengal.utils.primitives.dotdict import DotDict
 
 
 class SiteContext:
     """
     Smart wrapper for Site object with ergonomic access patterns.
-    
+
     Provides clean access to site configuration with sensible defaults.
     All properties return safe values (never None for strings).
-    
+
     Data File Tracking:
         When accessing `site.data`, returns a TrackedData wrapper that
         records data file dependencies for incremental builds. This is
         automatic when a DependencyTracker is set via tracker_context().
-    
+
     Example:
         {{ site.title }}             # Site title
         {{ site.logo }}              # Logo URL ('' if not set)
@@ -38,10 +39,10 @@ class SiteContext:
         {{ site.author }}            # Default author
         {{ site.params.repo_url }}   # Custom params
         {{ site.data.team }}         # Data file (tracked for incremental builds)
-        
+
     """
 
-    __slots__ = ("_site", "_params_cache", "_tracked_data_cache")
+    __slots__ = ("_params_cache", "_site", "_tracked_data_cache")
 
     def __init__(self, site: SiteLike):
         self._site = site
@@ -71,28 +72,28 @@ class SiteContext:
 
     def _get_tracked_data(self) -> Any:
         """Get site.data wrapped with TrackedData for dependency tracking.
-        
+
         Returns a TrackedData wrapper that will record data file access
         when a tracker is available via get_current_tracker() at access time.
-        
+
         The TrackedData wrapper is cached per-SiteContext instance since
         it looks up the tracker dynamically from ContextVar.
-        
+
         Returns:
             TrackedData wrapper (tracks only when tracker is set)
         """
         from bengal.rendering.context.data_tracking import TrackedData
-        
+
         # Create TrackedData wrapper (cached per-site)
         # TrackedData looks up tracker from ContextVar at access time,
         # so caching is safe even across different page renders.
         if self._tracked_data_cache is None:
             data_dir = self._site.root_path / "data"
             self._tracked_data_cache = TrackedData(
-                self._site.data,
+                cast("DotDict", self._site.data),
                 data_dir,
             )
-        
+
         return self._tracked_data_cache
 
     @property
@@ -103,12 +104,12 @@ class SiteContext:
         if hasattr(config, "site"):
             site_config = config.site
             if hasattr(site_config, "title"):
-                return site_config.title or ""
+                return str(site_config.title or "")
         # Fall back to dict access
         site_section = config.get("site", {})
         if isinstance(site_section, dict):
-            return site_section.get("title", "") or ""
-        return config.get("title", "") or ""
+            return str(site_section.get("title", "") or "")
+        return str(config.get("title", "") or "")
 
     @property
     def description(self) -> str:
@@ -118,12 +119,12 @@ class SiteContext:
         if hasattr(config, "site"):
             site_config = config.site
             if hasattr(site_config, "description"):
-                return site_config.description or ""
+                return str(site_config.description or "")
         # Fall back to dict access
         site_section = config.get("site", {})
         if isinstance(site_section, dict):
-            return site_section.get("description", "") or ""
-        return config.get("description", "") or ""
+            return str(site_section.get("description", "") or "")
+        return str(config.get("description", "") or "")
 
     @property
     def baseurl(self) -> str:
@@ -133,12 +134,12 @@ class SiteContext:
         if hasattr(config, "site"):
             site_config = config.site
             if hasattr(site_config, "baseurl"):
-                return site_config.baseurl or ""
+                return str(site_config.baseurl or "")
         # Fall back to dict access
         site_section = config.get("site", {})
         if isinstance(site_section, dict):
-            return site_section.get("baseurl", "") or ""
-        return config.get("baseurl", "") or ""
+            return str(site_section.get("baseurl", "") or "")
+        return str(config.get("baseurl", "") or "")
 
     @property
     def author(self) -> str:
@@ -148,13 +149,17 @@ class SiteContext:
     def logo(self) -> str:
         """Get logo image URL from various config locations."""
         cfg = self._site.config
-        return cfg.get("logo_image", "") or cfg.get("site", {}).get("logo_image", "") or ""
+        return (
+            cfg.get("logo_image", "") or cfg.get("site", {}).get("logo_image", "") or ""
+        )
 
     @property
     def logo_text(self) -> str:
         """Get logo text from various config locations."""
         cfg = self._site.config
-        return cfg.get("logo_text", "") or cfg.get("site", {}).get("logo_text", "") or ""
+        return (
+            cfg.get("logo_text", "") or cfg.get("site", {}).get("logo_text", "") or ""
+        )
 
     @property
     def params(self) -> ParamsContext:
@@ -182,22 +187,22 @@ class SiteContext:
 class ThemeContext:
     """
     Smart wrapper for Theme configuration with ergonomic access.
-    
+
     Provides clean access to theme settings:
     - Direct properties: name, appearance, palette, features
     - Custom config via get() or dot notation
     - Feature checking via has()
-    
+
     Example:
         {{ theme.name }}                    # Theme name
         {{ theme.appearance }}              # 'light', 'dark', or 'system'
         {{ theme.hero_style }}              # Custom config value
         {% if theme.has('navigation.toc') %}
         {% if 'feature' in theme.features %}
-        
+
     """
 
-    __slots__ = ("_theme", "_config_cache")
+    __slots__ = ("_config_cache", "_theme")
 
     def __init__(self, theme: Theme | None):
         self._theme = theme
@@ -261,7 +266,9 @@ class ThemeContext:
         if self._theme is None or self._theme.config is None:
             return "left"
         header = self._theme.config.get("header", {})
-        return header.get("nav_position", "left") if isinstance(header, dict) else "left"
+        return (
+            header.get("nav_position", "left") if isinstance(header, dict) else "left"
+        )
 
     @property
     def header_sticky(self) -> bool:
@@ -321,15 +328,15 @@ class ThemeContext:
 class ConfigContext:
     """
     Smart wrapper for site configuration with safe access.
-    
+
     Allows both dot notation and get() access to config values.
     Never raises KeyError or returns None for string values.
-    
+
     Example:
         {{ config.title }}
         {{ config.get('baseurl', '/') }}
         {{ config.params.repo_url }}
-        
+
     """
 
     __slots__ = ("_config", "_nested_cache")

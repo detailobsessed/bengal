@@ -18,10 +18,11 @@ from __future__ import annotations
 
 import argparse
 import ast
+import itertools
 import sys
 from collections import defaultdict
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 
 def extract_imports(file_path: Path) -> Iterator[tuple[str, str, bool]]:
@@ -70,12 +71,17 @@ def extract_imports(file_path: Path) -> Iterator[tuple[str, str, bool]]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 if alias.name.startswith("bengal."):
-                    is_deferred = id(node) in type_checking_nodes or id(node) in function_nodes
+                    is_deferred = (
+                        id(node) in type_checking_nodes or id(node) in function_nodes
+                    )
                     yield (module_name, alias.name, is_deferred)
-        elif isinstance(node, ast.ImportFrom):
-            if node.module and node.module.startswith("bengal."):
-                is_deferred = id(node) in type_checking_nodes or id(node) in function_nodes
-                yield (module_name, node.module, is_deferred)
+        elif (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and node.module.startswith("bengal.")
+        ):
+            is_deferred = id(node) in type_checking_nodes or id(node) in function_nodes
+            yield (module_name, node.module, is_deferred)
 
 
 def find_cycles(
@@ -108,12 +114,11 @@ def find_cycles(
             elif neighbor in rec_stack:
                 # Found a cycle - extract it
                 cycle_start = path.index(neighbor)
-                cycle = path[cycle_start:] + [neighbor]
+                cycle = [*path[cycle_start:], neighbor]
                 # Check if all edges in cycle are deferred (TYPE_CHECKING or lazy imports)
-                cycle_edges = list(zip(cycle[:-1], cycle[1:]))
+                cycle_edges = list(itertools.pairwise(cycle))
                 is_deferred_only = all(
-                    dst in deferred_edges.get(src, set())
-                    for src, dst in cycle_edges
+                    dst in deferred_edges.get(src, set()) for src, dst in cycle_edges
                 )
                 cycles.append((cycle, is_deferred_only))
 
@@ -144,7 +149,9 @@ def main() -> int:
 
     # Build import graph
     edges: dict[str, set[str]] = defaultdict(set)
-    deferred_edges: dict[str, set[str]] = defaultdict(set)  # TYPE_CHECKING + lazy imports
+    deferred_edges: dict[str, set[str]] = defaultdict(
+        set
+    )  # TYPE_CHECKING + lazy imports
 
     root = Path(args.path)
     for py_file in root.rglob("*.py"):
@@ -183,9 +190,9 @@ def main() -> int:
         for cycle, _ in real_cycles:
             if args.format == "detailed":
                 print(f"\n  Cycle ({len(cycle) - 1} modules):")
-                for i, mod in enumerate(cycle[:-1]):
+                for _i, mod in enumerate(cycle[:-1]):
                     print(f"    {mod}")
-                    print(f"      ↓ imports")
+                    print("      ↓ imports")
                 print(f"    {cycle[-1]} (back to start)")
             else:
                 print(f"  • {' → '.join(cycle)}")

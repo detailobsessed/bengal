@@ -37,7 +37,18 @@ if TYPE_CHECKING:
 
 # MIME type category mappings
 _TYPE_EXTENSIONS: dict[str, set[str]] = {
-    "image": {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".avif", ".ico", ".bmp", ".tiff"},
+    "image": {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".svg",
+        ".webp",
+        ".avif",
+        ".ico",
+        ".bmp",
+        ".tiff",
+    },
     "video": {".mp4", ".webm", ".mov", ".avi", ".mkv", ".m4v"},
     "audio": {".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"},
     "document": {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"},
@@ -52,12 +63,12 @@ _CONTENT_EXTENSIONS: set[str] = {".md", ".markdown", ".rst", ".txt"}
 
 class BundleType(Enum):
     """Type of content bundle.
-    
+
     Bundle classification based on filename convention:
     - NONE: Regular standalone page (my-post.md)
     - LEAF: Leaf bundle with resources (my-post/index.md)
     - BRANCH: Branch bundle / section index (_index.md)
-        
+
     """
 
     NONE = "none"  # Regular page (my-post.md)
@@ -68,21 +79,21 @@ class BundleType(Enum):
 @dataclass(frozen=True)
 class PageResource:
     """Single resource co-located with a page bundle.
-    
+
     Represents a non-content file in a leaf bundle directory
     (images, data files, PDFs, etc.).
-    
+
     Attributes:
         path: Absolute path to the resource file
         page_url: URL of the parent page (for rel_permalink)
-    
+
     Example:
             >>> resource = PageResource(path=Path("/site/posts/my-post/hero.jpg"), page_url="/posts/my-post/")
             >>> resource.name
             'hero.jpg'
             >>> resource.rel_permalink
             '/posts/my-post/hero.jpg'
-        
+
     """
 
     path: Path
@@ -200,25 +211,27 @@ class PageResource:
 @dataclass
 class PageResources:
     """Collection of resources co-located with a page bundle.
-    
+
     Provides resource access methods for leaf bundles including
     pattern matching and type-based filtering.
     Empty collection for non-bundle pages.
-    
+
     Attributes:
         _resources: Internal list of PageResource objects
         _by_name: Lookup dict keyed by filename
-    
+
     Example:
             >>> resources = page.resources
             >>> hero = resources.get_match("hero.*")
             >>> images = resources.by_type("image")
             >>> data = resources.get("config.json")
-        
+
     """
 
     _resources: list[PageResource] = field(default_factory=list)
-    _by_name: dict[str, PageResource] = field(default_factory=dict, init=False, repr=False)
+    _by_name: dict[str, PageResource] = field(
+        default_factory=dict, init=False, repr=False
+    )
 
     def __post_init__(self) -> None:
         """Build lookup dict from resources."""
@@ -314,16 +327,16 @@ class PageResources:
 
 class PageBundleMixin:
     """Mixin providing bundle detection and resource access for Page.
-    
+
     Add to Page's inheritance chain to enable:
     - bundle_type: BundleType classification
     - is_bundle: Quick check for leaf bundle
     - resources: PageResources collection
-    
+
     Required attributes on host class:
     - source_path: Path to the source markdown file
     - url: Page URL (for resource permalinks)
-        
+
     """
 
     # These will be defined on the host Page class

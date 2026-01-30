@@ -7,8 +7,6 @@ automatically generating hundreds of different sequences.
 Progress feedback is provided for long-running state machine tests.
 """
 
-from __future__ import annotations
-
 import os
 import string
 import sys
@@ -16,7 +14,13 @@ import sys
 import pytest
 from hypothesis import settings
 from hypothesis import strategies as st
-from hypothesis.stateful import RuleBasedStateMachine, initialize, invariant, precondition, rule
+from hypothesis.stateful import (
+    RuleBasedStateMachine,
+    initialize,
+    invariant,
+    precondition,
+    rule,
+)
 
 from .helpers import (
     cache_exists,
@@ -61,14 +65,14 @@ def page_titles():
 class PageLifecycleWorkflow(RuleBasedStateMachine):
     """
     Simulates realistic page management workflows.
-    
+
     Hypothesis will generate sequences like:
     - create foo → build → create bar → build → delete foo → build
     - create 3 pages → build → modify all → incremental → delete 1 → build
-    
+
     This test verifies that Bengal maintains consistency across
     all possible sequences of create/modify/delete/build operations.
-        
+
     """
 
     def __init__(self):
@@ -128,7 +132,9 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
 
         self.pages[name]["modified_count"] += 1
 
-        new_title = f"{self.pages[name]['title']} (v{self.pages[name]['modified_count']})"
+        new_title = (
+            f"{self.pages[name]['title']} (v{self.pages[name]['modified_count']})"
+        )
         self.pages[name]["title"] = new_title
 
         # Update the file
@@ -170,7 +176,9 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
 
         This simulates `bengal build`.
         """
-        _status(f"[PageLifecycle] Full build #{self.build_count + 1} ({len(self.pages)} pages)")
+        _status(
+            f"[PageLifecycle] Full build #{self.build_count + 1} ({len(self.pages)} pages)"
+        )
         result = run_build(self.site_dir, incremental=False)
         self.last_build_output = result
         self.build_count += 1
@@ -278,7 +286,9 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
             return  # Skip if no successful build yet
 
         # Only check if we have any deleted pages
-        deleted_pages = [name for name, meta in self.pages.items() if not meta["exists"]]
+        deleted_pages = [
+            name for name, meta in self.pages.items() if not meta["exists"]
+        ]
         if not deleted_pages:
             return
 
@@ -302,8 +312,14 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
         """
         if not self.last_action_was_build:
             return
-        if self.build_count > 0 and self.last_build_output and self.last_build_output["success"]:
-            assert cache_exists(self.site_dir), "Build cache should exist after successful build"
+        if (
+            self.build_count > 0
+            and self.last_build_output
+            and self.last_build_output["success"]
+        ):
+            assert cache_exists(self.site_dir), (
+                "Build cache should exist after successful build"
+            )
 
     def teardown(self):
         """Clean up temporary site."""
@@ -313,21 +329,23 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
 
 # Convert to pytest test case
 # Marked slow and hypothesis for proper test selection
-TestPageLifecycleWorkflow = pytest.mark.slow(pytest.mark.hypothesis(PageLifecycleWorkflow.TestCase))
+TestPageLifecycleWorkflow = pytest.mark.slow(
+    pytest.mark.hypothesis(PageLifecycleWorkflow.TestCase)
+)
 
 
 class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
     """
     Critical test: Incremental builds must produce identical output to full builds.
-    
+
     This is THE most important property for an SSG. Users expect:
     - `bengal build` (full)
     - modify one file
     - `bengal build` (incremental)
     - → result should be identical to full rebuild
-    
+
     Hypothesis will generate many sequences to test this property.
-        
+
     """
 
     def __init__(self):
@@ -362,7 +380,7 @@ class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
             return
 
         # Pick first page (Hypothesis will vary state)
-        name = list(self.pages.keys())[0]
+        name = next(iter(self.pages.keys()))
         new_title = f"{self.pages[name]['title']} (modified)"
         self.pages[name]["title"] = new_title
         write_page(self.site_dir, name, new_title)
@@ -383,7 +401,9 @@ class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
     @rule()
     def incremental_build_and_snapshot(self):
         """Run incremental build and save output hashes."""
-        _status(f"[IncrementalConsistency] Incremental build (version {self.content_version})")
+        _status(
+            f"[IncrementalConsistency] Incremental build (version {self.content_version})"
+        )
         run_build(self.site_dir, incremental=True)
         self.incremental_build_hashes = hash_outputs(self.site_dir)
         self.incremental_build_content_version = self.content_version
@@ -418,10 +438,8 @@ class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
                 # Skip files with dynamic content:
                 # - site-wide LLM/JSON (build timestamps, page ordering)
                 # - per-page JSON/txt (can have timestamps, not critical for determinism)
-                if (
-                    file_path in ("llm-full.txt", "index.json")
-                    or file_path.endswith("/index.json")
-                    or file_path.endswith("/index.txt")
+                if file_path in ("llm-full.txt", "index.json") or file_path.endswith(
+                    ("/index.json", "/index.txt")
                 ):
                     continue
                 full_hash = self.full_build_hashes[file_path]

@@ -21,8 +21,8 @@ from bengal.assets.css_minifier import minify_css
 def test_case(
     name: str,
     css: str,
-    expected_contains: list[str] = None,
-    expected_not_contains: list[str] = None,
+    expected_contains: list[str] | None = None,
+    expected_not_contains: list[str] | None = None,
 ):
     """Test a CSS minification case."""
     print(f"\n{'=' * 60}")
@@ -39,14 +39,18 @@ def test_case(
         # Check expectations
         issues = []
         if expected_contains:
-            for expected in expected_contains:
-                if expected not in minified:
-                    issues.append(f"Missing expected: {expected}")
+            issues.extend(
+                f"Missing expected: {expected}"
+                for expected in expected_contains
+                if expected not in minified
+            )
 
         if expected_not_contains:
-            for unexpected in expected_not_contains:
-                if unexpected in minified:
-                    issues.append(f"Contains unexpected: {unexpected}")
+            issues.extend(
+                f"Contains unexpected: {unexpected}"
+                for unexpected in expected_not_contains
+                if unexpected in minified
+            )
 
         if issues:
             print("\n❌ ISSUES FOUND:")
@@ -200,7 +204,11 @@ def main():
 
     # Test 15: Pseudo-elements
     results.append(
-        test_case("Pseudo-elements", "p::before { content: ''; }", expected_contains=["p::before"])
+        test_case(
+            "Pseudo-elements",
+            "p::before { content: ''; }",
+            expected_contains=["p::before"],
+        )
     )
 
     # Test 16: Multiple spaces

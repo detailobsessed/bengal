@@ -94,7 +94,10 @@ def test_config_override_excludes(tmp_path):
 
 def test_get_python_config():
     """Test getting Python-specific config."""
-    config = {"python": {"enabled": True, "output_dir": "api"}, "openapi": {"enabled": False}}
+    config = {
+        "python": {"enabled": True, "output_dir": "api"},
+        "openapi": {"enabled": False},
+    }
 
     py_config = get_python_config(config)
 

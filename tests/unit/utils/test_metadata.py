@@ -29,19 +29,19 @@ class TestGetMarkdownEngineAndVersion:
 
     def test_default_engine_is_patitas(self):
         """Default markdown engine is patitas."""
-        engine, version = _get_markdown_engine_and_version({})
+        engine, _version = _get_markdown_engine_and_version({})
         assert engine == "patitas"
 
     def test_legacy_flat_key(self):
         """Supports legacy flat markdown_engine key."""
         config = {"markdown_engine": "python-markdown"}
-        engine, version = _get_markdown_engine_and_version(config)
+        engine, _version = _get_markdown_engine_and_version(config)
         assert engine == "python-markdown"
 
     def test_nested_markdown_config(self):
         """Supports nested markdown.parser config."""
         config = {"markdown": {"parser": "commonmark"}}
-        engine, version = _get_markdown_engine_and_version(config)
+        engine, _version = _get_markdown_engine_and_version(config)
         assert engine == "commonmark"
 
     def test_legacy_key_takes_precedence(self):
@@ -50,7 +50,7 @@ class TestGetMarkdownEngineAndVersion:
             "markdown_engine": "legacy-engine",
             "markdown": {"parser": "nested-engine"},
         }
-        engine, version = _get_markdown_engine_and_version(config)
+        engine, _version = _get_markdown_engine_and_version(config)
         assert engine == "legacy-engine"
 
     def test_mistune_version_detection(self):
@@ -62,7 +62,7 @@ class TestGetMarkdownEngineAndVersion:
             patch("bengal.rendering.metadata.mistune", create=True) as mock_mistune,
         ):
             mock_mistune.__version__ = "2.0.0"
-            engine, version = _get_markdown_engine_and_version(config)
+            engine, _version = _get_markdown_engine_and_version(config)
 
         assert engine == "mistune"
         # Version may or may not be detected depending on import success
@@ -71,7 +71,7 @@ class TestGetMarkdownEngineAndVersion:
         """Recognizes python-markdown aliases."""
         for alias in ["python-markdown", "markdown", "python_markdown"]:
             config = {"markdown_engine": alias}
-            engine, version = _get_markdown_engine_and_version(config)
+            engine, _version = _get_markdown_engine_and_version(config)
             assert engine == alias
 
     def test_handles_import_error_gracefully(self):
@@ -85,7 +85,7 @@ class TestGetMarkdownEngineAndVersion:
     def test_handles_none_markdown_config(self):
         """Handles None markdown config gracefully."""
         config = {"markdown": None}
-        engine, version = _get_markdown_engine_and_version(config)
+        engine, _version = _get_markdown_engine_and_version(config)
         assert engine == "patitas"  # Falls back to default
 
 
@@ -139,7 +139,9 @@ class TestGetThemeInfo:
         mock_pkg = MagicMock()
         mock_pkg.version = "1.2.3"
 
-        with patch("bengal.rendering.metadata.get_theme_package", return_value=mock_pkg):
+        with patch(
+            "bengal.rendering.metadata.get_theme_package", return_value=mock_pkg
+        ):
             info = _get_theme_info(mock_site)
 
         assert info["name"] == "versioned-theme"
@@ -276,7 +278,9 @@ class TestBuildTemplateMetadata:
         for level in ["STANDARD", "Standard", "STANDARD"]:
             mock_site.config = {"expose_metadata": level}
 
-            with patch("bengal.rendering.metadata.get_theme_package", return_value=None):
+            with patch(
+                "bengal.rendering.metadata.get_theme_package", return_value=None
+            ):
                 metadata = build_template_metadata(mock_site)
 
             assert "theme" in metadata

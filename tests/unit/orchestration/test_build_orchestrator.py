@@ -42,8 +42,12 @@ class TestBuildOrchestrator:
             patch("bengal.orchestration.build.MenuOrchestrator") as MockMenu,
             patch("bengal.orchestration.build.RenderOrchestrator") as MockRender,
             patch("bengal.orchestration.build.AssetOrchestrator") as MockAsset,
-            patch("bengal.orchestration.build.PostprocessOrchestrator") as MockPostprocess,
-            patch("bengal.orchestration.incremental.IncrementalOrchestrator") as MockIncremental,
+            patch(
+                "bengal.orchestration.build.PostprocessOrchestrator"
+            ) as MockPostprocess,
+            patch(
+                "bengal.orchestration.incremental.IncrementalOrchestrator"
+            ) as MockIncremental,
             patch("bengal.orchestration.build.get_logger") as MockLogger,
             patch("bengal.output.init_cli_output") as MockCli,
         ):
@@ -73,8 +77,13 @@ class TestBuildOrchestrator:
         mock_cache = MagicMock()
         mock_cache.parsed_content = {}
         mock_tracker = MagicMock()
-        mock_orchestrators["incremental"].return_value.initialize.return_value = (mock_cache, mock_tracker)
-        mock_orchestrators["incremental"].return_value.check_config_changed.return_value = False
+        mock_orchestrators["incremental"].return_value.initialize.return_value = (
+            mock_cache,
+            mock_tracker,
+        )
+        mock_orchestrators[
+            "incremental"
+        ].return_value.check_config_changed.return_value = False
         mock_orchestrators["section"].return_value.validate_sections.return_value = []
 
         with patch(
@@ -96,16 +105,24 @@ class TestBuildOrchestrator:
         mock_orchestrators["incremental"].return_value.initialize.assert_called_once()
 
         # 2. Content Discovery (calls discover_content, not discover)
-        mock_orchestrators["content"].return_value.discover_content.assert_called_once_with(
+        mock_orchestrators[
+            "content"
+        ].return_value.discover_content.assert_called_once_with(
             incremental=False, cache=None, build_context=ANY, build_cache=ANY
         )
 
         # 3. Section Finalization
-        mock_orchestrators["section"].return_value.finalize_sections.assert_called_once()
-        mock_orchestrators["section"].return_value.validate_sections.assert_called_once()
+        mock_orchestrators[
+            "section"
+        ].return_value.finalize_sections.assert_called_once()
+        mock_orchestrators[
+            "section"
+        ].return_value.validate_sections.assert_called_once()
 
         # 4. Taxonomies
-        mock_orchestrators["taxonomy"].return_value.collect_and_generate.assert_called_once()
+        mock_orchestrators[
+            "taxonomy"
+        ].return_value.collect_and_generate.assert_called_once()
 
         # 5. Menus
         mock_orchestrators["menu"].return_value.build.assert_called_once()
@@ -164,7 +181,9 @@ class TestBuildOrchestrator:
         mock_orchestrators[
             "taxonomy"
         ].return_value.collect_and_generate_incremental.assert_called_once()
-        mock_orchestrators["taxonomy"].return_value.collect_and_generate.assert_not_called()
+        mock_orchestrators[
+            "taxonomy"
+        ].return_value.collect_and_generate.assert_not_called()
 
     def test_section_validation_error_strict(self, mock_site, mock_orchestrators):
         """Test that section validation errors raise exception in strict mode."""
@@ -173,13 +192,19 @@ class TestBuildOrchestrator:
         orchestrator = BuildOrchestrator(mock_site)
 
         # Setup mocks to return validation errors
-        mock_orchestrators["section"].return_value.validate_sections.return_value = ["Error 1"]
+        mock_orchestrators["section"].return_value.validate_sections.return_value = [
+            "Error 1"
+        ]
         # Note: initialize() returns (cache, tracker) - order matters!
         mock_cache = MagicMock()
         mock_cache.parsed_content = {}
         mock_tracker = MagicMock()
-        mock_orchestrators["incremental"].return_value.initialize.return_value = (mock_cache, mock_tracker)
+        mock_orchestrators["incremental"].return_value.initialize.return_value = (
+            mock_cache,
+            mock_tracker,
+        )
         from bengal.orchestration.build.results import FilterResult
+
         filter_result = FilterResult(
             pages_to_build=[],
             assets_to_process=[],
@@ -194,7 +219,9 @@ class TestBuildOrchestrator:
             "bengal.orchestration.build.provenance_filter.phase_incremental_filter_provenance"
         ) as mock_filter:
             mock_filter.return_value = filter_result
-            with pytest.raises(Exception, match="Build failed: 1 section validation error"):
+            with pytest.raises(
+                Exception, match="Build failed: 1 section validation error"
+            ):
                 orchestrator.build(options)
 
     def test_flag_propagation(self, mock_site, mock_orchestrators):
@@ -204,9 +231,13 @@ class TestBuildOrchestrator:
         mock_cache = MagicMock()
         mock_cache.parsed_content = {}
         mock_tracker = MagicMock()
-        mock_orchestrators["incremental"].return_value.initialize.return_value = (mock_cache, mock_tracker)
+        mock_orchestrators["incremental"].return_value.initialize.return_value = (
+            mock_cache,
+            mock_tracker,
+        )
 
         from bengal.orchestration.build.results import FilterResult
+
         filter_result = FilterResult(
             pages_to_build=[],
             assets_to_process=[],
@@ -225,6 +256,8 @@ class TestBuildOrchestrator:
 
         # Check that taxonomy orchestrator was called
         # Note: The taxonomy orchestrator is now called with force_sequential parameter
-        mock_orchestrators["taxonomy"].return_value.collect_and_generate.assert_called_once()
+        mock_orchestrators[
+            "taxonomy"
+        ].return_value.collect_and_generate.assert_called_once()
         # Asset orchestrator process is called
         mock_orchestrators["asset"].return_value.process.assert_called_once()

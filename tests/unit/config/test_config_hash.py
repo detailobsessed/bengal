@@ -5,8 +5,6 @@ Tests the deterministic hashing of configuration dictionaries
 for cache invalidation purposes.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.config.hash import compute_config_hash

@@ -38,13 +38,13 @@ from bengal.orchestration.build.options import BuildOptions
 def create_test_site(template_complexity: str) -> Path:
     """
     Create test site with specified template complexity.
-    
+
     Args:
         template_complexity: One of 'baseline', 'light', 'medium', 'heavy', 'extreme'
-    
+
     Returns:
         Path to created site
-        
+
     """
     site_root = Path(mkdtemp(prefix=f"bengal_template_{template_complexity}_"))
 
@@ -394,14 +394,14 @@ def _create_extreme_templates(templates_dir: Path):
 def benchmark_template_complexity(complexity: str, runs: int = 3) -> dict:
     """
     Benchmark build with specified template complexity.
-    
+
     Args:
         complexity: Template complexity level
         runs: Number of runs to average
-    
+
     Returns:
         Dict with timing results
-        
+
     """
     print(f"\nBenchmarking {complexity.upper()} template complexity...")
 
@@ -501,24 +501,40 @@ def run_template_complexity_benchmarks():
     checks = []
 
     if light_overhead < 10:
-        checks.append(f"✅ Light templates: +{light_overhead:.1f}% overhead (target: <10%)")
+        checks.append(
+            f"✅ Light templates: +{light_overhead:.1f}% overhead (target: <10%)"
+        )
     else:
-        checks.append(f"⚠️  Light templates: +{light_overhead:.1f}% overhead (target: <10%)")
+        checks.append(
+            f"⚠️  Light templates: +{light_overhead:.1f}% overhead (target: <10%)"
+        )
 
     if medium_overhead < 20:
-        checks.append(f"✅ Medium templates: +{medium_overhead:.1f}% overhead (target: <20%)")
+        checks.append(
+            f"✅ Medium templates: +{medium_overhead:.1f}% overhead (target: <20%)"
+        )
     else:
-        checks.append(f"⚠️  Medium templates: +{medium_overhead:.1f}% overhead (target: <20%)")
+        checks.append(
+            f"⚠️  Medium templates: +{medium_overhead:.1f}% overhead (target: <20%)"
+        )
 
     if heavy_overhead < 40:
-        checks.append(f"✅ Heavy templates: +{heavy_overhead:.1f}% overhead (target: <40%)")
+        checks.append(
+            f"✅ Heavy templates: +{heavy_overhead:.1f}% overhead (target: <40%)"
+        )
     else:
-        checks.append(f"⚠️  Heavy templates: +{heavy_overhead:.1f}% overhead (target: <40%)")
+        checks.append(
+            f"⚠️  Heavy templates: +{heavy_overhead:.1f}% overhead (target: <40%)"
+        )
 
     if extreme_overhead < 100:
-        checks.append(f"✅ Extreme templates: +{extreme_overhead:.1f}% overhead (target: <100%)")
+        checks.append(
+            f"✅ Extreme templates: +{extreme_overhead:.1f}% overhead (target: <100%)"
+        )
     else:
-        checks.append(f"❌ Extreme templates: +{extreme_overhead:.1f}% overhead (target: <100%)")
+        checks.append(
+            f"❌ Extreme templates: +{extreme_overhead:.1f}% overhead (target: <100%)"
+        )
 
     for check in checks:
         print(check)

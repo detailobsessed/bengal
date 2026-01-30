@@ -97,7 +97,9 @@ def transform_css_nesting(content: str) -> str:
     # Process all rule blocks (iterate to handle deeply nested cases)
     max_iterations = 10
     for _ in range(max_iterations):
-        new_result = re.sub(rule_pattern, transform_rule, result, flags=re.MULTILINE | re.DOTALL)
+        new_result = re.sub(
+            rule_pattern, transform_rule, result, flags=re.MULTILINE | re.DOTALL
+        )
         if new_result == result:
             break
         result = new_result

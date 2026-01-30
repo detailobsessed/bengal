@@ -14,8 +14,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.parsing import MistuneParser
@@ -670,7 +668,7 @@ class TestFigureDirective:
         """Test decorative image with empty alt."""
         markdown = """\
 :::{figure} /images/decorative.png
-:alt: 
+:alt:
 :::
 """
         result = parser.parse(markdown, {})
@@ -830,7 +828,9 @@ class TestMediaDirectivesSecurity:
             "dQw4w9WgXcQ&autoplay=1&mute=1",  # URL injection
         ],
     )
-    def test_youtube_id_sanitization(self, parser: MistuneParser, malicious_id: str) -> None:
+    def test_youtube_id_sanitization(
+        self, parser: MistuneParser, malicious_id: str
+    ) -> None:
         """Test that malicious YouTube IDs are rejected or sanitized."""
         markdown = f"""\
 :::{{youtube}} {malicious_id}
@@ -842,17 +842,22 @@ class TestMediaDirectivesSecurity:
         assert "video-error" in result
         assert "Invalid YouTube video ID" in result
         # Should not have an actual iframe src with the malicious content
-        assert "src=" not in result or "youtube" not in result.split("src=")[1].split(">")[0]
+        assert (
+            "src=" not in result
+            or "youtube" not in result.split("src=")[1].split(">")[0]
+        )
 
     @pytest.mark.parametrize(
         "malicious_path",
         [
             "/images/../../../etc/passwd.png",
             "javascript:alert(1).png",
-            '<script>alert(1)</script>.png',
+            "<script>alert(1)</script>.png",
         ],
     )
-    def test_figure_path_sanitization(self, parser: MistuneParser, malicious_path: str) -> None:
+    def test_figure_path_sanitization(
+        self, parser: MistuneParser, malicious_path: str
+    ) -> None:
         """Test that malicious image paths are rejected."""
         markdown = f"""\
 :::{{figure}} {malicious_path}
@@ -864,7 +869,7 @@ class TestMediaDirectivesSecurity:
         assert "figure-error" in result
         assert "Invalid image path" in result
         # Should not have an actual img src with the malicious content
-        assert '<img src=' not in result
+        assert "<img src=" not in result
 
 
 class TestMediaDirectivesIntegration:
@@ -1110,7 +1115,9 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "/assets/podcast.m4a" in result
 
-    def test_gist_with_special_characters_in_filename(self, parser: MistuneParser) -> None:
+    def test_gist_with_special_characters_in_filename(
+        self, parser: MistuneParser
+    ) -> None:
         """Test gist with special characters in filename."""
         markdown = """\
 :::{gist} octocat/12345678901234567890123456789012
@@ -1215,4 +1222,3 @@ class TestMediaDirectivesEdgeCases:
         # Title should be escaped to prevent XSS
         assert "<script>" not in result
         assert "&lt;script&gt;" in result or "Test" in result
-

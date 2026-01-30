@@ -6,8 +6,6 @@ Tests the popover-based theme controls migration including:
 - Fallback to classic dropdown when disabled
 """
 
-from __future__ import annotations
-
 import pytest
 
 

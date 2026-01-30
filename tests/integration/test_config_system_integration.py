@@ -20,7 +20,7 @@ from bengal.core.site import Site
 def config_directory_site(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """
     Create a test site with config/ directory structure.
-        
+
     """
     # Disable environment auto-detection for tests
     monkeypatch.delenv("BENGAL_ENV", raising=False)
@@ -55,10 +55,16 @@ def config_directory_site(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Pa
     env_dir = config_dir / "environments"
     env_dir.mkdir()
 
-    local_env = {"site": {"baseurl": "http://localhost:8000"}, "build": {"parallel": False}}
+    local_env = {
+        "site": {"baseurl": "http://localhost:8000"},
+        "build": {"parallel": False},
+    }
     (env_dir / "local.yaml").write_text(yaml.dump(local_env))
 
-    prod_env = {"site": {"baseurl": "https://prod.example.com"}, "build": {"parallel": True}}
+    prod_env = {
+        "site": {"baseurl": "https://prod.example.com"},
+        "build": {"parallel": True},
+    }
     (env_dir / "production.yaml").write_text(yaml.dump(prod_env))
 
     # Create profile configs
@@ -79,7 +85,7 @@ def config_directory_site(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Pa
 def single_file_site(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """
     Create a test site with single bengal.yaml config (legacy).
-        
+
     """
     # Disable environment auto-detection for tests
     monkeypatch.delenv("BENGAL_ENV", raising=False)
@@ -143,7 +149,9 @@ class TestSiteFromConfigDirectory:
 
     def test_load_with_profile(self, config_directory_site: Path):
         """Test profile overrides."""
-        site = Site.from_config(config_directory_site, environment="testing", profile="dev")
+        site = Site.from_config(
+            config_directory_site, environment="testing", profile="dev"
+        )
 
         assert site.config["debug"] is True  # from profile
         assert site.config["parallel"] is False  # from profile (flattened)
@@ -151,7 +159,9 @@ class TestSiteFromConfigDirectory:
 
     def test_load_with_environment_and_profile(self, config_directory_site: Path):
         """Test environment + profile together (profile takes precedence)."""
-        site = Site.from_config(config_directory_site, environment="production", profile="dev")
+        site = Site.from_config(
+            config_directory_site, environment="production", profile="dev"
+        )
 
         # From production environment
         assert site.config["baseurl"] == "https://prod.example.com"
@@ -201,7 +211,9 @@ class TestConfigPrecedence:
 
     def test_precedence_profile_over_environment(self, config_directory_site: Path):
         """Profile overrides environment."""
-        site = Site.from_config(config_directory_site, environment="production", profile="dev")
+        site = Site.from_config(
+            config_directory_site, environment="production", profile="dev"
+        )
 
         # Production sets parallel=True, but dev profile sets parallel=False
         # Profile should win
@@ -243,7 +255,9 @@ class TestFeatureExpansion:
         if isinstance(output_formats, dict):
             assert "rss" in output_formats.get("site_wide", [])
 
-    def test_sitemap_feature_expands(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def test_sitemap_feature_expands(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
         """Test that sitemap: true expands to generate_sitemap and output_formats."""
         # Disable environment auto-detection
         monkeypatch.delenv("BENGAL_ENV", raising=False)

@@ -8,8 +8,6 @@ deepest __init__.py file instead of using the source root.
 Regression test for: Module names should be computed relative to source root.
 """
 
-from __future__ import annotations
-
 import contextlib
 
 from bengal.autodoc.extractors.python import PythonExtractor
@@ -37,7 +35,9 @@ class TestModuleNameResolution:
         extractor._source_root = source_root
 
         # Test regular module
-        result = extractor._infer_module_name(source_root / "cli" / "commands" / "build.py")
+        result = extractor._infer_module_name(
+            source_root / "cli" / "commands" / "build.py"
+        )
         assert result == "cli.commands.build"
 
         # Test package (__init__.py)
@@ -45,7 +45,9 @@ class TestModuleNameResolution:
         assert result == "cli"
 
         # Test nested package
-        result = extractor._infer_module_name(source_root / "cli" / "commands" / "__init__.py")
+        result = extractor._infer_module_name(
+            source_root / "cli" / "commands" / "__init__.py"
+        )
         assert result == "cli.commands"
 
     def test_infer_module_name_without_source_root_falls_back(self, tmp_path):
@@ -69,7 +71,9 @@ class TestModuleNameResolution:
 
         # Should fall back to searching for __init__.py
         # The old buggy behavior searches backwards and finds the DEEPEST __init__.py
-        result = extractor._infer_module_name(root / "mypackage" / "cli" / "commands" / "build.py")
+        result = extractor._infer_module_name(
+            root / "mypackage" / "cli" / "commands" / "build.py"
+        )
 
         # OLD BUGGY BEHAVIOR: Finds commands/__init__.py (deepest) and builds from there
         # This is what caused the bug - it gives 'commands.build' instead of the full path
@@ -77,7 +81,9 @@ class TestModuleNameResolution:
             "Fallback behavior should use old (buggy) algorithm that searches for deepest __init__.py"
         )
 
-    def test_regression_bug_module_names_relative_to_source_not_init_files(self, tmp_path):
+    def test_regression_bug_module_names_relative_to_source_not_init_files(
+        self, tmp_path
+    ):
         """
         Regression test: Module names must be computed from source root,
         not by searching for __init__.py files.
@@ -110,7 +116,9 @@ class TestModuleNameResolution:
         extractor._source_root = bengal_root
 
         # Test: Should use source root, not search for __init__.py
-        result1 = extractor._infer_module_name(bengal_root / "cli" / "commands" / "build.py")
+        result1 = extractor._infer_module_name(
+            bengal_root / "cli" / "commands" / "build.py"
+        )
         assert result1 == "cli.commands.build", (
             "Bug present: Module name should be 'cli.commands.build' "
             "computed from source root, not 'commands.build' from deepest __init__.py"

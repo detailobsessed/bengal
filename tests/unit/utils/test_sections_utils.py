@@ -258,7 +258,9 @@ class TestResolvePageSectionPathWithRealMocks:
             section: MockSection | None = None
 
         # Page with section
-        section = MockSection(name="tutorials", title="Tutorials", path=Path("tutorials"))
+        section = MockSection(
+            name="tutorials", title="Tutorials", path=Path("tutorials")
+        )
         page = MockPage(title="Getting Started", section=section)
 
         result = resolve_page_section_path(page)

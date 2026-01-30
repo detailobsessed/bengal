@@ -5,8 +5,6 @@ Verifies that the action-bar partial correctly generates LLM.txt URLs
 for the "Copy LLM text" and "Open LLM text" functionality.
 """
 
-from __future__ import annotations
-
 from unittest.mock import Mock
 
 import pytest
@@ -52,10 +50,14 @@ baseurl = "https://example.com"
 
     def test_action_bar_generates_index_txt_url(self, template_engine):
         """Test that action-bar generates correct index.txt URL for pages."""
-        page = self._create_mock_page("Getting Started", "/docs/getting-started/", "Page content")
+        page = self._create_mock_page(
+            "Getting Started", "/docs/getting-started/", "Page content"
+        )
 
         # Render the action-bar partial
-        rendered = template_engine.render_template("partials/action-bar.html", {"page": page})
+        rendered = template_engine.render_template(
+            "partials/action-bar.html", {"page": page}
+        )
 
         # Check that the LLM.txt URL is correct
         # canonical_url() returns full URL with baseurl, so we check for index.txt in path
@@ -67,7 +69,9 @@ baseurl = "https://example.com"
         """Test LLM.txt URL for root-level pages."""
         page = self._create_mock_page("Home", "/", "Home content")
 
-        rendered = template_engine.render_template("partials/action-bar.html", {"page": page})
+        rendered = template_engine.render_template(
+            "partials/action-bar.html", {"page": page}
+        )
 
         # Root page should have /index.txt
         assert "/index.txt" in rendered
@@ -78,7 +82,9 @@ baseurl = "https://example.com"
             "Advanced Topics", "/docs/guides/advanced/topics/", "Advanced content"
         )
 
-        rendered = template_engine.render_template("partials/action-bar.html", {"page": page})
+        rendered = template_engine.render_template(
+            "partials/action-bar.html", {"page": page}
+        )
 
         # Should generate correct nested path (canonical_url includes baseurl scheme)
         assert "docs/guides/advanced/topics/index.txt" in rendered
@@ -87,7 +93,9 @@ baseurl = "https://example.com"
         """Test that action-bar includes 'Copy LLM text' button."""
         page = self._create_mock_page("Test Page", "/test/")
 
-        rendered = template_engine.render_template("partials/action-bar.html", {"page": page})
+        rendered = template_engine.render_template(
+            "partials/action-bar.html", {"page": page}
+        )
 
         # Check for Copy LLM text button
         assert "Copy LLM text" in rendered
@@ -97,7 +105,9 @@ baseurl = "https://example.com"
         """Test that action-bar includes 'Open LLM text' link."""
         page = self._create_mock_page("Test Page", "/test/")
 
-        rendered = template_engine.render_template("partials/action-bar.html", {"page": page})
+        rendered = template_engine.render_template(
+            "partials/action-bar.html", {"page": page}
+        )
 
         # Check for Open LLM text link
         assert "Open LLM text" in rendered
@@ -109,7 +119,9 @@ baseurl = "https://example.com"
         """Test that AI assistant share links use correct LLM.txt URL."""
         page = self._create_mock_page("Documentation", "/docs/", "Docs content")
 
-        rendered = template_engine.render_template("partials/action-bar.html", {"page": page})
+        rendered = template_engine.render_template(
+            "partials/action-bar.html", {"page": page}
+        )
 
         # Check that AI share links include the LLM.txt URL
         # The share prompt should reference index.txt (may be URL-encoded in share links)
@@ -125,7 +137,9 @@ baseurl = "https://example.com"
         """Test that URLs are properly encoded in share links."""
         page = self._create_mock_page("Test Page", "/test/")
 
-        rendered = template_engine.render_template("partials/action-bar.html", {"page": page})
+        rendered = template_engine.render_template(
+            "partials/action-bar.html", {"page": page}
+        )
 
         # Share links should have URL-encoded parameters
         assert "claude.ai/new?q=" in rendered
@@ -166,12 +180,16 @@ baseurl = "https://example.com"
     def test_ensure_trailing_slash_function(self, template_engine):
         """Test that ensure_trailing_slash helper works correctly."""
         # This function is used in action-bar.html to construct LLM.txt URLs
-        result = template_engine.render_string("{{ ensure_trailing_slash('/test') }}", {})
+        result = template_engine.render_string(
+            "{{ ensure_trailing_slash('/test') }}", {}
+        )
         assert result == "/test/"
 
     def test_ensure_trailing_slash_idempotent(self, template_engine):
         """Test that ensure_trailing_slash is idempotent."""
-        result = template_engine.render_string("{{ ensure_trailing_slash('/test/') }}", {})
+        result = template_engine.render_string(
+            "{{ ensure_trailing_slash('/test/') }}", {}
+        )
         assert result == "/test/"
 
     def test_canonical_url_function(self, template_engine):

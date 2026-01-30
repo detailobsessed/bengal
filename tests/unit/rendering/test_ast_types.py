@@ -1,7 +1,5 @@
 """Tests for AST type definitions."""
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.parsing.ast.types import (

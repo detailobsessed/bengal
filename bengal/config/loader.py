@@ -50,7 +50,7 @@ from __future__ import annotations
 import difflib
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from bengal.config.defaults import DEFAULTS
 from bengal.utils.observability.logger import get_logger
@@ -61,20 +61,20 @@ logger = get_logger(__name__)
 def pretty_print_config(config: dict[str, Any], title: str = "Configuration") -> None:
     """
     Pretty print configuration using Rich formatting.
-    
+
     Displays the configuration dictionary with syntax highlighting and
     formatting. Falls back to standard ``pprint`` if Rich is unavailable
     or disabled.
-    
+
     Args:
         config: Configuration dictionary to display.
         title: Title to display above the configuration output.
-    
+
     Example:
             >>> config = {"title": "My Site", "baseurl": "/"}
             >>> pretty_print_config(config, title="Site Configuration")
         # Outputs formatted configuration with Rich or pprint
-        
+
     """
     try:
         from rich.pretty import pprint as rich_pprint
@@ -109,37 +109,37 @@ def pretty_print_config(config: dict[str, Any], title: str = "Configuration") ->
 class ConfigLoader:
     """
     Load site configuration from ``bengal.toml`` or ``bengal.yaml``.
-    
+
     This is the primary configuration loader for single-file Bengal configurations.
     It auto-discovers configuration files, validates contents, normalizes section
     names, and applies environment-based overrides.
-    
+
     Attributes:
         SECTION_ALIASES: Mapping of accepted section name variations to canonical names.
         KNOWN_SECTIONS: Set of recognized configuration section names.
         root_path: Root directory to search for configuration files.
         warnings: List of configuration warnings accumulated during loading.
-    
+
     Example:
             >>> loader = ConfigLoader(Path("my-site"))
             >>> config = loader.load()
             >>> config["title"]
             'My Site'
-    
+
             >>> # Check for configuration warnings
             >>> for warning in loader.get_warnings():
             ...     print(warning)
-        
+
     """
 
     # Section aliases for ergonomic config (accept common variations)
-    SECTION_ALIASES = {
+    SECTION_ALIASES: ClassVar[dict[str, str]] = {
         "menus": "menu",  # Plural → singular
         "plugin": "plugins",  # Singular → plural (if we add plugins)
     }
 
     # Known valid section names
-    KNOWN_SECTIONS = {
+    KNOWN_SECTIONS: ClassVar[set[str]] = {
         # Core
         "site",
         "build",
@@ -207,7 +207,9 @@ class ConfigLoader:
             config_file = self.root_path / filename
             if config_file.exists():
                 # Use debug level to avoid noise in normal output
-                logger.debug("config_file_found", config_file=filename, format=config_file.suffix)
+                logger.debug(
+                    "config_file_found", config_file=filename, format=config_file.suffix
+                )
                 return self._load_file(config_file)
 
         # Return default config if no file found
@@ -244,7 +246,9 @@ class ConfigLoader:
 
         try:
             # Use debug level to avoid noise in normal output
-            logger.debug("config_load_start", config_path=str(config_path), format=suffix)
+            logger.debug(
+                "config_load_start", config_path=str(config_path), format=suffix
+            )
 
             # Load raw config
             if suffix == ".toml":
@@ -279,14 +283,18 @@ class ConfigLoader:
         except ConfigValidationError:
             # Validation error already printed nice errors
             logger.error(
-                "config_validation_failed", config_path=str(config_path), error="validation_error"
+                "config_validation_failed",
+                config_path=str(config_path),
+                error="validation_error",
             )
             raise
         except Exception as e:
             # Propagate parsing errors so callers/tests can assert on invalid configuration.
             # Toml/YAML decoders typically raise ValueError/TomlDecodeError/YAMLError.
             err_name = type(e).__name__
-            if err_name in {"TomlDecodeError", "YAMLError"} or isinstance(e, ValueError):
+            if err_name in {"TomlDecodeError", "YAMLError"} or isinstance(
+                e, ValueError
+            ):
                 # Re-raise with clearer context word included
                 raise type(e)(f"Config parse error: {e}") from e
             # Otherwise, optionally propagate via env toggle, else fall back to defaults.
@@ -412,7 +420,9 @@ class ConfigLoader:
                 # Using an alias - normalize it
                 if canonical in normalized:
                     # Both forms present - merge if possible
-                    if isinstance(value, dict) and isinstance(normalized[canonical], dict):
+                    if isinstance(value, dict) and isinstance(
+                        normalized[canonical], dict
+                    ):
                         normalized[canonical].update(value)
                         warning_msg = f"⚠️  Both [{key}] and [{canonical}] defined. Merging into [{canonical}]."
                         self.warnings.append(warning_msg)
@@ -423,9 +433,7 @@ class ConfigLoader:
                             action="merging",
                         )
                     else:
-                        warning_msg = (
-                            f"⚠️  Both [{key}] and [{canonical}] defined. Using [{canonical}]."
-                        )
+                        warning_msg = f"⚠️  Both [{key}] and [{canonical}] defined. Using [{canonical}]."
                         self.warnings.append(warning_msg)
                         logger.warning(
                             "config_section_duplicate",
@@ -445,9 +453,13 @@ class ConfigLoader:
                     )
             elif key not in self.KNOWN_SECTIONS:
                 # Unknown section - check for typos
-                suggestions = difflib.get_close_matches(key, self.KNOWN_SECTIONS, n=1, cutoff=0.6)
+                suggestions = difflib.get_close_matches(
+                    key, self.KNOWN_SECTIONS, n=1, cutoff=0.6
+                )
                 if suggestions:
-                    warning_msg = f"⚠️  Unknown section [{key}]. Did you mean [{suggestions[0]}]?"
+                    warning_msg = (
+                        f"⚠️  Unknown section [{key}]. Did you mean [{suggestions[0]}]?"
+                    )
                     self.warnings.append(warning_msg)
                     logger.warning(
                         "config_section_unknown",
@@ -456,7 +468,11 @@ class ConfigLoader:
                         action="including_anyway",
                     )
                 else:
-                    logger.debug("config_section_custom", section=key, note="not in known sections")
+                    logger.debug(
+                        "config_section_custom",
+                        section=key,
+                        note="not in known sections",
+                    )
                 # Still include it (might be user-defined)
                 normalized[key] = value
             else:

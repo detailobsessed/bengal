@@ -151,7 +151,9 @@ class TestSectionTrackingInBuilds:
         # Can update using equivalent section
         section1_copy = Section(name="blog", path=tmp_path / "blog")
         assert section1_copy in section_pages  # Should be found
-        section_pages[section1_copy].append(Page(source_path=tmp_path / "blog/post3.md"))
+        section_pages[section1_copy].append(
+            Page(source_path=tmp_path / "blog/post3.md")
+        )
 
         # Should have updated the original entry
         assert len(section_pages[section1]) == 3
@@ -172,7 +174,9 @@ class TestSetOperationsInPipeline:
         web_pages = {
             Page(source_path=tmp_path / "content/web1.md", tags=["web"]),
             Page(source_path=tmp_path / "content/web2.md", tags=["web"]),
-            Page(source_path=tmp_path / "content/python2.md", tags=["python", "web"]),  # Overlap
+            Page(
+                source_path=tmp_path / "content/python2.md", tags=["python", "web"]
+            ),  # Overlap
         }
 
         # Find pages in both categories
@@ -189,7 +193,9 @@ class TestSetOperationsInPipeline:
 
     def test_page_deduplication_across_taxonomies(self, tmp_path):
         """Test deduplication when same page appears in multiple taxonomies."""
-        page1 = Page(source_path=tmp_path / "content/post.md", tags=["python", "web", "tutorial"])
+        page1 = Page(
+            source_path=tmp_path / "content/post.md", tags=["python", "web", "tutorial"]
+        )
 
         # Simulate page appearing in multiple taxonomy collections
         python_tag_pages = [page1]

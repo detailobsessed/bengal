@@ -5,8 +5,6 @@ These functions compute pre-built fallback URLs for version switching,
 enabling instant navigation without 404 errors.
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 import pytest
@@ -396,7 +394,9 @@ class TestIntegration:
         # Should fall back to parent /docs/v1/guide/advanced/ (not section index or root)
         assert result == "/docs/v1/guide/advanced/"
 
-    def test_progressive_fallback_stops_at_first_existing_parent(self, mock_site, v1_dict):
+    def test_progressive_fallback_stops_at_first_existing_parent(
+        self, mock_site, v1_dict
+    ):
         """Test that progressive fallback stops at first existing parent."""
         # Add pages at different levels
         guide_page_v1 = MagicMock()

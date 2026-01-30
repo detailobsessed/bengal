@@ -49,14 +49,14 @@ if TYPE_CHECKING:
 class SectionNavigationMixin:
     """
     URL generation and version-aware navigation.
-    
+
     This mixin handles:
     - URL properties (href, _path, absolute_href)
     - Subsection index URL tracking
     - Navigation children detection
     - Version-aware page/subsection filtering
     - Versioned path transformation
-        
+
     """
 
     # =========================================================================
@@ -195,11 +195,13 @@ class SectionNavigationMixin:
               <a href="{{ url_for(page) }}">{{ page.title }}</a>
             {% endif %}
         """
-        return {
-            getattr(subsection.index_page, "_path", None)
-            for subsection in self.subsections
-            if subsection.index_page
-        }
+        result: set[str] = set()
+        for subsection in self.subsections:
+            if subsection.index_page:
+                path = getattr(subsection.index_page, "_path", None)
+                if path is not None:
+                    result.add(path)
+        return result
 
     @cached_property
     def has_nav_children(self) -> bool:
@@ -258,7 +260,9 @@ class SectionNavigationMixin:
         """
         if version_id is None:
             return self.sorted_pages
-        return [p for p in self.sorted_pages if getattr(p, "version", None) == version_id]
+        return [
+            p for p in self.sorted_pages if getattr(p, "version", None) == version_id
+        ]
 
     def subsections_for_version(self, version_id: str | None) -> list[Section]:
         """
@@ -282,7 +286,9 @@ class SectionNavigationMixin:
         """
         if version_id is None:
             return self.sorted_subsections
-        return [s for s in self.sorted_subsections if s.has_content_for_version(version_id)]
+        return [
+            s for s in self.sorted_subsections if s.has_content_for_version(version_id)
+        ]
 
     def has_content_for_version(self, version_id: str | None) -> bool:
         """

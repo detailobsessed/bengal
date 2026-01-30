@@ -42,8 +42,6 @@ See Also:
 
 """
 
-from __future__ import annotations
-
 import multiprocessing
 from dataclasses import dataclass
 from enum import Enum
@@ -76,10 +74,10 @@ class SuggestionPriority(Enum):
 class PerformanceSuggestion:
     """
     A single performance improvement suggestion.
-    
+
     Represents an actionable recommendation to improve build performance,
     with estimated impact and configuration examples.
-    
+
     Attributes:
         type: Category of suggestion (BUILD, CONTENT, CONFIG, etc.)
         priority: Priority level (HIGH, MEDIUM, LOW)
@@ -88,7 +86,7 @@ class PerformanceSuggestion:
         impact: Estimated performance impact (e.g., "Could save ~2.5s")
         action: What the user should do to implement this suggestion
         config_example: Optional example configuration change
-        
+
     """
 
     type: SuggestionType
@@ -115,16 +113,16 @@ class PerformanceSuggestion:
 class PerformanceGrade:
     """
     Overall performance assessment for a build.
-    
+
     Provides a letter grade (A-F) and category assessment based on
     build performance metrics and best practices compliance.
-    
+
     Attributes:
         grade: Letter grade (A, B, C, D, or F)
         score: Numeric score (0-100)
         category: Performance category ("Excellent", "Good", "Fair", "Poor", "Critical")
         summary: One-line summary of performance assessment
-        
+
     """
 
     grade: str  # A, B, C, D, F
@@ -226,10 +224,10 @@ class PerformanceGrade:
 class PerformanceAdvisor:
     """
     Analyzes build performance and provides intelligent suggestions.
-    
+
     Uses build statistics to identify bottlenecks and recommend
     optimizations tailored to the specific project.
-        
+
     """
 
     def __init__(self, stats: BuildStats, environment: dict[str, Any] | None = None):
@@ -301,10 +299,16 @@ class PerformanceAdvisor:
         if self.stats.total_pages >= 20:
             # Estimate time savings
             estimated_speedup = min(3.0, multiprocessing.cpu_count() / 2)
-            time_saved = self.stats.rendering_time_ms * (1 - 1 / estimated_speedup) / 1000
+            time_saved = (
+                self.stats.rendering_time_ms * (1 - 1 / estimated_speedup) / 1000
+            )
 
             if time_saved > 1.0:  # >1s savings
-                priority = SuggestionPriority.HIGH if time_saved > 5 else SuggestionPriority.MEDIUM
+                priority = (
+                    SuggestionPriority.HIGH
+                    if time_saved > 5
+                    else SuggestionPriority.MEDIUM
+                )
 
                 self.suggestions.append(
                     PerformanceSuggestion(
@@ -329,8 +333,12 @@ class PerformanceAdvisor:
         if self.stats.total_pages >= 10:
             # For development, incremental can save significant time
             typical_change_pct = 0.05  # Assume 5% of pages change typically
-            estimated_pages_saved = int(self.stats.total_pages * (1 - typical_change_pct))
-            time_per_page = self.stats.rendering_time_ms / max(self.stats.total_pages, 1)
+            estimated_pages_saved = int(
+                self.stats.total_pages * (1 - typical_change_pct)
+            )
+            time_per_page = self.stats.rendering_time_ms / max(
+                self.stats.total_pages, 1
+            )
             time_saved = (estimated_pages_saved * time_per_page) / 1000
 
             if time_saved > 2.0:  # >2s potential savings
@@ -364,7 +372,9 @@ class PerformanceAdvisor:
 
         if rendering_pct > 0.6 and self.stats.rendering_time_ms > 1000:
             # Rendering is a bottleneck
-            time_per_page = self.stats.rendering_time_ms / max(self.stats.total_pages, 1)
+            time_per_page = self.stats.rendering_time_ms / max(
+                self.stats.total_pages, 1
+            )
 
             if time_per_page > 50:  # >50ms per page is slow
                 self.suggestions.append(
@@ -425,7 +435,9 @@ class PerformanceAdvisor:
         # Check if we have directive statistics
         if self.stats.total_directives > 0:
             # High directive usage might indicate complex templates
-            directives_per_page = self.stats.total_directives / max(self.stats.total_pages, 1)
+            directives_per_page = self.stats.total_directives / max(
+                self.stats.total_pages, 1
+            )
 
             if directives_per_page > 20:  # >20 directives per page average
                 self.suggestions.append(
@@ -525,14 +537,14 @@ def analyze_build(
 ) -> PerformanceAdvisor:
     """
     Quick analysis of build statistics.
-    
+
     Args:
         stats: Build statistics
         environment: Optional environment info
-    
+
     Returns:
         PerformanceAdvisor with analysis complete
-        
+
     """
     advisor = PerformanceAdvisor(stats, environment)
     advisor.analyze()

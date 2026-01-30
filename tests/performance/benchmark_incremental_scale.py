@@ -36,21 +36,21 @@ from bengal.orchestration.build.options import BuildOptions
 def create_large_test_site(num_pages: int, sections: int = 20) -> Path:
     """
     Create a realistic test site with specified number of pages.
-    
+
     Structure:
     - Multiple sections (topic areas)
     - Tags and categories
     - Internal cross-references
     - Code blocks with syntax highlighting
     - Realistic content length (500-1000 words)
-    
+
     Args:
         num_pages: Total number of pages to generate
         sections: Number of top-level sections
-    
+
     Returns:
         Path to the generated site directory
-        
+
     """
     site_root = Path(mkdtemp(prefix=f"bengal_scale_{num_pages}_"))
 
@@ -251,20 +251,20 @@ def benchmark_full_build(site_root: Path) -> dict:
 def benchmark_incremental_single_page(site_root: Path, site: Site) -> dict:
     """
     Benchmark incremental rebuild after changing a single page.
-    
+
     This simulates the most common editing scenario: fixing a typo,
     updating content, or adding a paragraph to one page.
-    
+
     Args:
         site_root: Path to test site
         site: Already-built Site object (reused for incremental context)
-        
+
     """
     print("  Running incremental build (single page change)...")
 
     # Modify a single page
     content_dir = site_root / "content"
-    test_page = list(content_dir.glob("section-001/page-*.md"))[0]
+    test_page = next(iter(content_dir.glob("section-001/page-*.md")))
 
     original = test_page.read_text()
     modified = original + "\n\n## Updated Section\n\nThis content was just added.\n"
@@ -292,10 +292,10 @@ def benchmark_incremental_single_page(site_root: Path, site: Site) -> dict:
 def benchmark_incremental_template_change(site_root: Path) -> dict:
     """
     Benchmark incremental rebuild after template change by modifying config.
-    
+
     This simulates a global change that requires rebuilding all pages,
     such as changing the site title or base template.
-        
+
     """
     print("  Running incremental build (template change)...")
 
@@ -388,9 +388,13 @@ def run_scale_benchmark(num_pages: int, sections: int = 20):
 
         # Check speedup targets
         if single_speedup >= 15.0:
-            checks.append(f"✅ Single page speedup: {single_speedup:.1f}x (target: ≥15x)")
+            checks.append(
+                f"✅ Single page speedup: {single_speedup:.1f}x (target: ≥15x)"
+            )
         else:
-            checks.append(f"❌ Single page speedup: {single_speedup:.1f}x (target: ≥15x)")
+            checks.append(
+                f"❌ Single page speedup: {single_speedup:.1f}x (target: ≥15x)"
+            )
 
         if template_speedup >= 5.0:
             checks.append(f"✅ Template speedup: {template_speedup:.1f}x (target: ≥5x)")

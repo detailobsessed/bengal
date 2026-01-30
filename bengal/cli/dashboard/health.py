@@ -80,20 +80,20 @@ VALIDATOR_CATEGORIES: dict[str, tuple[str, str]] = {
 class BengalHealthDashboard(BengalDashboard):
     """
     Interactive health dashboard with tree explorer.
-    
+
     Shows:
     - Header with Bengal branding
     - Summary bar with issue counts
     - Tree view of issues by category
     - Details panel for selected issue
     - Footer with keyboard shortcuts
-    
+
     Bindings:
         q: Quit
         r: Rescan
         enter: View details
         ?: Help
-        
+
     """
 
     TITLE: ClassVar[str] = "Bengal Health"
@@ -211,7 +211,9 @@ class BengalHealthDashboard(BengalDashboard):
                 results, summary = orchestrator.check_all_links()
 
                 # Convert to our format
-                self.app.call_from_thread(self._populate_from_linkcheck, results, summary)
+                self.app.call_from_thread(
+                    self._populate_from_linkcheck, results, summary
+                )
 
             except ImportError:
                 # Fallback to demo mode
@@ -252,10 +254,14 @@ class BengalHealthDashboard(BengalDashboard):
 
         # Add broken links category
         if broken_links:
-            broken_node = tree.root.add(f"❌ Broken Links ({len(broken_links)})", expand=True)
+            broken_node = tree.root.add(
+                f"❌ Broken Links ({len(broken_links)})", expand=True
+            )
             for link in broken_links[:20]:  # Limit display
                 # Use first_ref (first page referencing this link) for source
-                status_info = f"{link.status_code}" if link.status_code else link.status.value
+                status_info = (
+                    f"{link.status_code}" if link.status_code else link.status.value
+                )
                 issue = HealthIssue(
                     category="Links",
                     severity="error",
@@ -268,7 +274,9 @@ class BengalHealthDashboard(BengalDashboard):
 
         # Add valid links summary
         if valid_links:
-            valid_node = tree.root.add(f"✓ Valid Links ({len(valid_links)})", expand=False)
+            valid_node = tree.root.add(
+                f"✓ Valid Links ({len(valid_links)})", expand=False
+            )
             valid_node.add_leaf("All links verified")
 
         # Update counts
@@ -324,7 +332,9 @@ class BengalHealthDashboard(BengalDashboard):
 
             # Count by severity
             cat_errors = sum(1 for i in category_issues if i.get("severity") == "error")
-            cat_warnings = sum(1 for i in category_issues if i.get("severity") == "warning")
+            cat_warnings = sum(
+                1 for i in category_issues if i.get("severity") == "warning"
+            )
 
             # Add category node with count (Task 3.1)
             if cat_errors > 0:
@@ -361,7 +371,12 @@ class BengalHealthDashboard(BengalDashboard):
                     suggestions += 1
 
                 # Add to tree with severity icon
-                severity_icons = {"error": "⛔", "warning": "⚠️", "info": "ℹ️", "suggestion": "💡"}
+                severity_icons = {
+                    "error": "⛔",
+                    "warning": "⚠️",
+                    "info": "ℹ️",
+                    "suggestion": "💡",
+                }
                 severity_icon = severity_icons.get(health_issue.severity, "•")
                 label = f"{severity_icon} {health_issue.message}"
                 if health_issue.file:
@@ -594,14 +609,14 @@ def run_health_dashboard(
 ) -> None:
     """
     Run the health dashboard for a site.
-    
+
     This is the entry point called by `bengal health --dashboard`.
-    
+
     Args:
         site: Site instance to check
         report: Pre-computed health report (optional)
         **kwargs: Additional options
-        
+
     """
     app = BengalHealthDashboard(
         site=site,

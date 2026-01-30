@@ -57,23 +57,23 @@ if TYPE_CHECKING:
 class DependencyNode:
     """
     A single node in the dependency graph.
-    
+
     Represents a file and tracks both forward dependencies (what this
     file depends on) and reverse dependencies (what depends on this file).
-    
+
     Attributes:
         path: File path of this node.
         node_type: Classification: "page", "template", "partial", "data", "config".
         dependencies: Paths of files this node depends on.
         dependents: Paths of files that depend on this node.
         metadata: Additional node-specific data.
-    
+
     Example:
             >>> node = DependencyNode(path="content/guide.md", node_type="page")
             >>> node.dependencies.add("templates/page.html")
             >>> node.is_leaf
         False
-        
+
     """
 
     path: str
@@ -118,21 +118,21 @@ class DependencyNode:
 class DependencyGraph:
     """
     Complete dependency graph for a project.
-    
+
     Provides methods for traversal, querying, and visualization.
     Supports both forward (dependencies) and reverse (dependents)
     traversal, transitive closure, and multiple output formats.
-    
+
     Attributes:
         nodes: Dictionary mapping file paths to DependencyNode instances.
         edges: Set of (from, to) tuples representing dependencies.
-    
+
     Example:
             >>> graph = DependencyGraph()
             >>> graph.add_edge("page.md", "template.html")
             >>> deps = graph.get_dependencies("page.md")
             >>> blast = graph.get_blast_radius("template.html")
-        
+
     """
 
     nodes: dict[str, DependencyNode] = field(default_factory=dict)
@@ -398,7 +398,9 @@ class DependencyGraph:
             # Add edges
             if path in self.nodes:
                 for dep in self.nodes[path].dependencies:
-                    lines.append(f'    "{escape_label(path)}" -> "{escape_label(dep)}";')
+                    lines.append(
+                        f'    "{escape_label(path)}" -> "{escape_label(dep)}";'
+                    )
                     if depth < max_depth:
                         add_node_and_deps(dep, depth + 1)
 
@@ -472,20 +474,20 @@ class DependencyGraph:
 class DependencyVisualizer(DebugTool):
     """
     Debug tool for visualizing dependencies.
-    
+
     Helps understand the dependency structure of builds and
     visualize the blast radius of changes.
-    
+
     Creation:
         Direct instantiation or via DebugRegistry:
             viz = DependencyVisualizer(cache=cache)
-    
+
     Example:
             >>> viz = DependencyVisualizer(cache=cache)
             >>> graph = viz.build_graph()
             >>> print(graph.format_tree("content/posts/my-post.md"))
             >>> print(graph.to_mermaid(root="content/posts/my-post.md"))
-        
+
     """
 
     name = "deps"
@@ -532,7 +534,9 @@ class DependencyVisualizer(DebugTool):
 
         # Find isolated pages
         isolated = [
-            path for path, node in graph.nodes.items() if node.node_type == "page" and node.is_leaf
+            path
+            for path, node in graph.nodes.items()
+            if node.node_type == "page" and node.is_leaf
         ]
         if isolated:
             report.add_finding(
@@ -664,7 +668,9 @@ class DependencyVisualizer(DebugTool):
             return "data"
         return "unknown"
 
-    def _generate_recommendations(self, graph: DependencyGraph, report: DebugReport) -> list[str]:
+    def _generate_recommendations(
+        self, graph: DependencyGraph, report: DebugReport
+    ) -> list[str]:
         """Generate recommendations based on analysis."""
         recommendations: list[str] = []
 

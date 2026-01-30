@@ -5,8 +5,6 @@ Tests the full icon resolution chain: site > theme > parent > default.
 See: plan/drafted/rfc-theme-aware-icons.md
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from textwrap import dedent
 

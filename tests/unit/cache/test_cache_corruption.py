@@ -42,7 +42,9 @@ class TestCacheCorruption:
         cache_file = Path(tmp_path) / ".bengal-cache.json"
         future_cache = {
             "version": 99,
-            "file_fingerprints": {"content/page.md": {"hash": "abc123", "mtime": 0, "size": 0}},
+            "file_fingerprints": {
+                "content/page.md": {"hash": "abc123", "mtime": 0, "size": 0}
+            },
             # do not include unknown keys to avoid strict dataclass init failure
         }
         cache_file.write_text(json.dumps(future_cache))
@@ -51,7 +53,9 @@ class TestCacheCorruption:
 
         assert isinstance(cache, BuildCache)
         # Known fields preserved
-        assert cache.file_fingerprints.get("content/page.md", {}).get("hash") == "abc123"
+        assert (
+            cache.file_fingerprints.get("content/page.md", {}).get("hash") == "abc123"
+        )
 
     def test_load_missing_required_fields(self, tmp_path):
         cache_file = Path(tmp_path) / ".bengal-cache.json"

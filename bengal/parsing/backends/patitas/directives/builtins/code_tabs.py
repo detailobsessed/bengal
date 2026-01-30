@@ -41,9 +41,10 @@ from dataclasses import dataclass, replace
 from html import escape as html_escape
 from typing import TYPE_CHECKING, ClassVar
 
-from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 from patitas.directives.options import DirectiveOptions
 from patitas.nodes import Directive
+
+from bengal.parsing.backends.patitas.directives.contracts import DirectiveContract
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
@@ -224,12 +225,12 @@ class CodeTabItem:
 @dataclass(frozen=True, slots=True)
 class CodeTabsOptions(DirectiveOptions):
     """Options for code-tabs directive.
-    
+
     Attributes:
         sync: Sync key for tab synchronization (default: "language")
         linenos: Force line numbers on/off (None = auto for 3+ lines)
         tabs: Parsed tab items (injected by parse method)
-        
+
     """
 
     sync: str = "language"
@@ -240,23 +241,23 @@ class CodeTabsOptions(DirectiveOptions):
 class CodeTabsDirective:
     """
     Code tabs for multi-language code examples.
-    
+
     Syntax (v2 simplified):
         :::{code-tabs}
-    
+
             ```python app.py {3-4}
             def greet(name):
                 print(f"Hello, {name}!")
             ```
-    
+
             ```javascript index.js {2-3}
             function greet(name) {
                 console.log(`Hello, ${name}!`);
             }
             ```
-    
+
         :::
-    
+
     Legacy syntax (still supported):
         :::{code-tabs}
         ### Python (main.py)
@@ -265,14 +266,14 @@ class CodeTabsDirective:
                 print(f"Hello, {name}!")
             ```
         :::
-    
+
     Options:
         :sync: Sync key for tab synchronization (default: "language")
         :linenos: Force line numbers on/off (default: auto for 3+ lines)
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("code-tabs", "code_tabs")
@@ -395,7 +396,9 @@ class CodeTabsDirective:
         tabs: tuple[CodeTabItem, ...] = opts.tabs or ()
 
         if not tabs:
-            sb.append(f'<div class="code-tabs" data-bengal="tabs">{rendered_children}</div>')
+            sb.append(
+                f'<div class="code-tabs" data-bengal="tabs">{rendered_children}</div>'
+            )
             return
 
         sync_key = opts.sync
@@ -409,7 +412,9 @@ class CodeTabsDirective:
         except ImportError:
             import hashlib
 
-            content_hash = hashlib.sha256((node.raw_content or "").encode()).hexdigest()[:12]
+            content_hash = hashlib.sha256(
+                (node.raw_content or "").encode()
+            ).hexdigest()[:12]
 
         tab_id = f"code-tabs-{content_hash}"
 
@@ -419,7 +424,9 @@ class CodeTabsDirective:
             sync_attr = f' data-sync="{html_escape(sync_key)}"'
 
         # Build navigation
-        sb.append(f'<div class="code-tabs" id="{tab_id}" data-bengal="tabs"{sync_attr}>\n')
+        sb.append(
+            f'<div class="code-tabs" id="{tab_id}" data-bengal="tabs"{sync_attr}>\n'
+        )
         sb.append('  <ul class="tab-nav" role="tablist">\n')
 
         for i, tab in enumerate(tabs):
@@ -436,11 +443,15 @@ class CodeTabsDirective:
             # Build tab label with optional icon
             icon_html = self._get_language_icon(tab.code_lang)
             if icon_html:
-                icon_html = f'<span class="tab-icon" aria-hidden="true">{icon_html}</span>'
+                icon_html = (
+                    f'<span class="tab-icon" aria-hidden="true">{icon_html}</span>'
+                )
 
             filename_html = ""
             if tab.filename:
-                filename_html = f'<span class="tab-filename">{html_escape(tab.filename)}</span>'
+                filename_html = (
+                    f'<span class="tab-filename">{html_escape(tab.filename)}</span>'
+                )
 
             sb.append(f'    <li{active_class} role="presentation">\n')
             sb.append(
@@ -483,7 +494,9 @@ class CodeTabsDirective:
 
             # Inject ID into code element
             if "<code" in highlighted_html:
-                highlighted_html = highlighted_html.replace("<code", f'<code id="{code_id}"', 1)
+                highlighted_html = highlighted_html.replace(
+                    "<code", f'<code id="{code_id}"', 1
+                )
 
             sb.append(
                 f'    <div id="{tab_id}-{i}" class="tab-pane{active}" '
@@ -516,7 +529,9 @@ class CodeTabsDirective:
             )
         except ImportError:
             # Fallback: simple code block
-            lang_class = f' class="language-{html_escape(language)}"' if language else ""
+            lang_class = (
+                f' class="language-{html_escape(language)}"' if language else ""
+            )
             return f"<pre><code{lang_class}>{html_escape(code)}</code></pre>"
 
     def _get_language_icon(self, lang: str, size: int = 16) -> str:

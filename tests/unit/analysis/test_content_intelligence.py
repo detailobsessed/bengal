@@ -8,8 +8,6 @@ Tests content analysis optimizations:
 - Speculation recommendations
 """
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock
 
 from bengal.analysis.content_intelligence import (

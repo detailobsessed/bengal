@@ -4,8 +4,6 @@ Property tests for Cacheable serialization contract.
 Tests edge cases and invariants that should hold for all Cacheable implementations.
 """
 
-from __future__ import annotations
-
 import json
 from dataclasses import dataclass
 from datetime import datetime
@@ -246,7 +244,7 @@ class TestSetSerializationProperties:
         tags: set[str]
 
         def to_cache_dict(self) -> dict[str, Any]:
-            return {"tags": sorted(list(self.tags))}
+            return {"tags": sorted(self.tags)}
 
         @classmethod
         def from_cache_dict(cls, data: dict[str, Any]) -> Self:

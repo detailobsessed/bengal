@@ -25,11 +25,15 @@ def test_cache_version_is_compatible():
     assert version.is_compatible() is True
 
     # Incompatible format version
-    old_version = CacheVersion(CACHE_FORMAT_VERSION - 1, sys.version_info[0], sys.version_info[1])
+    old_version = CacheVersion(
+        CACHE_FORMAT_VERSION - 1, sys.version_info[0], sys.version_info[1]
+    )
     assert old_version.is_compatible() is False
 
     # Incompatible Python version
-    other_python = CacheVersion(CACHE_FORMAT_VERSION, sys.version_info[0], sys.version_info[1] + 1)
+    other_python = CacheVersion(
+        CACHE_FORMAT_VERSION, sys.version_info[0], sys.version_info[1] + 1
+    )
     assert other_python.is_compatible() is False
 
 

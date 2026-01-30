@@ -1,7 +1,5 @@
 """Integration tests for Page.frontmatter property."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from bengal.core.page import Page

@@ -48,14 +48,15 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from html import escape as html_escape
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, cast
+
+from patitas.nodes import Directive
 
 from bengal.parsing.backends.patitas.directives.contracts import (
     DROPDOWN_CONTRACT,
     DirectiveContract,
 )
 from bengal.parsing.backends.patitas.directives.options import StyledOptions
-from patitas.nodes import Directive
 
 if TYPE_CHECKING:
     from patitas.location import SourceLocation
@@ -69,14 +70,14 @@ DROPDOWN_COLORS = frozenset(["success", "warning", "danger", "info", "minimal"])
 
 def _render_dropdown_icon(icon_name: str, dropdown_title: str = "") -> str:
     """Render dropdown icon using shared icon utilities.
-    
+
     Args:
         icon_name: Name of the icon to render
         dropdown_title: Title of the dropdown (for warning context)
-    
+
     Returns:
         SVG HTML string, or empty string if icon not found
-        
+
     """
     try:
         from bengal.directives._icons import (
@@ -87,7 +88,9 @@ def _render_dropdown_icon(icon_name: str, dropdown_title: str = "") -> str:
 
         # Map semantic name to actual icon name (e.g., "alert" -> "warning")
         mapped_icon_name = ICON_MAP.get(icon_name, icon_name)
-        icon_html = render_svg_icon(mapped_icon_name, size=18, css_class="dropdown-summary-icon")
+        icon_html = render_svg_icon(
+            mapped_icon_name, size=18, css_class="dropdown-summary-icon"
+        )
 
         if not icon_html:
             warn_missing_icon(icon_name, directive="dropdown", context=dropdown_title)
@@ -101,14 +104,14 @@ def _render_dropdown_icon(icon_name: str, dropdown_title: str = "") -> str:
 @dataclass(frozen=True, slots=True)
 class DropdownOptions(StyledOptions):
     """Options for dropdown directive.
-    
+
     Attributes:
         open: Whether dropdown is initially open (expanded)
         icon: Icon name to display next to the title
         badge: Badge text (e.g., "New", "Advanced", "Beta")
         color: Color variant (success, warning, danger, info, minimal)
         description: Secondary text below the title
-    
+
     Example:
         :::{dropdown} My Title
         :open: true
@@ -116,10 +119,10 @@ class DropdownOptions(StyledOptions):
         :badge: Advanced
         :color: info
         :description: Additional context about what's inside
-    
+
         Content here
         :::
-        
+
     """
 
     open: bool = False
@@ -131,13 +134,13 @@ class DropdownOptions(StyledOptions):
 
 class DropdownDirective:
     """Handler for dropdown (collapsible) directive.
-    
+
     Renders collapsible content using <details>/<summary>.
     Produces HTML identical to Bengal's dropdown directive.
-    
+
     Thread Safety:
         Stateless handler. Safe for concurrent use.
-        
+
     """
 
     names: ClassVar[tuple[str, ...]] = ("dropdown", "details")
@@ -161,13 +164,13 @@ class DropdownDirective:
             location=location,
             name=name,
             title=effective_title,
-            options=options,  # Pass typed options directly
+            options=cast(Any, options),
             children=tuple(children),
         )
 
     def render(
         self,
-        node: Directive[DropdownOptions],
+        node: Directive[Any],
         rendered_children: str,
         sb: StringBuilder,
     ) -> None:
@@ -223,12 +226,16 @@ class DropdownDirective:
         # Build title block (title + optional description)
         title_block = f'<span class="dropdown-title">{html_escape(title)}</span>'
         if description:
-            title_block += f'<span class="dropdown-description">{html_escape(description)}</span>'
+            title_block += (
+                f'<span class="dropdown-description">{html_escape(description)}</span>'
+            )
         summary_parts.append(f'<span class="dropdown-header">{title_block}</span>')
 
         # Add badge if specified
         if badge:
-            summary_parts.append(f'<span class="dropdown-badge">{html_escape(badge)}</span>')
+            summary_parts.append(
+                f'<span class="dropdown-badge">{html_escape(badge)}</span>'
+            )
 
         summary_content = "".join(summary_parts)
 

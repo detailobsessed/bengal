@@ -17,11 +17,8 @@ Features:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from bengal.errors import BengalRenderingError
-from bengal.rendering.engines.errors import TemplateError, TemplateNotFoundError
-from bengal.protocols import EngineCapability, TemplateEngineProtocol
 from kida import Environment
 from kida.bytecode_cache import BytecodeCache
 from kida.environment import (
@@ -34,25 +31,40 @@ from kida.environment import (
     TemplateSyntaxError as KidaTemplateSyntaxError,
 )
 
+from bengal.errors import BengalRenderingError
+from bengal.protocols import (
+    EngineCapability,
+    SiteLike,
+    TemplateEngineProtocol,
+    TemplateEnvironment,
+)
+from bengal.rendering.engines.errors import TemplateError, TemplateNotFoundError
+
 if TYPE_CHECKING:
     from bengal.core import Site
 
 
 class KidaTemplateEngine:
     """Bengal integration for Kida template engine.
-    
+
     Implements TemplateEngineProtocol for seamless integration
     with Bengal's rendering pipeline.
-    
+
     Example:
         # In bengal.yaml:
         site:
           template_engine: kida
-        
+
     """
 
     NAME = "kida"
-    __slots__ = ("site", "template_dirs", "_env", "_dependency_tracker", "_menu_dict_cache")
+    __slots__ = (
+        "_dependency_tracker",
+        "_env",
+        "_menu_dict_cache",
+        "site",
+        "template_dirs",
+    )
 
     def __init__(self, site: Site, *, profile: bool = False):
         """Initialize Kida engine for site.
@@ -100,7 +112,7 @@ class KidaTemplateEngine:
         # Create Kida environment
         # Note: strict mode (UndefinedError for undefined vars) is always enabled
         self._env = Environment(
-            loader=FileSystemLoader(self.template_dirs),
+            loader=FileSystemLoader([str(p) for p in self.template_dirs]),
             autoescape=self._select_autoescape,
             auto_reload=site.config.get("development", {}).get("auto_reload", True),
             bytecode_cache=bytecode_cache,
@@ -137,7 +149,9 @@ class KidaTemplateEngine:
 
         for theme_name in theme_chain:
             # Site-level theme directory
-            site_theme_templates = self.site.root_path / "themes" / theme_name / "templates"
+            site_theme_templates = (
+                self.site.root_path / "themes" / theme_name / "templates"
+            )
             if site_theme_templates.exists():
                 dirs.append(site_theme_templates)
                 continue
@@ -155,14 +169,19 @@ class KidaTemplateEngine:
 
             # Bundled theme directory
             bundled_theme_templates = (
-                Path(__file__).parent.parent.parent / "themes" / theme_name / "templates"
+                Path(__file__).parent.parent.parent
+                / "themes"
+                / theme_name
+                / "templates"
             )
             if bundled_theme_templates.exists():
                 dirs.append(bundled_theme_templates)
 
         # Ensure default theme exists as ultimate fallback
         # (resolve_theme_chain filters out 'default' to avoid duplicates)
-        default_templates = Path(__file__).parent.parent.parent / "themes" / "default" / "templates"
+        default_templates = (
+            Path(__file__).parent.parent.parent / "themes" / "default" / "templates"
+        )
         if default_templates not in dirs and default_templates.exists():
             dirs.append(default_templates)
 
@@ -188,7 +207,7 @@ class KidaTemplateEngine:
         # Single source of truth: site, config, theme, menus, bengal, versions, etc.
         from bengal.rendering.context import get_engine_globals
 
-        self._env.globals.update(get_engine_globals(self.site))
+        self._env.globals.update(get_engine_globals(cast(SiteLike, self.site)))
 
         # === Step 1: Register all template functions with Kida adapter ===
         # This handles both non-context functions (icons, dates, strings, etc.)
@@ -196,7 +215,11 @@ class KidaTemplateEngine:
         # via the adapter layer
         from bengal.rendering.template_functions import register_all
 
-        register_all(self._env, self.site, engine_type="kida")
+        register_all(
+            cast(TemplateEnvironment, self._env),
+            cast(SiteLike, self.site),
+            engine_type="kida",
+        )
 
         # === Step 2: Add filters from TemplateEngine mixins ===
         # These are added by Jinja's environment.py but not by register_all()
@@ -210,9 +233,7 @@ class KidaTemplateEngine:
             # breadcrumbs
             from bengal.rendering.template_functions.navigation import breadcrumbs
 
-            self._env.globals["breadcrumbs"] = lambda page: breadcrumbs.get_breadcrumbs(
-                page, self.site
-            )
+            self._env.globals["breadcrumbs"] = breadcrumbs.get_breadcrumbs
         except ImportError:
             pass
 
@@ -231,7 +252,9 @@ class KidaTemplateEngine:
             if localized is not None:
                 cache_key = f"{menu_name}:{lang}"
                 if cache_key not in self._menu_dict_cache:
-                    self._menu_dict_cache[cache_key] = [item.to_dict() for item in localized]
+                    self._menu_dict_cache[cache_key] = [
+                        item.to_dict() for item in localized
+                    ]
                 return self._menu_dict_cache[cache_key]
 
         if menu_name not in self._menu_dict_cache:
@@ -266,15 +289,16 @@ class KidaTemplateEngine:
 
     def _url_for(self, page: Any) -> str:
         """Generate URL for a page with base URL support."""
+        site = cast(SiteLike, self.site)
         # If page has _path, use it to apply baseurl (for MockPage and similar)
         # Otherwise, use href property which should already include baseurl
         if hasattr(page, "_path") and page._path:
             from bengal.rendering.template_engine.url_helpers import with_baseurl
 
-            return with_baseurl(page._path, self.site)
+            return with_baseurl(page._path, site)
         from bengal.rendering.template_engine.url_helpers import href_for
 
-        return href_for(page, self.site)
+        return href_for(page, site)
 
     def render_template(
         self,
@@ -314,8 +338,9 @@ class KidaTemplateEngine:
             ctx.update(context)
 
             page = context.get("page")
-            if hasattr(self._env, "_page_aware_factory"):
-                page_functions = self._env._page_aware_factory(page)
+            page_aware_factory = getattr(self._env, "_page_aware_factory", None)
+            if callable(page_aware_factory):
+                page_functions = page_aware_factory(page)
                 ctx.update(page_functions)
 
             # Cached blocks are automatically used by Template.render()
@@ -342,12 +367,16 @@ class KidaTemplateEngine:
                 context_info = []
                 for frame in reversed(tb):
                     if frame.line:
-                        context_info.append(f"  at {frame.filename}:{frame.lineno}: {frame.line}")
+                        context_info.append(
+                            f"  at {frame.filename}:{frame.lineno}: {frame.line}"
+                        )
                         if len(context_info) >= 3:
                             break
 
                 context_str = (
-                    "\n".join(context_info) if context_info else "  (no context available)"
+                    "\n".join(context_info)
+                    if context_info
+                    else "  (no context available)"
                 )
                 raise BengalRenderingError(
                     message=(
@@ -398,8 +427,9 @@ class KidaTemplateEngine:
             ctx.update(context)
 
             page = context.get("page")
-            if hasattr(self._env, "_page_aware_factory"):
-                page_functions = self._env._page_aware_factory(page)
+            page_aware_factory = getattr(self._env, "_page_aware_factory", None)
+            if callable(page_aware_factory):
+                page_functions = page_aware_factory(page)
                 ctx.update(page_functions)
 
             return tmpl.render(ctx)
@@ -724,7 +754,9 @@ class KidaTemplateEngine:
         """Alias for render_template (for compatibility)."""
         return self.render_template(template_name, context)
 
-    def validate_templates(self, include_patterns: list[str] | None = None) -> list[TemplateError]:
+    def validate_templates(
+        self, include_patterns: list[str] | None = None
+    ) -> list[TemplateError]:
         """Alias for validate (for compatibility)."""
         return self.validate(include_patterns)
 

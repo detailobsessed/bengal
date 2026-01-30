@@ -244,7 +244,9 @@ class TestRegistration:
         register(env, site)
 
         # Create template
-        template = env.from_string("{% if page is draft %}DRAFT{% else %}PUBLISHED{% endif %}")
+        template = env.from_string(
+            "{% if page is draft %}DRAFT{% else %}PUBLISHED{% endif %}"
+        )
 
         # Test with draft page
         page = MockPage(metadata={"draft": True})
@@ -322,7 +324,9 @@ class TestRegistration:
         site = Site(root_path=".")
         register(env, site)
 
-        template = env.from_string("{% if obj is section %}SECTION{% else %}PAGE{% endif %}")
+        template = env.from_string(
+            "{% if obj is section %}SECTION{% else %}PAGE{% endif %}"
+        )
 
         section = Section(name="blog", path="/blog")
         result = template.render(obj=section)
@@ -372,7 +376,9 @@ class TestComplexTemplateScenarios:
 
         posts = [
             MockPage(title="Post 1", metadata={"draft": False}, tags=["python"]),
-            MockPage(title="Post 2", metadata={"draft": False}, tags=["featured", "python"]),
+            MockPage(
+                title="Post 2", metadata={"draft": False}, tags=["featured", "python"]
+            ),
             MockPage(title="Post 3", metadata={"draft": True}, tags=["python"]),
             MockPage(title="Post 4", metadata={"draft": False}, tags=[]),
         ]

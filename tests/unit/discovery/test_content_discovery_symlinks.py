@@ -7,8 +7,6 @@ Tests that content discovery:
 - Still processes regular directories correctly
 """
 
-from __future__ import annotations
-
 import os
 
 import pytest
@@ -44,7 +42,7 @@ class TestSymlinkLoopDetection:
         loop_link.symlink_to(docs_dir)
 
         discovery = ContentDiscovery(temp_content_dir)
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should not hang or crash
         # Should find the normal pages
@@ -89,7 +87,7 @@ class TestSymlinkLoopDetection:
         link.symlink_to(shared_dir)
 
         discovery = ContentDiscovery(content_dir)
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should find content from both directories
         assert len(pages) >= 2
@@ -102,7 +100,9 @@ class TestSymlinkLoopDetection:
         for i in range(5):
             next_dir = current / f"level{i}"
             next_dir.mkdir()
-            (next_dir / "_index.md").write_text(f"---\ntitle: Level {i}\n---\n# Level {i}")
+            (next_dir / "_index.md").write_text(
+                f"---\ntitle: Level {i}\n---\n# Level {i}"
+            )
             current = next_dir
 
         # Create a symlink at the deepest level back to docs
@@ -110,7 +110,7 @@ class TestSymlinkLoopDetection:
         loop_link.symlink_to(temp_content_dir / "docs")
 
         discovery = ContentDiscovery(temp_content_dir)
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should complete without hanging
         assert isinstance(pages, list)
@@ -121,11 +121,15 @@ class TestSymlinkLoopDetection:
         for i in range(3):
             section_dir = temp_content_dir / f"section{i}"
             section_dir.mkdir()
-            (section_dir / "_index.md").write_text(f"---\ntitle: Section {i}\n---\n# Section {i}")
-            (section_dir / "page.md").write_text(f"---\ntitle: Page in Section {i}\n---\n# Page")
+            (section_dir / "_index.md").write_text(
+                f"---\ntitle: Section {i}\n---\n# Section {i}"
+            )
+            (section_dir / "page.md").write_text(
+                f"---\ntitle: Page in Section {i}\n---\n# Page"
+            )
 
         discovery = ContentDiscovery(temp_content_dir)
-        sections, pages = discovery.discover()
+        _sections, pages = discovery.discover()
 
         # Should find all pages
         assert len(pages) >= 8  # Home + 3 sections * (index + page) + docs
@@ -135,7 +139,7 @@ class TestSymlinkLoopDetection:
         discovery = ContentDiscovery(temp_content_dir)
 
         # First discovery
-        sections1, pages1 = discovery.discover()
+        _sections1, pages1 = discovery.discover()
         assert len(pages1) > 0
 
         # Add more content
@@ -146,14 +150,16 @@ class TestSymlinkLoopDetection:
         discovery.sections = []
 
         # Second discovery should find the new page
-        sections2, pages2 = discovery.discover()
+        _sections2, pages2 = discovery.discover()
         assert len(pages2) > 0
 
 
 class TestPermissionErrorHandling:
     """Test that permission errors are handled gracefully."""
 
-    @pytest.mark.skipif(os.name == "nt", reason="Permission tests unreliable on Windows")
+    @pytest.mark.skipif(
+        os.name == "nt", reason="Permission tests unreliable on Windows"
+    )
     def test_unreadable_directory_is_skipped(self, temp_content_dir):
         """Test that unreadable directories are skipped with a warning."""
         # Create a directory and remove read permission
@@ -166,7 +172,7 @@ class TestPermissionErrorHandling:
             no_access.chmod(0o000)
 
             discovery = ContentDiscovery(temp_content_dir)
-            sections, pages = discovery.discover()
+            _sections, pages = discovery.discover()
 
             # Should not crash, just skip the unreadable directory
             assert isinstance(pages, list)

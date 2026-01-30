@@ -8,10 +8,6 @@ These tests would catch issues like:
 - Validators that crash instead of returning errors
 """
 
-from __future__ import annotations
-
-from pathlib import Path
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -154,7 +150,7 @@ class TestValidatorInterfaceContracts:
     def test_has_validate_method(self, validator_class):
         """All validators must have a 'validate' method."""
         assert hasattr(validator_class, "validate")
-        assert callable(getattr(validator_class, "validate"))
+        assert callable(validator_class.validate)
 
 
 class TestValidatorReturnTypeContracts:
@@ -279,12 +275,13 @@ class TestValidatorCheckResultContracts:
         results = validator.validate(minimal_mock_site)
 
         for result in results:
-            if result.status in (CheckStatus.ERROR, CheckStatus.WARNING):
+            if (
+                result.status in (CheckStatus.ERROR, CheckStatus.WARNING)
+                and not result.code
+            ):
                 # Code is recommended but not strictly required
-                # Log a note if missing for visibility
-                if not result.code:
-                    # This is a soft warning, not a failure
-                    pass  # pytest.warns or logging could be added here
+                # This is a soft warning, not a failure
+                pass  # pytest.warns or logging could be added here
 
 
 class TestValidatorNamingContracts:

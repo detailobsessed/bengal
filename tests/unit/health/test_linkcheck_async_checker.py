@@ -2,8 +2,6 @@
 Unit tests for async link checker.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.health.linkcheck.async_checker import AsyncLinkChecker
@@ -188,7 +186,11 @@ async def test_check_url_malformed_url():
     # urlparse is lenient, error occurs when trying to use None client
     # Accept either parse error or NoneType error
     error_lower = result.error_message.lower()
-    assert "parse" in error_lower or "nonetype" in error_lower or "attribute" in error_lower
+    assert (
+        "parse" in error_lower
+        or "nonetype" in error_lower
+        or "attribute" in error_lower
+    )
 
 
 def test_backoff_increases_exponentially():

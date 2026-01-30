@@ -40,8 +40,6 @@ Related:
 
 """
 
-from __future__ import annotations
-
 import re
 import textwrap
 from typing import Any
@@ -50,11 +48,11 @@ from typing import Any
 class ParsedDocstring:
     """
     Container for structured docstring data extracted by parsers.
-    
+
     This class provides a uniform representation of docstring content regardless
     of the original style (Google, NumPy, or Sphinx). All parsers populate the
     same fields, enabling consistent template rendering.
-    
+
     Attributes:
         summary: First line of the docstring (brief description)
         description: Full description including summary
@@ -69,7 +67,7 @@ class ParsedDocstring:
         deprecated: Deprecation notice if present
         version_added: Version when this API was added
         attributes: Class attribute name → description mapping
-        
+
     """
 
     def __init__(self) -> None:
@@ -109,14 +107,14 @@ class ParsedDocstring:
 def parse_docstring(docstring: str | None, style: str = "auto") -> ParsedDocstring:
     """
     Parse docstring and extract structured information.
-    
+
     Args:
         docstring: Raw docstring text
         style: Docstring style ('auto', 'google', 'numpy', 'sphinx')
-    
+
     Returns:
         ParsedDocstring object with extracted information
-        
+
     """
     if not docstring:
         return ParsedDocstring()
@@ -143,13 +141,13 @@ def parse_docstring(docstring: str | None, style: str = "auto") -> ParsedDocstri
 def detect_docstring_style(docstring: str) -> str:
     """
     Auto-detect docstring style.
-    
+
     Args:
         docstring: Raw docstring text
-    
+
     Returns:
         Style name ('google', 'numpy', 'sphinx', or 'plain')
-        
+
     """
     # Google style markers
     if re.search(
@@ -175,10 +173,10 @@ def detect_docstring_style(docstring: str) -> str:
 class GoogleDocstringParser:
     """
     Parser for Google-style Python docstrings.
-    
+
     Google style uses section headers followed by colons and indented content.
     This is the most common style in modern Python projects.
-    
+
     Recognized Sections:
         - Args/Arguments/Parameters: Function parameters
         - Returns/Return: Return value description
@@ -189,26 +187,26 @@ class GoogleDocstringParser:
         - See Also: Cross-references
         - Attributes: Class/module attributes
         - Deprecated: Deprecation notices
-    
+
     Custom Sections:
         Unrecognized section headers (title-case phrases ending with colon)
         are preserved in the description field as markdown sections.
-    
+
     Example Input:
             ```
             Brief summary line.
-    
+
             Args:
                 name (str): The name to greet
                 loud (bool): Whether to shout
-    
+
             Returns:
                 str: The greeting message
-    
+
             Raises:
                 ValueError: If name is empty
             ```
-        
+
     """
 
     def parse(self, docstring: str) -> ParsedDocstring:
@@ -261,7 +259,9 @@ class GoogleDocstringParser:
             sections.get("Example", sections.get("Examples", ""))
         )
         result.see_also = self._parse_see_also_section(sections.get("See Also", ""))
-        result.notes = self._parse_note_section(sections.get("Note", sections.get("Notes", "")))
+        result.notes = self._parse_note_section(
+            sections.get("Note", sections.get("Notes", ""))
+        )
         result.warnings = self._parse_note_section(
             sections.get("Warning", sections.get("Warnings", ""))
         )
@@ -419,7 +419,10 @@ class GoogleDocstringParser:
                 # Save previous exception
                 if current_exc:
                     raises.append(
-                        {"type": current_exc, "description": " ".join(current_desc).strip()}
+                        {
+                            "type": current_exc,
+                            "description": " ".join(current_desc).strip(),
+                        }
                     )
 
                 # Start new exception
@@ -431,7 +434,9 @@ class GoogleDocstringParser:
 
         # Save last exception
         if current_exc:
-            raises.append({"type": current_exc, "description": " ".join(current_desc).strip()})
+            raises.append(
+                {"type": current_exc, "description": " ".join(current_desc).strip()}
+            )
 
         return raises
 
@@ -513,10 +518,10 @@ class GoogleDocstringParser:
 class NumpyDocstringParser:
     """
     Parser for NumPy-style Python docstrings.
-    
+
     NumPy style uses section headers underlined with dashes. This style is
     common in scientific Python packages (NumPy, SciPy, pandas, etc.).
-    
+
     Recognized Sections:
         - Parameters: Function parameters with type on separate line
         - Returns: Return value with type on separate line
@@ -528,24 +533,24 @@ class NumpyDocstringParser:
         - Examples: Usage examples (often with doctest format)
         - Attributes: Class attributes
         - Methods: Class method summaries
-    
+
     Example Input:
             ```
             Brief summary line.
-    
+
             Parameters
             ----------
             name : str
                 The name to greet.
             loud : bool, optional
                 Whether to shout (default: False).
-    
+
             Returns
             -------
             str
                 The greeting message.
             ```
-        
+
     """
 
     def parse(self, docstring: str) -> ParsedDocstring:
@@ -569,7 +574,9 @@ class NumpyDocstringParser:
         result.see_also = self._parse_see_also_section(sections.get("See Also", ""))
         result.notes = self._parse_note_section(sections.get("Notes", ""))
         result.warnings = self._parse_note_section(sections.get("Warnings", ""))
-        result.attributes = self._parse_parameters_section(sections.get("Attributes", ""))
+        result.attributes = self._parse_parameters_section(
+            sections.get("Attributes", "")
+        )
 
         return result
 
@@ -673,7 +680,10 @@ class NumpyDocstringParser:
                 # Save previous exception
                 if current_exc:
                     raises.append(
-                        {"type": current_exc, "description": " ".join(current_desc).strip()}
+                        {
+                            "type": current_exc,
+                            "description": " ".join(current_desc).strip(),
+                        }
                     )
 
                 # New exception type
@@ -684,7 +694,9 @@ class NumpyDocstringParser:
 
         # Save last exception
         if current_exc:
-            raises.append({"type": current_exc, "description": " ".join(current_desc).strip()})
+            raises.append(
+                {"type": current_exc, "description": " ".join(current_desc).strip()}
+            )
 
         return raises
 
@@ -710,25 +722,25 @@ class NumpyDocstringParser:
 class SphinxDocstringParser:
     """
     Parser for Sphinx/reStructuredText-style Python docstrings.
-    
+
     Sphinx style uses inline field syntax with colons. This is the traditional
     style used by Sphinx autodoc and older Python projects.
-    
+
     Recognized Fields:
         - :param name: Parameter description
         - :type name: Parameter type annotation
         - :returns: / :return: Return value description
         - :rtype: Return type annotation
         - :raises ExceptionType: Exception description
-    
+
     Note:
         This parser handles the most common Sphinx field patterns. Some
         advanced Sphinx directives are not fully supported.
-    
+
     Example Input:
             ```
             Brief summary line.
-    
+
             :param name: The name to greet
             :type name: str
             :param loud: Whether to shout
@@ -737,7 +749,7 @@ class SphinxDocstringParser:
             :rtype: str
             :raises ValueError: If name is empty
             ```
-        
+
     """
 
     def parse(self, docstring: str) -> ParsedDocstring:

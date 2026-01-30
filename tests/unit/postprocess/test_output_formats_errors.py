@@ -10,12 +10,9 @@ These tests ensure that:
 Regression test for: ThreadPoolExecutor error handling (json_generator.py:206-208)
 """
 
-from __future__ import annotations
-
-import threading
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -130,7 +127,6 @@ class TestParallelWriteErrorHandling:
         mock_site.pages = pages
 
         # Track how many times write is called
-        write_count = [0]
         fail_indices = {1, 3, 5}  # Fail pages 1, 3, 5
 
         original_mkdir = Path.mkdir
@@ -148,9 +144,7 @@ class TestParallelWriteErrorHandling:
         count = generator.generate(pages)
 
         # Should succeed for pages 0, 2, 4 (3 successes)
-        assert count == 3, (
-            f"Expected 3 successful writes (3 should fail), got {count}"
-        )
+        assert count == 3, f"Expected 3 successful writes (3 should fail), got {count}"
 
     def test_txt_generator_handles_write_failure(self, tmp_path: Path) -> None:
         """Verify PageTxtGenerator handles write failures gracefully."""
@@ -325,7 +319,9 @@ class TestParallelWriteErrorHandling:
 
     # Helper methods
 
-    def _create_mock_site(self, site_dir: Path, output_dir: Path, baseurl: str = "") -> Mock:
+    def _create_mock_site(
+        self, site_dir: Path, output_dir: Path, baseurl: str = ""
+    ) -> Mock:
         """Create a mock Site instance."""
         site = Mock()
         site.site_dir = site_dir

@@ -17,8 +17,6 @@ Strategy:
 Performance: O(n) complexity via incremental context tracking.
 """
 
-from __future__ import annotations
-
 from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -66,38 +64,42 @@ _SLASH_PROPS = frozenset(
 )
 _CALC_FUNCTIONS = frozenset(["calc", "clamp", "min", "max"])
 _CSS_KEYWORDS = frozenset(["and", "or", "not", "only"])
-_VALUE_KEYWORDS = frozenset(["inset", "outset", "repeat", "no-repeat", "space", "round"])
-_CSS_UNITS = frozenset(["px", "em", "rem", "vw", "vh", "ch", "ex", "pt", "pc", "in", "cm", "mm"])
+_VALUE_KEYWORDS = frozenset(
+    ["inset", "outset", "repeat", "no-repeat", "space", "round"]
+)
+_CSS_UNITS = frozenset(
+    ["px", "em", "rem", "vw", "vh", "ch", "ex", "pt", "pc", "in", "cm", "mm"]
+)
 _NO_SPACE_CHARS = frozenset(",:;>{}()[+-*/=~|^&")
 
 
 def minify_css(css: str) -> str:
     """
     Minify CSS by removing comments and unnecessary whitespace.
-    
+
     This is a conservative minifier that:
     - Removes CSS comments (/* ... */)
     - Collapses whitespace
     - Preserves all CSS syntax (nesting, @layer, @import, etc.)
     - Does NOT transform or rewrite CSS
-    
+
     Performance: O(n) via incremental context tracking.
-    
+
     Args:
         css: CSS content to minify
-    
+
     Returns:
         Minified CSS content
-    
+
     Examples:
             >>> css = "/* Comment */ body { color: red; }"
             >>> minify_css(css)
             'body{color:red}'
-    
+
             >>> css = "@layer tokens { :root { --color: blue; } }"
             >>> minify_css(css)
             '@layer tokens{:root{--color:blue}}'
-        
+
     """
     if not css:
         return css
@@ -136,7 +138,12 @@ def minify_css(css: str) -> str:
 
     def reset_property_context() -> None:
         """Reset context at end of declaration."""
-        nonlocal current_property, in_multi_value, in_function_list, in_slash_prop, in_font
+        nonlocal \
+            current_property, \
+            in_multi_value, \
+            in_function_list, \
+            in_slash_prop, \
+            in_font
         nonlocal in_calc_function
         current_property = ""
         in_multi_value = False
@@ -180,11 +187,18 @@ def minify_css(css: str) -> str:
                 return True
 
         # Value keywords (inset, etc.) need space before values
-        if last_token.lower() in _VALUE_KEYWORDS and (next_char.isdigit() or next_char == "-"):
+        if last_token.lower() in _VALUE_KEYWORDS and (
+            next_char.isdigit() or next_char == "-"
+        ):
             return True
 
         # After unit before negative value: "10px -5px"
-        if prev.isalnum() and next_char == "-" and paren_depth == 0 and len(result) >= 2:
+        if (
+            prev.isalnum()
+            and next_char == "-"
+            and paren_depth == 0
+            and len(result) >= 2
+        ):
             # Check if last chars are a unit
             last_two = result[-2] + result[-1]
             if last_two.lower() in _CSS_UNITS or result[-1] == "%":
@@ -192,7 +206,9 @@ def minify_css(css: str) -> str:
 
         # Multi-value property: space between values
         if in_multi_value and pending_whitespace:
-            if prev in ")" and (next_char.isdigit() or next_char == "-" or next_char.isalpha()):
+            if prev in ")" and (
+                next_char.isdigit() or next_char == "-" or next_char.isalpha()
+            ):
                 return True
             # After unit, before next value
             if prev.isalnum() and (next_char.isdigit() or next_char == "-"):

@@ -5,8 +5,6 @@ Provides utilities for determining which files should be skipped
 during extraction based on exclude patterns and common conventions.
 """
 
-from __future__ import annotations
-
 import fnmatch
 from pathlib import Path
 
@@ -18,22 +16,22 @@ logger = get_logger(__name__)
 def should_skip_shadowed_module(path: Path) -> bool:
     """
     Check if a module file is shadowed by a package directory.
-    
+
     When both `foo.py` and `foo/__init__.py` exist, the module file
     should be skipped to avoid URL collisions in autodoc output.
     The package (directory with __init__.py) takes precedence.
-    
+
     Example:
         bengal/rendering/template_functions.py   <- SKIP this
         bengal/rendering/template_functions/     <- Package wins
             __init__.py
-    
+
     Args:
         path: Path to Python file to check
-    
+
     Returns:
         True if file is shadowed by a package directory
-        
+
     """
     # Only applies to .py files that are NOT __init__.py
     if path.suffix != ".py" or path.stem == "__init__":
@@ -56,21 +54,21 @@ def should_skip_shadowed_module(path: Path) -> bool:
 def should_skip(path: Path, exclude_patterns: list[str]) -> bool:
     """
     Check if file should be skipped during extraction.
-    
+
     Handles common exclusion patterns:
     - Hidden directories (starting with .)
     - Virtual environments (.venv, venv, env, .env)
     - Site-packages (dependencies)
     - Build artifacts (__pycache__, build, dist)
     - Test files and directories
-    
+
     Args:
         path: Path to check
         exclude_patterns: List of glob patterns to exclude
-    
+
     Returns:
         True if path should be skipped
-        
+
     """
     # NOTE: We intentionally do not require paths to exist here; callers may pass synthetic paths.
     #
@@ -128,7 +126,11 @@ def should_skip(path: Path, exclude_patterns: list[str]) -> bool:
 
         # 3) Directory containment: "*/<dir_glob>/*"
         # Example: "*/tests/*", "*/__pycache__/*", "*/.venv/*"
-        if pattern.startswith("*/") and pattern.endswith("/*") and pattern.count("/") == 2:
+        if (
+            pattern.startswith("*/")
+            and pattern.endswith("/*")
+            and pattern.count("/") == 2
+        ):
             dir_glob = pattern.split("/")[1]
             if any(fnmatch.fnmatchcase(part, dir_glob) for part in path_parts):
                 return True

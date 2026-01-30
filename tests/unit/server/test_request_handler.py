@@ -122,24 +122,28 @@ class TestIsHtmlResponse:
 
     def test_css_response(self):
         """Test CSS is not detected as HTML."""
-        response = b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\nbody { margin: 0; }"
+        response = (
+            b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\nbody { margin: 0; }"
+        )
         assert self.handler._is_html_response(response) is False
 
     def test_javascript_response(self):
         """Test JavaScript is not detected as HTML."""
-        response = (
-            b'HTTP/1.1 200 OK\r\nContent-Type: application/javascript\r\n\r\nconsole.log("test");'
-        )
+        response = b'HTTP/1.1 200 OK\r\nContent-Type: application/javascript\r\n\r\nconsole.log("test");'
         assert self.handler._is_html_response(response) is False
 
     def test_json_response(self):
         """Test JSON is not detected as HTML."""
-        response = b'HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{"key": "value"}'
+        response = (
+            b'HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{"key": "value"}'
+        )
         assert self.handler._is_html_response(response) is False
 
     def test_image_response(self):
         """Test images are not detected as HTML."""
-        response = b"HTTP/1.1 200 OK\r\nContent-Type: image/png\r\n\r\n\x89PNG\r\n\x1a\n"
+        response = (
+            b"HTTP/1.1 200 OK\r\nContent-Type: image/png\r\n\r\n\x89PNG\r\n\x1a\n"
+        )
         assert self.handler._is_html_response(response) is False
 
     def test_case_insensitive_content_type(self):
@@ -206,7 +210,9 @@ class TestServeHtmlWithLiveReload:
 
     def test_inject_before_body_tag(self, tmp_path):
         """Script should be injected before </body> when present."""
-        result_str = self._serve_temp_html(tmp_path, "<html><body>Content</body></html>")
+        result_str = self._serve_temp_html(
+            tmp_path, "<html><body>Content</body></html>"
+        )
         assert "__bengal_reload__" in result_str
         assert "EventSource" in result_str
         assert result_str.find("__bengal_reload__") < result_str.find("</body>")
@@ -224,7 +230,9 @@ class TestServeHtmlWithLiveReload:
 
     def test_case_insensitive_tag_matching(self, tmp_path):
         """Tags are matched case-insensitively for injection location."""
-        result_str = self._serve_temp_html(tmp_path, "<HTML><BODY>Content</BODY></HTML>")
+        result_str = self._serve_temp_html(
+            tmp_path, "<HTML><BODY>Content</BODY></HTML>"
+        )
         assert "__bengal_reload__" in result_str
         assert result_str.lower().find("__bengal_reload__") < result_str.find("</BODY>")
 
@@ -263,7 +271,9 @@ class TestServeHtmlWithLiveReload:
 
     def test_utf8_content_preserved(self, tmp_path):
         """UTF-8 content is preserved during injection."""
-        result_str = self._serve_temp_html(tmp_path, "<html><body>Hello 世界</body></html>")
+        result_str = self._serve_temp_html(
+            tmp_path, "<html><body>Hello 世界</body></html>"
+        )
         assert "Hello 世界" in result_str
         assert "__bengal_reload__" in result_str
 
@@ -331,9 +341,7 @@ class TestRequestHandlerIntegration:
         assert handler._might_be_html(path) is True
 
         # Test HTML response detection
-        response = (
-            b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body>Guide</body></html>"
-        )
+        response = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body>Guide</body></html>"
         assert handler._is_html_response(response) is True
 
         # Test injection
@@ -360,7 +368,9 @@ class TestRequestHandlerIntegration:
         assert handler._might_be_html(path) is False
 
         # CSS response (wouldn't be checked, but test anyway)
-        response = b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\nbody { margin: 0; }"
+        response = (
+            b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\nbody { margin: 0; }"
+        )
         assert handler._is_html_response(response) is False
 
 
@@ -407,7 +417,7 @@ class TestDoGetIntegrationMinimal:
 class TestDashboardStatusCodeTracking:
     """
     Tests for accurate status code tracking in dashboard callbacks.
-    
+
     BUG FIX: Previously, the status code was always reported as 200 to the
     dashboard callback because it was never updated during request handling.
     """
@@ -451,7 +461,9 @@ class TestDashboardStatusCodeTracking:
             def fake_translate_path(_self, path):
                 return str(tmp_path / path.lstrip("/"))
 
-            with patch.object(BengalRequestHandler, "translate_path", fake_translate_path):
+            with patch.object(
+                BengalRequestHandler, "translate_path", fake_translate_path
+            ):
                 handler.do_GET()
 
             # Callback should have been called
@@ -484,7 +496,9 @@ class TestDashboardStatusCodeTracking:
             def fake_translate_path(_self, path):
                 return str(tmp_path / path.lstrip("/"))
 
-            with patch.object(BengalRequestHandler, "translate_path", fake_translate_path):
+            with patch.object(
+                BengalRequestHandler, "translate_path", fake_translate_path
+            ):
                 handler.do_GET()
 
             # Callback should have been called
@@ -572,7 +586,9 @@ class TestDashboardStatusCodeTracking:
                 return str(tmp_path / path.lstrip("/"))
 
             # Should not raise despite callback failure
-            with patch.object(BengalRequestHandler, "translate_path", fake_translate_path):
+            with patch.object(
+                BengalRequestHandler, "translate_path", fake_translate_path
+            ):
                 handler.do_GET()
 
             # Request should have been served successfully
@@ -585,7 +601,7 @@ class TestDashboardStatusCodeTracking:
 class TestSendErrorWithNoneDirectory:
     """
     Tests for send_error handling when directory is None.
-    
+
     BUG FIX: Previously, send_error would crash with TypeError when
     self.directory was None because it tried to construct Path(None).
     """

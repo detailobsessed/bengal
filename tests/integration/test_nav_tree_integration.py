@@ -7,8 +7,6 @@ Tests verify:
 - Version switcher URLs are valid (no 404s)
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.core.nav_tree import NavTree, NavTreeCache
@@ -55,10 +53,14 @@ class TestNavTreeVersionedSite:
         shared_pages = [p for p in site.pages if "_shared" in str(p.source_path)]
         assert len(shared_pages) > 0, "Shared pages should be discovered"
 
-        changelog_page = next((p for p in shared_pages if "changelog" in str(p.source_path)), None)
+        changelog_page = next(
+            (p for p in shared_pages if "changelog" in str(p.source_path)), None
+        )
         assert changelog_page is not None, "Changelog page should exist"
         # Use _path for comparison (excludes baseurl)
-        assert changelog_page._path == "/_shared/changelog/", "Changelog should have correct URL"
+        assert changelog_page._path == "/_shared/changelog/", (
+            "Changelog should have correct URL"
+        )
 
         # TODO: Once shared content injection is implemented in NavTree.build(),
         # uncomment these assertions:
@@ -210,7 +212,9 @@ class TestNavTreeVersionedSite:
                 "/docs/v1/"
             )  # Valid v1 URL (may not be in tree if page doesn't exist)
         )
-        assert is_valid_fallback, f"Target URL {target_v1_rel} should be a valid fallback URL"
+        assert is_valid_fallback, (
+            f"Target URL {target_v1_rel} should be a valid fallback URL"
+        )
 
         # Test switching to v3 (latest)
         v3_version = next((v for v in site.versions if v["id"] == "v3"), None)
@@ -233,7 +237,9 @@ class TestNavTreeVersionedSite:
             or target_v3_rel == "/docs"  # Section index (no trailing slash)
             or target_v3_rel == "/"  # Root fallback
         )
-        assert is_valid_fallback_v3, f"Target URL {target_v3_rel} should be valid in v3 tree"
+        assert is_valid_fallback_v3, (
+            f"Target URL {target_v3_rel} should be valid in v3 tree"
+        )
 
     def test_nav_tree_find_all_pages(self, site, build_site):
         """Test that NavTree.find() can locate all pages in the tree."""
@@ -255,7 +261,9 @@ class TestNavTreeVersionedSite:
         # All v3 pages should be findable in the tree (NavTree uses _path)
         for page in v3_pages:
             node = tree_v3.find(page._path)
-            assert node is not None, f"Page {page._path} should be findable in v3 nav tree"
+            assert node is not None, (
+                f"Page {page._path} should be findable in v3 nav tree"
+            )
             assert node._path == page._path
 
         # Index pages are represented by section nodes, not separate page nodes
@@ -263,7 +271,9 @@ class TestNavTreeVersionedSite:
         v3_section_url = "/docs/"
         v3_section_node = tree_v3.find(v3_section_url)
         assert v3_section_node is not None, "Section node should exist for v3 docs"
-        assert v3_section_node.is_index is True, "Section node should be marked as index"
+        assert v3_section_node.is_index is True, (
+            "Section node should be marked as index"
+        )
 
     def test_nav_tree_flat_nodes_completeness(self, site, build_site):
         """Test that flat_nodes includes all nodes in the tree."""
@@ -279,7 +289,9 @@ class TestNavTreeVersionedSite:
         # flat_nodes should contain all walked URLs
         flat_urls = set(tree_v3.flat_nodes.keys())
 
-        assert walked_urls == flat_urls, "flat_nodes should contain all nodes from walk()"
+        assert walked_urls == flat_urls, (
+            "flat_nodes should contain all nodes from walk()"
+        )
 
     def test_nav_tree_urls_set_completeness(self, site, build_site):
         """Test that urls set includes all node URLs."""

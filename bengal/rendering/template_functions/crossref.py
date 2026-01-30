@@ -6,7 +6,7 @@ Provides 4 functions for cross-referencing pages and headings with O(1) performa
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from kida import Markup
 
@@ -14,6 +14,7 @@ from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
     from bengal.core.page import Page
+    from bengal.core.site import Site
     from bengal.protocols import SiteLike, TemplateEnvironment
 
 logger = get_logger(__name__)
@@ -21,19 +22,22 @@ logger = get_logger(__name__)
 
 def register(env: TemplateEnvironment, site: SiteLike) -> None:
     """Register functions with template environment."""
+    # Cast to Site to access xref_index (internal attribute not in SiteLike protocol)
+    site_impl = cast("Site", site)
+    xref_index = getattr(site_impl, "xref_index", {})
 
     # Create closures that have access to site's xref_index and baseurl
     def ref_with_site(path: str, text: str | None = None) -> Markup:
-        return ref(path, site.xref_index, site.baseurl or "", text)
+        return ref(path, xref_index, site.baseurl or "", text)
 
     def doc_with_site(path: str) -> Page | None:
-        return doc(path, site.xref_index)
+        return doc(path, xref_index)
 
     def anchor_with_site(heading: str, page_path: str | None = None) -> Markup:
-        return anchor(heading, site.xref_index, site.baseurl or "", page_path)
+        return anchor(heading, xref_index, site.baseurl or "", page_path)
 
     def relref_with_site(path: str) -> str:
-        return relref(path, site.xref_index, site.baseurl or "")
+        return relref(path, xref_index, site.baseurl or "")
 
     env.globals.update(
         {
@@ -46,29 +50,31 @@ def register(env: TemplateEnvironment, site: SiteLike) -> None:
     )
 
 
-def ref(path: str, index: dict[str, Any], baseurl: str = "", text: str | None = None) -> Markup:
+def ref(
+    path: str, index: dict[str, Any], baseurl: str = "", text: str | None = None
+) -> Markup:
     """
     Generate cross-reference link to a page or heading.
-    
+
     O(1) lookup - zero performance impact!
-    
+
     Args:
         path: Path to reference ('docs/installation', 'id:my-page', or slug)
         index: Cross-reference index from site
         text: Optional custom link text (defaults to page title)
-    
+
     Returns:
         Safe HTML link or broken reference indicator
-    
+
     Examples:
         In templates:
             {{ ref('docs/getting-started') }}
             {{ ref('docs/getting-started', 'Get Started') }}
             {{ ref('id:install-guide') }}
-    
+
         In Markdown (with variable substitution enabled):
             Check out {{ ref('docs/api') }} for details.
-        
+
     """
     if not path:
         logger.debug("ref_empty_path", caller="template")
@@ -127,7 +133,9 @@ def ref(path: str, index: dict[str, Any], baseurl: str = "", text: str | None = 
 
     # Generate link
     link_text = text or page.title
-    url = getattr(page, "href", None) or getattr(page, "_path", None) or f"/{page.slug}/"
+    url = (
+        getattr(page, "href", None) or getattr(page, "_path", None) or f"/{page.slug}/"
+    )
 
     # Apply base URL prefix if configured
     if baseurl:
@@ -142,7 +150,11 @@ def ref(path: str, index: dict[str, Any], baseurl: str = "", text: str | None = 
             url = f"{base_path}{url}"
 
     logger.debug(
-        "xref_resolved", path=path, strategy=lookup_strategy, url=url, page_title=page.title
+        "xref_resolved",
+        path=path,
+        strategy=lookup_strategy,
+        url=url,
+        page_title=page.title,
     )
 
     return Markup(f'<a href="{url}">{link_text}</a>')
@@ -151,28 +163,28 @@ def ref(path: str, index: dict[str, Any], baseurl: str = "", text: str | None = 
 def doc(path: str, index: dict[str, Any]) -> Page | None:
     """
     Get page object by path.
-    
+
     O(1) lookup - zero performance impact!
     Useful for accessing page metadata in templates.
-    
+
     Args:
         path: Path to page ('docs/installation', 'id:my-page', or slug)
         index: Cross-reference index from site
-    
+
     Returns:
         Page object or None if not found
-    
+
     Examples:
         {% set install_page = doc('docs/installation') %}
         {% if install_page %}
           <a href="{{ url_for(install_page) }}">{{ install_page.title }}</a>
           <p>{{ install_page.metadata.description }}</p>
         {% endif %}
-    
+
         {# Access any page property #}
         {% set api = doc('docs/api') %}
         Last updated: {{ api.metadata.date | date_format('%Y-%m-%d') }}
-        
+
     """
     if not path:
         logger.debug("doc_empty_path", caller="template")
@@ -195,7 +207,9 @@ def doc(path: str, index: dict[str, Any]) -> Page | None:
         lookup_strategy = "by_slug"
 
     if page:
-        logger.debug("doc_found", path=path, strategy=lookup_strategy, page_title=page.title)
+        logger.debug(
+            "doc_found", path=path, strategy=lookup_strategy, page_title=page.title
+        )
     else:
         # Find suggestions for failed lookup
         from difflib import get_close_matches
@@ -226,22 +240,22 @@ def anchor(
 ) -> Markup:
     """
     Link to a heading (anchor) in a page.
-    
+
     Args:
         heading: Heading text to link to
         index: Cross-reference index from site
         page_path: Optional page path to restrict search (default: search all)
-    
+
     Returns:
         Safe HTML link to heading or broken reference indicator
-    
+
     Examples:
         {{ anchor('Installation') }}
         {{ anchor('Configuration', 'docs/getting-started') }}
-    
+
         {# Find and link to any heading in the site #}
         Jump to {{ anchor('API Reference') }}
-        
+
     """
     if not heading:
         return Markup('<span class="broken-ref">[empty anchor]</span>')
@@ -270,7 +284,9 @@ def anchor(
 
     # Use first match
     page, anchor_id = results[0]
-    url = getattr(page, "href", None) or getattr(page, "_path", None) or f"/{page.slug}/"
+    url = (
+        getattr(page, "href", None) or getattr(page, "_path", None) or f"/{page.slug}/"
+    )
 
     # Apply base URL prefix if configured
     if baseurl:
@@ -290,31 +306,33 @@ def anchor(
 def relref(path: str, index: dict[str, Any], baseurl: str = "") -> str:
     """
     Get relative URL for a page.
-    
+
     Returns just the URL without generating a full link.
     Useful for custom link generation.
-    
+
     Args:
         path: Path to page
         index: Cross-reference index from site
-    
+
     Returns:
         URL string or empty string if not found
-    
+
     Examples:
         <a href="{{ relref('docs/api') }}" class="btn">API Docs</a>
-    
+
         {% set api_url = relref('docs/api') %}
         {% if api_url %}
           <link rel="preload" href="{{ api_url }}" as="document">
         {% endif %}
-        
+
     """
     page = doc(path, index)
     if not page:
         return ""
 
-    url = getattr(page, "href", None) or getattr(page, "_path", None) or f"/{page.slug}/"
+    url = (
+        getattr(page, "href", None) or getattr(page, "_path", None) or f"/{page.slug}/"
+    )
 
     # Apply base URL prefix if configured
     if baseurl:

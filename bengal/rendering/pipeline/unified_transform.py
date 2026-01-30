@@ -41,33 +41,33 @@ logger = get_logger(__name__)
 class HybridHTMLTransformer:
     """
     Optimized HTML transformer combining multiple transformation passes.
-    
+
     This transformer applies Jinja escaping and link transformations in an
     optimized sequence with quick rejection checks to skip unnecessary work.
-    
+
     Creation:
         transformer = HybridHTMLTransformer(baseurl="/bengal")
         result = transformer.transform(html)
-    
+
     Thread Safety:
         Thread-safe. Transformer instances are stateless after initialization
         and can be safely shared across threads.
-    
+
     Performance:
         Approximately 27% faster than calling separate transform functions.
         Improvement is most significant for pages with transformable content.
-    
+
     Examples:
             >>> transformer = HybridHTMLTransformer("/bengal")
             >>> transformer.transform('<a href="/docs/">Docs</a>')
             '<a href="/bengal/docs/">Docs</a>'
-    
+
             >>> transformer.transform('<a href="./guide.md">Guide</a>')
             '<a href="./guide/">Guide</a>'
-    
+
             >>> transformer.transform('<a href="./guide.md#section">Guide</a>')
             '<a href="./guide/#section">Guide</a>'
-        
+
     """
 
     def __init__(self, baseurl: str = "") -> None:
@@ -82,7 +82,9 @@ class HybridHTMLTransformer:
         self.should_transform_links = bool(self.baseurl)
 
         # Normalize baseurl for comparison
-        if self.baseurl and not self.baseurl.startswith(("http://", "https://", "file://", "/")):
+        if self.baseurl and not self.baseurl.startswith(
+            ("http://", "https://", "file://", "/")
+        ):
             self.baseurl = "/" + self.baseurl
 
         # Compiled regex patterns for link transformations
@@ -92,7 +94,9 @@ class HybridHTMLTransformer:
 
         # Pattern for internal links: href="/..." or src="/..."
         # Excludes external URLs (http/https) and anchors (#)
-        self._internal_pattern = re.compile(r'(href|src)=(["\'])(/(?!/)[^"\'#][^"\']*)\2')
+        self._internal_pattern = re.compile(
+            r'(href|src)=(["\'])(/(?!/)[^"\'#][^"\']*)\2'
+        )
 
     def transform(self, html: str) -> str:
         """
@@ -192,16 +196,16 @@ class HybridHTMLTransformer:
 def create_transformer(config: dict[str, Any]) -> HybridHTMLTransformer:
     """
     Create a transformer instance from site config.
-    
+
     Factory function that extracts baseurl from config and creates
     an appropriately configured transformer.
-    
+
     Args:
         config: Site configuration dictionary
-    
+
     Returns:
         Configured HybridHTMLTransformer instance
-        
+
     """
     # Handle nested config structure (TOML format: [site] section)
     # Also support flat config (baseurl at top level) for backward compatibility

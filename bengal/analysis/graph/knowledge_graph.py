@@ -44,12 +44,14 @@ See Also:
 
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from bengal.analysis.graph.builder import GraphBuilder
-from bengal.analysis.graph.metrics import GraphMetrics, MetricsCalculator, PageConnectivity
+from bengal.analysis.graph.metrics import (
+    GraphMetrics,
+    MetricsCalculator,
+    PageConnectivity,
+)
 from bengal.analysis.links.types import (
     DEFAULT_THRESHOLDS,
     DEFAULT_WEIGHTS,
@@ -62,11 +64,11 @@ from bengal.errors import BengalGraphError, ErrorCode
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
-    from bengal.analysis.graph.community_detection import CommunityDetectionResults
     from bengal.analysis.graph.analyzer import GraphAnalyzer
+    from bengal.analysis.graph.community_detection import CommunityDetectionResults
+    from bengal.analysis.graph.page_rank import PageRankResults
     from bengal.analysis.graph.reporter import GraphReporter
     from bengal.analysis.links.suggestions import LinkSuggestionResults
-    from bengal.analysis.graph.page_rank import PageRankResults
     from bengal.analysis.performance.path_analysis import PathAnalysisResults
     from bengal.analysis.results import PageLayers
     from bengal.protocols import PageLike, SiteLike
@@ -80,26 +82,26 @@ __all__ = ["GraphMetrics", "KnowledgeGraph", "PageConnectivity"]
 class KnowledgeGraph:
     """
     Analyzes the connectivity structure of a Bengal site.
-    
+
     Builds a graph of all pages and their connections through:
     - Internal links (cross-references)
     - Taxonomies (tags, categories)
     - Related posts
     - Menu items
-    
+
     Provides insights for:
     - Content strategy (find orphaned pages)
     - Performance optimization (hub-first streaming)
     - Navigation design (understand structure)
     - SEO improvements (link structure)
-    
+
     Example:
             >>> graph = KnowledgeGraph(site)
             >>> graph.build()
             >>> hubs = graph.get_hubs(threshold=10)
             >>> orphans = graph.get_orphans()
             >>> print(f"Found {len(orphans)} orphaned pages")
-        
+
     """
 
     def __init__(
@@ -568,7 +570,10 @@ class KnowledgeGraph:
         return self._reporter.get_content_gaps()
 
     def compute_pagerank(
-        self, damping: float = 0.85, max_iterations: int = 100, force_recompute: bool = False
+        self,
+        damping: float = 0.85,
+        max_iterations: int = 100,
+        force_recompute: bool = False,
     ) -> PageRankResults:
         """
         Compute PageRank scores for all pages in the graph.
@@ -608,13 +613,18 @@ class KnowledgeGraph:
         # Import here to avoid circular dependency
         from bengal.analysis.graph.page_rank import PageRankCalculator
 
-        calculator = PageRankCalculator(graph=self, damping=damping, max_iterations=max_iterations)
+        calculator = PageRankCalculator(
+            graph=self, damping=damping, max_iterations=max_iterations
+        )
 
         self._pagerank_results = calculator.compute()
         return self._pagerank_results
 
     def compute_personalized_pagerank(
-        self, seed_pages: set[PageLike], damping: float = 0.85, max_iterations: int = 100
+        self,
+        seed_pages: set[PageLike],
+        damping: float = 0.85,
+        max_iterations: int = 100,
     ) -> PageRankResults:
         """
         Compute personalized PageRank from seed pages.
@@ -658,11 +668,15 @@ class KnowledgeGraph:
         # Import here to avoid circular dependency
         from bengal.analysis.graph.page_rank import PageRankCalculator
 
-        calculator = PageRankCalculator(graph=self, damping=damping, max_iterations=max_iterations)
+        calculator = PageRankCalculator(
+            graph=self, damping=damping, max_iterations=max_iterations
+        )
 
         return calculator.compute_personalized(seed_pages)
 
-    def get_top_pages_by_pagerank(self, limit: int = 20) -> list[tuple[PageLike, float]]:
+    def get_top_pages_by_pagerank(
+        self, limit: int = 20
+    ) -> list[tuple[PageLike, float]]:
         """
         Get top-ranked pages by PageRank score.
 
@@ -713,7 +727,10 @@ class KnowledgeGraph:
         return self._pagerank_results.get_score(page)
 
     def detect_communities(
-        self, resolution: float = 1.0, random_seed: int | None = None, force_recompute: bool = False
+        self,
+        resolution: float = 1.0,
+        random_seed: int | None = None,
+        force_recompute: bool = False,
     ) -> CommunityDetectionResults:
         """
         Detect topical communities using Louvain method.
@@ -745,7 +762,9 @@ class KnowledgeGraph:
 
         # Return cached results unless forced
         if self._community_results and not force_recompute:
-            logger.debug("community_detection_cached", action="returning cached results")
+            logger.debug(
+                "community_detection_cached", action="returning cached results"
+            )
             return self._community_results
 
         # Import here to avoid circular dependency
@@ -926,7 +945,9 @@ class KnowledgeGraph:
         from bengal.analysis.links.suggestions import LinkSuggestionEngine
 
         engine = LinkSuggestionEngine(
-            graph=self, min_score=min_score, max_suggestions_per_page=max_suggestions_per_page
+            graph=self,
+            min_score=min_score,
+            max_suggestions_per_page=max_suggestions_per_page,
         )
 
         self._link_suggestions = engine.generate_suggestions()

@@ -10,8 +10,6 @@ Tests the existing i18n template functions:
 Phase 2 of RFC: User Scenario Coverage - Extended Validation
 """
 
-from __future__ import annotations
-
 import pytest
 
 
@@ -31,10 +29,14 @@ class TestI18nTranslations:
         """i18n configuration should be loaded from bengal.toml."""
         i18n_config = site.config.get("i18n", {})
 
-        assert i18n_config.get("default_language") == "en", "Default language should be 'en'"
+        assert i18n_config.get("default_language") == "en", (
+            "Default language should be 'en'"
+        )
 
         languages = i18n_config.get("languages", [])
-        lang_codes = [lang.get("code") if isinstance(lang, dict) else lang for lang in languages]
+        lang_codes = [
+            lang.get("code") if isinstance(lang, dict) else lang for lang in languages
+        ]
 
         assert "en" in lang_codes, "English should be configured"
         assert "fr" in lang_codes, "French should be configured"
@@ -43,26 +45,34 @@ class TestI18nTranslations:
         """Language-specific content directories should exist."""
         content_dir = site.root_path / "content"
 
-        assert (content_dir / "en" / "_index.md").exists(), "English home page should exist"
-        assert (content_dir / "fr" / "_index.md").exists(), "French home page should exist"
+        assert (content_dir / "en" / "_index.md").exists(), (
+            "English home page should exist"
+        )
+        assert (content_dir / "fr" / "_index.md").exists(), (
+            "French home page should exist"
+        )
 
     def test_pages_have_lang_attribute(self, site) -> None:
         """Pages should have language attribute set."""
-        pages_with_lang = []
-        for page in site.pages:
-            if hasattr(page, "lang") and page.lang:
-                pages_with_lang.append(page)
+        pages_with_lang = [
+            page for page in site.pages if hasattr(page, "lang") and page.lang
+        ]
 
-        assert len(pages_with_lang) >= 2, "At least 2 pages should have lang attribute set"
+        assert len(pages_with_lang) >= 2, (
+            "At least 2 pages should have lang attribute set"
+        )
 
     def test_translation_keys_present(self, site) -> None:
         """Pages should have translation_key for linking translations."""
-        pages_with_key = []
-        for page in site.pages:
-            if hasattr(page, "translation_key") and page.translation_key:
-                pages_with_key.append(page)
+        pages_with_key = [
+            page
+            for page in site.pages
+            if hasattr(page, "translation_key") and page.translation_key
+        ]
 
-        assert len(pages_with_key) >= 2, "At least 2 pages should have translation_key for linking"
+        assert len(pages_with_key) >= 2, (
+            "At least 2 pages should have translation_key for linking"
+        )
 
 
 @pytest.mark.bengal(testroot="test-i18n-content")
@@ -109,7 +119,9 @@ class TestI18nTemplateFunctions:
         result = translate("nonexistent.key", lang="fr")
 
         # Should return the key itself as fallback
-        assert result == "nonexistent.key", f"Missing key should return key itself, got '{result}'"
+        assert result == "nonexistent.key", (
+            f"Missing key should return key itself, got '{result}'"
+        )
 
     def test_current_lang_function(self, site) -> None:
         """current_lang() should detect language from config."""
@@ -142,7 +154,9 @@ class TestI18nBuild:
         en_exists = (output / "en" / "index.html").exists()
         fr_exists = (output / "fr" / "index.html").exists()
 
-        assert en_exists or fr_exists, "At least one language directory should exist in output"
+        assert en_exists or fr_exists, (
+            "At least one language directory should exist in output"
+        )
 
     def test_pages_contain_translated_content(self, site, build_site) -> None:
         """Built pages should contain language-specific content."""
@@ -160,9 +174,9 @@ class TestI18nBuild:
             if path.exists():
                 html = path.read_text()
                 # Should contain English text
-                assert "Welcome" in html or "About" in html or "english" in html.lower(), (
-                    f"English page {path} should contain English content"
-                )
+                assert (
+                    "Welcome" in html or "About" in html or "english" in html.lower()
+                ), f"English page {path} should contain English content"
                 break
 
         # Check French content
@@ -176,7 +190,9 @@ class TestI18nBuild:
                 html = path.read_text()
                 # Should contain French text
                 assert (
-                    "Bienvenue" in html or "propos" in html.lower() or "français" in html.lower()
+                    "Bienvenue" in html
+                    or "propos" in html.lower()
+                    or "français" in html.lower()
                 ), f"French page {path} should contain French content"
                 break
 
@@ -242,7 +258,9 @@ class TestI18nDateLocalization:
 
         # Should return a formatted date string
         assert result, "locale_date should return a formatted string"
-        assert "2025" in result or "15" in result, f"Date should contain year or day: {result}"
+        assert "2025" in result or "15" in result, (
+            f"Date should contain year or day: {result}"
+        )
 
     def test_locale_date_handles_none(self) -> None:
         """locale_date() should handle None gracefully."""
@@ -262,17 +280,25 @@ class TestLanguageSwitcher:
         """Language switcher partial should exist in theme."""
         from pathlib import Path
 
-        themes_dir = Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        themes_dir = (
+            Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        )
         partial_path = themes_dir / "templates" / "partials" / "language-switcher.html"
 
-        assert partial_path.exists(), f"Language switcher partial should exist at {partial_path}"
+        assert partial_path.exists(), (
+            f"Language switcher partial should exist at {partial_path}"
+        )
 
     def test_language_switcher_css_exists(self) -> None:
         """Language switcher CSS should exist in theme."""
         from pathlib import Path
 
-        themes_dir = Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
-        css_path = themes_dir / "assets" / "css" / "components" / "language-switcher.css"
+        themes_dir = (
+            Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        )
+        css_path = (
+            themes_dir / "assets" / "css" / "components" / "language-switcher.css"
+        )
 
         assert css_path.exists(), f"Language switcher CSS should exist at {css_path}"
 
@@ -280,7 +306,9 @@ class TestLanguageSwitcher:
         """Language switcher partial should contain expected elements."""
         from pathlib import Path
 
-        themes_dir = Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        themes_dir = (
+            Path(__file__).parent.parent.parent / "bengal" / "themes" / "default"
+        )
         partial_path = themes_dir / "templates" / "partials" / "language-switcher.html"
 
         content = partial_path.read_text()

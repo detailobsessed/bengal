@@ -8,13 +8,14 @@ from __future__ import annotations
 
 import json
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from bengal.core.output import OutputCollector
     from bengal.orchestration.build import BuildOrchestrator
-    from bengal.output import CLIOutput
     from bengal.orchestration.build_context import BuildContext
+    from bengal.output import CLIOutput
+    from bengal.protocols.core import SiteLike
     from bengal.utils.observability.performance_collector import PerformanceCollector
     from bengal.utils.observability.profile import BuildProfile
 
@@ -29,9 +30,9 @@ def phase_postprocess(
 ) -> None:
     """
     Phase 17: Post-processing.
-    
+
     Runs post-build tasks: sitemap, RSS, output formats, validation.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         cli: CLI output for user messages
@@ -39,7 +40,7 @@ def phase_postprocess(
         ctx: Build context
         incremental: Whether this is an incremental build
         collector: Optional output collector for hot reload tracking
-        
+
     """
     # Post-processing doesn't use parallel processing
     with orchestrator.logger.phase("postprocessing", parallel=False):
@@ -53,7 +54,9 @@ def phase_postprocess(
             collector=collector,
         )
 
-        orchestrator.stats.postprocess_time_ms = (time.time() - postprocess_start) * 1000
+        orchestrator.stats.postprocess_time_ms = (
+            time.time() - postprocess_start
+        ) * 1000
 
         # Show phase completion
         cli.phase("Post-process", duration_ms=orchestrator.stats.postprocess_time_ms)
@@ -69,17 +72,17 @@ def phase_cache_save(
 ) -> None:
     """
     Phase 18: Save Cache.
-    
+
     Persists build cache including URL claims for incremental build safety.
-    
+
     Saves build cache for future incremental builds.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         pages_to_build: Pages that were built
         assets_to_process: Assets that were processed
         cli: CLI output (optional) for timing display
-        
+
     """
     with orchestrator.logger.phase("cache_save"):
         start = time.perf_counter()
@@ -95,14 +98,14 @@ def phase_collect_stats(
 ) -> None:
     """
     Phase 19: Collect Final Stats.
-    
+
     Collects final build statistics.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         build_start: Build start time for duration calculation
         cli: CLI output (optional) for timing display
-        
+
     """
     start = time.perf_counter()
     orchestrator.stats.total_pages = len(orchestrator.site.pages)
@@ -142,12 +145,12 @@ def phase_collect_stats(
 def _write_build_time_artifacts(site: Any, last_build_stats: dict[str, Any]) -> None:
     """
     Write build-time artifacts into the output directory (opt-in).
-    
+
     Why this exists:
         `BuildStats.build_time_ms` is only finalized after templates render (Phase 19).
         Writing a small SVG/JSON artifact here allows templates to display build time
         accurately by referencing a static path like `/bengal/build.svg`.
-        
+
     """
     config = getattr(site, "config", {}) or {}
     build_badge_cfg = _normalize_build_badge_config(config.get("build_badge"))
@@ -161,9 +164,12 @@ def _write_build_time_artifacts(site: Any, last_build_stats: dict[str, Any]) -> 
     import os
     from pathlib import Path
 
-    from bengal.orchestration.badge import build_shields_like_badge_svg, format_duration_ms_compact
-    from bengal.utils.io.atomic_write import AtomicFile
+    from bengal.orchestration.badge import (
+        build_shields_like_badge_svg,
+        format_duration_ms_compact,
+    )
     from bengal.utils.concurrency.workers import WorkloadType, get_optimal_workers
+    from bengal.utils.io.atomic_write import AtomicFile
 
     duration_ms = float(last_build_stats.get("build_time_ms") or 0)
     duration_text = format_duration_ms_compact(duration_ms)
@@ -212,7 +218,9 @@ def _write_build_time_artifacts(site: Any, last_build_stats: dict[str, Any]) -> 
             "site_blocks_cached": block_cache_site_blocks,
             "hits": block_cache_hits,
             "misses": int(last_build_stats.get("block_cache_misses") or 0),
-            "time_saved_ms": float(last_build_stats.get("block_cache_time_saved_ms") or 0.0),
+            "time_saved_ms": float(
+                last_build_stats.get("block_cache_time_saved_ms") or 0.0
+            ),
         }
 
     svg = build_shields_like_badge_svg(
@@ -234,9 +242,9 @@ def _write_build_time_artifacts(site: Any, last_build_stats: dict[str, Any]) -> 
 def _write_if_changed_atomic(path: Any, content: str, atomic_file_cls: Any) -> None:
     """
     Write file atomically, but only if content differs.
-    
+
     This prevents unnecessary touching of outputs across builds.
-        
+
     """
     try:
         if path.exists():
@@ -254,12 +262,12 @@ def _write_if_changed_atomic(path: Any, content: str, atomic_file_cls: Any) -> N
 def _normalize_build_badge_config(value: Any) -> dict[str, Any]:
     """
     Normalize `build_badge` config.
-    
+
     Supported:
       - False / None: disabled
       - True: enabled with defaults
       - {enabled: bool, ...}: enabled with overrides
-        
+
     """
     if value is None or value is False:
         return {
@@ -302,12 +310,12 @@ def _normalize_build_badge_config(value: Any) -> dict[str, Any]:
 def _iter_output_roots(site: Any) -> list[Any]:
     """
     Determine which output roots should receive build artifacts.
-    
+
     For i18n prefix strategy, some sites render into language subdirectories.
     We mirror the behavior of site-wide outputs by also writing into those
     subdirectories so that `/en/bengal/build.svg` resolves when the site is
     deployed under a language prefix.
-        
+
     """
     output_dir = getattr(site, "output_dir", None)
     if not output_dir:
@@ -377,21 +385,21 @@ def run_health_check(
 ) -> None:
     """
     Run health check system with profile-based filtering.
-    
+
     Different profiles run different sets of validators:
     - WRITER: Basic checks (broken links, SEO)
     - THEME_DEV: Extended checks (performance, templates)
     - DEV: Full checks (all validators)
-    
+
     Args:
         orchestrator: Build orchestrator instance
         profile: Build profile to use for filtering validators
         incremental: Whether this is an incremental build (enables incremental validation)
         build_context: Optional BuildContext with cached artifacts (e.g., knowledge graph)
-    
+
     Raises:
         Exception: If strict_mode is enabled and health checks fail
-        
+
     """
     from bengal.config.defaults import get_feature_config
     from bengal.health import HealthCheck
@@ -410,7 +418,7 @@ def run_health_check(
     health_start = time.time()
 
     # Run health checks with profile filtering
-    health_check = HealthCheck(orchestrator.site)
+    health_check = HealthCheck(cast("SiteLike", orchestrator.site))
 
     # Pass cache for incremental validation if available
     cache = None
@@ -451,10 +459,12 @@ def run_health_check(
                 cli.info(f"   {cli.icons.info} Validators: {validators_info}")
         # Show slowest validators if health check took > 1 second
         if health_time_ms > 1000 and report.validator_reports:
-            slowest = sorted(report.validator_reports, key=lambda r: r.duration_ms, reverse=True)[
-                :3
-            ]
-            slow_info = ", ".join(f"{r.validator_name}: {r.duration_ms:.0f}ms" for r in slowest)
+            slowest = sorted(
+                report.validator_reports, key=lambda r: r.duration_ms, reverse=True
+            )[:3]
+            slow_info = ", ".join(
+                f"{r.validator_name}: {r.duration_ms:.0f}ms" for r in slowest
+            )
             cli.info(f"   {cli.icons.warning} Slowest: {slow_info}")
 
             # Show detailed stats for ALL slow validators (helps diagnose perf issues)
@@ -500,18 +510,20 @@ def run_health_check(
 
 
 def phase_finalize(
-    orchestrator: BuildOrchestrator, verbose: bool, collector: PerformanceCollector | None
+    orchestrator: BuildOrchestrator,
+    verbose: bool,
+    collector: PerformanceCollector | None,
 ) -> None:
     """
     Phase 21: Finalize Build.
-    
+
     Performs final cleanup and logging.
-    
+
     Args:
         orchestrator: Build orchestrator instance
         verbose: Whether verbose mode is enabled
         collector: Performance collector (if enabled)
-        
+
     """
     # Collect memory metrics and save performance data (if enabled by profile)
     if collector:
@@ -566,7 +578,9 @@ def phase_finalize(
     try:
         from bengal.core.nav_tree import NavTreeCache
         from bengal.rendering.engines.jinja import clear_template_locks
-        from bengal.rendering.template_functions.navigation.scaffold import NavScaffoldCache
+        from bengal.rendering.template_functions.navigation.scaffold import (
+            NavScaffoldCache,
+        )
 
         NavTreeCache.clear_locks()
         NavScaffoldCache.clear_locks()

@@ -11,13 +11,13 @@ import csv
 import json
 from pathlib import Path
 from re import Match
-from typing import Any
+from typing import Any, ClassVar
 
 from mistune.directives import DirectivePlugin
 
 from bengal.utils.io.file_io import load_data_file
-from bengal.utils.primitives.hashing import hash_str
 from bengal.utils.observability.logger import get_logger
+from bengal.utils.primitives.hashing import hash_str
 
 __all__ = ["DataTableDirective", "render_data_table"]
 
@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 class DataTableDirective(DirectivePlugin):
     """
     Data table directive using Mistune's fenced syntax.
-    
+
     Syntax:
             ```{data-table} path/to/data.yaml
             :search: true
@@ -37,18 +37,18 @@ class DataTableDirective(DirectivePlugin):
             :height: 400px
             :columns: col1,col2,col3
             ```
-    
+
     Supports:
     - YAML files (with metadata and column definitions)
     - CSV files (auto-detect headers)
     - Interactive filtering, sorting, searching
     - Responsive design
     - Keyboard navigation
-        
+
     """
 
     # Directive names this class registers (for health check introspection)
-    DIRECTIVE_NAMES = ["data-table"]
+    DIRECTIVE_NAMES: ClassVar[list[str]] = ["data-table"]
 
     def parse(self, block: Any, m: Match[str], state: Any) -> dict[str, Any]:
         """
@@ -69,7 +69,8 @@ class DataTableDirective(DirectivePlugin):
             # Check if we can safely call parse_title
             # Either parser exists (real mistune usage) or parse_title was overridden (test mock)
             if (hasattr(self, "parser") and self.parser) or (
-                hasattr(self, "parse_title") and self.parse_title != DirectivePlugin.parse_title
+                hasattr(self, "parse_title")
+                and self.parse_title != DirectivePlugin.parse_title
             ):
                 path = self.parse_title(m)
             else:
@@ -175,7 +176,9 @@ class DataTableDirective(DirectivePlugin):
         # Check file size (threshold 1MB per tests)
         file_size = file_path.stat().st_size
         if file_size > 1 * 1024 * 1024:
-            return {"error": f"File too large: {path} ({file_size / 1024 / 1024:.1f}MB)"}
+            return {
+                "error": f"File too large: {path} ({file_size / 1024 / 1024:.1f}MB)"
+            }
 
         # Load based on extension
         suffix = file_path.suffix.lower()
@@ -185,7 +188,9 @@ class DataTableDirective(DirectivePlugin):
         elif suffix == ".csv":
             return self._load_csv_data(file_path)
         else:
-            return {"error": f"Unsupported file format: {suffix} (use .yaml, .yml, or .csv)"}
+            return {
+                "error": f"Unsupported file format: {suffix} (use .yaml, .yml, or .csv)"
+            }
 
     def _load_yaml_data(self, file_path: Path) -> dict[str, Any]:
         """
@@ -230,7 +235,8 @@ class DataTableDirective(DirectivePlugin):
                     return {"error": "data rows must be dictionaries"}
 
                 columns = [
-                    {"title": key.replace("_", " ").title(), "field": key} for key in first_row
+                    {"title": key.replace("_", " ").title(), "field": key}
+                    for key in first_row
                 ]
 
             # Extract data
@@ -352,15 +358,15 @@ class DataTableDirective(DirectivePlugin):
 def render_data_table(renderer: Any, text: str, **attrs: Any) -> str:
     """
     Render data table to HTML.
-    
+
     Args:
         renderer: Mistune renderer
         text: Rendered children content (unused for data tables)
         **attrs: Table attributes from directive
-    
+
     Returns:
         HTML string for data table
-        
+
     """
     # Check for error
     if "error" in attrs:

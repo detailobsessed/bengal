@@ -25,14 +25,14 @@ if TYPE_CHECKING:
 class RSSValidator(BaseValidator):
     """
     Validates RSS feed quality.
-    
+
     Checks:
     - RSS file exists (if site has dated content)
     - XML is well-formed
     - Feed structure is valid RSS 2.0
     - URLs are properly formatted
     - Feed has reasonable number of items
-        
+
     """
 
     name = "RSS Feed"
@@ -137,9 +137,7 @@ class RSSValidator(BaseValidator):
         required_elements = ["title", "link", "description"]
         missing = []
 
-        for elem in required_elements:
-            if channel.find(elem) is None:
-                missing.append(elem)
+        missing.extend(elem for elem in required_elements if channel.find(elem) is None)
 
         if missing:
             results.append(
@@ -153,7 +151,9 @@ class RSSValidator(BaseValidator):
 
         return results
 
-    def _check_feed_items(self, root: ET.Element, total_dated_pages: int) -> list[CheckResult]:
+    def _check_feed_items(
+        self, root: ET.Element, total_dated_pages: int
+    ) -> list[CheckResult]:
         """Check feed items are present and reasonable."""
         results: list[CheckResult] = []
 
@@ -191,9 +191,9 @@ class RSSValidator(BaseValidator):
         invalid_items = []
         for i, item in enumerate(items[:5]):  # Check first 5 items
             missing = []
-            for elem in ["title", "link"]:
-                if item.find(elem) is None:
-                    missing.append(elem)
+            missing.extend(
+                elem for elem in ["title", "link"] if item.find(elem) is None
+            )
 
             if missing:
                 invalid_items.append(f"Item {i + 1}: missing {', '.join(missing)}")

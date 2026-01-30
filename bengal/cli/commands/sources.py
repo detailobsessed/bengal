@@ -25,19 +25,19 @@ console = Console()
 def _get_site_root(ctx: click.Context) -> Path:
     """
     Get site root from CLI context, with CWD fallback for interactive use.
-    
+
     For CLI commands, using Path.cwd() as fallback is intentional and acceptable
     because the user is explicitly running commands from a directory they chose.
     This differs from library code where paths must be explicit.
-    
+
     See: plan/implemented/rfc-path-resolution-architecture.md
-    
+
     Args:
         ctx: Click context (may have site_root in obj)
-    
+
     Returns:
         Absolute path to site root
-        
+
     """
     if ctx.obj and "site_root" in ctx.obj:
         root = ctx.obj["site_root"]
@@ -50,14 +50,13 @@ def _get_site_root(ctx: click.Context) -> Path:
 def sources_group() -> None:
     """
     Manage content sources (Content Layer).
-    
+
     Content sources can be local directories or remote sources like
     GitHub repositories, Notion databases, or REST APIs.
-    
+
     Use 'bengal sources list' to see configured sources.
-        
+
     """
-    pass
 
 
 @sources_group.command("list")
@@ -110,7 +109,9 @@ collections = {
     console.print(table)
 
     # Show install hints for remote sources
-    remote_sources = [(name, config) for name, config in collections.items() if config.is_remote]
+    remote_sources = [
+        (name, config) for name, config in collections.items() if config.is_remote
+    ]
 
     if remote_sources:
         console.print("\n[dim]Remote sources require extras:[/dim]")
@@ -135,7 +136,9 @@ def cache_status(ctx: click.Context) -> None:
         return
 
     # Check for remote sources
-    remote_collections = {name: config for name, config in collections.items() if config.is_remote}
+    remote_collections = {
+        name: config for name, config in collections.items() if config.is_remote
+    }
 
     if not remote_collections:
         console.print("[dim]No remote content sources configured.[/dim]")
@@ -217,7 +220,9 @@ def fetch_sources(ctx: click.Context, source: str | None, force: bool) -> None:
 
     if not remote_collections:
         if source:
-            console.print(f"[yellow]Source '{source}' not found or is not remote.[/yellow]")
+            console.print(
+                f"[yellow]Source '{source}' not found or is not remote.[/yellow]"
+            )
         else:
             console.print("[dim]No remote content sources configured.[/dim]")
         return
@@ -234,7 +239,9 @@ def fetch_sources(ctx: click.Context, source: str | None, force: bool) -> None:
             manager.register_custom_source(name, config.loader)
 
     # Fetch content
-    console.print(f"[bold]Fetching from {len(remote_collections)} source(s)...[/bold]\n")
+    console.print(
+        f"[bold]Fetching from {len(remote_collections)} source(s)...[/bold]\n"
+    )
 
     try:
         entries = manager.fetch_all_sync(use_cache=not force)

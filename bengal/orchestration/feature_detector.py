@@ -24,7 +24,7 @@ See Also:
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
     from bengal.core.page import Page
@@ -34,20 +34,20 @@ if TYPE_CHECKING:
 class FeatureDetector:
     """
     Detects CSS-requiring features in page content.
-    
+
     This class analyzes page content to find features that need
     specific CSS files (mermaid, data_tables, etc.).
-    
+
     Thread-safe: Can be used from parallel page parsing.
-    
+
     Example:
         detector = FeatureDetector()
         features = detector.detect_features_in_content(page._source)
-        
+
     """
 
     # Feature detection patterns
-    PATTERNS: dict[str, re.Pattern[str]] = {
+    PATTERNS: ClassVar[dict[str, re.Pattern[str]]] = {
         # Mermaid diagram code blocks
         "mermaid": re.compile(r"```mermaid", re.IGNORECASE),
         # Data tables (tabulator)
@@ -66,7 +66,7 @@ class FeatureDetector:
     }
 
     # Directive-based feature patterns (Bengal directives)
-    DIRECTIVE_PATTERNS: dict[str, re.Pattern[str]] = {
+    DIRECTIVE_PATTERNS: ClassVar[dict[str, re.Pattern[str]]] = {
         "mermaid": re.compile(r":::\{mermaid\}", re.IGNORECASE),
         "data_tables": re.compile(r":::\{(datatable|tabulator)\}", re.IGNORECASE),
     }
@@ -138,15 +138,15 @@ class FeatureDetector:
 def detect_site_features(site: Site) -> set[str]:
     """
     Detect all features used across a site.
-    
+
     Convenience function to scan all pages and collect features.
-    
+
     Args:
         site: Site with populated pages list
-    
+
     Returns:
         Set of all detected features
-        
+
     """
     detector = FeatureDetector()
     all_features: set[str] = set()

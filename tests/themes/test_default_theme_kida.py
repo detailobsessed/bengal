@@ -11,16 +11,15 @@ globals, template inheritance). These tests focus on:
 3. Key templates parse and render with mock context
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
-
 from kida import Environment
 
 # Path to default theme templates
-TEMPLATES_DIR = Path(__file__).parent.parent.parent / "bengal" / "themes" / "default" / "templates"
+TEMPLATES_DIR = (
+    Path(__file__).parent.parent.parent / "bengal" / "themes" / "default" / "templates"
+)
 
 
 class TestTemplatesExist:
@@ -149,7 +148,10 @@ class TestKidaNativeFeatures:
             tmpl.render(is_async=True, is_deprecated=False, is_abstract=True).strip()
             == "async, abstract"
         )
-        assert tmpl.render(is_async=False, is_deprecated=False, is_abstract=False).strip() == ""
+        assert (
+            tmpl.render(is_async=False, is_deprecated=False, is_abstract=False).strip()
+            == ""
+        )
 
         # None input returns empty list
         tmpl = env.from_string("{{ none | compact | length }}")

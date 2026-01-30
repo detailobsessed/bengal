@@ -16,7 +16,7 @@ Usage in KidaTemplateEngine:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from bengal.protocols import SiteLike
@@ -24,16 +24,16 @@ if TYPE_CHECKING:
 
 def register_context_functions(env: Any, site: SiteLike) -> None:
     """Register context-dependent template functions for Kida.
-    
+
     Strategy: Context-aware function factory
-    
+
     Static functions are registered immediately. Page-dependent functions
     are created via a factory that's called at render time with the page.
-    
+
     Args:
         env: Kida Environment instance
         site: Site instance
-        
+
     """
     # Import pure function implementations
     from bengal.rendering.template_functions.i18n import (
@@ -48,7 +48,7 @@ def register_context_functions(env: Any, site: SiteLike) -> None:
     # Static functions (don't need page context or have sensible defaults)
     def languages() -> list[dict[str, Any]]:
         """Get configured languages list."""
-        return _languages(site)
+        return cast(list[dict[str, Any]], _languages(site))
 
     # Context-aware factory - called at render time with page
     def make_page_aware_functions(page: Any = None) -> dict[str, Any]:
@@ -72,7 +72,7 @@ def register_context_functions(env: Any, site: SiteLike) -> None:
         ) -> str:
             """Translate a key using page context for language detection."""
             use_lang = lang or getattr(page, "lang", None)
-            return base_translate(key, params=params, lang=use_lang, default=default)
+            return base_translate(key, params, use_lang, default)
 
         def current_lang() -> str | None:
             """Get current language from page or site default."""
@@ -114,18 +114,18 @@ def register_context_functions(env: Any, site: SiteLike) -> None:
 
 def inject_page_context(env: Any, page: Any = None) -> None:
     """Inject page-aware functions into environment globals before rendering.
-    
+
     Called by KidaTemplateEngine.render_template():
-    
+
         def render_template(self, name, context):
             page = context.get("page")
             inject_page_context(self._env, page)
             return template.render(context)
-    
+
     Args:
         env: Kida Environment instance
         page: Current page being rendered
-        
+
     """
     if hasattr(env, "_page_aware_factory"):
         page_functions = env._page_aware_factory(page)

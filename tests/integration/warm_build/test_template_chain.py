@@ -10,16 +10,12 @@ common during theme development.
 See: plan/rfc-warm-build-test-expansion.md
 """
 
-from __future__ import annotations
-
-import pytest
-
 from tests.integration.warm_build.conftest import WarmBuildTestSite
 
 
 class TestWarmBuildTemplateChain:
     """Test template inheritance chain changes during warm builds.
-    
+
     Note: Bengal uses theme templates by default. These tests verify template
     change detection behavior. The custom templates may or may not override
     theme templates depending on Bengal's template resolution.
@@ -35,7 +31,7 @@ class TestWarmBuildTemplateChain:
         1. Build with templates
         2. Modify a template file
         3. Incremental build should detect change
-        
+
         Note: Bengal uses default theme templates. This test verifies that
         template file changes are detected, even if the custom template
         isn't used (theme templates take precedence).
@@ -77,7 +73,7 @@ class TestWarmBuildTemplateChain:
         # Build 2: Template change detection varies based on implementation
         # The key is that the build completes without error
         stats2 = site_with_templates.incremental_build()
-        
+
         # Build should complete (may be skipped if theme templates are used)
         assert stats2 is not None
 
@@ -91,7 +87,7 @@ class TestWarmBuildTemplateChain:
         1. Build with partials/sidebar.html
         2. Modify sidebar.html
         3. Incremental build should complete
-        
+
         Note: Default theme templates may be used instead of custom templates.
         This test verifies template file change detection.
         """
@@ -141,7 +137,7 @@ class TestWarmBuildTemplateChain:
         site_with_templates.full_build()
 
         # Verify initial content
-        initial_html = site_with_templates.read_output("index.html")
+        site_with_templates.read_output("index.html")
 
         # Modify the "override" template (our local base.html)
         site_with_templates.modify_file(
@@ -179,7 +175,10 @@ class TestWarmBuildTemplateChain:
 
         # Verify override is active
         override_html = site_with_templates.read_output("index.html")
-        assert "LOCAL OVERRIDE ACTIVE" in override_html or "local-override-active" in override_html
+        assert (
+            "LOCAL OVERRIDE ACTIVE" in override_html
+            or "local-override-active" in override_html
+        )
 
     def test_deep_template_inheritance_change(
         self, site_with_templates: WarmBuildTestSite
@@ -193,7 +192,7 @@ class TestWarmBuildTemplateChain:
         1. Build with templates
         2. Modify layouts/default.html (middle of chain)
         3. Incremental build should complete
-        
+
         Note: Theme templates may override custom templates. This tests
         that template file changes are tracked.
         """
@@ -245,7 +244,7 @@ class TestWarmBuildTemplateChain:
         1. Build with shortcodes/note.html
         2. Modify note.html template
         3. Incremental build should complete
-        
+
         Note: Shortcode template resolution depends on Bengal's implementation.
         This tests that shortcode file changes are tracked.
         """
@@ -332,7 +331,7 @@ This post uses the new blog layout.
         site_with_templates.wait_for_fs()
 
         # Build 2: Incremental build
-        stats2 = site_with_templates.incremental_build()
+        site_with_templates.incremental_build()
 
         # New page should be generated
         site_with_templates.assert_output_exists("blog/new-post/index.html")
@@ -436,7 +435,11 @@ Uses docs layout.
         except Exception as e:
             # Should be a recursion or circular include error, not a crash
             error_msg = str(e).lower()
-            assert "recursion" in error_msg or "include" in error_msg or "circular" in error_msg
+            assert (
+                "recursion" in error_msg
+                or "include" in error_msg
+                or "circular" in error_msg
+            )
 
     def test_template_syntax_error_handled(
         self, site_with_templates: WarmBuildTestSite
@@ -478,4 +481,6 @@ Uses docs layout.
         except Exception as e:
             # Should be a template syntax error
             error_msg = str(e).lower()
-            assert "template" in error_msg or "syntax" in error_msg or "jinja" in error_msg
+            assert (
+                "template" in error_msg or "syntax" in error_msg or "jinja" in error_msg
+            )

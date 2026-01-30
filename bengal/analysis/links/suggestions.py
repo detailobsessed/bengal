@@ -39,8 +39,6 @@ See Also:
 
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -57,16 +55,16 @@ logger = get_logger(__name__)
 class LinkSuggestion:
     """
     A suggested link between two pages.
-    
+
     Represents a recommendation to add a link from source page to target page
     based on topic similarity, importance, and connectivity analysis.
-    
+
     Attributes:
         source: Page where the link should be added
         target: Page that should be linked to
         score: Recommendation score (0.0-1.0, higher is better)
         reasons: List of reasons why this link is suggested
-        
+
     """
 
     source: PageLike
@@ -82,21 +80,23 @@ class LinkSuggestion:
 class LinkSuggestionResults:
     """
     Results from link suggestion analysis.
-    
+
     Contains all link suggestions generated for the site, along with
     statistics and methods for querying suggestions.
-    
+
     Attributes:
         suggestions: List of all link suggestions, sorted by score
         total_suggestions: Total number of suggestions generated
-        
+
     """
 
     suggestions: list[LinkSuggestion]
     total_suggestions: int
     pages_analyzed: int
 
-    def get_suggestions_for_page(self, page: PageLike, limit: int = 10) -> list[LinkSuggestion]:
+    def get_suggestions_for_page(
+        self, page: PageLike, limit: int = 10
+    ) -> list[LinkSuggestion]:
         """
         Get link suggestions for a specific page.
 
@@ -122,23 +122,26 @@ class LinkSuggestionResults:
 class LinkSuggestionEngine:
     """
     Generate smart link suggestions to improve site connectivity.
-    
+
     Uses multiple signals to recommend links:
     1. Topic Similarity: Pages with shared tags/categories
     2. PageRank: Prioritize linking to important pages
     3. Navigation Value: Link to bridge pages
     4. Link Gaps: Find underlinked valuable content
-    
+
     Example:
             >>> engine = LinkSuggestionEngine(knowledge_graph)
             >>> results = engine.generate_suggestions()
             >>> for suggestion in results.get_top_suggestions(20):
             ...     print(f"{suggestion.source.title} -> {suggestion.target.title}")
-        
+
     """
 
     def __init__(
-        self, graph: KnowledgeGraph, min_score: float = 0.3, max_suggestions_per_page: int = 10
+        self,
+        graph: KnowledgeGraph,
+        min_score: float = 0.3,
+        max_suggestions_per_page: int = 10,
     ):
         """
         Initialize link suggestion engine.
@@ -166,7 +169,9 @@ class LinkSuggestionEngine:
 
         if len(pages) == 0:
             logger.warning("link_suggestions_no_pages")
-            return LinkSuggestionResults(suggestions=[], total_suggestions=0, pages_analyzed=0)
+            return LinkSuggestionResults(
+                suggestions=[], total_suggestions=0, pages_analyzed=0
+            )
 
         logger.info("link_suggestions_start", total_pages=len(pages))
 
@@ -188,7 +193,10 @@ class LinkSuggestionEngine:
         # Get PageRank scores (if available)
         pagerank_scores = {}
         try:
-            if hasattr(self.graph, "_pagerank_results") and self.graph._pagerank_results:
+            if (
+                hasattr(self.graph, "_pagerank_results")
+                and self.graph._pagerank_results
+            ):
                 pagerank_scores = self.graph._pagerank_results.scores
         except (AttributeError, TypeError):
             pass
@@ -285,7 +293,12 @@ class LinkSuggestionEngine:
 
             # Calculate similarity score
             score, reasons = self._calculate_link_score(
-                source, target, page_tags, page_categories, pagerank_scores, betweenness_scores
+                source,
+                target,
+                page_tags,
+                page_categories,
+                pagerank_scores,
+                betweenness_scores,
             )
 
             if score >= self.min_score:
@@ -344,7 +357,11 @@ class LinkSuggestionEngine:
                 reasons.append(f"Shared categories: {', '.join(list(common_cats)[:2])}")
 
         # 3. Target PageRank (link to important pages)
-        if pagerank_scores and isinstance(pagerank_scores, dict) and target in pagerank_scores:
+        if (
+            pagerank_scores
+            and isinstance(pagerank_scores, dict)
+            and target in pagerank_scores
+        ):
             target_rank = pagerank_scores[target]
             # Normalize to 0-1 range (assuming typical PageRank values)
             normalized_rank = min(target_rank * 10, 1.0)
@@ -384,7 +401,11 @@ class LinkSuggestionEngine:
             tags = set()
             if hasattr(page, "tags") and page.tags:
                 # Filter None and convert to str for safety (YAML edge cases)
-                tags = {str(tag).lower().replace(" ", "-") for tag in page.tags if tag is not None}
+                tags = {
+                    str(tag).lower().replace(" ", "-")
+                    for tag in page.tags
+                    if tag is not None
+                }
             tag_map[page] = tags
         return tag_map
 
@@ -401,7 +422,9 @@ class LinkSuggestionEngine:
             elif categories_value:
                 # Multiple categories - filter None and convert to strings
                 categories = {
-                    str(cat).lower().replace(" ", "-") for cat in categories_value if cat is not None
+                    str(cat).lower().replace(" ", "-")
+                    for cat in categories_value
+                    if cat is not None
                 }
             category_map[page] = categories
         return category_map
@@ -446,22 +469,22 @@ def suggest_links(
 ) -> LinkSuggestionResults:
     """
     Convenience function for link suggestions.
-    
+
     Args:
         graph: KnowledgeGraph with page connections
         min_score: Minimum score threshold
         max_suggestions_per_page: Max suggestions per page
-    
+
     Returns:
         LinkSuggestionResults with all suggestions
-    
+
     Example:
             >>> graph = KnowledgeGraph(site)
             >>> graph.build()
             >>> results = suggest_links(graph)
             >>> for suggestion in results.get_top_suggestions(20):
             ...     print(f"{suggestion.source.title} -> {suggestion.target.title}")
-        
+
     """
     engine = LinkSuggestionEngine(
         graph, min_score=min_score, max_suggestions_per_page=max_suggestions_per_page

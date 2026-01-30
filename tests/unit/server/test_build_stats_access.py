@@ -94,7 +94,9 @@ class TestBuildStatsInServerContext:
 
     def test_logging_buildstats_correctly(self):
         """Test correct pattern for logging BuildStats data."""
-        stats = BuildStats(total_pages=198, build_time_ms=756.1, parallel=True, incremental=False)
+        stats = BuildStats(
+            total_pages=198, build_time_ms=756.1, parallel=True, incremental=False
+        )
 
         # Correct pattern for logging
         log_data = {

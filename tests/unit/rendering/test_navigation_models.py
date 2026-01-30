@@ -11,8 +11,6 @@ Tests cover:
 Note: NavTree models (NavNode, NavNodeProxy, etc.) are in bengal.core.nav_tree
 """
 
-from __future__ import annotations
-
 import pytest
 
 from bengal.rendering.template_functions.navigation.models import (

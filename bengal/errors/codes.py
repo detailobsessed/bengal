@@ -66,14 +66,14 @@ from enum import Enum
 class ErrorCode(Enum):
     """
     Unique error codes for Bengal errors.
-    
+
     Each code follows the format ``[Category][Number]`` where:
-    
+
     - **Category**: Single letter indicating error domain (C, N, R, D, A, S, T, P, X)
     - **Number**: 3-digit sequential number within the category (001-099)
-    
+
     Codes are organized into ranges by category:
-    
+
     - ``C001-C099``: Configuration errors
     - ``N001-N099``: Content errors (frontmatter, markdown)
     - ``R001-R099``: Rendering errors (templates, output)
@@ -87,13 +87,13 @@ class ErrorCode(Enum):
     - ``O001-O099``: Autodoc extraction/generation errors
     - ``V001-V099``: Validator/health check errors
     - ``B001-B099``: Build/orchestration errors
-    
+
     Each code maps to documentation at ``/docs/reference/errors/#{code}``.
-    
+
     Attributes:
         value: Human-readable identifier (e.g., "template_not_found")
         name: Code identifier (e.g., "R001")
-    
+
     Example:
             >>> from bengal.errors import ErrorCode
             >>> code = ErrorCode.R001
@@ -105,7 +105,7 @@ class ErrorCode(Enum):
             'rendering'
             >>> code.docs_url
             '/docs/reference/errors/#r001'
-        
+
     """
 
     # ============================================================
@@ -270,7 +270,9 @@ class ErrorCode(Enum):
     V003 = "autofix_failed"  # AutoFixer operation failed
     V004 = "linkcheck_timeout"  # External link check timed out
     V005 = "linkcheck_network_error"  # Network error during link check
-    V006 = "health_graph_analysis_failed"  # Connectivity/graph analysis failed in health
+    V006 = (
+        "health_graph_analysis_failed"  # Connectivity/graph analysis failed in health
+    )
 
     # ============================================================
     # Build/Orchestration errors (B001-B099)
@@ -281,7 +283,7 @@ class ErrorCode(Enum):
     B004 = "menu_build_failed"  # Menu building failure
     B005 = "taxonomy_collection_failed"  # Taxonomy collection failure
     B006 = "taxonomy_page_generation_failed"  # Taxonomy page generation failure
-    B007 = "asset_processing_failed"  # Asset processing failure
+    B007 = "build_asset_processing_failed"  # Asset processing failure
     B008 = "postprocess_task_failed"  # Post-processing task failure
     B009 = "section_finalization_failed"  # Section finalization failure
     B010 = "cache_initialization_failed"  # Cache/tracker initialization failure
@@ -368,13 +370,13 @@ class ErrorCode(Enum):
 def get_error_code_by_name(name: str) -> ErrorCode | None:
     """
     Look up error code by name.
-    
+
     Args:
         name: Error code name (e.g., "R001" or "template_not_found")
-    
+
     Returns:
         ErrorCode if found, None otherwise
-        
+
     """
     # Try direct name match
     try:
@@ -393,12 +395,12 @@ def get_error_code_by_name(name: str) -> ErrorCode | None:
 def get_codes_by_category(category: str) -> list[ErrorCode]:
     """
     Get all error codes in a category.
-    
+
     Args:
         category: Category name (e.g., "rendering", "config")
-    
+
     Returns:
         List of ErrorCode instances in that category
-        
+
     """
     return [code for code in ErrorCode if code.category == category]
