@@ -179,7 +179,7 @@ class TestSiteFromSingleFile:
         site = Site.from_config(single_file_site)
 
         # Config is now nested - access via site.* and build.*
-        config = site.config.raw if hasattr(site.config, "raw") else site.config
+        config: dict = site.config.raw if hasattr(site.config, "raw") else site.config  # type: ignore[assignment]
         assert config["site"]["title"] == "Single File Site"
         assert config["site"]["baseurl"] == "https://single.example.com"
         assert config.get("build", {}).get("parallel") is True
@@ -325,7 +325,8 @@ class TestErrorHandling:
             assert site.config is not None  # At least empty dict
         except Exception as e:
             # Should be a friendly error, not a crash
-            assert "config" in str(e).lower(), (  # noqa: PT017
+            error_msg = str(e).lower()
+            assert "config" in error_msg, (
                 f"Expected 'config' in error message, got: {e}"
             )
 
@@ -494,6 +495,6 @@ class TestGitHubPagesDeployment:
         site = Site.from_config(root)
 
         # Should use local environment, not production
-        config = site.config.raw if hasattr(site.config, "raw") else site.config
+        config: dict = site.config.raw if hasattr(site.config, "raw") else site.config  # type: ignore[assignment]
         assert config["site"]["baseurl"] == "http://localhost:8000"
         assert config.get("build", {}).get("strict_mode") is False

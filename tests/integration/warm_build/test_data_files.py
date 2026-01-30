@@ -294,7 +294,10 @@ members:
             assert True
         except Exception as e:
             # If it fails, it should be a handled error, not a crash
-            assert "yaml" in str(e).lower() or "parse" in str(e).lower()  # noqa: PT017
+            error_msg = str(e).lower()
+            assert "yaml" in error_msg or "parse" in error_msg, (
+                f"Expected YAML/parse error message, got: {e}"
+            )
 
     def test_multiple_data_files_change(
         self, site_with_data: WarmBuildTestSite

@@ -364,12 +364,11 @@ class TestExceptionSafety:
         reset_parse_config()
         original_tables = get_parse_config().tables_enabled
 
-        with (  # noqa: PT012
-            pytest.raises(ValueError, match="Test exception"),
-            parse_config_context(ParseConfig(tables_enabled=True)),
-        ):
-            assert get_parse_config().tables_enabled is True
-            raise ValueError("Test exception")
+        # Verify config is set inside context manager, then raise
+        with pytest.raises(ValueError, match="Test exception"):
+            with parse_config_context(ParseConfig(tables_enabled=True)):
+                assert get_parse_config().tables_enabled is True
+                raise ValueError("Test exception")
 
         # Should be restored despite exception
         assert get_parse_config().tables_enabled == original_tables
@@ -378,12 +377,11 @@ class TestExceptionSafety:
         """RenderConfig is restored even if exception occurs."""
         original = get_render_config()
 
-        with (  # noqa: PT012
-            pytest.raises(ValueError, match="Test exception"),
-            render_config_context(RenderConfig(highlight=True)),
-        ):
-            assert get_render_config().highlight is True
-            raise ValueError("Test exception")
+        # Verify config is set inside context manager, then raise
+        with pytest.raises(ValueError, match="Test exception"):
+            with render_config_context(RenderConfig(highlight=True)):
+                assert get_render_config().highlight is True
+                raise ValueError("Test exception")
 
         # Should be restored despite exception
         assert get_render_config() is original
