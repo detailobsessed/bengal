@@ -15,12 +15,10 @@ pytest tests/rendering/parsers/test_patitas/test_commonmark_spec.py -k "example_
 
 Baseline Tracking:
 The baseline pass rate is tracked in this file. Update after each sprint.
-Current baseline: 42.4% (265/625 passing, 27 skipped) - established 2026-01-01
+Current baseline: 100% (652/652 passing) - updated 2026-01-30
 See: plan/rfc-patitas-commonmark-compliance.md for roadmap
 
 """
-
-from __future__ import annotations
 
 import json
 import re

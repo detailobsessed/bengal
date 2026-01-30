@@ -466,7 +466,8 @@ class TestRenderLiteralInclude:
         )
 
         # Should fall back to simple code block
-        assert "<code" in html.lower() and "<pre>" in html.lower()
+        assert "<code" in html.lower()
+        assert "<pre>" in html.lower()
 
 
 class TestLiteralIncludeDirectiveIntegration:

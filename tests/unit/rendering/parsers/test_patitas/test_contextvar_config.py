@@ -9,8 +9,6 @@ RFC: rfc-contextvar-config-implementation.md
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-
-# For tests that use external patitas's Parser directly, we use patitas's config
 from patitas.config import (
     ParseConfig,
     get_parse_config,
@@ -40,6 +38,9 @@ from bengal.parsing.backends.patitas import (
     reset_parse_config as reset_bengal_parse_config,
 )
 from bengal.parsing.backends.patitas.renderers.html import HtmlRenderer
+
+# Module-level marker for tests using ThreadPoolExecutor
+pytestmark = pytest.mark.parallel_unsafe
 
 
 class TestParseConfig:
@@ -363,8 +364,8 @@ class TestExceptionSafety:
         reset_parse_config()
         original_tables = get_parse_config().tables_enabled
 
-        with (
-            pytest.raises(ValueError),
+        with (  # noqa: PT012
+            pytest.raises(ValueError, match="Test exception"),
             parse_config_context(ParseConfig(tables_enabled=True)),
         ):
             assert get_parse_config().tables_enabled is True
@@ -377,8 +378,8 @@ class TestExceptionSafety:
         """RenderConfig is restored even if exception occurs."""
         original = get_render_config()
 
-        with (
-            pytest.raises(ValueError),
+        with (  # noqa: PT012
+            pytest.raises(ValueError, match="Test exception"),
             render_config_context(RenderConfig(highlight=True)),
         ):
             assert get_render_config().highlight is True

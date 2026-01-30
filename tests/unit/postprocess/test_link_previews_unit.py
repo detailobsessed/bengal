@@ -100,7 +100,7 @@ class TestJsonUrlConversion:
     """
 
     @pytest.mark.parametrize(
-        "page_url,expected_json_url",
+        ("page_url", "expected_json_url"),
         [
             ("/docs/getting-started/", "/docs/getting-started/index.json"),
             ("/docs/getting-started", "/docs/getting-started/index.json"),

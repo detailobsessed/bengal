@@ -34,7 +34,8 @@ def test_build_with_path_baseurl(site, build_site):
     assert isinstance(data.get("pages"), list)
     if data["pages"]:
         sample = data["pages"][0]
-        assert "url" in sample and "uri" in sample
+        assert "url" in sample
+        assert "uri" in sample
 
 
 @pytest.mark.bengal(testroot="test-baseurl", confoverrides={"site.baseurl": "/bengal"})

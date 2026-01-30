@@ -115,7 +115,7 @@ def test_match(value: object, pattern: str) -> bool:
     return bool(re.search(pattern, str(value)))
 
 
-def test_outdated(page: object, days: int = 90) -> bool:
+def test_outdated(page: object, days: int = 90) -> bool:  # noqa: PT028
     """
     Test if page is older than N days.
 

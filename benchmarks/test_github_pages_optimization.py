@@ -380,7 +380,7 @@ BUILD_CONFIGS = [
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize(
-    "site_fixture,page_count",
+    ("site_fixture", "page_count"),
     [
         ("site_50_pages", 50),
         ("site_200_pages", 200),
@@ -430,7 +430,7 @@ def test_build_configuration(
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize(
-    "site_fixture,page_count",
+    ("site_fixture", "page_count"),
     [
         ("site_50_pages", 50),
         ("site_200_pages", 200),
@@ -466,7 +466,7 @@ def test_optimal_ci_build(
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize(
-    "site_fixture,page_count",
+    ("site_fixture", "page_count"),
     [
         ("site_500_pages", 500),
         ("site_1000_pages", 1000),

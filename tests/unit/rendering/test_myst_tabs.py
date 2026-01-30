@@ -70,7 +70,8 @@ console.log("hello");
         # Check for code block rendering (Rosettes uses different span classes than Pygments)
         # Rosettes: k=keyword, kd=keyword declaration, n=name, nf=function name, etc.
         # Content should be present in some form
-        assert "def" in result and "hello" in result
+        assert "def" in result
+        assert "hello" in result
         assert "console" in result or "log" in result
 
     def test_tab_with_selected_option(self, parser):

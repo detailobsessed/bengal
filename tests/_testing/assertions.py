@@ -257,10 +257,9 @@ def assert_build_idempotent(site: Site) -> None:
         if first_hashes[k] != second_hashes[k]
     }
 
-    assert not added and not removed and not changed, (
-        f"Build is not idempotent - second build changed output. "
-        f"Added: {added}, Removed: {removed}, Changed: {changed}"
-    )
+    assert not added, f"Build is not idempotent - files added: {added}"
+    assert not removed, f"Build is not idempotent - files removed: {removed}"
+    assert not changed, f"Build is not idempotent - files changed: {changed}"
 
 
 def assert_incremental_equivalent(

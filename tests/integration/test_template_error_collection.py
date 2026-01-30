@@ -250,7 +250,8 @@ Content
             ]
 
             # Should have message
-            assert error.message is not None and len(error.message) > 0
+            assert error.message is not None
+            assert len(error.message) > 0
 
 
 class TestParallelErrorCollection:

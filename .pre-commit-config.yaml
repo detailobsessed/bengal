@@ -73,7 +73,7 @@ repos:
       # Remove '|| true' to make blocking once violations are resolved
       - id: check-cycles
         name: Check circular imports (warning)
-        entry: bash -c 'uv run python scripts/check_cycles.py --format=simple || true'
+        entry: bash -c 'uv run scripts/check_cycles.py --format=simple || true'
         language: system
         pass_filenames: false
         verbose: true
@@ -81,8 +81,26 @@ repos:
 
       - id: check-deps
         name: Check dependency layers (warning)
-        entry: bash -c 'uv run python scripts/check_dependencies.py --format=simple || true'
+        entry: bash -c 'uv run scripts/check_dependencies.py --format=simple || true'
         language: system
         pass_filenames: false
         verbose: true
         priority: 3
+
+      # Test anti-pattern checks
+      - id: check-threadpool-without-marker
+        name: Check ThreadPoolExecutor tests have parallel_unsafe marker
+        entry: uv run scripts/check_threadpool_marker.py
+        language: system
+        files: ^tests/.*\.py$
+        exclude: ^tests/performance/.*\.py$
+        pass_filenames: true
+        priority: 2
+
+      - id: check-outdated-build-options
+        name: Check for outdated BuildOptions API usage
+        entry: uv run scripts/check_build_options.py
+        language: system
+        files: ^tests/.*\.py$
+        pass_filenames: true
+        priority: 2

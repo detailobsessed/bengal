@@ -3,11 +3,17 @@
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import pytest
+
 from bengal.orchestration.build_context import BuildContext
 
 
+@pytest.mark.parallel_unsafe
 class TestBuildContextAssetAccumulation:
-    """Tests for asset accumulation in BuildContext."""
+    """Tests for asset accumulation in BuildContext.
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for thread-safety tests.
+    """
 
     def test_accumulate_page_assets_basic(self):
         """Basic accumulation stores path and assets."""

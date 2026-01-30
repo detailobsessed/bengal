@@ -64,7 +64,7 @@ run:
 	uv run bengal $(ARGS)
 
 test:
-	uv run pytest
+	uv run pytest -n auto
 
 ty:
 	@echo "Running ty type checker (Astral, Rust-based)..."

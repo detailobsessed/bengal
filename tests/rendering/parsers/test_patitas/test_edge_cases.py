@@ -163,7 +163,8 @@ class TestMultiLineListItems:
         # Both items should have <p> tags
         assert html.count("<p>") >= 3  # 2 for first item, 1 for second
         # Check that list items contain paragraphs (newline-tolerant)
-        assert "<li>" in html and "<p>" in html
+        assert "<li>" in html
+        assert "<p>" in html
 
 
 class TestTableRendering:
@@ -282,7 +283,7 @@ class TestMistuneParserParity:
         return html.strip()
 
     @pytest.mark.parametrize(
-        "name,source",
+        ("name", "source"),
         [
             ("nested_list", "- Item 1\n  - Sub 1\n  - Sub 2\n- Item 2"),
             ("task_list", "- [ ] Unchecked\n- [x] Checked"),

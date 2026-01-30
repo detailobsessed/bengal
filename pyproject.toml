@@ -101,6 +101,7 @@ select = [
     "PERF", # perflint - performance anti-patterns
     "C4",   # unnecessary comprehensions/list()/dict() calls
     "RUF",  # Ruff-specific (unused noqa, mutable class defaults, etc.)
+    "PT",   # flake8-pytest-style - pytest best practices
 ]
 ignore = [
     "E501",    # line too long - disabled

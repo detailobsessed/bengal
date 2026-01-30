@@ -383,7 +383,7 @@ class TestRequestContext:
         """report_error() raises in strict mode."""
         ctx = RequestContext(strict_mode=True)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="test"):
             ctx.report_error(ValueError("test"), "context")
 
     def test_report_error_silent(self):

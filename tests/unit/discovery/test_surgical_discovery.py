@@ -119,8 +119,12 @@ class TestSurgicalDiscoveryCacheHit:
         assert result._section is section or result._section_path is not None
 
 
+@pytest.mark.parallel_unsafe
 class TestSurgicalDiscoveryCacheMiss:
-    """Tests for cache miss scenarios in surgical discovery."""
+    """Tests for cache miss scenarios in surgical discovery.
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for executor tests.
+    """
 
     def test_cache_miss_returns_none_when_executor_exists(
         self, content_dir: Path, mock_cache: MagicMock

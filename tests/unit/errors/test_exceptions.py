@@ -16,6 +16,8 @@ See Also:
 
 from pathlib import Path
 
+import pytest
+
 from bengal.errors import (
     BengalAutodocError,
     BengalBuildError,
@@ -304,7 +306,6 @@ class TestExceptionHierarchy:
             BengalTemplateFunctionError,
         ]
         for exc_class in exceptions:
-            try:
+            with pytest.raises(BengalError) as exc_info:
                 raise exc_class("test")
-            except BengalError as e:
-                assert e.message == "test"
+            assert exc_info.value.message == "test"

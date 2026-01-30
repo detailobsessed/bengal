@@ -45,7 +45,7 @@ class TestNoWeakAssertions:
     """Tests that catch weak/useless assertions."""
 
     @pytest.mark.parametrize(
-        "pattern,description,threshold",
+        ("pattern", "description", "threshold"),
         [
             (
                 r"^\s*assert\s+True\s*$",

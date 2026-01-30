@@ -307,8 +307,12 @@ class TestClear:
         assert stats["misses"] == 0
 
 
+@pytest.mark.parallel_unsafe
 class TestThreadSafety:
-    """Test concurrent access patterns."""
+    """Test concurrent access patterns.
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for thread-safety tests.
+    """
 
     def test_concurrent_access(self) -> None:
         """Cache handles concurrent reads and writes."""

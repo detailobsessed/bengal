@@ -87,8 +87,12 @@ class TestOutputRecord:
             record.path = Path("other.css")  # type: ignore[misc]
 
 
+@pytest.mark.parallel_unsafe
 class TestBuildOutputCollector:
-    """Tests for BuildOutputCollector implementation."""
+    """Tests for BuildOutputCollector implementation.
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for thread-safety tests.
+    """
 
     def test_record_and_retrieve(self) -> None:
         """Basic recording and retrieval."""

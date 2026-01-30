@@ -47,7 +47,7 @@ class TestRemoteLoaderImports:
             loader = github_loader(repo="owner/repo")
             assert loader.source_type == "github"
         except ImportError as e:
-            assert "aiohttp" in str(e).lower() or "github" in str(e).lower()
+            assert "aiohttp" in str(e).lower() or "github" in str(e).lower()  # noqa: PT017
 
     def test_rest_loader_import_error(self) -> None:
         """Test rest_loader raises ImportError if aiohttp not installed."""
@@ -57,7 +57,7 @@ class TestRemoteLoaderImports:
             loader = rest_loader(url="https://api.example.com")
             assert loader.source_type == "rest"
         except ImportError as e:
-            assert "aiohttp" in str(e).lower() or "rest" in str(e).lower()
+            assert "aiohttp" in str(e).lower() or "rest" in str(e).lower()  # noqa: PT017
 
     def test_notion_loader_import_error(self) -> None:
         """Test notion_loader raises ImportError if aiohttp not installed."""
@@ -69,4 +69,4 @@ class TestRemoteLoaderImports:
             with pytest.raises(BengalConfigError, match="requires a token"):
                 notion_loader(database_id="abc123")
         except ImportError as e:
-            assert "aiohttp" in str(e).lower() or "notion" in str(e).lower()
+            assert "aiohttp" in str(e).lower() or "notion" in str(e).lower()  # noqa: PT017

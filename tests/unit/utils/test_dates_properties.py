@@ -417,7 +417,7 @@ class TestGetCurrentYearProperties:
 
     @pytest.mark.hypothesis
     @given(st.just(None))  # Run once
-    def test_returns_integer(self, _):
+    def test_returns_integer(self, _):  # noqa: PT019
         """
         Property: get_current_year returns an integer.
         """
@@ -427,7 +427,7 @@ class TestGetCurrentYearProperties:
 
     @pytest.mark.hypothesis
     @given(st.just(None))  # Run once
-    def test_reasonable_year(self, _):
+    def test_reasonable_year(self, _):  # noqa: PT019
         """
         Property: Current year is within reasonable bounds.
         """

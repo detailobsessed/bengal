@@ -198,8 +198,12 @@ class TestGetEngineGlobalsCaching:
         assert result1["config"] is not result2["config"]
 
 
+@pytest.mark.parallel_unsafe
 class TestGetEngineGlobalsThreadSafety:
-    """Tests for thread safety of get_engine_globals()."""
+    """Tests for thread safety of get_engine_globals().
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for thread-safety tests.
+    """
 
     def test_concurrent_access_same_site(self, mock_site):
         """Concurrent calls with same site don't cause issues."""

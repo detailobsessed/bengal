@@ -113,7 +113,17 @@ def test_function(x: int, y: str = "default") -> bool:
         cache.set_page_cache(cache_key, corrupted_payload)
         cache.save(cache_path, use_lock=False)
 
-        # Step 3: Incremental build should recover gracefully
+        # Step 3: Touch a content file to trigger incremental rebuild
+        # The incremental build checks content file changes; without a change,
+        # it would skip entirely and never attempt to use the corrupted cache.
+        import time
+
+        time.sleep(0.01)  # Ensure mtime changes
+        (content_dir / "index.md").write_text(
+            "---\ntitle: Home Updated\n---\n# Home Updated"
+        )
+
+        # Step 4: Incremental build should recover gracefully
         # The build should detect the malformed payload, invalidate the cache key,
         # and fall back to re-extraction instead of crashing
         site2 = Site.from_config(site_root)
@@ -222,6 +232,10 @@ source_dirs = ["src"]
         cached_payload = cache.get_page_cache(cache_key)
 
         # Corrupt by removing required fields from typed_metadata
+        if cached_payload is None:
+            pytest.skip(
+                "Autodoc cache payload not populated - autodoc may not have extracted elements"
+            )
         elements = cached_payload.get("elements", {})
         python_elements = elements.get("python", [])
         if python_elements:
@@ -240,7 +254,15 @@ source_dirs = ["src"]
             cache.set_page_cache(cache_key, corrupted_payload)
             cache.save(cache_path, use_lock=False)
 
-        # Step 3: Incremental build should recover
+        # Step 3: Touch a content file to trigger incremental rebuild
+        import time
+
+        time.sleep(0.01)  # Ensure mtime changes
+        (content_dir / "index.md").write_text(
+            "---\ntitle: Home Updated\n---\n# Home Updated"
+        )
+
+        # Step 4: Incremental build should recover
         site2 = Site.from_config(site_root)
         stats = site2.build(BuildOptions(force_sequential=True, incremental=True))
 

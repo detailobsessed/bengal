@@ -44,6 +44,5 @@ def test_preprocess_syntax_error_reporting():
     assert out in ("", "None")
 
     # Actual syntax error (Should still fail)
-    with pytest.raises(Exception) as excinfo:
+    with pytest.raises(Exception, match=r"(?i)syntax"):
         engine.render_string("{{ invalid syntax %", {}, strict=False)
-    assert "syntax" in str(excinfo.value).lower()

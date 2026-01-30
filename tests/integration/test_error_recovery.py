@@ -100,7 +100,7 @@ Content with {{ page.custom_data.nonexistent }} reference.
 
         except Exception as e:
             # Even if exception is raised, it should be handled gracefully
-            assert "template" in str(e).lower() or "error" in str(e).lower()
+            assert "template" in str(e).lower() or "error" in str(e).lower()  # noqa: PT017  # noqa: PT017
 
     def test_error_collection_and_reporting(self, tmp_path):
         """Test that template errors are collected and reported."""
@@ -193,7 +193,7 @@ Content
             site.build(BuildOptions(force_sequential=True))
         except Exception as e:
             # Should provide helpful error message
-            assert "template" in str(e).lower() or "layout" in str(e).lower()
+            assert "template" in str(e).lower() or "layout" in str(e).lower()  # noqa: PT017  # noqa: PT017
 
 
 class TestMissingFileRecovery:
@@ -288,7 +288,7 @@ title = "Broken TOML"
         )
 
         # Should raise appropriate error
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(Exception) as exc_info:  # noqa: PT011
             Site.from_config(tmp_path, config_path=config_file)
 
         # Error should be about config parsing
@@ -338,7 +338,7 @@ parallel = "yes"
             assert site is not None
         except Exception as e:
             # Should provide helpful error about config types
-            assert "config" in str(e).lower()
+            assert "config" in str(e).lower()  # noqa: PT017  # noqa: PT017
 
 
 class TestBuildFailureRecovery:

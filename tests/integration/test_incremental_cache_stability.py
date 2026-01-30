@@ -361,7 +361,9 @@ title: Home
         # Load site
         from bengal.core.site import Site
         from bengal.orchestration.build import BuildOrchestrator
-        from bengal.orchestration.build.initialization import phase_incremental_filter
+        from bengal.orchestration.build.provenance_filter import (
+            phase_incremental_filter_provenance,
+        )
         from bengal.output import CLIOutput
 
         site = Site.from_config(site_with_cache)
@@ -380,7 +382,7 @@ title: Home
         cli = CLIOutput()
         build_start = time.time()
 
-        result = phase_incremental_filter(
+        result = phase_incremental_filter_provenance(
             orchestrator=orchestrator,
             cli=cli,
             incremental=True,
@@ -415,7 +417,9 @@ title: Home
 
         from bengal.core.site import Site
         from bengal.orchestration.build import BuildOrchestrator
-        from bengal.orchestration.build.initialization import phase_incremental_filter
+        from bengal.orchestration.build.provenance_filter import (
+            phase_incremental_filter_provenance,
+        )
         from bengal.output import CLIOutput
 
         site = Site.from_config(site_with_cache)
@@ -427,7 +431,7 @@ title: Home
 
         cache, _ = orchestrator.incremental.initialize(enabled=True)
 
-        result = phase_incremental_filter(
+        result = phase_incremental_filter_provenance(
             orchestrator=orchestrator,
             cli=CLIOutput(),
             incremental=True,
@@ -451,7 +455,9 @@ title: Home
 
         from bengal.core.site import Site
         from bengal.orchestration.build import BuildOrchestrator
-        from bengal.orchestration.build.initialization import phase_incremental_filter
+        from bengal.orchestration.build.provenance_filter import (
+            phase_incremental_filter_provenance,
+        )
         from bengal.output import CLIOutput
 
         site = Site.from_config(site_with_cache)
@@ -463,7 +469,7 @@ title: Home
 
         cache, _ = orchestrator.incremental.initialize(enabled=True)
 
-        result = phase_incremental_filter(
+        result = phase_incremental_filter_provenance(
             orchestrator=orchestrator,
             cli=CLIOutput(),
             incremental=True,

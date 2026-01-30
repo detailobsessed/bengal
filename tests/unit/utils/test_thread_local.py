@@ -9,9 +9,12 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
+import pytest
+
 from bengal.utils.concurrency.thread_local import ThreadLocalCache, ThreadSafeSet
 
 
+@pytest.mark.parallel_unsafe
 class TestThreadLocalCache:
     """Tests for ThreadLocalCache class."""
 
@@ -173,8 +176,12 @@ class TestThreadLocalCache:
         assert result2 == "cache2_instance"
 
 
+@pytest.mark.parallel_unsafe
 class TestThreadSafeSet:
-    """Tests for ThreadSafeSet class."""
+    """Tests for ThreadSafeSet class.
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for thread-safety tests.
+    """
 
     def test_add_if_new_returns_true_for_new(self) -> None:
         """Test add_if_new returns True for new items."""

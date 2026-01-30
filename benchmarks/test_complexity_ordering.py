@@ -31,7 +31,7 @@ class TestEstimationOverhead:
 
     @pytest.mark.benchmark(group="estimation")
     @pytest.mark.parametrize(
-        "size,label",
+        ("size", "label"),
         [
             (100, "100B"),
             (1000, "1KB"),

@@ -129,7 +129,7 @@ output_dir = "public"
     # Warm the cache with initial build
     site.build(incremental=False)
 
-    yield site
+    return site
 
 
 @pytest.fixture
@@ -183,7 +183,7 @@ output_dir = "public"
     # Warm the cache
     site.build(incremental=False)
 
-    yield site
+    return site
 
 
 class TestIncrementalInvariants:

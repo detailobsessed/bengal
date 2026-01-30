@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from bengal.assets.css_minifier import minify_css
 
 
-def test_case(
+def run_test_case(
     name: str,
     css: str,
     expected_contains: list[str] | None = None,
@@ -77,7 +77,7 @@ def main():
 
     # Test 1: Basic CSS
     results.append(
-        test_case(
+        run_test_case(
             "Basic CSS",
             "body { color: blue; margin: 0; }",
             expected_contains=["body{", "color:blue", "margin:0"],
@@ -86,7 +86,7 @@ def main():
 
     # Test 2: CSS with comments
     results.append(
-        test_case(
+        run_test_case(
             "CSS with comments",
             "/* Comment */ body { color: blue; }",
             expected_contains=["body{", "color:blue"],
@@ -96,7 +96,7 @@ def main():
 
     # Test 3: @layer blocks
     results.append(
-        test_case(
+        run_test_case(
             "@layer blocks",
             "@layer tokens { :root { --color: blue; } }",
             expected_contains=["@layer tokens", ":root{", "--color:blue"],
@@ -105,7 +105,7 @@ def main():
 
     # Test 4: CSS nesting
     results.append(
-        test_case(
+        run_test_case(
             "CSS nesting",
             ".button { color: blue; &:hover { color: red; } }",
             expected_contains=["&:hover"],
@@ -114,7 +114,7 @@ def main():
 
     # Test 5: Strings with quotes
     results.append(
-        test_case(
+        run_test_case(
             "Strings with quotes",
             'body { font-family: "Helvetica Neue", sans-serif; }',
             expected_contains=["Helvetica Neue"],
@@ -123,7 +123,7 @@ def main():
 
     # Test 6: Escaped quotes in strings
     results.append(
-        test_case(
+        run_test_case(
             "Escaped quotes",
             'body { content: "Say \\"hello\\""; }',
             expected_contains=['Say "hello"'],
@@ -132,7 +132,7 @@ def main():
 
     # Test 7: CSS functions
     results.append(
-        test_case(
+        run_test_case(
             "CSS functions",
             "div { width: calc(100% - 20px); }",
             expected_contains=["calc(100%-20px)"],
@@ -141,7 +141,7 @@ def main():
 
     # Test 8: Color-mix function (needs space before %)
     results.append(
-        test_case(
+        run_test_case(
             "color-mix function",
             "div { color: color-mix(in srgb, red 50%, blue 50%); }",
             expected_contains=["color-mix(in srgb,red 50%,blue 50%)"],
@@ -150,7 +150,7 @@ def main():
 
     # Test 9: Multiple @layer blocks
     results.append(
-        test_case(
+        run_test_case(
             "Multiple @layer blocks",
             "@layer tokens { :root { --color: blue; } } @layer base { body { margin: 0; } }",
             expected_contains=["@layer tokens", "@layer base"],
@@ -159,7 +159,7 @@ def main():
 
     # Test 10: @import statements
     results.append(
-        test_case(
+        run_test_case(
             "@import statements",
             '@import "reset.css"; body { color: blue; }',
             expected_contains=['@import"reset.css"'],
@@ -168,7 +168,7 @@ def main():
 
     # Test 11: @media queries
     results.append(
-        test_case(
+        run_test_case(
             "@media queries",
             "@media (min-width: 768px) { body { font-size: 18px; } }",
             expected_contains=["@media(min-width:768px)"],
@@ -177,7 +177,7 @@ def main():
 
     # Test 12: CSS custom properties
     results.append(
-        test_case(
+        run_test_case(
             "CSS custom properties",
             ":root { --spacing: 1rem; --color: #333; }",
             expected_contains=["--spacing:1rem", "--color:#333"],
@@ -186,7 +186,7 @@ def main():
 
     # Test 13: Complex selectors
     results.append(
-        test_case(
+        run_test_case(
             "Complex selectors",
             ".parent > .child + .sibling { color: blue; }",
             expected_contains=[".parent>.child+.sibling"],
@@ -195,7 +195,7 @@ def main():
 
     # Test 14: Attribute selectors
     results.append(
-        test_case(
+        run_test_case(
             "Attribute selectors",
             'a[href^="https"] { color: green; }',
             expected_contains=['a[href^="https"]'],
@@ -204,7 +204,7 @@ def main():
 
     # Test 15: Pseudo-elements
     results.append(
-        test_case(
+        run_test_case(
             "Pseudo-elements",
             "p::before { content: ''; }",
             expected_contains=["p::before"],
@@ -213,7 +213,7 @@ def main():
 
     # Test 16: Multiple spaces
     results.append(
-        test_case(
+        run_test_case(
             "Multiple spaces",
             "body    {    color:    blue;    }",
             expected_contains=["body{", "color:blue"],
@@ -222,7 +222,7 @@ def main():
 
     # Test 17: Newlines and tabs
     results.append(
-        test_case(
+        run_test_case(
             "Newlines and tabs",
             "body\n{\n\tcolor:\tblue;\n}",
             expected_contains=["body{", "color:blue"],
@@ -231,7 +231,7 @@ def main():
 
     # Test 18: Empty rules
     results.append(
-        test_case(
+        run_test_case(
             "Empty rules",
             ".empty { } .not-empty { color: blue; }",
             expected_contains=[".empty{}", ".not-empty{", "color:blue"],
@@ -240,7 +240,7 @@ def main():
 
     # Test 19: URLs in CSS
     results.append(
-        test_case(
+        run_test_case(
             "URLs in CSS",
             'body { background: url("image.png"); }',
             expected_contains=['url("image.png")'],
@@ -249,7 +249,7 @@ def main():
 
     # Test 20: Multiple comments
     results.append(
-        test_case(
+        run_test_case(
             "Multiple comments",
             "/* First */ body { /* Second */ color: blue; /* Third */ }",
             expected_contains=["body{", "color:blue"],

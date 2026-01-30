@@ -71,7 +71,7 @@ def config_directory_site(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Pa
     profile_dir = config_dir / "profiles"
     profile_dir.mkdir()
 
-    dev_profile = {"debug": True, "build": {"parallel": False}}
+    dev_profile = {"build": {"debug": True, "parallel": False}}
     (profile_dir / "dev.yaml").write_text(yaml.dump(dev_profile))
 
     # Create content directory
@@ -325,7 +325,9 @@ class TestErrorHandling:
             assert site.config is not None  # At least empty dict
         except Exception as e:
             # Should be a friendly error, not a crash
-            assert "config" in str(e).lower()
+            assert "config" in str(e).lower(), (  # noqa: PT017
+                f"Expected 'config' in error message, got: {e}"
+            )
 
 
 class TestGitHubPagesDeployment:

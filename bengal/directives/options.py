@@ -302,7 +302,12 @@ class DirectiveOptions:
             return value.lower() in ("true", "1", "yes", "")
 
         if target_type is int:
-            return int(value) if value.lstrip("-").isdigit() else 0
+            # Use try/except instead of isdigit() because isdigit() returns True
+            # for Unicode superscript digits (²³) that int() can't parse
+            try:
+                return int(value)
+            except ValueError:
+                return 0
 
         if target_type is float:
             try:

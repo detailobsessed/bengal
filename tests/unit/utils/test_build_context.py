@@ -13,6 +13,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from bengal.orchestration.build_context import BuildContext
 
 
@@ -257,8 +259,12 @@ class TestContentCaching:
         assert ctx.get_content(Path("test.md")) == "original"
 
 
+@pytest.mark.parallel_unsafe
 class TestContentCacheThreadSafety:
-    """Tests for thread-safe content caching."""
+    """Tests for thread-safe content caching.
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for thread-safety tests.
+    """
 
     def test_concurrent_cache_writes(self):
         """Multiple threads can write to cache safely."""

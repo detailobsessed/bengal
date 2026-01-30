@@ -354,7 +354,7 @@ class TestRegressionDetection:
         "bengal.rendering.highlighting": 25.0,
     }
 
-    @pytest.mark.parametrize("module,baseline", list(BASELINES.items()))
+    @pytest.mark.parametrize(("module", "baseline"), list(BASELINES.items()))
     def test_no_regression_from_baseline(self, module: str, baseline: float):
         """Ensure import times don't regress from known baselines."""
         result = measure_import(module)

@@ -21,6 +21,9 @@ from bengal.orchestration.render import (
     clear_thread_local_pipelines,
 )
 
+# Module-level marker for tests using ThreadPoolExecutor
+pytestmark = pytest.mark.parallel_unsafe
+
 
 class TestBuildGenerationCounter:
     """Test the build generation counter mechanism."""

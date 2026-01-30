@@ -9,11 +9,17 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
+
 from bengal.utils.concurrency.concurrent_locks import PerKeyLockManager
 
 
+@pytest.mark.parallel_unsafe
 class TestPerKeyLockManager:
-    """Tests for PerKeyLockManager class."""
+    """Tests for PerKeyLockManager class.
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for thread-safety tests.
+    """
 
     def test_get_lock_creates_new_lock(self) -> None:
         """get_lock should create a new lock for a new key."""

@@ -12,14 +12,20 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
+import pytest
+
 from bengal.rendering.block_cache import BlockCache
 
 if TYPE_CHECKING:
     pass
 
 
+@pytest.mark.parallel_unsafe
 class TestBlockCacheThreadSafety:
-    """Test BlockCache under concurrent access."""
+    """Test BlockCache under concurrent access.
+
+    Marked parallel_unsafe: Uses ThreadPoolExecutor for thread-safety tests.
+    """
 
     def test_concurrent_set_same_block(self) -> None:
         """Verify setting the same block from multiple threads is safe."""

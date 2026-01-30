@@ -24,7 +24,7 @@ class TestTemplateCircularDependencies:
         site = Site.from_config(tmp_path)
         engine = create_engine(site)
 
-        with pytest.raises((KidaTemplateError, TemplateRuntimeError, RecursionError)):
+        with pytest.raises((KidaTemplateError, TemplateRuntimeError, RecursionError)):  # noqa: PT012
             tpl = engine.env.get_template("loop.html")
             tpl.render()
 
@@ -40,7 +40,7 @@ class TestTemplateCircularDependencies:
         site = Site.from_config(tmp_path)
         engine = create_engine(site)
 
-        with pytest.raises((KidaTemplateError, TemplateRuntimeError, RecursionError)):
+        with pytest.raises((KidaTemplateError, TemplateRuntimeError, RecursionError)):  # noqa: PT012
             tpl = engine.env.get_template("a.html")
             tpl.render()
 
@@ -55,6 +55,6 @@ class TestTemplateCircularDependencies:
         site = Site.from_config(tmp_path)
         engine = create_engine(site)
 
-        with pytest.raises((KidaTemplateError, TemplateRuntimeError, RecursionError)):
+        with pytest.raises((KidaTemplateError, TemplateRuntimeError, RecursionError)):  # noqa: PT012
             tpl = engine.env.get_template("base.html")
             tpl.render()

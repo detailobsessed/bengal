@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 import os
 import shutil
@@ -522,7 +520,7 @@ def reload_directives_factory():
     import bengal.directives.factory
 
     importlib.reload(bengal.directives.factory)
-    yield
+    return
 
 
 @pytest.fixture(scope="class")
@@ -571,7 +569,11 @@ Content for page {i}.""",
     site = Site.from_config(site_dir, config_path=config_path)
     site.discover_content()
     site.discover_assets()
-    _build_stats = site.build(parallel=False)  # Sequential for consistency
+    from bengal.orchestration.build.options import BuildOptions
+
+    _build_stats = site.build(
+        BuildOptions(force_sequential=True)
+    )  # Sequential for consistency
 
     # Yield site, with optional param to copy for modification
     if hasattr(request, "param") and request.param == "modifiable":

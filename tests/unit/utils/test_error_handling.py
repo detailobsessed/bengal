@@ -242,7 +242,7 @@ class TestErrorRecovery:
         def operation():
             raise ValueError("Error")
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Error"):
             with_error_recovery(operation, strict_mode=True)
 
     def test_with_error_recovery_failure_recovery(self) -> None:
@@ -272,7 +272,7 @@ class TestErrorRecovery:
     def test_error_recovery_context_failure_strict(self) -> None:
         """Test error_recovery_context in strict mode."""
         with (
-            pytest.raises(ValueError),
+            pytest.raises(ValueError, match="Error"),
             error_recovery_context("test operation", strict_mode=True),
         ):
             raise ValueError("Error")

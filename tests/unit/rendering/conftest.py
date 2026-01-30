@@ -52,7 +52,7 @@ def parser() -> MistuneParser:
     return MistuneParser()
 
 
-@pytest.fixture(autouse=True, scope="function")
+@pytest.fixture(autouse=True)
 def reset_parser_state(request: pytest.FixtureRequest) -> None:
     """
     Reset parser state between tests to prevent pollution.

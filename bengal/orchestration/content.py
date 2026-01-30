@@ -523,8 +523,8 @@ class ContentOrchestrator:
 
                 # Persist extraction payload for incremental cache hits.
                 set_page_cache_fn = (
-                    getattr(cache, "set_page_cache", None)
-                    if cache is not None
+                    getattr(build_cache, "set_page_cache", None)
+                    if build_cache is not None
                     else None
                 )
                 if set_page_cache_fn is not None:

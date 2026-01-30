@@ -185,7 +185,7 @@ def kida_env():
     return Environment(autoescape=True)
 
 
-@pytest.mark.parametrize("template_name,template_source", SIMPLE_TEMPLATES.items())
+@pytest.mark.parametrize(("template_name", "template_source"), SIMPLE_TEMPLATES.items())
 def test_kida_faster_than_jinja(
     benchmark, template_name, template_source, simple_context, jinja_env, kida_env
 ):

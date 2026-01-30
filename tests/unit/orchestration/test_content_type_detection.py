@@ -39,7 +39,7 @@ class TestContentTypeDetection:
         assert content_type == "custom"
 
     @pytest.mark.parametrize(
-        "section_name,expected_type",
+        ("section_name", "expected_type"),
         [
             # API Reference detection
             ("api", "autodoc-python"),

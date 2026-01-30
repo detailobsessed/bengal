@@ -751,7 +751,7 @@ console.log("Hello");
 # =============================================================================
 
 
-@pytest.mark.parametrize("name,source", DIRECTIVE_TEST_CASES)
+@pytest.mark.parametrize(("name", "source"), DIRECTIVE_TEST_CASES)
 def test_html_parity(
     name: str,
     source: str,
@@ -783,7 +783,7 @@ def test_html_parity(
 # =============================================================================
 
 
-@pytest.mark.parametrize("name,source", DIRECTIVE_TEST_CASES)
+@pytest.mark.parametrize(("name", "source"), DIRECTIVE_TEST_CASES)
 def test_golden_file(
     name: str,
     source: str,
@@ -1070,7 +1070,8 @@ Click me!
 """
         html = render_with_patitas(source)
         # Should have anchor element with href
-        assert "<a" in html.lower() and "href" in html.lower()
+        assert "<a" in html.lower()
+        assert "href" in html.lower()
 
     def test_card_with_icon(self, render_with_patitas: Callable[[str], str]) -> None:
         """Verify card with icon renders icon element."""
