@@ -280,10 +280,13 @@ def phase_assets(
             if theme_dir and theme_dir.exists():
                 # Check if output/assets directory was populated
                 output_assets = orchestrator.site.output_dir / "assets"
-                if (
-                    not output_assets.exists()
-                    or len(list(output_assets.rglob("*"))) < 5
-                ):
+                # Check for required CSS file instead of arbitrary file count threshold
+                # This fixes issue where CSS breaks during hot reload (lbliii/bengal#130)
+                output_css_dir = output_assets / "css"
+                css_missing = not output_css_dir.exists() or not any(
+                    f.name.startswith("style.") for f in output_css_dir.iterdir()
+                )
+                if not output_assets.exists() or css_missing:
                     # Theme assets not in output - re-process all assets
                     assets_to_process = orchestrator.site.assets
 

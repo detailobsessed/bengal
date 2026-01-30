@@ -241,8 +241,12 @@ def phase_incremental_filter_provenance(
         output_html_missing = (
             not output_dir.exists() or len(list(output_dir.iterdir())) == 0
         )
-        output_assets_missing = (
-            not output_assets_dir.exists() or len(list(output_assets_dir.iterdir())) < 3
+        # Check for required CSS file instead of arbitrary file count threshold
+        # This fixes issue where CSS breaks during hot reload (lbliii/bengal#130)
+        output_css_dir = output_assets_dir / "css"
+        output_assets_missing = not output_assets_dir.exists() or not (
+            output_css_dir.exists()
+            and any(f.name.startswith("style.") for f in output_css_dir.iterdir())
         )
 
         if (output_html_missing or output_assets_missing) and site.pages:
