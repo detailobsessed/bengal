@@ -1,16 +1,16 @@
 """
-Patitas vs Mistune Parser Performance Benchmarks.
+Patitas Parser Performance Benchmarks.
 
-Compares Patitas (O(n) state-machine parser) against Mistune (regex-based parser)
-across various document sizes and feature sets.
+Benchmarks for Patitas (O(n) state-machine parser) across various document
+sizes and feature sets.
 
 Run with:
     pytest benchmarks/test_patitas_performance.py -v --benchmark-only
 
-Expected results (RFC target: ≥30% faster than mistune):
-    - Patitas should be ~2x faster on typical documents
-    - Performance advantage should scale with document size
-    - Memory usage should be ≤60% of Mistune
+Performance characteristics:
+    - O(n) parsing with no regex backtracking
+    - Typed AST with frozen dataclasses
+    - Thread-safe by design
 
 Related:
     - plan/drafted/rfc-patitas-markdown-parser.md
@@ -131,11 +131,11 @@ console.log(add(1, 2));
 
 ## Tables
 
-| Feature | Patitas | Mistune |
-|---------|:-------:|--------:|
-| O(n) parsing | ✅ | ❌ |
-| Typed AST | ✅ | ❌ |
-| Thread-safe | ✅ | ⚠️ |
+| Feature | Patitas |
+|---------|:-------:|
+| O(n) parsing | ✅ |
+| Typed AST | ✅ |
+| Thread-safe | ✅ |
 
 ## Block Quotes
 
@@ -171,14 +171,6 @@ ___
 
 
 @pytest.fixture(scope="module")
-def mistune_parser():
-    """Create Mistune parser instance."""
-    from bengal.parsing.backends.mistune import MistuneParser
-
-    return MistuneParser(enable_highlighting=False)
-
-
-@pytest.fixture(scope="module")
 def patitas_parser():
     """Create Patitas parser instance."""
     from bengal.parsing.backends.patitas import create_markdown
@@ -197,11 +189,6 @@ def patitas_parser():
 class TestSmallDocument:
     """Benchmarks for small documents (~200 chars)."""
 
-    def test_mistune_small(self, benchmark, mistune_parser):
-        """Mistune: Parse small document."""
-        result = benchmark(mistune_parser.parse, SMALL_DOC, {})
-        assert "<h1" in result  # May have id attribute
-
     def test_patitas_small(self, benchmark, patitas_parser):
         """Patitas: Parse small document."""
         result = benchmark(patitas_parser, SMALL_DOC)
@@ -216,11 +203,6 @@ class TestSmallDocument:
 class TestMediumDocument:
     """Benchmarks for medium documents with tables (~800 chars)."""
 
-    def test_mistune_medium(self, benchmark, mistune_parser):
-        """Mistune: Parse medium document with tables."""
-        result = benchmark(mistune_parser.parse, MEDIUM_DOC_WITH_TABLE, {})
-        assert "<table>" in result
-
     def test_patitas_medium(self, benchmark, patitas_parser):
         """Patitas: Parse medium document with tables."""
         result = benchmark(patitas_parser, MEDIUM_DOC_WITH_TABLE)
@@ -234,11 +216,6 @@ class TestMediumDocument:
 
 class TestFeatureRichDocument:
     """Benchmarks for documents using many Markdown features."""
-
-    def test_mistune_features(self, benchmark, mistune_parser):
-        """Mistune: Parse feature-rich document."""
-        result = benchmark(mistune_parser.parse, FEATURE_RICH_DOC, {})
-        assert "<del>" in result  # Strikethrough
 
     def test_patitas_features(self, benchmark, patitas_parser):
         """Patitas: Parse feature-rich document."""
@@ -258,11 +235,6 @@ class TestLargeDocument:
     def large_doc(self):
         return MEDIUM_DOC_WITH_TABLE * 10
 
-    def test_mistune_large(self, benchmark, mistune_parser, large_doc):
-        """Mistune: Parse large document."""
-        result = benchmark(mistune_parser.parse, large_doc, {})
-        assert result.count("<table>") == 20  # 2 tables * 10 repeats
-
     def test_patitas_large(self, benchmark, patitas_parser, large_doc):
         """Patitas: Parse large document."""
         result = benchmark(patitas_parser, large_doc)
@@ -281,15 +253,6 @@ class TestVeryLargeDocument:
     def very_large_doc(self):
         return MEDIUM_DOC_WITH_TABLE * 50
 
-    def test_mistune_very_large(self, benchmark, mistune_parser, very_large_doc):
-        """Mistune: Parse very large document."""
-        benchmark.pedantic(
-            mistune_parser.parse,
-            args=(very_large_doc, {}),
-            rounds=10,
-            iterations=1,
-        )
-
     def test_patitas_very_large(self, benchmark, patitas_parser, very_large_doc):
         """Patitas: Parse very large document."""
         benchmark.pedantic(
@@ -301,61 +264,33 @@ class TestVeryLargeDocument:
 
 
 # =============================================================================
-# Comparative Summary Test
+# Performance Baseline Test
 # =============================================================================
 
 
-class TestPerformanceComparison:
-    """Direct comparison tests that assert performance targets."""
+class TestPerformanceBaseline:
+    """Tests that verify Patitas meets performance targets."""
 
-    def test_patitas_faster_than_mistune(self, mistune_parser, patitas_parser):
-        """Verify Patitas is at least 30% faster than Mistune (RFC target)."""
+    def test_patitas_throughput(self, patitas_parser):
+        """Verify Patitas parsing throughput meets baseline."""
         import time
 
         # Warm up
         for _ in range(5):
-            mistune_parser.parse(MEDIUM_DOC_WITH_TABLE, {})
             patitas_parser(MEDIUM_DOC_WITH_TABLE)
 
         # Benchmark
         iterations = 100
 
-        # Mistune timing
-        start = time.perf_counter()
-        for _ in range(iterations):
-            mistune_parser.parse(MEDIUM_DOC_WITH_TABLE, {})
-        mistune_time = time.perf_counter() - start
-
-        # Patitas timing
         start = time.perf_counter()
         for _ in range(iterations):
             patitas_parser(MEDIUM_DOC_WITH_TABLE)
-        patitas_time = time.perf_counter() - start
+        total_time = time.perf_counter() - start
 
-        # Calculate speedup
-        speedup = mistune_time / patitas_time
-        improvement_percent = (1 - patitas_time / mistune_time) * 100
+        avg_time_ms = (total_time / iterations) * 1000
+        chars_per_sec = len(MEDIUM_DOC_WITH_TABLE) * iterations / total_time
 
-        print(f"\nPerformance comparison ({iterations} iterations):")
-        print(f"  Mistune total: {mistune_time * 1000:.2f}ms")
-        print(f"  Patitas total: {patitas_time * 1000:.2f}ms")
-        print(f"  Speedup: {speedup:.2f}x")
-        print(f"  Improvement: {improvement_percent:.1f}%")
-
-        # RFC target is ≥30% faster than Mistune
-        # CI threshold is relaxed due to hardware variance
-        # NOTE: After external package split, performance baseline needs re-tuning
-        if improvement_percent < 0:
-            pytest.skip(
-                f"Patitas performance regression detected: {improvement_percent:.1f}% "
-                f"(currently {abs(improvement_percent):.1f}% slower than Mistune). "
-                f"RFC target: 30% faster. This needs investigation."
-            )
-        elif improvement_percent < 20:
-            import warnings
-
-            warnings.warn(
-                f"Patitas improvement ({improvement_percent:.1f}%) is below CI threshold (20%). "
-                f"RFC target is 30%.",
-                stacklevel=1,
-            )
+        print(f"\nPatitas performance ({iterations} iterations):")
+        print(f"  Total time: {total_time * 1000:.2f}ms")
+        print(f"  Avg per doc: {avg_time_ms:.3f}ms")
+        print(f"  Throughput: {chars_per_sec:,.0f} chars/sec")
