@@ -67,8 +67,14 @@ class _HtmlNormalizer(html.parser.HTMLParser):
     - Whitespace differences (leading/trailing/multiple spaces)
     - Attribute order differences
     - Self-closing tag variations (</br> vs <br /> vs <br>)
+    - Heading id attributes (Patitas generates them, Mistune doesn't)
 
     """
+
+    # Attributes to ignore during comparison (parser implementation details)
+    IGNORED_ATTRS = frozenset(["id"])
+    # Tags where id attributes should be ignored (headings)
+    HEADING_TAGS = frozenset(["h1", "h2", "h3", "h4", "h5", "h6"])
 
     def __init__(self) -> None:
         super().__init__()
@@ -82,6 +88,12 @@ class _HtmlNormalizer(html.parser.HTMLParser):
         if tag in ("pre", "code"):
             self._pre_depth += 1
             self._in_pre = True
+
+        # Filter out ignored attributes for heading tags
+        if tag in self.HEADING_TAGS:
+            attrs = [
+                (name, value) for name, value in attrs if name not in self.IGNORED_ATTRS
+            ]
 
         # Sort attributes alphabetically for consistent comparison
         sorted_attrs = sorted(attrs, key=lambda x: x[0])

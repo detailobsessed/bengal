@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import shutil
@@ -434,6 +436,10 @@ def reset_bengal_state(request):
     With the LazyLogger pattern, module-level logger references automatically
     refresh when reset_loggers() is called, eliminating orphaned logger issues.
 
+    Note: Directive factory reload is NOT done here for performance reasons.
+    Tests that need fresh directive registration should use the
+    `reload_directives_factory` fixture explicitly.
+
     See: docs/cache-registry-system.md for details on the cache registry system.
 
     """
@@ -451,19 +457,6 @@ def reset_bengal_state(request):
             reset_parser_cache()
         except ImportError:
             logger.debug("Parser cache reset skipped: reset_parser_cache not available")
-
-    # Setup: Force reload directives factory to pick up any new directives
-    # This is needed because directive imports happen at module load time
-    try:
-        import importlib
-
-        import bengal.directives.factory
-
-        importlib.reload(bengal.directives.factory)
-    except ImportError:
-        logger.debug("Directives factory reload skipped: module not available")
-    except AttributeError as e:
-        logger.debug("Directives factory reload failed: %s", e)
 
     yield
 
@@ -508,6 +501,28 @@ def reset_bengal_state(request):
             clear_global_context_cache()
         except ImportError:
             logger.debug("Manual cache cleanup skipped: modules not available")
+
+
+@pytest.fixture
+def reload_directives_factory():
+    """
+    Force reload the directives factory to pick up any new directives.
+
+    This is an opt-in fixture for tests that register custom directives or
+    need to ensure directive state is fresh. Most tests don't need this.
+
+    Usage:
+        def test_custom_directive(reload_directives_factory):
+            # Directives factory is reloaded before this test runs
+            ...
+
+    """
+    import importlib
+
+    import bengal.directives.factory
+
+    importlib.reload(bengal.directives.factory)
+    yield
 
 
 @pytest.fixture(scope="class")

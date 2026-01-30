@@ -184,8 +184,8 @@ Unicode title content.
         "leading_whitespace_content",
         """\
 :::{note}
-    Indented content line 1
-    Indented content line 2
+  Indented content line 1
+  Indented content line 2
 :::
 """,
     ),

@@ -20,18 +20,16 @@ See: plan/rfc-patitas-commonmark-compliance.md for roadmap
 
 """
 
+from __future__ import annotations
+
 import json
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any
 
 import pytest
 
 from bengal.parsing.backends.patitas import parse
-
-if TYPE_CHECKING:
-    from typing import Any
-
 
 # Load the CommonMark spec
 SPEC_PATH = Path(__file__).parent / "commonmark_spec_0_31_2.json"
