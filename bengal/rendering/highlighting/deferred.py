@@ -1,5 +1,5 @@
 """
-Syntax highlighting plugin for Mistune parser.
+Deferred syntax highlighting for parallel batch processing.
 
 Provides syntax highlighting for code blocks with support for:
 - Language detection
@@ -33,12 +33,20 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from bengal.parsing.backends.mistune.patterns import (
-    CODE_INFO_PATTERN,
-    HL_LINES_PATTERN,
-)
-from bengal.rendering.highlighting import highlight, highlight_many
+from bengal.rendering.highlighting.rosettes import RosettesBackend
 from bengal.utils.observability.logger import get_logger
+
+# Pattern to extract line highlight syntax from code fence info string
+# Matches: python {5} or yaml {1,3,5} or js {1-3,5,7-9}
+HL_LINES_PATTERN = re.compile(r"^(\S+)\s*\{([^}]+)\}$")
+
+# Pattern to parse code fence info with optional title and line highlights
+# Matches: python, python title="file.py", python {1,3}, python title="file.py" {1,3}
+CODE_INFO_PATTERN = re.compile(
+    r"^(?P<lang>\S+)"  # Language (required, no spaces)
+    r'(?:\s+title="(?P<title>[^"]*)")?'  # title="..." (optional)
+    r"(?:\s*\{(?P<hl>[^}]+)\})?$"  # {1,3-5} line highlights (optional)
+)
 
 logger = get_logger(__name__)
 
@@ -149,16 +157,19 @@ class CodeBlockCollector:
 
         # Batch process simple blocks in parallel
         if simple_blocks:
+            import rosettes
+
             items = [(code, lang) for code, lang, _ in simple_blocks]
-            highlighted = highlight_many(items)
+            highlighted = rosettes.highlight_many(items)
 
             for (_, _, block), html in zip(simple_blocks, highlighted, strict=True):
                 results[block.placeholder_id] = _wrap_with_title(html, block.title)
 
         # Process complex blocks sequentially (they have line highlighting)
+        backend = RosettesBackend()
         for block in complex_blocks:
             try:
-                html = highlight(
+                html = backend.highlight(
                     code=block.code,
                     language=block.language,
                     hl_lines=block.hl_lines,
@@ -401,9 +412,9 @@ def create_syntax_highlighting_plugin() -> Callable[[Any], None]:
 
             # Immediate highlighting mode (default)
             try:
-                # Highlight using the configured backend (via registry)
-                # The highlight() function handles backend selection and fallback
-                highlighted = highlight(
+                # Highlight using rosettes backend directly
+                backend = RosettesBackend()
+                highlighted = backend.highlight(
                     code=code,
                     language=language,
                     hl_lines=hl_lines if hl_lines else None,

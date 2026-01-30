@@ -14,19 +14,19 @@ These tests verify that:
 
 import pytest
 
-from bengal.parsing.backends.mistune import MistuneParser
+from bengal.parsing import PatitasParser
 
 
 @pytest.fixture
-def parser() -> MistuneParser:
+def parser() -> PatitasParser:
     """Create parser for directive tests."""
-    return MistuneParser()
+    return PatitasParser()
 
 
 class TestStepsNesting:
     """Tests for steps/step directive nesting validation."""
 
-    def test_valid_steps_nesting(self, parser: MistuneParser) -> None:
+    def test_valid_steps_nesting(self, parser: PatitasParser) -> None:
         """Valid steps with nested step children should render correctly."""
         markdown = """\
 ::::{steps}
@@ -49,7 +49,7 @@ Second step content
         assert "First step content" in result
         assert "Second step content" in result
 
-    def test_orphaned_step_renders(self, parser: MistuneParser) -> None:
+    def test_orphaned_step_renders(self, parser: PatitasParser) -> None:
         """
         Orphaned step (without steps parent) should still render.
 
@@ -70,7 +70,7 @@ Orphaned step content
 class TestTabsNesting:
     """Tests for tab-set/tab-item directive nesting validation."""
 
-    def test_valid_tabset_nesting(self, parser: MistuneParser) -> None:
+    def test_valid_tabset_nesting(self, parser: PatitasParser) -> None:
         """Valid tab-set with nested tab-item children should render correctly."""
         markdown = """\
 ::::{tab-set}
@@ -95,7 +95,7 @@ Second tab content
         assert "First tab content" in result
         assert "Second tab content" in result
 
-    def test_orphaned_tabitem_renders(self, parser: MistuneParser) -> None:
+    def test_orphaned_tabitem_renders(self, parser: PatitasParser) -> None:
         """
         Orphaned tab-item (without tab-set parent) should still render.
 
@@ -115,7 +115,7 @@ Orphaned tab content
 class TestCardsNesting:
     """Tests for cards/card directive nesting validation."""
 
-    def test_valid_cards_nesting(self, parser: MistuneParser) -> None:
+    def test_valid_cards_nesting(self, parser: PatitasParser) -> None:
         """Valid cards with nested card children should render correctly."""
         markdown = """\
 ::::{cards}
@@ -139,7 +139,7 @@ Second card content
         assert "First Card" in result
         assert "Second Card" in result
 
-    def test_standalone_card_renders(self, parser: MistuneParser) -> None:
+    def test_standalone_card_renders(self, parser: PatitasParser) -> None:
         """
         Standalone card (without cards parent) should still render.
 
@@ -161,7 +161,7 @@ Standalone card content
 class TestNestedDirectiveCombinations:
     """Tests for complex nested directive scenarios."""
 
-    def test_deeply_nested_structure(self, parser: MistuneParser) -> None:
+    def test_deeply_nested_structure(self, parser: PatitasParser) -> None:
         """Test deeply nested directives render correctly."""
         markdown = """\
 :::::{cards}
@@ -187,7 +187,7 @@ Step inside card
         assert 'class="card-grid"' in result
         assert 'class="bengal-steps"' in result or "Step inside card" in result
 
-    def test_admonition_with_nested_directive(self, parser: MistuneParser) -> None:
+    def test_admonition_with_nested_directive(self, parser: PatitasParser) -> None:
         """Test admonition containing nested directives."""
         markdown = """\
 ::::{note}
@@ -208,7 +208,7 @@ Step inside note
         assert 'class="admonition' in result
         # Steps may or may not render inside depending on parser behavior
 
-    def test_tabs_with_code_blocks(self, parser: MistuneParser) -> None:
+    def test_tabs_with_code_blocks(self, parser: PatitasParser) -> None:
         """Test tabs containing code blocks."""
         markdown = """\
 ::::{tab-set}
@@ -239,7 +239,7 @@ console.log("Hello");
 class TestContractValidationBehavior:
     """Tests verifying contract validation doesn't break rendering."""
 
-    def test_invalid_nesting_still_renders_content(self, parser: MistuneParser) -> None:
+    def test_invalid_nesting_still_renders_content(self, parser: PatitasParser) -> None:
         """Even with invalid nesting, content should still be rendered."""
         # Multiple steps without steps container
         markdown = """\
@@ -257,7 +257,7 @@ Second orphan
         assert "First orphan" in result
         assert "Second orphan" in result
 
-    def test_mixed_valid_invalid_nesting(self, parser: MistuneParser) -> None:
+    def test_mixed_valid_invalid_nesting(self, parser: PatitasParser) -> None:
         """Mix of valid and invalid nesting should all render."""
         markdown = """\
 ::::{steps}
