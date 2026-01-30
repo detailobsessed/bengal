@@ -16,19 +16,19 @@ Content
 
 import pytest
 
-from bengal.parsing.backends.mistune import MistuneParser
+from bengal.parsing import PatitasParser
 
 
 @pytest.fixture
-def parser() -> MistuneParser:
+def parser() -> PatitasParser:
     """Create parser for directive tests."""
-    return MistuneParser()
+    return PatitasParser()
 
 
 class TestBasicNamedClosers:
     """Tests for basic named closer functionality."""
 
-    def test_simple_note_with_named_closer(self, parser: MistuneParser) -> None:
+    def test_simple_note_with_named_closer(self, parser: PatitasParser) -> None:
         """Simple directive with named closer."""
         markdown = """\
 :::{note}
@@ -39,7 +39,7 @@ This is a note.
         assert 'class="admonition note"' in result
         assert "This is a note." in result
 
-    def test_warning_with_named_closer(self, parser: MistuneParser) -> None:
+    def test_warning_with_named_closer(self, parser: PatitasParser) -> None:
         """Warning directive with named closer."""
         markdown = """\
 :::{warning}
@@ -50,7 +50,7 @@ Be careful!
         assert 'class="admonition warning"' in result
         assert "Be careful!" in result
 
-    def test_dropdown_with_named_closer(self, parser: MistuneParser) -> None:
+    def test_dropdown_with_named_closer(self, parser: PatitasParser) -> None:
         """Dropdown directive with named closer."""
         markdown = """\
 :::{dropdown} Click me
@@ -65,7 +65,7 @@ Hidden content
 class TestNestedNamedClosers:
     """Tests for nested directives with named closers."""
 
-    def test_tabs_with_named_closers(self, parser: MistuneParser) -> None:
+    def test_tabs_with_named_closers(self, parser: PatitasParser) -> None:
         """Tab-set and tab-items with named closers."""
         markdown = """\
 :::{tab-set}
@@ -84,7 +84,7 @@ JS code here
         assert "Python code here" in result
         assert "JS code here" in result
 
-    def test_cards_with_named_closers(self, parser: MistuneParser) -> None:
+    def test_cards_with_named_closers(self, parser: PatitasParser) -> None:
         """Cards container with named closers."""
         markdown = """\
 :::{cards}
@@ -101,7 +101,7 @@ Second content
         assert "First Card" in result
         assert "Second Card" in result
 
-    def test_steps_with_named_closers(self, parser: MistuneParser) -> None:
+    def test_steps_with_named_closers(self, parser: PatitasParser) -> None:
         """Steps directive with named closers."""
         markdown = """\
 :::{steps}
@@ -117,7 +117,7 @@ Edit config file
         assert "Install" in result or "<ol" in result
         assert "Configure" in result
 
-    def test_steps_with_all_options_named_closers(self, parser: MistuneParser) -> None:
+    def test_steps_with_all_options_named_closers(self, parser: PatitasParser) -> None:
         """Steps directive with all new options using named closers."""
         markdown = """\
 :::{steps}
@@ -157,7 +157,7 @@ Optional configuration.
 class TestDeeplyNestedNamedClosers:
     """Tests for deeply nested structures with named closers."""
 
-    def test_three_level_nesting(self, parser: MistuneParser) -> None:
+    def test_three_level_nesting(self, parser: PatitasParser) -> None:
         """Three levels of nesting with named closers."""
         markdown = """\
 :::{tab-set}
@@ -173,7 +173,7 @@ A note inside a tab
         assert 'class="admonition note"' in result
         assert "A note inside a tab" in result
 
-    def test_four_level_nesting(self, parser: MistuneParser) -> None:
+    def test_four_level_nesting(self, parser: PatitasParser) -> None:
         """Four levels of nesting with named closers."""
         markdown = """\
 :::{tab-set}
@@ -191,7 +191,7 @@ Deeply nested content
         assert 'class="card-grid"' in result
         assert "Deep Card" in result
 
-    def test_five_level_nesting_no_counting(self, parser: MistuneParser) -> None:
+    def test_five_level_nesting_no_counting(self, parser: PatitasParser) -> None:
         """
         Five levels deep - this would require :::::: with fence counting.
 
@@ -220,7 +220,7 @@ Five levels deep!
 class TestBackwardCompatibility:
     """Tests ensuring fence-depth counting still works."""
 
-    def test_traditional_fence_depth_tabs(self, parser: MistuneParser) -> None:
+    def test_traditional_fence_depth_tabs(self, parser: PatitasParser) -> None:
         """Traditional fence-depth counting for tabs."""
         markdown = """\
 ::::{tab-set}
@@ -237,7 +237,7 @@ Content 2
         assert "Content 1" in result
         assert "Content 2" in result
 
-    def test_traditional_nested_admonition(self, parser: MistuneParser) -> None:
+    def test_traditional_nested_admonition(self, parser: PatitasParser) -> None:
         """Traditional fence-depth for nested admonition."""
         markdown = """\
 ::::{tab-set}
@@ -252,7 +252,7 @@ Nested note
         result = parser.parse(markdown, {})
         assert "Notes" in result or "tab" in result.lower()
 
-    def test_simple_admonition_fence_depth(self, parser: MistuneParser) -> None:
+    def test_simple_admonition_fence_depth(self, parser: PatitasParser) -> None:
         """Simple admonition with fence-depth closing."""
         markdown = """\
 :::{note}
@@ -267,7 +267,7 @@ Content
 class TestMixedSyntax:
     """Tests for mixing named closers with fence-depth counting."""
 
-    def test_named_inner_fence_outer(self, parser: MistuneParser) -> None:
+    def test_named_inner_fence_outer(self, parser: PatitasParser) -> None:
         """Named closer inside, fence-depth outside."""
         markdown = """\
 ::::{tab-set}
@@ -282,7 +282,7 @@ A note
         assert 'class="tabs"' in result or 'class="tab-set"' in result
         assert 'class="admonition note"' in result
 
-    def test_fence_inner_named_outer(self, parser: MistuneParser) -> None:
+    def test_fence_inner_named_outer(self, parser: PatitasParser) -> None:
         """Fence-depth inside, named closer outside."""
         markdown = """\
 :::{tab-set}
@@ -301,7 +301,7 @@ Note content
 class TestEdgeCases:
     """Edge cases and error handling for named closers."""
 
-    def test_named_closer_in_code_block_ignored(self, parser: MistuneParser) -> None:
+    def test_named_closer_in_code_block_ignored(self, parser: PatitasParser) -> None:
         """Named closer inside code block should not close directive."""
         markdown = """\
 :::{note}
@@ -316,7 +316,7 @@ Still in the note!
         assert 'class="admonition note"' in result
         assert "Still in the note!" in result
 
-    def test_nested_different_type_directives(self, parser: MistuneParser) -> None:
+    def test_nested_different_type_directives(self, parser: PatitasParser) -> None:
         """Nested directives of different types with named closers."""
         markdown = """\
 :::{note}
@@ -330,7 +330,7 @@ Inner tip
         assert 'class="admonition' in result
         assert "Inner tip" in result
 
-    def test_whitespace_in_closer(self, parser: MistuneParser) -> None:
+    def test_whitespace_in_closer(self, parser: PatitasParser) -> None:
         """Named closer with trailing whitespace."""
         markdown = """\
 :::{note}
@@ -341,7 +341,7 @@ Content
         assert 'class="admonition note"' in result
         assert "Content" in result
 
-    def test_indented_named_closer(self, parser: MistuneParser) -> None:
+    def test_indented_named_closer(self, parser: PatitasParser) -> None:
         """Named closer with leading whitespace (indented)."""
         markdown = """\
 :::{note}

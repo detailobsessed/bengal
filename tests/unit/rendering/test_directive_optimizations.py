@@ -61,9 +61,9 @@ class TestSingletonDirectiveInstances:
         _instances = _get_directive_instances()
 
         # Parse two different pages
-        from bengal.parsing import MistuneParser
+        from bengal.parsing import PatitasParser
 
-        parser = MistuneParser()
+        parser = PatitasParser()
         page1 = parser.parse(":::{note}\nContent 1\n:::", {})
         page2 = parser.parse(":::{note}\nContent 2\n:::", {})
 
@@ -186,9 +186,9 @@ class TestContractValidationSkipping:
 
     def test_validation_default_enabled(self):
         """Validation should be enabled by default."""
-        from bengal.parsing import MistuneParser
+        from bengal.parsing import PatitasParser
 
-        parser = MistuneParser()
+        parser = PatitasParser()
 
         # Parse with contract violation (step without steps parent)
         content = ":::{step} Step 1\nContent\n:::"
@@ -227,9 +227,9 @@ class TestBackwardsCompatibility:
 
     def test_parser_creation_still_works(self):
         """Parser creation should still work."""
-        from bengal.parsing import MistuneParser
+        from bengal.parsing import PatitasParser
 
-        parser = MistuneParser()
+        parser = PatitasParser()
         assert parser is not None
 
         # Should be able to parse directives
