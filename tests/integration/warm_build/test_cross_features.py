@@ -450,6 +450,7 @@ User guide with custom tags (overrides cascade).
 class TestWarmBuildCrossFeatureEdgeCases:
     """Edge cases for cross-feature interactions."""
 
+    @pytest.mark.timeout(60)
     def test_all_features_enabled(self, tmp_path: Path) -> None:
         """
         Test warm build with all features enabled.

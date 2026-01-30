@@ -161,6 +161,9 @@ dev = [
     "radon>=6.0.1",
     "poethepoet>=0.35.0",
     "pyupgrade>=3.21.2",
+    "vulture>=2.14",
+    "pytest-randomly>=4.0.1",
+    "pytest-repeat>=0.9.4",
 ]
 
 [tool.poe.tasks]
@@ -173,11 +176,17 @@ check = ["lint", "format-check"]
 
 # Type Checking
 typecheck = "ty check"
+typecheck-strict = "ty check --error-on-warning"
 
 # Testing
 test = "pytest tests/ -x -q"
 test-cov = "pytest tests/ --cov=bengal --cov-report=term-missing"
-test-fast = "pytest tests/ -x -q --ignore=tests/e2e"
+test-fast = "pytest tests/ -x -q --ignore=tests/e2e --ignore=tests/integration"
+test-unit = "pytest tests/unit/ -x -q"
+test-integration = "pytest tests/integration/ -x -q --timeout=30"
+test-random = "pytest tests/ -p randomly --randomly-seed=random -x -q"
+test-parallel = "pytest tests/ -n auto -x -q"
+test-verbose = "pytest tests/ -v --tb=long"
 
 # All checks (what CI runs)
 ci = ["check", "typecheck", "test"]
@@ -186,5 +195,9 @@ ci = ["check", "typecheck", "test"]
 dev = "bengal serve"
 build = "bengal build"
 
+# Dead code & quality analysis
+deadcode = "vulture bengal/ --min-confidence 80"
+complexity = "radon cc bengal/ -a -s"
+
 # Cleanup
-clean = "rm -rf dist build .pytest_cache .coverage htmlcov .ruff_cache"
+clean = "rm -rf dist build .pytest_cache .coverage htmlcov .ruff_cache .bengal public"

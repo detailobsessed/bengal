@@ -191,6 +191,8 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-forked" },
     { name = "pytest-mock" },
+    { name = "pytest-randomly" },
+    { name = "pytest-repeat" },
     { name = "pytest-textual-snapshot" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -205,6 +207,7 @@ dev = [
     { name = "types-pygments" },
     { name = "types-python-dateutil" },
     { name = "types-pyyaml" },
+    { name = "vulture" },
 ]
 
 [package.metadata]
@@ -255,6 +258,8 @@ dev = [
     { name = "pytest-cov", specifier = ">=4.1.0" },
     { name = "pytest-forked", specifier = ">=1.6.0" },
     { name = "pytest-mock", specifier = ">=3.11.0" },
+    { name = "pytest-randomly", specifier = ">=4.0.1" },
+    { name = "pytest-repeat", specifier = ">=0.9.4" },
     { name = "pytest-textual-snapshot", specifier = ">=0.4.0" },
     { name = "pytest-timeout", specifier = ">=2.2.0" },
     { name = "pytest-xdist", specifier = ">=3.3.0" },
@@ -269,6 +274,7 @@ dev = [
     { name = "types-pygments", specifier = ">=2.18.0" },
     { name = "types-python-dateutil", specifier = ">=2.9.0" },
     { name = "types-pyyaml", specifier = ">=6.0.12" },
+    { name = "vulture", specifier = ">=2.14" },
 ]
 
 [[package]]
@@ -1022,6 +1028,30 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-randomly"
+version = "4.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c4/1d/258a4bf1109258c00c35043f40433be5c16647387b6e7cd5582d638c116b/pytest_randomly-4.0.1.tar.gz", hash = "sha256:174e57bb12ac2c26f3578188490bd333f0e80620c3f47340158a86eca0593cd8", size = 14130, upload-time = "2025-09-12T15:23:00.085Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/3e/a4a9227807b56869790aad3e24472a554b585974fe7e551ea350f50897ae/pytest_randomly-4.0.1-py3-none-any.whl", hash = "sha256:e0dfad2fd4f35e07beff1e47c17fbafcf98f9bf4531fd369d9260e2f858bfcb7", size = 8304, upload-time = "2025-09-12T15:22:58.946Z" },
+]
+
+[[package]]
+name = "pytest-repeat"
+version = "0.9.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/80/d4/69e9dbb9b8266df0b157c72be32083403c412990af15c7c15f7a3fd1b142/pytest_repeat-0.9.4.tar.gz", hash = "sha256:d92ac14dfaa6ffcfe6917e5d16f0c9bc82380c135b03c2a5f412d2637f224485", size = 6488, upload-time = "2025-04-07T14:59:53.077Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/73/d4/8b706b81b07b43081bd68a2c0359fe895b74bf664b20aca8005d2bb3be71/pytest_repeat-0.9.4-py3-none-any.whl", hash = "sha256:c1738b4e412a6f3b3b9e0b8b29fcd7a423e50f87381ad9307ef6f5a8601139f3", size = 4180, upload-time = "2025-04-07T14:59:51.492Z" },
+]
+
+[[package]]
 name = "pytest-textual-snapshot"
 version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1435,6 +1465,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c1/37/945b4ca0ac27e3dc4952642d4c900edd030b3da6c9634875af6e13ae80e5/uvloop-0.22.1-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b91328c72635f6f9e0282e4a57da7470c7350ab1c9f48546c0f2866205349d21", size = 4467065, upload-time = "2025-10-16T22:16:58.206Z" },
     { url = "https://files.pythonhosted.org/packages/97/cc/48d232f33d60e2e2e0b42f4e73455b146b76ebe216487e862700457fbf3c/uvloop-0.22.1-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:daf620c2995d193449393d6c62131b3fbd40a63bf7b307a1527856ace637fe88", size = 4328384, upload-time = "2025-10-16T22:16:59.36Z" },
     { url = "https://files.pythonhosted.org/packages/e4/16/c1fd27e9549f3c4baf1dc9c20c456cd2f822dbf8de9f463824b0c0357e06/uvloop-0.22.1-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:6cde23eeda1a25c75b2e07d39970f3374105d5eafbaab2a4482be82f272d5a5e", size = 4296730, upload-time = "2025-10-16T22:17:00.744Z" },
+]
+
+[[package]]
+name = "vulture"
+version = "2.14"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/25/925f35db758a0f9199113aaf61d703de891676b082bd7cf73ea01d6000f7/vulture-2.14.tar.gz", hash = "sha256:cb8277902a1138deeab796ec5bef7076a6e0248ca3607a3f3dee0b6d9e9b8415", size = 58823, upload-time = "2024-12-08T17:39:43.319Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a0/56/0cc15b8ff2613c1d5c3dc1f3f576ede1c43868c1bc2e5ccaa2d4bcd7974d/vulture-2.14-py2.py3-none-any.whl", hash = "sha256:d9a90dba89607489548a49d557f8bac8112bd25d3cbc8aeef23e860811bd5ed9", size = 28915, upload-time = "2024-12-08T17:39:40.573Z" },
 ]
 
 [[package]]
