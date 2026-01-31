@@ -31,7 +31,7 @@ from kida.environment import (
     TemplateSyntaxError as KidaTemplateSyntaxError,
 )
 
-from bengal.errors import BengalRenderingError
+from bengal.errors import BengalRenderingError, ErrorCode
 from bengal.protocols import (
     EngineCapability,
     SiteLike,
@@ -351,6 +351,7 @@ class KidaTemplateEngine:
         except KidaTemplateSyntaxError as e:
             raise BengalRenderingError(
                 message=f"Template syntax error in '{name}': {e}",
+                code=ErrorCode.R002,
                 original_error=e,
             ) from e
         except TypeError as e:
@@ -384,15 +385,18 @@ class KidaTemplateEngine:
                         f"Call stack:\n{context_str}\n"
                         f"Check that all filters and template functions are properly registered."
                     ),
+                    code=ErrorCode.R004,
                     original_error=e,
                 ) from e
             raise BengalRenderingError(
                 message=f"Template render error in '{name}': {e}",
+                code=ErrorCode.R010,
                 original_error=e,
             ) from e
         except Exception as e:
             raise BengalRenderingError(
                 message=f"Template render error in '{name}': {e}",
+                code=ErrorCode.R010,
                 original_error=e,
             ) from e
 
@@ -441,11 +445,13 @@ class KidaTemplateEngine:
                 return ""
             raise BengalRenderingError(
                 message=f"Template string render error: {e}",
+                code=ErrorCode.R010,
                 original_error=e,
             ) from e
         except Exception as e:
             raise BengalRenderingError(
                 message=f"Template string render error: {e}",
+                code=ErrorCode.R010,
                 original_error=e,
             ) from e
 
