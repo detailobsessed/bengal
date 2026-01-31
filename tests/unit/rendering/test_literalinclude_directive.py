@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from bengal.directives.include_utils import load_file_content
 from bengal.directives.literalinclude import (
     LiteralIncludeDirective,
     render_literalinclude,
@@ -339,11 +340,7 @@ class TestLiteralIncludeDirective:
         self, multi_line_code_file, mock_state_with_root
     ):
         """Test loading file with line range."""
-        directive = LiteralIncludeDirective()
-
-        content = directive._load_file(
-            multi_line_code_file, start_line=5, end_line=15, emphasize_lines=None
-        )
+        content = load_file_content(multi_line_code_file, start_line=5, end_line=15)
 
         lines = content.split("\n")
         assert len(lines) == 11  # Lines 5-15 inclusive
@@ -356,13 +353,12 @@ class TestLiteralIncludeDirective:
 
     def test_load_file_with_emphasize(self, multi_line_code_file, mock_state_with_root):
         """Test loading file with emphasize lines."""
-        directive = LiteralIncludeDirective()
-
-        content = directive._load_file(
+        # Note: emphasize_lines is now handled in the directive parse method,
+        # not in load_file_content. This test verifies basic file loading.
+        content = load_file_content(
             multi_line_code_file,
             start_line=None,
             end_line=None,
-            emphasize_lines="5,6,7",
         )
 
         # Content should be loaded (emphasis is handled in render)
@@ -373,10 +369,10 @@ class TestLiteralIncludeDirective:
         self, multi_line_code_file, mock_state_with_root
     ):
         """Test loading file with emphasize line range."""
-        directive = LiteralIncludeDirective()
-
-        content = directive._load_file(
-            multi_line_code_file, start_line=None, end_line=None, emphasize_lines="5-7"
+        # Note: emphasize_lines is now handled in the directive parse method,
+        # not in load_file_content. This test verifies basic file loading.
+        content = load_file_content(
+            multi_line_code_file, start_line=None, end_line=None
         )
 
         assert content is not None
@@ -384,12 +380,8 @@ class TestLiteralIncludeDirective:
 
     def test_load_file_nonexistent(self, temp_site_dir):
         """Test loading nonexistent file."""
-        directive = LiteralIncludeDirective()
-
         nonexistent = temp_site_dir / "nonexistent.py"
-        content = directive._load_file(
-            nonexistent, start_line=None, end_line=None, emphasize_lines=None
-        )
+        content = load_file_content(nonexistent, start_line=None, end_line=None)
 
         assert content is None
 

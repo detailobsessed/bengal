@@ -339,7 +339,7 @@ class ConfigDirectoryLoader:
                     file=str(yaml_file),
                     keys=list(file_config.keys()),
                 )
-            except ConfigLoadError:
+            except BengalConfigError:
                 # Re-raise config errors immediately (critical)
                 raise
             except Exception as e:
