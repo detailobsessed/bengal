@@ -31,6 +31,53 @@ from functools import cached_property
 from typing import Any, Protocol, cast
 
 # -----------------------------------------------------------------------------
+# Shared Mixin for Dict-like Access
+# -----------------------------------------------------------------------------
+
+
+class DictLikeMixin:
+    """
+    Mixin providing dict-like iteration methods.
+
+    Used by ConfigAccessor and ConfigSection to share common dict-like
+    interface methods (setdefault, items, keys, values, __contains__, __iter__).
+
+    Subclasses must define _data attribute as dict[str, Any].
+
+    Note: Uses empty __slots__ to preserve memory efficiency when inherited
+    by classes that define their own __slots__ (e.g., ConfigSection).
+
+    """
+
+    __slots__ = ()
+
+    _data: dict[str, Any]
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        """Set default value if key doesn't exist, return value."""
+        return self._data.setdefault(key, default)
+
+    def items(self):
+        """Return dict items iterator for compatibility."""
+        return self._data.items()
+
+    def keys(self):
+        """Return dict keys iterator for compatibility."""
+        return self._data.keys()
+
+    def values(self):
+        """Return dict values iterator for compatibility."""
+        return self._data.values()
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._data
+
+    def __iter__(self):
+        """Allow iteration over keys."""
+        return iter(self._data)
+
+
+# -----------------------------------------------------------------------------
 # Type Protocols (for IDE autocomplete)
 # -----------------------------------------------------------------------------
 
@@ -75,7 +122,7 @@ class DevConfig(Protocol):
 # -----------------------------------------------------------------------------
 
 
-class Config:
+class Config(DictLikeMixin):
     """
     Configuration accessor with structured access.
 
@@ -94,7 +141,7 @@ class Config:
 
     """
 
-    __slots__ = ("__dict__", "_data")  # __dict__ needed for cached_property
+    # Note: No __slots__ - cached_property requires __dict__, and DictLikeMixin doesn't use slots
 
     def __init__(self, data: dict[str, Any]) -> None:
         self._data = data
@@ -184,28 +231,7 @@ class Config:
     def get(self, key: str, default: Any = None) -> Any:
         return self._data.get(key, default)
 
-    def setdefault(self, key: str, default: Any = None) -> Any:
-        """Set default value if key doesn't exist, return value."""
-        return self._data.setdefault(key, default)
-
-    def items(self):
-        """Return dict items iterator for compatibility."""
-        return self._data.items()
-
-    def keys(self):
-        """Return dict keys iterator for compatibility."""
-        return self._data.keys()
-
-    def values(self):
-        """Return dict values iterator for compatibility."""
-        return self._data.values()
-
-    def __contains__(self, key: str) -> bool:
-        return key in self._data
-
-    def __iter__(self):
-        """Allow iteration over keys."""
-        return iter(self._data)
+    # Dict-like methods inherited from DictLikeMixin
 
     @property
     def raw(self) -> dict[str, Any]:
@@ -213,7 +239,7 @@ class Config:
         return self._data
 
 
-class ConfigSection:
+class ConfigSection(DictLikeMixin):
     """
     Accessor for a config section with attribute access.
 
@@ -298,28 +324,7 @@ class ConfigSection:
             return ConfigSection(value, nested_path)
         return value
 
-    def setdefault(self, key: str, default: Any = None) -> Any:
-        """Set default value if key doesn't exist, return value."""
-        return self._data.setdefault(key, default)
-
-    def items(self):
-        """Return dict items iterator for compatibility."""
-        return self._data.items()
-
-    def keys(self):
-        """Return dict keys iterator for compatibility."""
-        return self._data.keys()
-
-    def values(self):
-        """Return dict values iterator for compatibility."""
-        return self._data.values()
-
-    def __contains__(self, key: str) -> bool:
-        return key in self._data
-
-    def __iter__(self):
-        """Allow iteration over keys."""
-        return iter(self._data)
+    # Dict-like methods inherited from DictLikeMixin
 
     def __repr__(self) -> str:
         return f"ConfigSection({self._path or 'root'}: {list(self._data.keys())})"
