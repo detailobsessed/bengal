@@ -56,24 +56,6 @@ def list_engines(verbose: bool) -> None:
             "status": "✅ Available",
             "install": "Built-in",
         },
-        {
-            "name": "jinja2",
-            "description": "Jinja2 templates (alternative)",
-            "status": "✅ Available",
-            "install": "Built-in",
-        },
-        {
-            "name": "mako",
-            "description": "Mako templates - HTML + real Python",
-            "status": _check_engine_available("mako"),
-            "install": "pip install bengal[mako]",
-        },
-        {
-            "name": "patitas",
-            "description": "Patitas templates - pure Python",
-            "status": _check_engine_available("patitas"),
-            "install": "pip install bengal[patitas]",
-        },
     ]
 
     cli.info("[bold]Template Engines[/bold]")
@@ -108,7 +90,7 @@ def list_engines(verbose: bool) -> None:
     cli.info("")
     cli.info("[dim]Configure in bengal.yaml:[/dim]")
     cli.info("[dim]  site:[/dim]")
-    cli.info("[dim]    template_engine: jinja2[/dim]")
+    cli.info("[dim]    template_engine: kida[/dim]")
 
     if verbose:
         cli.info("")
@@ -187,22 +169,3 @@ def info(source: str, config: str | None) -> None:
     cli.info("[dim]To change engine, update bengal.yaml:[/dim]")
     cli.info("[dim]  site:[/dim]")
     cli.info(f"[dim]    template_engine: {engine_name}[/dim]")
-
-
-def _check_engine_available(engine_name: str) -> str:
-    """Check if an optional engine is available."""
-    if engine_name == "mako":
-        try:
-            import mako  # type: ignore[import-not-found]  # noqa: F401
-
-            return "✅ Available"
-        except ImportError:
-            return "⚪ Not installed"
-    elif engine_name == "patitas":
-        try:
-            import patitas  # noqa: F401
-
-            return "✅ Available"
-        except ImportError:
-            return "⚪ Not installed"
-    return "⚪ Unknown"

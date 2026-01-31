@@ -19,8 +19,8 @@ pipeline/
     per-worker parser caching for parallel builds.
 
 engines/
-    Pluggable template engine system. Kida is the default (Bengal's native
-    engine); Jinja2, Mako, and Patitas (template engine) are optional alternatives.
+    Template engine system. Kida is Bengal's native template engine,
+    optimized for free-threaded Python. Third-party engines can be registered.
 
 parsers/
     Markdown parser implementations (Patitas is default,

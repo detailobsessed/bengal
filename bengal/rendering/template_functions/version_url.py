@@ -17,14 +17,10 @@ The preferred way to use this is via the Site method:
 
     site.get_version_target_url(page, version)
 
-This works with any template engine (Jinja2, Mako, BYORenderer).
-The Jinja2 global function is also available.
+This works with any template engine (Kida or custom engines).
 
-Example (Jinja2):
+Example (Kida/Jinja2 syntax):
     {{ site.get_version_target_url(page, v) }}
-
-Example (Mako):
-    ${site.get_version_target_url(page, v)}
 
 """
 

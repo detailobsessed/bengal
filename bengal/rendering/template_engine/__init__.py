@@ -19,7 +19,7 @@ Replace direct TemplateEngine imports with the factory function:
 
 Rationale:
 The ``bengal.rendering.engines`` package provides a pluggable engine
-system supporting multiple template backends (Jinja2, Mako, Patitas).
+system with Kida as the default. Third-party engines can be registered.
 The factory function ``create_engine()`` reads the configured engine
 from ``bengal.yaml`` and returns the appropriate implementation.
 
