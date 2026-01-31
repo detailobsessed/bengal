@@ -134,6 +134,9 @@ class AssetManifestEntry:
         Serialize entry to a JSON-friendly dictionary.
 
         Only includes non-None optional fields to keep the manifest compact.
+        Note: updated_at is intentionally excluded from serialization to ensure
+        idempotent builds produce identical manifests. The fingerprint is
+        sufficient for cache-busting.
 
         Returns:
             Dictionary with 'output_path' and any present optional fields.
@@ -145,8 +148,7 @@ class AssetManifestEntry:
             data["fingerprint"] = self.fingerprint
         if self.size_bytes is not None:
             data["size_bytes"] = self.size_bytes
-        if self.updated_at:
-            data["updated_at"] = self.updated_at
+        # updated_at excluded for build idempotency - fingerprint is sufficient
         return data
 
     @classmethod
@@ -268,14 +270,14 @@ class AssetManifest:
         Serialize the manifest to disk using an atomic write.
 
         Creates parent directories if needed. Entries are sorted by key
-        for deterministic output.
+        for deterministic output. The generated_at timestamp is omitted
+        to ensure idempotent builds produce identical manifests.
 
         Args:
             path: Destination path for the manifest JSON file.
         """
         payload = {
             "version": self.version,
-            "generated_at": self.generated_at,
             "assets": {
                 key: entry.to_dict() for key, entry in sorted(self._entries.items())
             },

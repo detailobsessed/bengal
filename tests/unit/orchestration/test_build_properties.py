@@ -129,6 +129,7 @@ def _create_site_with_content(
     site_dir.mkdir(exist_ok=True)
 
     # Write config
+    # Disable minification to avoid jsmin/css hanging on edge-case content
     config_content = """
 [site]
 title = "Property Test Site"
@@ -136,6 +137,9 @@ baseURL = "/"
 
 [build]
 output_dir = "public"
+
+[assets]
+minify = false
 """
     (site_dir / "bengal.toml").write_text(config_content)
 

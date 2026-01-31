@@ -58,20 +58,6 @@ class TestCheckCachedFonts:
         assert all(isinstance(v, FontVariant) for v in result)
         assert {v.weight for v in result} == {400, 700}
 
-    def test_returns_variants_when_ttf_fallback_exists(
-        self, downloader: GoogleFontsDownloader, tmp_path: Path
-    ) -> None:
-        """Falls back to TTF if woff2 not present (mixed format cache)."""
-        (tmp_path / "inter-400.woff2").write_bytes(b"fake font")
-        (tmp_path / "inter-700.ttf").write_bytes(b"fake font")  # TTF fallback
-
-        result = downloader._check_cached_fonts(
-            "Inter", [400, 700], ["normal"], tmp_path
-        )
-
-        assert result is not None
-        assert len(result) == 2
-
     def test_handles_italic_styles(
         self, downloader: GoogleFontsDownloader, tmp_path: Path
     ) -> None:

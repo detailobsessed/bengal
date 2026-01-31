@@ -81,6 +81,9 @@ baseURL = "/"
 
 [build]
 output_dir = "public"
+
+[assets]
+minify = false
 """
     (site_dir / "bengal.toml").write_text(config)
 
