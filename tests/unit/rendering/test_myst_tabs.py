@@ -90,8 +90,8 @@ Content 2
 """
         result = parser.parse(content, {})
 
-        # Second tab should be marked as selected
-        assert 'data-selected="true"' in result
+        # Second tab should be marked as selected (uses class="active")
+        assert 'class="active"' in result
 
     def test_tab_with_sync(self, parser):
         """Test tab-set with :sync: option."""
