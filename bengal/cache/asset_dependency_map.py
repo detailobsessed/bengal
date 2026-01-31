@@ -32,8 +32,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from bengal.cache.cacheable import CacheableMixin
 from bengal.cache.compression import load_auto, save_compressed
-from bengal.protocols import Cacheable
 from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -49,11 +49,12 @@ class AssetReference:
 
 
 @dataclass
-class AssetDependencyEntry(Cacheable):
+class AssetDependencyEntry(CacheableMixin):
     """
     Cache entry for asset dependencies.
 
     Implements the Cacheable protocol for type-safe serialization.
+    Inherits to_dict/from_dict aliases from CacheableMixin.
 
     """
 
@@ -77,16 +78,6 @@ class AssetDependencyEntry(Cacheable):
             tracked_at=data["tracked_at"],
             is_valid=data.get("is_valid", True),
         )
-
-    # Aliases for test compatibility
-    def to_dict(self) -> dict[str, Any]:
-        """Alias for to_cache_dict (test compatibility)."""
-        return self.to_cache_dict()
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> AssetDependencyEntry:
-        """Alias for from_cache_dict (test compatibility)."""
-        return cls.from_cache_dict(data)
 
 
 class AssetDependencyMap:

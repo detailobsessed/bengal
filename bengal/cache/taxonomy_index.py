@@ -26,19 +26,20 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from bengal.cache.cacheable import CacheableMixin
 from bengal.cache.compression import load_auto, save_compressed
-from bengal.protocols import Cacheable
 from bengal.utils.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 @dataclass
-class TagEntry(Cacheable):
+class TagEntry(CacheableMixin):
     """
     Entry for a single tag in the index.
 
     Implements the Cacheable protocol for type-safe serialization.
+    Inherits to_dict/from_dict aliases from CacheableMixin.
 
     """
 
@@ -68,16 +69,6 @@ class TagEntry(Cacheable):
             updated_at=data["updated_at"],
             is_valid=data.get("is_valid", True),
         )
-
-    # Aliases for test compatibility
-    def to_dict(self) -> dict[str, Any]:
-        """Alias for to_cache_dict (test compatibility)."""
-        return self.to_cache_dict()
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> TagEntry:
-        """Alias for from_cache_dict (test compatibility)."""
-        return cls.from_cache_dict(data)
 
 
 class TaxonomyIndex:
