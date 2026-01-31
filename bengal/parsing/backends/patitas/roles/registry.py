@@ -189,11 +189,12 @@ def create_default_registry() -> RoleRegistry:
     """Create registry with all built-in roles.
 
     Returns:
-        Registry with ref, kbd, abbr, math, icon, etc.
+        Registry with ref, kbd, abbr, math, icon, bdg, etc.
 
     """
     from bengal.parsing.backends.patitas.roles.builtins import (
         AbbrRole,
+        BadgeRole,
         DocRole,
         IconRole,
         KbdRole,
@@ -212,5 +213,6 @@ def create_default_registry() -> RoleRegistry:
     builder.register(SubRole())
     builder.register(SupRole())
     builder.register(IconRole())
+    builder.register(BadgeRole())
 
     return builder.build()
