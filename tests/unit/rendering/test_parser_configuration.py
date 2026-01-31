@@ -24,13 +24,13 @@ except ImportError:
 class TestParserSelection:
     """Test that the correct parser is selected based on configuration."""
 
-    def test_mistune_parser_selected_from_nested_config(self, tmp_path):
+    def test_patitas_parser_selected_from_nested_config(self, tmp_path):
         """Test parser selection when config has nested [markdown] section."""
         # Simulate Site with nested markdown config (like bengal.toml)
         site = Mock()
         site.config = {
             "markdown": {
-                "parser": "mistune",
+                "parser": "patitas",
                 "table_of_contents": True,
             },
             "site": {"title": "Test Site"},
@@ -46,15 +46,15 @@ class TestParserSelection:
 
         # Should select PatitasParser
         assert isinstance(pipeline.parser, PatitasParser), (
-            "Failed to select Mistune parser from nested [markdown] config"
+            "Failed to select Patitas parser from nested [markdown] config"
         )
 
-    def test_mistune_parser_selected_from_flat_config(self, tmp_path):
+    def test_patitas_parser_selected_from_flat_config(self, tmp_path):
         """Test parser selection when config has top-level markdown_engine."""
         # Simulate Site with flat config (legacy format)
         site = Mock()
         site.config = {
-            "markdown_engine": "mistune",
+            "markdown_engine": "patitas",
             "site": {"title": "Test Site"},
             "theme": "default",
         }
@@ -68,7 +68,7 @@ class TestParserSelection:
 
         # Should select PatitasParser
         assert isinstance(pipeline.parser, PatitasParser), (
-            "Failed to select Mistune parser from flat markdown_engine config"
+            "Failed to select Patitas parser from flat markdown_engine config"
         )
 
     def test_patitas_parser_default(self, tmp_path):
@@ -103,7 +103,7 @@ class TestParserSelection:
         site.config = {
             "markdown_engine": "python-markdown",  # Flat
             "markdown": {
-                "parser": "mistune",  # Nested
+                "parser": "patitas",  # Nested
             },
             "theme": "default",
         }
@@ -123,7 +123,7 @@ class TestParserSelection:
     def test_parser_reuse_across_threads(self, tmp_path):
         """Test that parsers are reused within the same thread."""
         site1 = Mock()
-        site1.config = {"markdown": {"parser": "mistune"}, "theme": "default"}
+        site1.config = {"markdown": {"parser": "patitas"}, "theme": "default"}
         site1.theme = "default"  # Must be accessible as attribute for path operations
         site1.xref_index = {}
         site1.root_path = tmp_path
@@ -131,7 +131,7 @@ class TestParserSelection:
         site1.version_config = None  # Disable versioning for test
 
         site2 = Mock()
-        site2.config = {"markdown": {"parser": "mistune"}, "theme": "default"}
+        site2.config = {"markdown": {"parser": "patitas"}, "theme": "default"}
         site2.theme = "default"  # Must be accessible as attribute for path operations
         site2.xref_index = {}
         site2.root_path = tmp_path
@@ -147,10 +147,10 @@ class TestParserSelection:
         )
 
 
-class TestMistuneDirectives:
-    """Test that Mistune parser has directives enabled."""
+class TestPatitasDirectives:
+    """Test that Patitas parser has directives enabled."""
 
-    def test_mistune_parser_has_directives(self):
+    def test_patitas_parser_has_directives(self):
         """Test that PatitasParser can handle custom directives."""
         from bengal.parsing import PatitasParser
 
@@ -168,13 +168,13 @@ This is a note directive.
 
         # Should contain admonition HTML (not raw text)
         assert '<div class="admonition' in html, (
-            "Mistune parser should process note directive"
+            "Patitas parser should process note directive"
         )
         assert "This is a note directive" in html
         # Should NOT contain the raw directive syntax
         assert ":::{note}" not in html
 
-    def test_mistune_parser_has_tabs(self):
+    def test_patitas_parser_has_tabs(self):
         """Test that PatitasParser can handle tabs directive."""
         from bengal.parsing import PatitasParser
 
@@ -199,7 +199,7 @@ Second tab content
 
         # Should contain tabs HTML
         assert 'class="tabs"' in html or 'class="tab' in html, (
-            "Mistune parser should process tab-set directive"
+            "Patitas parser should process tab-set directive"
         )
         assert "First" in html
         assert "Second" in html
@@ -233,8 +233,8 @@ This is a note directive.
 class TestConfigIntegration:
     """Integration tests for config loading and parser selection."""
 
-    def test_showcase_site_uses_mistune(self, tmp_path):
-        """Test that a site with [markdown] parser = mistune uses Mistune."""
+    def test_showcase_site_uses_patitas(self, tmp_path):
+        """Test that a site with [markdown] parser = patitas uses Patitas."""
         from bengal.config.loader import ConfigLoader
 
         # Create a test config like showcase site
@@ -243,7 +243,7 @@ class TestConfigIntegration:
 title = "Test Site"
 
 [markdown]
-parser = "mistune"
+parser = "patitas"
 table_of_contents = true
 """
 
@@ -255,7 +255,7 @@ table_of_contents = true
 
         # Verify config structure
         assert "markdown" in config
-        assert config["markdown"]["parser"] == "mistune"
+        assert config["markdown"]["parser"] == "patitas"
 
         # Create mock site with this config
         site = Mock()
@@ -269,9 +269,9 @@ table_of_contents = true
 
         pipeline = RenderingPipeline(site, quiet=True)
 
-        # CRITICAL: Should use Mistune, not python-markdown
+        # Should use Patitas parser
         assert isinstance(pipeline.parser, PatitasParser), (
-            "Site with [markdown] parser='mistune' should use PatitasParser"
+            "Site with [markdown] parser='patitas' should use PatitasParser"
         )
 
 
