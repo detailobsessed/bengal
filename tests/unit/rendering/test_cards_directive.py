@@ -946,12 +946,12 @@ class TestChildCardsDirective:
 
         content = """
 :::{child-cards}
-::include: pages
-::fields: title, description
-::layout: default
-::style: default
-::columns: 1
-::gap: medium
+:include: pages
+:fields: title, description
+:layout: default
+:style: default
+:columns: 1
+:gap: medium
 :::
 """
         result = _parse_with_page(parser, content, current_page)

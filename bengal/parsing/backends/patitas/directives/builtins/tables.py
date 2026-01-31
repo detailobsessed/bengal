@@ -65,6 +65,13 @@ class ListTableOptions(DirectiveOptions):
 
     """
 
+    # Map hyphenated option names to underscore field names
+    _aliases: ClassVar[dict[str, str]] = {
+        "header-rows": "header_rows",
+        "css-class": "css_class",
+        "class": "css_class",  # Common shorthand
+    }
+
     header_rows: int = 0
     widths: str = ""
     css_class: str = ""
@@ -151,7 +158,11 @@ class ListTableDirective:
         css_class = opts.css_class
 
         # Parse the list content into rows
-        rows = self._parse_list_rows(node.raw_content or "")
+        # First try AST children (patitas parses content into List nodes)
+        rows = self._extract_rows_from_children(node.children)
+        # Fallback to raw_content parsing if no AST children
+        if not rows and node.raw_content:
+            rows = self._parse_list_rows(node.raw_content)
 
         if not rows:
             sb.append(
@@ -214,8 +225,127 @@ class ListTableDirective:
 
         sb.append("</table>")
 
+    def _extract_rows_from_children(self, children: Sequence[Block]) -> list[list[str]]:
+        """Extract table rows from AST children (List nodes).
+
+        AST structure for list-table:
+        - Directive
+          - List (top-level)
+            - ListItem (row 1)
+              - List (row content)
+                - ListItem (cell 1)
+                  - Paragraph (cell 1 text)
+                  - List (remaining cells)
+                    - ListItem (cell 2)
+                    - ListItem (cell 3)
+            - ListItem (row 2)
+              ...
+        """
+        from patitas.nodes import List as ListNode
+        from patitas.nodes import ListItem
+
+        rows: list[list[str]] = []
+
+        for child in children:
+            if not isinstance(child, ListNode):
+                continue
+
+            # Each top-level list item is a row
+            for row_item in child.items:
+                if not isinstance(row_item, ListItem):
+                    continue
+
+                row: list[str] = []
+                self._extract_cells_from_row(row_item, row)
+
+                if row:
+                    rows.append(row)
+
+        return rows
+
+    def _extract_cells_from_row(self, row_item: Block, row: list[str]) -> None:
+        """Recursively extract cells from a row's ListItem.
+
+        Each row ListItem contains a List with one ListItem per cell.
+        Each cell ListItem has:
+        - Direct children (Paragraph) for the cell's text content
+        - A nested List containing the remaining cells
+        """
+        from patitas.nodes import List as ListNode
+        from patitas.nodes import ListItem
+
+        if not hasattr(row_item, "children") or not row_item.children:
+            return
+
+        for child in row_item.children:  # type: ignore[union-attr]
+            if isinstance(child, ListNode):
+                # This list contains the cells for this row
+                for cell_item in child.items:
+                    if isinstance(cell_item, ListItem):
+                        self._extract_cell_content(cell_item, row)
+
+    def _extract_cell_content(self, cell_item: Block, row: list[str]) -> None:
+        """Extract content from a single cell ListItem."""
+        from patitas.nodes import List as ListNode
+        from patitas.nodes import ListItem
+
+        if not hasattr(cell_item, "children") or not cell_item.children:
+            return
+
+        cell_parts: list[str] = []
+        nested_list = None
+
+        # First pass: collect direct content and find nested list
+        for cell_child in cell_item.children:  # type: ignore[union-attr]
+            if isinstance(cell_child, ListNode):
+                # Save nested list for processing after this cell
+                nested_list = cell_child
+            else:
+                # Direct content (Paragraph, etc.) - this is the cell's text
+                text = self._extract_text_from_node(cell_child)
+                if text:
+                    cell_parts.append(text)
+
+        # Add this cell's content first
+        if cell_parts:
+            row.append("".join(cell_parts))
+
+        # Then process nested list (remaining cells in this row)
+        if nested_list is not None:
+            for nested_item in nested_list.items:
+                if isinstance(nested_item, ListItem):
+                    self._extract_cell_content(nested_item, row)
+
+    def _extract_text_from_node(self, node: Block) -> str:
+        """Extract text content from an AST node."""
+        from patitas.nodes import CodeSpan, Emphasis, Link, Strong, Text
+
+        parts: list[str] = []
+
+        if hasattr(node, "children") and node.children:
+            for child in node.children:  # type: ignore[union-attr]
+                if isinstance(child, Text):
+                    parts.append(child.content)
+                elif isinstance(child, CodeSpan):
+                    parts.append(f"`{child.code}`")
+                elif isinstance(child, Strong):
+                    inner = self._extract_text_from_node(child)
+                    parts.append(f"**{inner}**")
+                elif isinstance(child, Emphasis):
+                    inner = self._extract_text_from_node(child)
+                    parts.append(f"*{inner}*")
+                elif isinstance(child, Link):
+                    inner = self._extract_text_from_node(child)
+                    parts.append(f"[{inner}]({child.destination})")
+                elif hasattr(child, "children"):
+                    parts.append(self._extract_text_from_node(child))
+                elif hasattr(child, "content"):
+                    parts.append(child.content)
+
+        return "".join(parts)
+
     def _parse_list_rows(self, content: str) -> list[list[str]]:
-        """Parse list content into table rows."""
+        """Parse list content into table rows (fallback for raw content)."""
         rows: list[list[str]] = []
         current_row: list[str] = []
         current_cell_lines: list[str] = []
