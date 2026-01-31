@@ -87,11 +87,7 @@ class TestGraphDataIsolation:
         )
 
         # Verify no node in original data has isCurrent
-        for node in graph_data["nodes"]:
-            assert "isCurrent" not in node, (
-                f"Node {node['id']} has 'isCurrent' flag in shared graph_data. "
-                "This mutation will cause incorrect behavior for other pages."
-            )
+        assert all("isCurrent" not in node for node in graph_data["nodes"])
 
     def test_each_page_json_has_single_current_node(self, tmp_path: Path) -> None:
         """Verify each page's graph connections have exactly one isCurrent node."""

@@ -166,8 +166,7 @@ class TestComponentStats:
             "metrics=[",
             "directives=450",
         ]
-        for part in expected_parts:
-            assert part in result, f"Expected '{part}' in '{result}'"
+        assert all(part in result for part in expected_parts)
 
     def test_to_log_context_basic(self) -> None:
         """Test to_log_context returns flat dict."""

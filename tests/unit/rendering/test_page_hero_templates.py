@@ -173,7 +173,7 @@ class MockSection:
     name: str = "test_section"
     title: str = "Test Section"
     path: Path = field(default_factory=lambda: Path("content/test_section"))
-    metadata: AttrDict = field(default_factory=AttrDict)
+    metadata: AttrDict | dict[str, Any] = field(default_factory=AttrDict)
     pages: list[MockPage] = field(default_factory=list)
     subsections: list[MockSection] = field(default_factory=list)
     index_page: MockPage | None = None
@@ -442,14 +442,12 @@ def normalize_html(html: str) -> str:
 
 def assert_contains(html: str, *substrings: str) -> None:
     """Assert that HTML contains all specified substrings."""
-    for substring in substrings:
-        assert substring in html, f"Expected to find '{substring}' in HTML"
+    assert all(s in html for s in substrings), "Missing substrings in HTML"
 
 
 def assert_not_contains(html: str, *substrings: str) -> None:
     """Assert that HTML does NOT contain any specified substrings."""
-    for substring in substrings:
-        assert substring not in html, f"Did not expect to find '{substring}' in HTML"
+    assert all(s not in html for s in substrings), "Unexpected substrings in HTML"
 
 
 # ==============================================================================

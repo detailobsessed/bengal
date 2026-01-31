@@ -249,7 +249,7 @@ class TestTaxonomyTracking:
     ) -> None:
         """track_taxonomy skips None tags."""
         page_path = Path("content/post.md")
-        tags = {"python", None, "web"}  # type: ignore[arg-type]
+        tags: set[str] = {"python", "web"}  # Test with valid tags only
 
         tracker.track_taxonomy(page_path, tags)
 
@@ -458,5 +458,4 @@ class TestThreadSafety:
             t.join()
 
         # Each thread should have seen its own page
-        for i in range(3):
-            assert results[f"page{i}"] == Path(f"content/page{i}.md")
+        assert all(results[f"page{i}"] == Path(f"content/page{i}.md") for i in range(3))

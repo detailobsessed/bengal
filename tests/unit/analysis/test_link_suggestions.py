@@ -1,9 +1,14 @@
 """
 Unit tests for link suggestion engine.
+
+Note: MockAnalysisPage is used instead of full PageLike implementations for
+lightweight testing. Type ignore comments are used where MockAnalysisPage
+is passed to functions expecting PageLike.
 """
 
 from collections import defaultdict
 from pathlib import Path
+from typing import cast
 
 from bengal.analysis.links.suggestions import (
     LinkSuggestion,
@@ -11,6 +16,7 @@ from bengal.analysis.links.suggestions import (
     LinkSuggestionResults,
     suggest_links,
 )
+from bengal.protocols import PageLike
 from tests._testing.mocks import MockAnalysisPage
 
 
@@ -34,8 +40,8 @@ class TestLinkSuggestion:
         target = MockAnalysisPage(source_path=Path("target.md"), title="Target Page")
 
         suggestion = LinkSuggestion(
-            source=source,
-            target=target,
+            source=cast(PageLike, source),
+            target=cast(PageLike, target),
             score=0.75,
             reasons=["Shared tags: python, testing"],
         )
@@ -50,7 +56,12 @@ class TestLinkSuggestion:
         source = MockAnalysisPage(source_path=Path("source.md"), title="Source")
         target = MockAnalysisPage(source_path=Path("target.md"), title="Target")
 
-        suggestion = LinkSuggestion(source=source, target=target, score=0.5, reasons=[])
+        suggestion = LinkSuggestion(
+            source=cast(PageLike, source),
+            target=cast(PageLike, target),
+            score=0.5,
+            reasons=[],
+        )
 
         assert "Source" in repr(suggestion)
         assert "Target" in repr(suggestion)
@@ -68,16 +79,24 @@ class TestLinkSuggestionResults:
         target2 = MockAnalysisPage(source_path=Path("target2.md"))
 
         suggestions = [
-            LinkSuggestion(source1, target1, 0.8, ["reason1"]),
-            LinkSuggestion(source1, target2, 0.6, ["reason2"]),
-            LinkSuggestion(source2, target1, 0.7, ["reason3"]),
+            LinkSuggestion(
+                cast(PageLike, source1), cast(PageLike, target1), 0.8, ["reason1"]
+            ),
+            LinkSuggestion(
+                cast(PageLike, source1), cast(PageLike, target2), 0.6, ["reason2"]
+            ),
+            LinkSuggestion(
+                cast(PageLike, source2), cast(PageLike, target1), 0.7, ["reason3"]
+            ),
         ]
 
         results = LinkSuggestionResults(
             suggestions=suggestions, total_suggestions=3, pages_analyzed=2
         )
 
-        source1_suggestions = results.get_suggestions_for_page(source1, limit=10)
+        source1_suggestions = results.get_suggestions_for_page(
+            cast(PageLike, source1), limit=10
+        )
 
         assert len(source1_suggestions) == 2
         assert source1_suggestions[0].target == target1  # Higher score
@@ -87,20 +106,20 @@ class TestLinkSuggestionResults:
         """Test getting top suggestions across all pages."""
         suggestions = [
             LinkSuggestion(
-                MockAnalysisPage(source_path=Path("a.md")),
-                MockAnalysisPage(source_path=Path("b.md")),
+                cast(PageLike, MockAnalysisPage(source_path=Path("a.md"))),
+                cast(PageLike, MockAnalysisPage(source_path=Path("b.md"))),
                 0.9,
                 [],
             ),
             LinkSuggestion(
-                MockAnalysisPage(source_path=Path("c.md")),
-                MockAnalysisPage(source_path=Path("d.md")),
+                cast(PageLike, MockAnalysisPage(source_path=Path("c.md"))),
+                cast(PageLike, MockAnalysisPage(source_path=Path("d.md"))),
                 0.5,
                 [],
             ),
             LinkSuggestion(
-                MockAnalysisPage(source_path=Path("e.md")),
-                MockAnalysisPage(source_path=Path("f.md")),
+                cast(PageLike, MockAnalysisPage(source_path=Path("e.md"))),
+                cast(PageLike, MockAnalysisPage(source_path=Path("f.md"))),
                 0.7,
                 [],
             ),
@@ -120,14 +139,29 @@ class TestLinkSuggestionResults:
         other = MockAnalysisPage(source_path=Path("other.md"))
 
         suggestions = [
-            LinkSuggestion(MockAnalysisPage(source_path=Path("a.md")), target, 0.8, []),
-            LinkSuggestion(MockAnalysisPage(source_path=Path("b.md")), other, 0.6, []),
-            LinkSuggestion(MockAnalysisPage(source_path=Path("c.md")), target, 0.7, []),
+            LinkSuggestion(
+                cast(PageLike, MockAnalysisPage(source_path=Path("a.md"))),
+                cast(PageLike, target),
+                0.8,
+                [],
+            ),
+            LinkSuggestion(
+                cast(PageLike, MockAnalysisPage(source_path=Path("b.md"))),
+                cast(PageLike, other),
+                0.6,
+                [],
+            ),
+            LinkSuggestion(
+                cast(PageLike, MockAnalysisPage(source_path=Path("c.md"))),
+                cast(PageLike, target),
+                0.7,
+                [],
+            ),
         ]
 
         results = LinkSuggestionResults(suggestions, 3, 2)
 
-        target_suggestions = results.get_suggestions_by_target(target)
+        target_suggestions = results.get_suggestions_by_target(cast(PageLike, target))
 
         assert len(target_suggestions) == 2
         assert all(s.target == target for s in target_suggestions)
@@ -173,7 +207,7 @@ class TestLinkSuggestionEngine:
         results = engine.generate_suggestions()
 
         # page1 should have higher score for page2 (shared tag: python)
-        page1_suggestions = results.get_suggestions_for_page(page1)
+        page1_suggestions = results.get_suggestions_for_page(cast(PageLike, page1))
 
         if len(page1_suggestions) > 0:
             # Should suggest page2 over page3
@@ -193,7 +227,7 @@ class TestLinkSuggestionEngine:
         engine = LinkSuggestionEngine(graph, min_score=0.0)
         results = engine.generate_suggestions()
 
-        page1_suggestions = results.get_suggestions_for_page(page1)
+        page1_suggestions = results.get_suggestions_for_page(cast(PageLike, page1))
 
         if len(page1_suggestions) > 0:
             # Should prefer same category
@@ -215,7 +249,7 @@ class TestLinkSuggestionEngine:
         results = engine.generate_suggestions()
 
         # Should not suggest page2 since it's already linked
-        page1_suggestions = results.get_suggestions_for_page(page1)
+        page1_suggestions = results.get_suggestions_for_page(cast(PageLike, page1))
         assert len(page1_suggestions) == 0
 
     def test_excludes_self_links(self):
@@ -227,7 +261,7 @@ class TestLinkSuggestionEngine:
         results = engine.generate_suggestions()
 
         # No self-links
-        page_suggestions = results.get_suggestions_for_page(page)
+        page_suggestions = results.get_suggestions_for_page(cast(PageLike, page))
         assert len(page_suggestions) == 0
 
     def test_underlinked_bonus(self):
@@ -243,7 +277,7 @@ class TestLinkSuggestionEngine:
         engine = LinkSuggestionEngine(graph, min_score=0.0)
         results = engine.generate_suggestions()
 
-        page1_suggestions = results.get_suggestions_for_page(page1)
+        page1_suggestions = results.get_suggestions_for_page(cast(PageLike, page1))
 
         if len(page1_suggestions) > 0:
             # Orphan should be suggested (has underlinked bonus)
@@ -268,7 +302,9 @@ class TestLinkSuggestionEngine:
         )
         results = engine.generate_suggestions()
 
-        source_suggestions = results.get_suggestions_for_page(source, limit=100)
+        source_suggestions = results.get_suggestions_for_page(
+            cast(PageLike, source), limit=100
+        )
 
         # Should not exceed max_suggestions_per_page
         assert len(source_suggestions) <= max_suggestions
@@ -288,9 +324,8 @@ class TestLinkSuggestionEngine:
         results = engine.generate_suggestions()
 
         # Generated page should not be in source or target
-        for suggestion in results.suggestions:
-            assert suggestion.source != generated
-            assert suggestion.target != generated
+        assert all(s.source != generated for s in results.suggestions)
+        assert all(s.target != generated for s in results.suggestions)
 
 
 class TestSuggestLinksFunction:

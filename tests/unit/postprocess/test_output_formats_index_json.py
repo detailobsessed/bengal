@@ -121,11 +121,8 @@ class TestSiteIndexJsonGeneration:
         )
 
         # Verify each page has required fields
-        for page_data in data["pages"]:
-            assert "objectID" in page_data, "Page must have objectID"
-            assert "url" in page_data, "Page must have url"
-            assert "title" in page_data, "Page must have title"
-            assert "excerpt" in page_data, "Page must have excerpt"
+        required = ["objectID", "url", "title", "excerpt"]
+        assert all(all(f in pd for f in required) for pd in data["pages"])
 
     def test_index_json_empty_pages_array_when_no_pages(self, tmp_path):
         """Test that pages array is empty (not null) when site has no pages."""

@@ -225,8 +225,7 @@ class TestParallelClassIndex:
         assert len(extractor.class_index) > 0
 
         # All entries should be class elements
-        for element in extractor.class_index.values():
-            assert element.element_type == "class"
+        assert all(e.element_type == "class" for e in extractor.class_index.values())
 
 
 class TestParallelInheritance:

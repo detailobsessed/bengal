@@ -97,9 +97,8 @@ class TestChangelogTemplate:
         data = site.data.get("changelog", {})
         releases = data.get("releases", [])
 
-        for release in releases:
-            assert release.get("version"), "Release should have version"
-            assert release.get("date"), "Release should have date"
+        assert all(r.get("version") for r in releases)
+        assert all(r.get("date") for r in releases)
 
     def test_changelog_has_change_types(self, site) -> None:
         """Changelog releases should have change types (added/changed/fixed)."""

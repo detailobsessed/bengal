@@ -89,6 +89,8 @@ def assert_page_rendered(
         assert forbidden not in content, (
             f"Unexpected '{forbidden}' found in {page_path}. Content preview: {content[:500]}..."
         )
+    # Note: These loops are intentionally kept as-is because they're test utilities
+    # that need detailed error messages for each specific failure
 
     return content
 

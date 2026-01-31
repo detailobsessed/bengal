@@ -64,10 +64,7 @@ class TestBlogContentTypeURLs:
         assert len(blog_posts) >= 2, "Should have at least 2 blog posts"
 
         # All posts should have /blog/ prefix
-        for post in blog_posts:
-            assert post.href.startswith("/blog/"), (
-                f"Blog post {post.source_path.name} has wrong URL: {post.href}"
-            )
+        assert all(p.href.startswith("/blog/") for p in blog_posts)
 
     def test_blog_nested_year_urls(self, blog_site):
         """Blog posts in year subdirectories should maintain full path."""
@@ -83,10 +80,7 @@ class TestBlogContentTypeURLs:
 
         assert len(posts_2024) >= 2
 
-        for post in posts_2024:
-            assert post.href.startswith("/blog/2024/"), (
-                f"2024 post should have /blog/2024/ prefix, got: {post.href}"
-            )
+        assert all(p.href.startswith("/blog/2024/") for p in posts_2024)
 
     def test_blog_cascade_preserves_urls(self, blog_site):
         """Blog cascade: type should not break URLs."""
@@ -100,8 +94,7 @@ class TestBlogContentTypeURLs:
             if p.metadata.get("type") == "blog" and "cascade" not in p.metadata
         ]
 
-        for post in cascaded_posts:
-            assert "/blog/" in post.href, f"Cascaded post has wrong URL: {post.href}"
+        assert all("/blog/" in p.href for p in cascaded_posts)
 
 
 class TestTutorialContentTypeURLs:
@@ -151,10 +144,7 @@ class TestTutorialContentTypeURLs:
 
         assert len(lessons) >= 2
 
-        for lesson in lessons:
-            assert lesson.href.startswith("/tutorials/python/"), (
-                f"Tutorial lesson should have /tutorials/python/ prefix, got: {lesson.href}"
-            )
+        assert all(lesson.href.startswith("/tutorials/python/") for lesson in lessons)
 
 
 class TestAPIReferenceURLs:
@@ -204,10 +194,7 @@ class TestAPIReferenceURLs:
 
         assert len(api_pages) >= 2
 
-        for page in api_pages:
-            assert page.href.startswith("/api/core/"), (
-                f"API page should have /api/core/ prefix, got: {page.href}"
-            )
+        assert all(p.href.startswith("/api/core/") for p in api_pages)
 
 
 class TestChangelogURLs:
@@ -254,10 +241,7 @@ class TestChangelogURLs:
 
         assert len(entries) >= 2
 
-        for entry in entries:
-            assert entry.href.startswith("/changelog/v1.0/"), (
-                f"Changelog entry should have /changelog/v1.0/ prefix, got: {entry.href}"
-            )
+        assert all(e.href.startswith("/changelog/v1.0/") for e in entries)
 
 
 class TestMixedContentTypes:
@@ -310,16 +294,9 @@ class TestMixedContentTypes:
         ]
 
         # Verify each type has correct prefix
-        for page in doc_pages:
-            assert page.href.startswith("/docs/"), f"Doc page wrong URL: {page.href}"
-
-        for page in blog_pages:
-            assert page.href.startswith("/blog/"), f"Blog page wrong URL: {page.href}"
-
-        for page in tutorial_pages:
-            assert page.href.startswith("/tutorials/"), (
-                f"Tutorial page wrong URL: {page.href}"
-            )
+        assert all(p.href.startswith("/docs/") for p in doc_pages)
+        assert all(p.href.startswith("/blog/") for p in blog_pages)
+        assert all(p.href.startswith("/tutorials/") for p in tutorial_pages)
 
     def test_no_url_collisions_between_types(self, mixed_site):
         """Different content types should not have URL collisions."""

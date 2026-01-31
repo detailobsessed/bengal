@@ -80,8 +80,7 @@ class TestMemoryReleaseCleanup:
         from bengal.orchestration.streaming import StreamingRenderOrchestrator
 
         # Confirm caches are populated
-        for page in pages_with_caches:
-            assert page._ast_cache is not None
+        assert all(p._ast_cache is not None for p in pages_with_caches)
 
         orch = StreamingRenderOrchestrator(mock_site)
 
@@ -101,16 +100,14 @@ class TestMemoryReleaseCleanup:
             )
 
         # All _ast_cache should be cleared
-        for page in pages_with_caches:
-            assert page._ast_cache is None, "_ast_cache should be cleared"
+        assert all(p._ast_cache is None for p in pages_with_caches)
 
     def test_release_memory_clears_html_cache(self, mock_site, pages_with_caches):
         """Verify _html_cache is cleared after memory release."""
         from bengal.orchestration.streaming import StreamingRenderOrchestrator
 
         # Confirm caches are populated
-        for page in pages_with_caches:
-            assert page._html_cache is not None
+        assert all(p._html_cache is not None for p in pages_with_caches)
 
         orch = StreamingRenderOrchestrator(mock_site)
 
@@ -129,15 +126,13 @@ class TestMemoryReleaseCleanup:
             )
 
         # All _html_cache should be cleared
-        for page in pages_with_caches:
-            assert page._html_cache is None, "_html_cache should be cleared"
+        assert all(p._html_cache is None for p in pages_with_caches)
 
     def test_release_memory_clears_plain_text_cache(self, mock_site, pages_with_caches):
         """Verify _plain_text_cache is cleared after memory release."""
         from bengal.orchestration.streaming import StreamingRenderOrchestrator
 
-        for page in pages_with_caches:
-            assert page._plain_text_cache is not None
+        assert all(p._plain_text_cache is not None for p in pages_with_caches)
 
         orch = StreamingRenderOrchestrator(mock_site)
 
@@ -155,15 +150,13 @@ class TestMemoryReleaseCleanup:
                 release_memory=True,
             )
 
-        for page in pages_with_caches:
-            assert page._plain_text_cache is None, "_plain_text_cache should be cleared"
+        assert all(p._plain_text_cache is None for p in pages_with_caches)
 
     def test_release_memory_clears_toc_items_cache(self, mock_site, pages_with_caches):
         """Verify _toc_items_cache is cleared after memory release."""
         from bengal.orchestration.streaming import StreamingRenderOrchestrator
 
-        for page in pages_with_caches:
-            assert page._toc_items_cache is not None
+        assert all(p._toc_items_cache is not None for p in pages_with_caches)
 
         orch = StreamingRenderOrchestrator(mock_site)
 
@@ -181,8 +174,7 @@ class TestMemoryReleaseCleanup:
                 release_memory=True,
             )
 
-        for page in pages_with_caches:
-            assert page._toc_items_cache is None, "_toc_items_cache should be cleared"
+        assert all(p._toc_items_cache is None for p in pages_with_caches)
 
     def test_release_memory_false_preserves_caches(self, mock_site, pages_with_caches):
         """Verify caches are preserved when release_memory=False."""
@@ -211,11 +203,22 @@ class TestMemoryReleaseCleanup:
             )
 
         # All caches should be preserved
-        for i, page in enumerate(pages_with_caches):
-            assert page._ast_cache == original_caches[i][0]
-            assert page._html_cache == original_caches[i][1]
-            assert page._plain_text_cache == original_caches[i][2]
-            assert page._toc_items_cache == original_caches[i][3]
+        assert all(
+            p._ast_cache == original_caches[i][0]
+            for i, p in enumerate(pages_with_caches)
+        )
+        assert all(
+            p._html_cache == original_caches[i][1]
+            for i, p in enumerate(pages_with_caches)
+        )
+        assert all(
+            p._plain_text_cache == original_caches[i][2]
+            for i, p in enumerate(pages_with_caches)
+        )
+        assert all(
+            p._toc_items_cache == original_caches[i][3]
+            for i, p in enumerate(pages_with_caches)
+        )
 
 
 class TestBatchProcessing:
@@ -253,7 +256,7 @@ class TestBatchProcessing:
 
             orch._render_batches(
                 renderer=mock_renderer,
-                pages=pages,
+                pages=pages,  # type: ignore[arg-type]
                 batch_size=10,  # Should create 3 batches: 10, 10, 5
                 parallel=False,
                 quiet=True,
@@ -286,7 +289,7 @@ class TestBatchProcessing:
 
             orch._render_batches(
                 renderer=mock_renderer,
-                pages=pages,
+                pages=pages,  # type: ignore[arg-type]
                 batch_size=100,
                 parallel=False,
                 quiet=True,
@@ -314,7 +317,7 @@ class TestBatchProcessing:
 
             orch._render_batches(
                 renderer=mock_renderer,
-                pages=pages,
+                pages=pages,  # type: ignore[arg-type]
                 batch_size=10,  # 3 batches
                 parallel=False,
                 quiet=True,
@@ -343,7 +346,7 @@ class TestBatchProcessing:
 
             orch._render_batches(
                 renderer=mock_renderer,
-                pages=pages,
+                pages=pages,  # type: ignore[arg-type]
                 batch_size=5,
                 parallel=False,
                 quiet=True,
@@ -443,7 +446,7 @@ class TestLayerProcessing:
             mock_context.progress_manager = None
 
             orch.process(
-                pages=all_pages,
+                pages=all_pages,  # type: ignore[arg-type]
                 parallel=False,
                 quiet=True,
                 build_context=mock_context,
@@ -496,7 +499,7 @@ class TestSmallSiteWarnings:
 
         with patch("bengal.orchestration.render.RenderOrchestrator"):
             orch.process(
-                pages=pages,
+                pages=pages,  # type: ignore[arg-type]
                 parallel=False,
                 quiet=False,
                 reporter=mock_reporter,
@@ -524,7 +527,7 @@ class TestSmallSiteWarnings:
 
         with patch("bengal.orchestration.render.RenderOrchestrator"):
             orch.process(
-                pages=pages,
+                pages=pages,  # type: ignore[arg-type]
                 parallel=False,
                 quiet=False,
                 reporter=mock_reporter,
@@ -552,7 +555,7 @@ class TestSmallSiteWarnings:
 
         with patch("bengal.orchestration.render.RenderOrchestrator"):
             orch.process(
-                pages=pages,
+                pages=pages,  # type: ignore[arg-type]
                 parallel=False,
                 quiet=False,
                 reporter=mock_reporter,

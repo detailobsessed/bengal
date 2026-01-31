@@ -228,11 +228,11 @@ class TestPerformanceAdvisor:
                 SuggestionPriority.MEDIUM: 1,
                 SuggestionPriority.LOW: 2,
             }
-            for i in range(len(top_3) - 1):
-                assert (
-                    priority_values[top_3[i].priority]
-                    <= priority_values[top_3[i + 1].priority]
-                )
+            assert all(
+                priority_values[top_3[i].priority]
+                <= priority_values[top_3[i + 1].priority]
+                for i in range(len(top_3) - 1)
+            )
 
     def test_skipped_build_analysis(self):
         """Test that skipped builds return no suggestions."""

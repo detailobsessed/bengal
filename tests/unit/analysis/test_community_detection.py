@@ -148,8 +148,7 @@ class TestLouvainCommunityDetector:
 
         # Each disconnected page forms its own community
         assert len(results.communities) == 5
-        for community in results.communities:
-            assert community.size == 1
+        assert all(c.size == 1 for c in results.communities)
 
     def test_fully_connected_graph(self):
         """Test detection with fully connected graph."""

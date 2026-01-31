@@ -78,35 +78,39 @@ def test_ignore_policy_status_single():
     assert not should_ignore
 
 
-def test_ignore_policy_status_range():
+def test_ignore_policy_status_range(subtests):
     """Test status code range ignoring."""
     policy = IgnorePolicy(status_ranges=["500-599"])
 
     # All 5xx should be ignored
     for code in [500, 502, 503, 504, 599]:
-        should_ignore, reason = policy.should_ignore_status(code)
-        assert should_ignore, f"Status {code} should be ignored"
-        assert str(code) in reason
+        with subtests.test(msg=f"ignored_{code}"):
+            should_ignore, reason = policy.should_ignore_status(code)
+            assert should_ignore
+            assert str(code) in reason
 
     # 4xx and 3xx should not be ignored
     for code in [400, 404, 301]:
-        should_ignore, reason = policy.should_ignore_status(code)
-        assert not should_ignore, f"Status {code} should NOT be ignored"
+        with subtests.test(msg=f"not_ignored_{code}"):
+            should_ignore, reason = policy.should_ignore_status(code)
+            assert not should_ignore
 
 
-def test_ignore_policy_status_multiple_ranges():
+def test_ignore_policy_status_multiple_ranges(subtests):
     """Test multiple status ranges."""
     policy = IgnorePolicy(status_ranges=["400-404", "500-503"])
 
     ignored_codes = [400, 401, 402, 403, 404, 500, 501, 502, 503]
     for code in ignored_codes:
-        should_ignore, _ = policy.should_ignore_status(code)
-        assert should_ignore, f"Status {code} should be ignored"
+        with subtests.test(msg=f"ignored_{code}"):
+            should_ignore, _ = policy.should_ignore_status(code)
+            assert should_ignore
 
     not_ignored = [405, 410, 429, 504, 599]
     for code in not_ignored:
-        should_ignore, _ = policy.should_ignore_status(code)
-        assert not should_ignore, f"Status {code} should NOT be ignored"
+        with subtests.test(msg=f"not_ignored_{code}"):
+            should_ignore, _ = policy.should_ignore_status(code)
+            assert not should_ignore
 
 
 def test_ignore_policy_mixed():

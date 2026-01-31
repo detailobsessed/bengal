@@ -65,7 +65,7 @@ class TestBlogPagination:
                 "post-" in index_html.lower() or len(list(output.glob("**/post-*"))) > 0
             )
 
-    def test_individual_post_pages_created(self, site, build_site) -> None:
+    def test_individual_post_pages_created(self, site, build_site, subtests) -> None:
         """Each post should have its own page."""
         build_site()
 
@@ -73,8 +73,9 @@ class TestBlogPagination:
 
         # Check for a sample of posts
         for i in [1, 10, 25]:
-            post_path = output / "posts" / f"post-{i:02d}" / "index.html"
-            assert post_path.exists(), f"Post {i} page should exist at {post_path}"
+            with subtests.test(msg=f"post-{i:02d}"):
+                post_path = output / "posts" / f"post-{i:02d}" / "index.html"
+                assert post_path.exists(), f"Post {i} page should exist at {post_path}"
 
 
 @pytest.mark.bengal(testroot="test-blog-paginated")
@@ -126,6 +127,7 @@ class TestBlogRSS:
 
         if rss_path is None:
             pytest.skip("RSS feed not found")
+            return  # Unreachable but helps type checker
 
         rss_content = rss_path.read_text()
 

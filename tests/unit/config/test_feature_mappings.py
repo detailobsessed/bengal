@@ -151,8 +151,7 @@ class TestGetAvailableFeatures:
         features = get_available_features()
 
         expected = ["rss", "sitemap", "search", "json", "llm_txt", "validate_links"]
-        for feature in expected:
-            assert feature in features
+        assert all(f in features for f in expected)
 
 
 class TestGetFeatureExpansion:

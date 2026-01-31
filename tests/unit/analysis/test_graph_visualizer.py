@@ -42,8 +42,7 @@ class TestTemplateExists:
             "{{ stats.orphans }}",
             "{{ graph_data_json }}",
         ]
-        for var in required_vars:
-            assert var in content, f"Template missing variable: {var}"
+        assert all(var in content for var in required_vars)
 
     def test_template_has_d3_script(self):
         """Template should include D3.js library."""

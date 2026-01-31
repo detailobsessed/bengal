@@ -14,7 +14,7 @@ class TestHighConcurrencyStress:
     Stress test for PythonExtractor to ensure thread safety during parallel extraction.
     """
 
-    def test_indexing_thread_safety_large_scale(self, tmp_path: Path):
+    def test_indexing_thread_safety_large_scale(self, tmp_path: Path, subtests):
         """
         Generate many modules with name collisions and verify that the
         sequential post-processing pass builds a correct index.
@@ -53,14 +53,16 @@ class TestHighConcurrencyStress:
         # 2. Check simple_name_index for collisions
         # Each colliding name should have exactly num_modules qualified entries
         for c_name in colliding_names:
-            assert c_name in extractor.simple_name_index
-            entries = extractor.simple_name_index[c_name]
-            assert len(entries) == num_modules, (
-                f"Lost entries for {c_name}! Expected {num_modules}, got {len(entries)}"
-            )
-
-            # Ensure all entries are unique
-            assert len(set(entries)) == num_modules, f"Duplicate entries for {c_name}!"
+            with subtests.test(msg=f"colliding_name={c_name}"):
+                assert c_name in extractor.simple_name_index
+                entries = extractor.simple_name_index[c_name]
+                assert len(entries) == num_modules, (
+                    f"Lost entries for {c_name}! Expected {num_modules}, got {len(entries)}"
+                )
+                # Ensure all entries are unique
+                assert len(set(entries)) == num_modules, (
+                    f"Duplicate entries for {c_name}!"
+                )
 
         # 3. Check class_index
         # Total classes should be num_modules * num_classes_per_module

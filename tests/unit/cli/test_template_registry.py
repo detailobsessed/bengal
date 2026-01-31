@@ -28,7 +28,7 @@ class TestTemplateRegistry:
         # Should have discovered some templates
         assert len(registry._templates) > 0
 
-    def test_discovers_known_templates(self):
+    def test_discovers_known_templates(self, subtests):
         """Test that known templates are discovered."""
         registry = TemplateRegistry()
 
@@ -36,7 +36,8 @@ class TestTemplateRegistry:
         known_templates = ["default", "blog", "docs", "portfolio"]
 
         for template_id in known_templates:
-            assert template_id in registry._templates
+            with subtests.test(msg=template_id):
+                assert template_id in registry._templates
 
     def test_get_existing_template(self):
         """Test getting an existing template."""
@@ -56,7 +57,7 @@ class TestTemplateRegistry:
 
         assert template is None
 
-    def test_list_returns_tuples(self):
+    def test_list_returns_tuples(self, subtests):
         """Test list() returns list of (id, description) tuples."""
         registry = TemplateRegistry()
 
@@ -65,12 +66,10 @@ class TestTemplateRegistry:
         assert isinstance(templates, list)
         assert len(templates) > 0
 
-        for item in templates:
-            assert isinstance(item, tuple)
-            assert len(item) == 2
-            template_id, description = item
-            assert isinstance(template_id, str)
-            assert isinstance(description, str)
+        for template_id, description in templates:
+            with subtests.test(msg=template_id):
+                assert isinstance(template_id, str)
+                assert isinstance(description, str)
 
     def test_list_includes_known_templates(self):
         """Test that list includes known templates."""
@@ -125,9 +124,7 @@ class TestGlobalRegistry:
         """Test list_templates() returns correct format."""
         templates = list_templates()
 
-        for item in templates:
-            assert isinstance(item, tuple)
-            assert len(item) == 2
+        assert all(isinstance(item, tuple) and len(item) == 2 for item in templates)
 
     def test_register_template_function(self):
         """Test register_template() global function."""
@@ -222,22 +219,20 @@ class TestTemplateObjects:
 class TestTemplateFiles:
     """Test template file structures."""
 
-    def test_template_files_are_template_file_objects(self):
+    def test_template_files_are_template_file_objects(self, subtests):
         """Test that template files have correct structure."""
         template = get_template("default")
 
         for file in template.files:
-            # Should have relative_path and content
-            assert hasattr(file, "relative_path")
-            assert hasattr(file, "content")
+            with subtests.test(msg=file.relative_path):
+                assert hasattr(file, "relative_path")
+                assert hasattr(file, "content")
 
     def test_template_file_paths_are_relative(self):
         """Test that template file paths are relative."""
         template = get_template("blog")
 
-        for file in template.files:
-            # Paths should not start with /
-            assert not file.relative_path.startswith("/")
+        assert all(not f.relative_path.startswith("/") for f in template.files)
 
     def test_template_has_index_page(self):
         """Test that templates have an index page."""
@@ -275,7 +270,7 @@ class TestRegistrySingleton:
 class TestTemplateDiscovery:
     """Test template discovery mechanism."""
 
-    def test_discovers_all_template_modules(self):
+    def test_discovers_all_template_modules(self, subtests):
         """Test that all template modules are discovered."""
         templates = list_templates()
         template_ids = [t[0] for t in templates]
@@ -291,7 +286,8 @@ class TestTemplateDiscovery:
         ]
 
         for expected in expected_templates:
-            assert expected in template_ids, f"Expected template '{expected}' not found"
+            with subtests.test(msg=expected):
+                assert expected in template_ids
 
     def test_skips_non_template_modules(self):
         """Test that non-template modules are skipped."""
@@ -350,7 +346,7 @@ class TestEdgeCases:
 class TestRealWorldScenarios:
     """Test real-world usage scenarios."""
 
-    def test_list_available_templates_for_user(self):
+    def test_list_available_templates_for_user(self, subtests):
         """Test listing templates for user selection."""
         templates = list_templates()
 
@@ -359,8 +355,9 @@ class TestRealWorldScenarios:
 
         # Each should have meaningful description
         for template_id, description in templates:
-            assert len(template_id) > 0
-            assert len(description) > 0
+            with subtests.test(msg=template_id):
+                assert len(template_id) > 0
+                assert len(description) > 0
 
     def test_get_specific_template_for_initialization(self):
         """Test getting a specific template for site initialization."""
@@ -372,8 +369,7 @@ class TestRealWorldScenarios:
         assert len(template.files) > 0
 
         # Files should have content
-        for file in template.files:
-            assert file.content is not None
+        assert all(f.content is not None for f in template.files)
 
     def test_check_template_exists_before_using(self):
         """Test checking if template exists before using it."""

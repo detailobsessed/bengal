@@ -377,10 +377,8 @@ class TestTaxonomyIndexThreadSafety:
         assert not errors, f"Thread safety violations: {errors}"
 
         # Verify all tags were created
-        for thread_id in range(4):
-            for i in range(50):
-                tag_slug = f"tag-{thread_id}-{i}"
-                assert idx.has_tag(tag_slug), f"Missing tag: {tag_slug}"
+        expected_tags = [f"tag-{tid}-{i}" for tid in range(4) for i in range(50)]
+        assert all(idx.has_tag(tag) for tag in expected_tags)
 
     def test_concurrent_read_write(self, cache_dir):
         """Readers and writers can operate concurrently."""

@@ -269,10 +269,9 @@ output_dir = "public"
         get_page = env.globals["get_page"]
 
         track = site_with_tracks.data.tracks["getting-started"]
-        for item_path in track["items"]:
-            page = get_page(item_path)
-            assert page is not None, f"Failed to resolve track item: {item_path}"
-            assert page.title is not None
+        pages = [get_page(item_path) for item_path in track["items"]]
+        assert all(p is not None for p in pages)
+        assert all(p.title is not None for p in pages)
 
     def test_per_render_cache_reduces_lookups(self, site_with_tracks: Site):
         """Test per-render cache reduces redundant get_page() calls.
@@ -295,23 +294,20 @@ output_dir = "public"
 
         # Simulate multiple template passes over the same items
         # Pass 1: Contents overview
-        for item_path in items:
-            page = get_page(item_path)
-            assert page is not None
+        pages_pass1 = [get_page(item_path) for item_path in items]
+        assert all(p is not None for p in pages_pass1)
 
         # Check cache is populated
         cache = _get_render_cache()
         assert len(cache) >= len(items)
 
         # Pass 2: Main content rendering (should hit cache)
-        for item_path in items:
-            page = get_page(item_path)
-            assert page is not None
+        pages_pass2 = [get_page(item_path) for item_path in items]
+        assert all(p is not None for p in pages_pass2)
 
         # Pass 3: Sidebar (should hit cache)
-        for item_path in items:
-            page = get_page(item_path)
-            assert page is not None
+        pages_pass3 = [get_page(item_path) for item_path in items]
+        assert all(p is not None for p in pages_pass3)
 
         # Cache size should not have grown significantly
         # (might grow slightly due to path normalization creating additional entries)

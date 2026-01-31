@@ -104,14 +104,15 @@ class TestSpecParsing:
         assert params is not None
         assert params.quality == 75
 
-    def test_anchor_parsing(self) -> None:
+    def test_anchor_parsing(self, subtests) -> None:
         """Anchor position is parsed."""
         from bengal.core.resources.types import parse_spec
 
         for anchor in ["center", "top", "bottom", "left", "right", "smart"]:
-            params = parse_spec(f"800x600 {anchor}")
-            assert params is not None
-            assert params.anchor == anchor
+            with subtests.test(msg=anchor):
+                params = parse_spec(f"800x600 {anchor}")
+                assert params is not None
+                assert params.anchor == anchor
 
 
 class TestImageResourceGracefulDegradation:

@@ -160,9 +160,10 @@ class TestBatchStore:
 
         store.store_batch(records)
 
-        for i in range(3):
-            result = store.get(CacheKey(f"content/page{i}.md"))
-            assert result is not None
+        # Verify all records were stored
+        assert all(
+            store.get(CacheKey(f"content/page{i}.md")) is not None for i in range(3)
+        )
 
 
 # =============================================================================

@@ -334,8 +334,7 @@ class TestThreadSafeSetUsage:
                 new_counts[path] = new_counts.get(path, 0) + 1
 
         # Each path should have been new exactly once
-        for path, count in new_counts.items():
-            assert count == 1, f"Path {path} was marked new {count} times (should be 1)"
+        assert all(count == 1 for count in new_counts.values())
 
 
 class TestDirectiveCacheConfiguration:

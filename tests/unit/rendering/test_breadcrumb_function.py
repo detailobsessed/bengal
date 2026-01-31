@@ -117,13 +117,11 @@ class TestGetBreadcrumbs:
 
         result = get_breadcrumbs(page)
 
-        for item in result:
-            assert "title" in item
-            assert "href" in item
-            assert "is_current" in item
-            assert isinstance(item["title"], str)
-            assert isinstance(item["href"], str)
-            assert isinstance(item["is_current"], bool)
+        required = ["title", "href", "is_current"]
+        assert all(all(k in item for k in required) for item in result)
+        assert all(isinstance(item["title"], str) for item in result)
+        assert all(isinstance(item["href"], str) for item in result)
+        assert all(isinstance(item["is_current"], bool) for item in result)
 
     def test_only_last_item_is_current(self):
         """Only the last breadcrumb item is marked as current."""
@@ -139,11 +137,8 @@ class TestGetBreadcrumbs:
         result = get_breadcrumbs(page)
 
         # Check that only last item is current
-        for i, item in enumerate(result):
-            if i == len(result) - 1:
-                assert item["is_current"]
-            else:
-                assert not item["is_current"]
+        assert result[-1]["is_current"]
+        assert all(not item["is_current"] for item in result[:-1])
 
     def test_ancestor_without_path_uses_slug(self):
         """Ancestors without _path property fall back to slug."""

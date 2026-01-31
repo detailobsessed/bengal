@@ -159,8 +159,7 @@ class TestAssetTrackerContextManagerProperties:
         assert get_current_tracker() is None
 
         # Each tracker should have its own path
-        for i, tracker in enumerate(trackers):
-            assert paths[i] in tracker.get_assets()
+        assert all(paths[i] in trackers[i].get_assets() for i in range(len(trackers)))
 
 
 class TestAssetTrackerEdgeCases:

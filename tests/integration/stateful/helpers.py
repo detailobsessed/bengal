@@ -9,6 +9,7 @@ import hashlib
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Any
 
 
 def create_temp_site(name: str = "test_site") -> Path:
@@ -99,7 +100,7 @@ def delete_page(site_dir: Path, rel_path: str) -> None:
         page_path.unlink()
 
 
-def run_build(site_dir: Path, incremental: bool = False) -> dict[str, any]:
+def run_build(site_dir: Path, incremental: bool = False) -> dict[str, Any]:
     """
     Run a build and return results.
 

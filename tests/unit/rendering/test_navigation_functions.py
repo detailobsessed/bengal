@@ -282,10 +282,9 @@ class TestGetPaginationItems:
         assert len(ellipsis_items) == 2
 
         # Ellipsis items have no num or url
-        for item in ellipsis_items:
-            assert item["num"] is None
-            assert item["url"] is None
-            assert item["is_ellipsis"]
+        assert all(item["num"] is None for item in ellipsis_items)
+        assert all(item["url"] is None for item in ellipsis_items)
+        assert all(item["is_ellipsis"] for item in ellipsis_items)
 
     def test_window_size(self):
         """Window parameter controls number of pages around current."""

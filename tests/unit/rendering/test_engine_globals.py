@@ -221,5 +221,4 @@ class TestGetEngineGlobalsThreadSafety:
             results = [f.result() for f in futures]
 
         # All should have same cached wrappers
-        for result in results[1:]:
-            assert result["site"] is results[0]["site"]
+        assert all(r["site"] is results[0]["site"] for r in results[1:])

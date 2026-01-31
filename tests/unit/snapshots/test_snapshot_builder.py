@@ -44,35 +44,37 @@ def test_snapshot_includes_all_pages(site, build_site):
 
 
 @pytest.mark.bengal(testroot="test-taxonomy")
-def test_snapshot_pages_have_required_fields(site, build_site):
+def test_snapshot_pages_have_required_fields(site, build_site, subtests):
     """Test that PageSnapshot has all required fields."""
     build_site()
 
     snapshot = create_site_snapshot(site)
 
     for page_snap in snapshot.pages:
-        assert isinstance(page_snap, PageSnapshot)
-        assert page_snap.title is not None
-        assert page_snap.source_path is not None
-        assert page_snap.output_path is not None
-        assert page_snap.template_name is not None
-        assert page_snap.content is not None  # Raw markdown
-        assert page_snap.section is not None or page_snap.section is NO_SECTION
+        with subtests.test(msg=str(page_snap.source_path)):
+            assert isinstance(page_snap, PageSnapshot)
+            assert page_snap.title is not None
+            assert page_snap.source_path is not None
+            assert page_snap.output_path is not None
+            assert page_snap.template_name is not None
+            assert page_snap.content is not None  # Raw markdown
+            assert page_snap.section is not None or page_snap.section is NO_SECTION
 
 
 @pytest.mark.bengal(testroot="test-taxonomy")
-def test_snapshot_sections_have_required_fields(site, build_site):
+def test_snapshot_sections_have_required_fields(site, build_site, subtests):
     """Test that SectionSnapshot has all required fields."""
     build_site()
 
     snapshot = create_site_snapshot(site)
 
     for section_snap in snapshot.sections:
-        assert isinstance(section_snap, SectionSnapshot)
-        assert section_snap.name is not None
-        assert section_snap.pages is not None
-        assert isinstance(section_snap.pages, tuple)  # Immutable
-        assert isinstance(section_snap.subsections, tuple)  # Immutable
+        with subtests.test(msg=section_snap.name):
+            assert isinstance(section_snap, SectionSnapshot)
+            assert section_snap.name is not None
+            assert section_snap.pages is not None
+            assert isinstance(section_snap.pages, tuple)  # Immutable
+            assert isinstance(section_snap.subsections, tuple)  # Immutable
 
 
 @pytest.mark.bengal(testroot="test-taxonomy")
@@ -91,7 +93,7 @@ def test_snapshot_navigation_resolved(site, build_site):
 
 
 @pytest.mark.bengal(testroot="test-taxonomy")
-def test_snapshot_topological_order(site, build_site):
+def test_snapshot_topological_order(site, build_site, subtests):
     """Test that topological_order is computed."""
     build_site()
 
@@ -102,15 +104,15 @@ def test_snapshot_topological_order(site, build_site):
     assert len(snapshot.topological_order) > 0
 
     # Each wave should be a tuple of PageSnapshots
-    for wave in snapshot.topological_order:
-        assert isinstance(wave, tuple)
-        assert len(wave) > 0
-        for page_snap in wave:
-            assert isinstance(page_snap, PageSnapshot)
+    for i, wave in enumerate(snapshot.topological_order):
+        with subtests.test(msg=f"wave_{i}"):
+            assert isinstance(wave, tuple)
+            assert len(wave) > 0
+            assert all(isinstance(p, PageSnapshot) for p in wave)
 
 
 @pytest.mark.bengal(testroot="test-taxonomy")
-def test_snapshot_template_groups(site, build_site):
+def test_snapshot_template_groups(site, build_site, subtests):
     """Test that template_groups is computed."""
     build_site()
 
@@ -124,15 +126,15 @@ def test_snapshot_template_groups(site, build_site):
 
     # Each group should be a tuple of PageSnapshots
     for template_name, pages in snapshot.template_groups.items():
-        assert isinstance(template_name, str)
-        assert isinstance(pages, tuple)
-        assert len(pages) > 0
-        for page_snap in pages:
-            assert isinstance(page_snap, PageSnapshot)
+        with subtests.test(msg=template_name):
+            assert isinstance(template_name, str)
+            assert isinstance(pages, tuple)
+            assert len(pages) > 0
+            assert all(isinstance(p, PageSnapshot) for p in pages)
 
 
 @pytest.mark.bengal(testroot="test-taxonomy")
-def test_snapshot_scout_hints(site, build_site):
+def test_snapshot_scout_hints(site, build_site, subtests):
     """Test that scout_hints are generated."""
     build_site()
 
@@ -143,8 +145,9 @@ def test_snapshot_scout_hints(site, build_site):
 
     # Scout hints should have template paths
     for hint in snapshot.scout_hints:
-        assert hint.template_path is not None
-        assert hint.priority >= 0
+        with subtests.test(msg=str(hint.template_path)):
+            assert hint.template_path is not None
+            assert hint.priority >= 0
 
 
 @pytest.mark.bengal(testroot="test-taxonomy")
@@ -177,9 +180,8 @@ def test_snapshot_section_hierarchy(site, build_site):
     assert snapshot.root_section.parent is None
 
     # All sections should have root set
-    for section_snap in snapshot.sections:
-        assert section_snap.root is not None
-        assert (
-            section_snap.root == snapshot.root_section
-            or section_snap == snapshot.root_section
-        )
+    assert all(s.root is not None for s in snapshot.sections)
+    assert all(
+        s.root == snapshot.root_section or s == snapshot.root_section
+        for s in snapshot.sections
+    )

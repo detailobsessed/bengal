@@ -179,8 +179,7 @@ class TestSwizzle:
 
         # Check all templates are in records
         targets = [rec["target"] for rec in registry["records"]]
-        for template in templates:
-            assert template in targets
+        assert set(templates) <= set(targets)
 
 
 class TestListSwizzled:
@@ -523,8 +522,7 @@ class TestRealWorldScenarios:
         assert len(records) == 3
 
         # Should be able to inspect each record
-        for record in records:
-            assert record.target in templates
-            assert record.theme == "default"
-            assert isinstance(record.timestamp, float)
-            assert len(record.upstream_checksum) > 0
+        assert all(r.target in templates for r in records)
+        assert all(r.theme == "default" for r in records)
+        assert all(isinstance(r.timestamp, float) for r in records)
+        assert all(len(r.upstream_checksum) > 0 for r in records)

@@ -231,17 +231,15 @@ class TestSpeculationRulesJSONSchema:
         # Schema validation
         assert isinstance(result, dict)
 
-        for key in ["prerender", "prefetch"]:
-            assert key in result
-            assert isinstance(result[key], list)
+        assert "prerender" in result
+        assert "prefetch" in result
+        assert isinstance(result["prerender"], list)
+        assert isinstance(result["prefetch"], list)
 
-            for rule in result[key]:
-                assert isinstance(rule, dict)
-                assert "where" in rule
-                assert "eagerness" in rule
-                assert rule["eagerness"] in [
-                    "immediate",
-                    "eager",
-                    "moderate",
-                    "conservative",
-                ]
+        for key in ["prerender", "prefetch"]:
+            rules = result[key]
+            assert all(isinstance(r, dict) for r in rules)
+            assert all("where" in r for r in rules)
+            assert all("eagerness" in r for r in rules)
+            valid_eagerness = ["immediate", "eager", "moderate", "conservative"]
+            assert all(r["eagerness"] in valid_eagerness for r in rules)

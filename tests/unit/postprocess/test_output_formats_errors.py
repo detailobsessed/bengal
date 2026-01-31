@@ -65,10 +65,9 @@ class TestParallelWriteErrorHandling:
             )
 
             # Verify the successful files exist
-            for i in [0, 1, 3, 4]:
-                assert (output_dir / f"page{i}/index.json").exists(), (
-                    f"page{i}/index.json should exist"
-                )
+            assert all(
+                (output_dir / f"page{i}/index.json").exists() for i in [0, 1, 3, 4]
+            )
 
             # page2 should not have a JSON file
             assert not (output_dir / "page2/index.json").exists(), (
@@ -103,12 +102,9 @@ class TestParallelWriteErrorHandling:
         # After generate() returns, all files should exist
         assert count == 10, f"Expected 10 writes, got {count}"
 
-        for i in range(10):
-            json_path = output_dir / f"page{i}/index.json"
-            assert json_path.exists(), (
-                f"page{i}/index.json should exist after generate() returns. "
-                "If missing, writes may not have completed before return."
-            )
+        assert all((output_dir / f"page{i}/index.json").exists() for i in range(10)), (
+            "All JSON files should exist after generate() returns"
+        )
 
     def test_write_count_accurate_with_failures(self, tmp_path: Path, mocker) -> None:
         """Verify write count is accurate when some writes fail."""

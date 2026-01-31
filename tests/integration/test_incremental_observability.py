@@ -95,10 +95,9 @@ class TestExplainMode:
             "output_missing",
             "no_cache",
         }
-        for reason in decision.rebuild_reasons.values():
-            assert reason.code.value in valid_reasons, (
-                f"Unexpected reason: {reason.code.value}"
-            )
+        assert all(
+            r.code.value in valid_reasons for r in decision.rebuild_reasons.values()
+        )
 
     def test_explain_incremental_shows_content_changed(self, minimal_site: Path):
         """Incremental build with --explain should show content_changed reasons."""

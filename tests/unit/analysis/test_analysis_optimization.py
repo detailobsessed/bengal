@@ -94,10 +94,9 @@ class TestIncomingEdgesIndex:
 
         # Verify: for each edge in outgoing_refs, the reverse exists in incoming_edges
         for source_page, targets in builder.outgoing_refs.items():
-            for target in targets:
-                assert source_page in builder.incoming_edges.get(target, []), (
-                    f"Missing reverse edge: {target} should have {source_page} as incoming"
-                )
+            assert all(
+                source_page in builder.incoming_edges.get(t, []) for t in targets
+            )
 
 
 class TestPageRankOptimization:
@@ -354,8 +353,7 @@ class TestLinkSuggestionsOptimization:
         results = engine.generate_suggestions()
 
         # No suggestions should include self-link
-        for suggestion in results.suggestions:
-            assert suggestion.source != suggestion.target
+        assert all(s.source != s.target for s in results.suggestions)
 
     def test_suggestions_no_existing_links(self):
         """Test that existing links are not suggested."""

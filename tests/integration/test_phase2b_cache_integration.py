@@ -13,6 +13,7 @@ These tests verify that:
 - Incremental builds can leverage cached data
 """
 
+from collections.abc import Generator
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -27,7 +28,7 @@ from bengal.orchestration.build.options import BuildOptions
 
 
 @pytest.fixture
-def site_with_content() -> Site:
+def site_with_content() -> Generator[Site]:
     """Create a site with test content."""
     with TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
@@ -270,9 +271,8 @@ class TestTaxonomyIndexPersistence:
         )
 
         # Verify tag entries have pages
-        for tag_slug, entry in index.tags.items():
-            assert entry.page_paths, f"Tag {tag_slug} has no pages"
-            assert len(entry.page_paths) > 0
+        assert all(entry.page_paths for entry in index.tags.values())
+        assert all(len(entry.page_paths) > 0 for entry in index.tags.values())
 
     def test_taxonomy_index_has_correct_page_counts(self, site_with_content):
         """Verify TaxonomyIndex has correct page counts for each tag."""

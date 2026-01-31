@@ -126,6 +126,7 @@ class TestBengalValidatorError:
             code=ErrorCode.V004,
             suggestion="Increase timeout or check network",
         )
+        assert error.suggestion is not None
         assert (
             "timeout" in error.suggestion.lower()
             or "network" in error.suggestion.lower()
@@ -216,6 +217,7 @@ class TestConvertedExceptions:
             code=ErrorCode.A001,
             suggestion="Clear the cache with: rm -rf .bengal/cache/",
         )
+        assert error.suggestion is not None
         assert "cache" in error.suggestion.lower()
 
     def test_rendering_error_has_original_error(self) -> None:
@@ -286,8 +288,7 @@ class TestExceptionHierarchy:
             BengalBuildError("test"),
             BengalTemplateFunctionError("test"),
         ]
-        for error in errors:
-            assert isinstance(error, BengalError)
+        assert all(isinstance(e, BengalError) for e in errors)
 
     def test_template_function_error_is_rendering_error(self) -> None:
         """BengalTemplateFunctionError is also a BengalRenderingError."""

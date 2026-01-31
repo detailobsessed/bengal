@@ -160,8 +160,7 @@ dev = [
     # UX improvements (auto-activate, see .github/TESTING.md for usage)
     "pytest-sugar>=1.1.1",         # Better progress bar, instant failure display
     "pytest-icdiff>=0.9",          # Side-by-side colored assertion diffs
-    "pytest-subtests>=0.15.0",     # subtests fixture for granular test reporting
-    "pytest-lazy-fixtures>=1.4.0", # lf() helper for fixtures in @parametrize
+    "pytest-subtests>=0.15.0", # lf() helper for fixtures in @parametrize
 ]
 
 [tool.poe.tasks]

@@ -142,8 +142,7 @@ class TestMixinComposition:
             "_path",
         ]
 
-        for attr in expected_attrs:
-            assert hasattr(Section, attr), f"Section missing expected attribute: {attr}"
+        assert all(hasattr(Section, attr) for attr in expected_attrs)
 
     def test_page_mixin_attributes_accessible(self) -> None:
         """Page class has all expected attributes from mixins."""
@@ -162,8 +161,7 @@ class TestMixinComposition:
             "meta_description",
         ]
 
-        for attr in expected_attrs:
-            assert hasattr(Page, attr), f"Page missing expected attribute: {attr}"
+        assert all(hasattr(Page, attr) for attr in expected_attrs)
 
     def test_section_can_be_used_in_list_operations(self) -> None:
         """Section instances work with list.index() and similar operations."""

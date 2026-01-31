@@ -491,9 +491,8 @@ class TestPageInitializer:
             initializer.ensure_initialized(page)
 
         # All should be valid
-        for i, page in enumerate(pages):
-            assert page._site == mock_site
-            assert page.href == f"/page{i}/"
+        assert all(p._site == mock_site for p in pages)
+        assert all(pages[i].href == f"/page{i}/" for i in range(len(pages)))
 
     def test_initialize_pages_with_same_output_dir(
         self, initializer, mock_site, tmp_path

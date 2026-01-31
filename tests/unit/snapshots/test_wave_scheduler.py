@@ -163,10 +163,7 @@ def test_wave_scheduler_sets_output_paths(site, build_site):
     scheduler.render_all(list(site.pages))
 
     # All pages should have output_path set
-    for page in site.pages:
-        assert page.output_path is not None, (
-            f"output_path not set for {page.source_path}"
-        )
+    assert all(p.output_path is not None for p in site.pages)
 
 
 @pytest.mark.bengal(testroot="test-basic")
@@ -205,18 +202,18 @@ def test_wave_scheduler_handles_errors(site, build_site):
 
     original_process_page = None
 
-    def failing_process_page(page):
+    def failing_process_page(self, page):
         if page.source_path == error_page.source_path:
             raise ValueError("Test error")
         if original_process_page:
-            original_process_page(page)
+            original_process_page(self, page)
 
     from bengal.rendering.pipeline import RenderingPipeline
 
     original_process_page = RenderingPipeline.process_page
 
     try:
-        RenderingPipeline.process_page = failing_process_page
+        RenderingPipeline.process_page = failing_process_page  # type: ignore[method-assign]
 
         render_stats = scheduler.render_all(list(site.pages))
 

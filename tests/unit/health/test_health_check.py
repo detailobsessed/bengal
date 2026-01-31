@@ -6,10 +6,13 @@ Tests parallel execution, error isolation, threshold behavior, and observability
 
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from bengal.config.accessor import Config
 
 from bengal.health.base import BaseValidator
 from bengal.health.health_check import HealthCheck, HealthCheckStats
@@ -46,7 +49,7 @@ class MockValidator(BaseValidator):
 
         return self._results
 
-    def is_enabled(self, config: dict) -> bool:
+    def is_enabled(self, config: Config | dict[str, Any] | Any) -> bool:
         """Always enabled for tests."""
         return True
 
@@ -74,9 +77,8 @@ class TestHealthCheckParallelExecution:
         report = health_check.run()
 
         # All validators should have been called
-        for v in validators:
-            assert v.was_called, f"{v.name} was not called"
-            assert v.call_count == 1, f"{v.name} was called {v.call_count} times"
+        assert all(v.was_called for v in validators)
+        assert all(v.call_count == 1 for v in validators)
 
         # Report should have all validator reports
         assert len(report.validator_reports) == 4
@@ -133,8 +135,7 @@ class TestHealthCheckParallelExecution:
         good_reports = [
             r for r in report.validator_reports if r.validator_name.startswith("Good")
         ]
-        for gr in good_reports:
-            assert gr.error_count == 0
+        assert all(gr.error_count == 0 for gr in good_reports)
 
     def test_threshold_below_runs_sequential(self, mock_site):
         """Test that fewer than PARALLEL_THRESHOLD validators run sequentially."""
@@ -234,8 +235,7 @@ class TestHealthCheckParallelExecution:
 
         captured = capsys.readouterr()
         # All validators should appear in output
-        for i in range(4):
-            assert f"Validator{i}" in captured.out
+        assert all(f"Validator{i}" in captured.out for i in range(4))
 
 
 class TestHealthCheckHelperMethods:
@@ -462,7 +462,7 @@ class TestHealthCheckIntegration:
                 ContextCheckingValidator.received_context = build_context
                 return [CheckResult.success("OK")]
 
-            def is_enabled(self, config: dict) -> bool:
+            def is_enabled(self, config: Config | dict[str, Any] | Any) -> bool:
                 return True
 
         health_check = HealthCheck(mock_site, auto_register=False)

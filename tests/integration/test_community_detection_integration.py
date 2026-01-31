@@ -121,15 +121,18 @@ class TestCommunityDetectionIntegration:
 
         # All Python pages should be in same community
         python_community = community_id
-        for page in python_pages[1:]:
-            assert graph.get_community_for_page(page) == python_community
+        assert all(
+            graph.get_community_for_page(p) == python_community
+            for p in python_pages[1:]
+        )
 
         # Web pages should be in different community
         web_community = graph.get_community_for_page(web_pages[0])
         assert web_community != python_community
 
-        for page in web_pages[1:]:
-            assert graph.get_community_for_page(page) == web_community
+        assert all(
+            graph.get_community_for_page(p) == web_community for p in web_pages[1:]
+        )
 
     def test_get_largest_communities(self, clustered_site):
         """Test getting largest communities."""

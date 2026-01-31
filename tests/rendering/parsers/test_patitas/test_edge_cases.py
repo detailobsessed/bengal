@@ -348,8 +348,7 @@ class TestEdgeCasesRegression:
         # CommonMark: different markers create separate lists
         # - creates one list, * creates another, + creates another
         assert len(ast) == 3
-        for node in ast:
-            assert isinstance(node, List)
+        assert all(isinstance(node, List) for node in ast)
 
     def test_footnote_without_definition(self, parse_md):
         """Footnote reference without definition renders as text."""

@@ -126,7 +126,7 @@ class TestLazyLoadingDiscovery:
             metadata = PageMetadata(
                 source_path=str(rel_path),
                 title=page.title,
-                date=page.date.isoformat() if page.date else None,
+                date=page.date,
                 tags=page.tags,
                 section=str(page._section.path) if page._section else None,
                 slug=page.slug,
@@ -167,7 +167,7 @@ class TestLazyLoadingDiscovery:
             metadata = PageMetadata(
                 source_path=str(rel_path),
                 title=p.title,
-                date=p.date.isoformat() if p.date else None,
+                date=p.date,
                 tags=p.tags,
                 # Store the section path directly (what's actually in _section_path)
                 section=str(p._section_path) if p._section_path else None,
@@ -259,7 +259,7 @@ class TestLazyLoadingIntegration:
             metadata = PageMetadata(
                 source_path=str(rel_path),
                 title=page.title,
-                date=page.date.isoformat() if page.date else None,
+                date=page.date,
                 tags=page.tags,
                 section=str(page._section.path) if page._section else None,
                 slug=page.slug,
@@ -281,8 +281,7 @@ class TestLazyLoadingIntegration:
         assert len(page_dict) == len(pages2)
 
         # Test iteration works
-        for _i, page in enumerate(pages2):
-            assert page.source_path.exists()
+        assert all(p.source_path.exists() for p in pages2)
 
 
 class TestLazyLoadingPerformance:
@@ -302,7 +301,7 @@ class TestLazyLoadingPerformance:
             metadata = PageMetadata(
                 source_path=str(rel_path),
                 title=page.title,
-                date=page.date.isoformat() if page.date else None,
+                date=page.date,
                 tags=page.tags,
                 section=str(page._section.path) if page._section else None,
                 slug=page.slug,
@@ -340,7 +339,7 @@ class TestLazyLoadingPerformance:
             metadata = PageMetadata(
                 source_path=str(rel_path),
                 title=page.title,
-                date=page.date.isoformat() if page.date else None,
+                date=page.date,
                 tags=page.tags,
                 section=str(page._section.path) if page._section else None,
                 slug=page.slug,

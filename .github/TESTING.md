@@ -203,28 +203,6 @@ def test_multiple_cases(subtests):
 
 Each subtest is reported separately, so you see exactly which cases failed.
 
-### pytest-lazy-fixtures
-Use fixtures directly in `@pytest.mark.parametrize` with the `lf()` helper:
-
-```python
-from pytest_lazy_fixtures import lf
-
-@pytest.fixture
-def admin_user():
-    return User(role="admin")
-
-@pytest.fixture
-def guest_user():
-    return User(role="guest")
-
-@pytest.mark.parametrize("user,expected", [
-    (lf("admin_user"), True),
-    (lf("guest_user"), False),
-])
-def test_can_delete(user, expected):
-    assert user.can_delete() == expected
-```
-
 ---
 
 ## Contributing

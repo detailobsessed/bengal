@@ -31,6 +31,7 @@ class TestSpecParsing:
     def test_dimensions_only(self):
         """Parse dimensions without format/quality."""
         params = parse_spec("800x600")
+        assert params is not None
         assert params.width == 800
         assert params.height == 600
         assert params.format is None
@@ -39,33 +40,39 @@ class TestSpecParsing:
     def test_width_only(self):
         """Parse width with auto height."""
         params = parse_spec("800x")
+        assert params is not None
         assert params.width == 800
         assert params.height is None
 
     def test_height_only(self):
         """Parse height with auto width."""
         params = parse_spec("x600")
+        assert params is not None
         assert params.width is None
         assert params.height == 600
 
     def test_with_format(self):
         """Parse with format conversion."""
         params = parse_spec("800x600 webp")
+        assert params is not None
         assert params.format == "webp"
 
     def test_jpg_normalized_to_jpeg(self):
         """jpg is normalized to jpeg."""
         params = parse_spec("100x100 jpg")
+        assert params is not None
         assert params.format == "jpeg"
 
     def test_with_quality(self):
         """Parse with quality setting."""
         params = parse_spec("800x600 q80")
+        assert params is not None
         assert params.quality == 80
 
     def test_full_spec(self):
         """Parse full spec with all options."""
         params = parse_spec("800x600 webp q75 center")
+        assert params is not None
         assert params.width == 800
         assert params.height == 600
         assert params.format == "webp"
@@ -88,6 +95,7 @@ class TestSpecParsing:
         ]
         for pos in positions:
             params = parse_spec(f"100x100 {pos}")
+            assert params is not None
             assert params.anchor == pos
 
     def test_unknown_parts_tolerated(self):

@@ -38,8 +38,7 @@ class TestRebuildReasonCode:
             "FULL_REBUILD",
         ]
         actual_codes = [code.name for code in RebuildReasonCode]
-        for code in expected_codes:
-            assert code in actual_codes, f"Missing reason code: {code}"
+        assert all(code in actual_codes for code in expected_codes)
 
     def test_reason_codes_are_unique(self) -> None:
         """All reason code values are unique."""

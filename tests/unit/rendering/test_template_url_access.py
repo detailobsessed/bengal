@@ -75,10 +75,7 @@ class TestChildPageTilesMacro:
 
         # Verify all URLs have section prefix
         assert len(tile_data) >= 3
-        for tile in tile_data:
-            assert tile["url"].startswith("/guides/"), (
-                f"Tile URL missing section prefix: {tile['url']}"
-            )
+        assert all(t["url"].startswith("/guides/") for t in tile_data)
 
     def test_sorted_pages_iteration_urls(self, site_with_children):
         """Test URL access when iterating sorted_pages."""
@@ -152,8 +149,7 @@ class TestNavigationComponentURLs:
         all_nav_urls = collect_nav_urls(root_section)
 
         # All should start with /docs/
-        for url in all_nav_urls:
-            assert url.startswith("/docs/"), f"Nav URL missing prefix: {url}"
+        assert all(url.startswith("/docs/") for url in all_nav_urls)
 
     def test_breadcrumb_ancestor_urls(self, nested_nav_site):
         """Simulate breadcrumb generation with ancestor sections."""
@@ -212,10 +208,7 @@ class TestRelatedPostsURLs:
         python_posts = [p for p in posts if "python" in p.metadata.get("tags", [])]
 
         # Access URLs (as template would)
-        for post in python_posts:
-            assert post.href.startswith("/blog/"), (
-                f"Related post wrong URL: {post.href}"
-            )
+        assert all(p.href.startswith("/blog/") for p in python_posts)
 
 
 class TestPaginationURLs:
@@ -239,9 +232,7 @@ class TestPaginationURLs:
             pages.append(page)
 
         # Simulate template: {% for page in paginator.pages %}
-        for page in pages:
-            url = page.href
-            assert url.startswith("/blog/"), f"Paginated page wrong URL: {url}"
+        assert all(p.href.startswith("/blog/") for p in pages)
 
 
 class TestTagPageLinks:
@@ -304,22 +295,15 @@ class TestTagPageLinks:
 
         # Verify each section's pages have correct prefix
         if "blog" in by_section:
-            for page in by_section["blog"]:
-                assert page.href.startswith("/blog/"), (
-                    f"Blog page wrong URL: {page.href}"
-                )
+            assert all(p.href.startswith("/blog/") for p in by_section["blog"])
 
         if "docs" in by_section:
-            for page in by_section["docs"]:
-                assert page.href.startswith("/docs/"), (
-                    f"Docs page wrong URL: {page.href}"
-                )
+            assert all(p.href.startswith("/docs/") for p in by_section["docs"])
 
         if "tutorials" in by_section:
-            for page in by_section["tutorials"]:
-                assert page.href.startswith("/tutorials/"), (
-                    f"Tutorial page wrong URL: {page.href}"
-                )
+            assert all(
+                p.href.startswith("/tutorials/") for p in by_section["tutorials"]
+            )
 
 
 class TestTemplateAccessPatterns:

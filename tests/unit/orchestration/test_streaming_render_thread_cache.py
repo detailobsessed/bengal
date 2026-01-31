@@ -123,5 +123,6 @@ class TestBuildGenerationForCacheInvalidation:
             generations.append(_get_current_generation())
 
         # Should be strictly increasing
-        for i in range(1, len(generations)):
-            assert generations[i] > generations[i - 1]
+        assert all(
+            generations[i] > generations[i - 1] for i in range(1, len(generations))
+        )

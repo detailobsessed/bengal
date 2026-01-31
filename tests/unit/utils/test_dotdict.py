@@ -423,7 +423,7 @@ class TestDotDictJinja2Integration:
         else:
             pytest.fail("Should not enter else block")
 
-    def test_method_collision_in_template_context(self):
+    def test_method_collision_in_template_context(self, subtests):
         """Test the main use case: accessing 'items' field in templates."""
         # Simulating template data for resume/portfolio
         # Use from_dict to ensure nested dicts are also wrapped
@@ -443,7 +443,8 @@ class TestDotDictJinja2Integration:
         # {{ skill_group.items }} would call items() method, not get the field
 
         for skill_group in resume_data.skills:
-            # Should get the field, not the method
-            assert isinstance(skill_group.items, list)
-            assert len(skill_group.items) > 0
-            assert isinstance(skill_group.items[0], str)
+            with subtests.test(msg=skill_group.category):
+                # Should get the field, not the method
+                assert isinstance(skill_group.items, list)
+                assert len(skill_group.items) > 0
+                assert isinstance(skill_group.items[0], str)

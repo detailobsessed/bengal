@@ -42,10 +42,7 @@ class TestBengalPaths:
             paths.swizzle_registry,
         ]
 
-        for file_path in file_paths:
-            assert str(file_path).startswith(str(state_dir)), (
-                f"{file_path} not under {state_dir}"
-            )
+        assert all(str(fp).startswith(str(state_dir)) for fp in file_paths)
 
         # All directory paths should be under .bengal
         dir_paths = [
@@ -61,10 +58,7 @@ class TestBengalPaths:
             paths.pipeline_out_dir,
         ]
 
-        for dir_path in dir_paths:
-            assert str(dir_path).startswith(str(state_dir)), (
-                f"{dir_path} not under {state_dir}"
-            )
+        assert all(str(dp).startswith(str(state_dir)) for dp in dir_paths)
 
     def test_paths_are_path_objects(self, tmp_path: Path):
         """Test all path properties return Path objects."""
@@ -95,8 +89,7 @@ class TestBengalPaths:
             paths.pipeline_out_dir,
         ]
 
-        for path in all_paths:
-            assert isinstance(path, Path), f"{path} is not a Path object"
+        assert all(isinstance(p, Path) for p in all_paths)
 
     def test_ensure_dirs_creates_directories(self, tmp_path: Path):
         """Test ensure_dirs creates all necessary directories."""
@@ -125,9 +118,8 @@ class TestBengalPaths:
             paths.pipeline_out_dir,
         ]
 
-        for directory in expected_dirs:
-            assert directory.exists(), f"Directory not created: {directory}"
-            assert directory.is_dir(), f"Not a directory: {directory}"
+        assert all(d.exists() for d in expected_dirs)
+        assert all(d.is_dir() for d in expected_dirs)
 
     def test_ensure_dirs_idempotent(self, tmp_path: Path):
         """Test ensure_dirs can be called multiple times safely."""
