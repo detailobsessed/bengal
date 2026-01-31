@@ -281,3 +281,51 @@ def get_default_config() -> dict[str, Any]:
         Default configuration dictionary with all settings from DEFAULTS.
     """
     return deep_merge({}, DEFAULTS)
+
+
+def pretty_print_config(config: dict[str, Any], title: str = "Configuration") -> None:
+    """
+    Pretty print configuration using Rich formatting.
+
+    Displays the configuration dictionary with syntax highlighting and
+    formatting. Falls back to standard ``pprint`` if Rich is unavailable
+    or disabled.
+
+    Args:
+        config: Configuration dictionary to display.
+        title: Title to display above the configuration output.
+
+    Example:
+            >>> config = {"title": "My Site", "baseurl": "/"}
+            >>> pretty_print_config(config, title="Site Configuration")
+        # Outputs formatted configuration with Rich or pprint
+
+    """
+    try:
+        from rich.pretty import pprint as rich_pprint
+
+        from bengal.utils.observability.rich_console import get_console, should_use_rich
+
+        if should_use_rich():
+            console = get_console()
+            console.print()
+            console.print(f"[bold cyan]{title}[/bold cyan]")
+            console.print()
+
+            # Use Rich pretty printing with syntax highlighting
+            rich_pprint(config, console=console, expand_all=True)
+            console.print()
+        else:
+            # Fallback to standard pprint
+            import pprint
+
+            print(f"\n{title}:\n")
+            pprint.pprint(config, width=100, compact=False)
+            print()
+    except ImportError:
+        # Ultimate fallback
+        import pprint
+
+        print(f"\n{title}:\n")
+        pprint.pprint(config, width=100, compact=False)
+        print()
