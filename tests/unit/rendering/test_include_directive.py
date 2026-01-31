@@ -1,16 +1,19 @@
 """Tests for include directive."""
 
 import os
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 
 from bengal.directives.include import (
     MAX_INCLUDE_DEPTH,
-    MAX_INCLUDE_SIZE,
     IncludeDirective,
     render_include,
+)
+from bengal.directives.include_utils import (
+    MAX_INCLUDE_SIZE,
+    load_file_content,
+    resolve_include_path_with_fallback,
 )
 from bengal.parsing import PatitasParser
 
@@ -252,11 +255,7 @@ class TestIncludeDirective:
         self, multi_line_markdown_file, mock_state_with_root
     ):
         """Test loading file with line range."""
-        directive = IncludeDirective()
-
-        content = directive._load_file(
-            multi_line_markdown_file, start_line=3, end_line=7
-        )
+        content = load_file_content(multi_line_markdown_file, start_line=3, end_line=7)
 
         lines = content.split("\n")
         assert len(lines) == 5  # Lines 3-7 inclusive
@@ -269,9 +268,7 @@ class TestIncludeDirective:
         self, multi_line_markdown_file, mock_state_with_root
     ):
         """Test loading file with only start_line specified."""
-        directive = IncludeDirective()
-
-        content = directive._load_file(
+        content = load_file_content(
             multi_line_markdown_file, start_line=8, end_line=None
         )
 
@@ -285,9 +282,7 @@ class TestIncludeDirective:
         self, multi_line_markdown_file, mock_state_with_root
     ):
         """Test loading file with only end_line specified."""
-        directive = IncludeDirective()
-
-        content = directive._load_file(
+        content = load_file_content(
             multi_line_markdown_file, start_line=None, end_line=3
         )
 
@@ -301,43 +296,38 @@ class TestIncludeDirective:
         self, multi_line_markdown_file, mock_state_with_root
     ):
         """Test loading file with invalid line range."""
-        directive = IncludeDirective()
-
         # Start > end
-        content = directive._load_file(
-            multi_line_markdown_file, start_line=10, end_line=5
-        )
+        content = load_file_content(multi_line_markdown_file, start_line=10, end_line=5)
         assert content == ""
 
         # Start > file length
-        content = directive._load_file(
+        content = load_file_content(
             multi_line_markdown_file, start_line=100, end_line=200
         )
         assert content == ""
 
     def test_load_file_nonexistent(self, temp_site_dir):
         """Test loading nonexistent file."""
-        directive = IncludeDirective()
-
         nonexistent = temp_site_dir / "nonexistent.md"
-        content = directive._load_file(nonexistent, start_line=None, end_line=None)
+        content = load_file_content(nonexistent, start_line=None, end_line=None)
 
         assert content is None
 
     def test_resolve_path_without_state_attributes(self, temp_site_dir):
         """Test path resolution when state has no root_path or source_path."""
-        directive = IncludeDirective()
 
         class EmptyState:
             pass
 
         state = EmptyState()
 
-        # Should fall back to cwd or handle gracefully
-        result = directive._resolve_path("content/snippets/warning.md", state)
+        # Should return None when root_path is not set
+        result = resolve_include_path_with_fallback(
+            "content/snippets/warning.md", state
+        )
 
-        # May return None or resolve relative to cwd
-        assert result is None or isinstance(result, Path)
+        # Should return None since root_path is not available
+        assert result is None
 
 
 class TestRenderInclude:
@@ -625,23 +615,19 @@ class TestIncludeFileSizeLimit:
 
     def test_small_file_allowed(self, temp_site_dir, mock_state_with_root):
         """Test that small files are allowed."""
-        directive = IncludeDirective()
-
         # Create a small file
         snippets_dir = temp_site_dir / "content" / "snippets"
         snippets_dir.mkdir(parents=True, exist_ok=True)
         small_file = snippets_dir / "small.md"
         small_file.write_text("Small content")
 
-        content = directive._load_file(small_file, start_line=None, end_line=None)
+        content = load_file_content(small_file, start_line=None, end_line=None)
 
         assert content is not None
         assert content == "Small content"
 
     def test_large_file_rejected(self, temp_site_dir, mock_state_with_root):
         """Test that files exceeding MAX_INCLUDE_SIZE are rejected."""
-        directive = IncludeDirective()
-
         # Create a file larger than MAX_INCLUDE_SIZE
         snippets_dir = temp_site_dir / "content" / "snippets"
         snippets_dir.mkdir(parents=True, exist_ok=True)
@@ -651,14 +637,12 @@ class TestIncludeFileSizeLimit:
         large_content = "x" * (MAX_INCLUDE_SIZE + 1024 * 1024)
         large_file.write_text(large_content)
 
-        content = directive._load_file(large_file, start_line=None, end_line=None)
+        content = load_file_content(large_file, start_line=None, end_line=None)
 
         assert content is None
 
     def test_file_at_limit_allowed(self, temp_site_dir, mock_state_with_root):
         """Test that files exactly at MAX_INCLUDE_SIZE are allowed."""
-        directive = IncludeDirective()
-
         # Create a file exactly at the limit
         snippets_dir = temp_site_dir / "content" / "snippets"
         snippets_dir.mkdir(parents=True, exist_ok=True)
@@ -668,7 +652,7 @@ class TestIncludeFileSizeLimit:
         limit_content = "x" * MAX_INCLUDE_SIZE
         limit_file.write_text(limit_content)
 
-        content = directive._load_file(limit_file, start_line=None, end_line=None)
+        content = load_file_content(limit_file, start_line=None, end_line=None)
 
         assert content is not None
 
@@ -679,8 +663,6 @@ class TestIncludeSymlinkRejection:
     @pytest.mark.skipif(os.name == "nt", reason="Symlinks require admin on Windows")
     def test_symlink_rejected(self, temp_site_dir, mock_state_with_root):
         """Test that symlinks are rejected."""
-        directive = IncludeDirective()
-
         # Create a real file and a symlink to it
         snippets_dir = temp_site_dir / "content" / "snippets"
         snippets_dir.mkdir(parents=True, exist_ok=True)
@@ -690,13 +672,13 @@ class TestIncludeSymlinkRejection:
         symlink_file.symlink_to(real_file)
 
         # Real file should work
-        resolved_real = directive._resolve_path(
+        resolved_real = resolve_include_path_with_fallback(
             "snippets/real.md", mock_state_with_root
         )
         assert resolved_real is not None
 
         # Symlink should be rejected
-        resolved_symlink = directive._resolve_path(
+        resolved_symlink = resolve_include_path_with_fallback(
             "snippets/symlink.md", mock_state_with_root
         )
         assert resolved_symlink is None
@@ -706,8 +688,6 @@ class TestIncludeSymlinkRejection:
         self, temp_site_dir, mock_state_with_root, tmp_path
     ):
         """Test that symlinks pointing outside site root are rejected."""
-        directive = IncludeDirective()
-
         # Create a file outside site root
         outside_file = tmp_path / "outside.md"
         outside_file.write_text("Outside content")
@@ -719,7 +699,9 @@ class TestIncludeSymlinkRejection:
         escape_symlink.symlink_to(outside_file)
 
         # Should be rejected (symlink check happens before path validation)
-        resolved = directive._resolve_path("snippets/escape.md", mock_state_with_root)
+        resolved = resolve_include_path_with_fallback(
+            "snippets/escape.md", mock_state_with_root
+        )
         assert resolved is None
 
     @pytest.mark.skipif(os.name == "nt", reason="Symlinks require admin on Windows")
@@ -727,8 +709,6 @@ class TestIncludeSymlinkRejection:
         self, temp_site_dir, mock_state_with_root
     ):
         """Test that files in symlinked directories are still accessible via direct path."""
-        directive = IncludeDirective()
-
         # Create a real directory with a file
         snippets_dir = temp_site_dir / "content" / "snippets"
         snippets_dir.mkdir(parents=True, exist_ok=True)
@@ -741,7 +721,9 @@ class TestIncludeSymlinkRejection:
 
         # File via symlinked directory path is a symlink, should be rejected
         # Note: The file itself isn't a symlink, but the path involves one
-        resolved = directive._resolve_path("symlinked/file.md", mock_state_with_root)
+        resolved = resolve_include_path_with_fallback(
+            "symlinked/file.md", mock_state_with_root
+        )
         # The file.md itself isn't a symlink, so this might resolve
         # What matters is that is_symlink() on the final resolved path returns False
         if resolved:
