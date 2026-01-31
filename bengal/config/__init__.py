@@ -1,10 +1,9 @@
-"""
-Configuration management for Bengal SSG.
+"""Configuration management for Bengal SSG.
 
 This package provides comprehensive configuration loading, validation, and
 management for Bengal static sites. It supports multiple configuration formats
-(TOML, YAML), environment-based overrides, deprecated key migration, and
-directory-based configuration structures.
+(TOML, YAML), environment-based overrides, and directory-based configuration
+structures.
 
 Architecture:
 - Config V2: Canonical nested structure (site.*, build.*, dev.*, etc.)
@@ -15,7 +14,6 @@ Modules:
     unified_loader: Single loader for all config modes (replaces old loaders).
     accessor: Config and ConfigSection classes for structured access.
     defaults: Centralized default values (fully nested structure).
-    deprecation: Detection and migration of deprecated configuration keys.
     env_overrides: Automatic baseurl detection from deployment platforms.
     environment: Deployment environment detection (local, preview, production).
     feature_mappings: Feature toggle expansion to detailed configuration.
@@ -40,14 +38,6 @@ Load configuration::
     # Dict access for dynamic keys
     raw = config.raw  # Get underlying dict
 
-Check for deprecated keys::
-
-    from bengal.config import check_deprecated_keys
-
-    deprecated = check_deprecated_keys(config.raw, source="bengal.toml")
-    if deprecated:
-        print_deprecation_warnings(deprecated)
-
 See Also:
 - ``bengal.config.accessor``: Config and ConfigSection classes.
 - ``bengal.config.defaults``: Default values (all nested).
@@ -59,14 +49,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from bengal.config.deprecation import (
-    DEPRECATED_KEYS,
-    RENAMED_KEYS,
-    check_deprecated_keys,
-    get_deprecation_summary,
-    migrate_deprecated_keys,
-    print_deprecation_warnings,
-)
 from bengal.config.snapshot import (
     AssetsSection,
     BuildSection,
@@ -105,9 +87,6 @@ class ConfigLoader(UnifiedConfigLoader):
 
 
 __all__ = [
-    # Deprecation utilities
-    "DEPRECATED_KEYS",
-    "RENAMED_KEYS",
     "AssetsSection",
     "BuildSection",
     "ConfigLoader",  # Backward compatibility alias
@@ -119,8 +98,4 @@ __all__ = [
     "SiteSection",
     "ThemeSection",
     "UnifiedConfigLoader",
-    "check_deprecated_keys",
-    "get_deprecation_summary",
-    "migrate_deprecated_keys",
-    "print_deprecation_warnings",
 ]

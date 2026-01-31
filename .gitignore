@@ -34,6 +34,7 @@ env/
 .coverage.*
 htmlcov/
 coverage.xml
+pytest-report.xml
 *.cover
 .hypothesis/
 

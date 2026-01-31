@@ -3,12 +3,10 @@
 Tests session integration for:
 - ConfigLoadError from directory_loader.py
 - ConfigValidationError from validators.py
-- Deprecation warnings from deprecation.py
 """
 
 import pytest
 
-from bengal.config.deprecation import check_deprecated_keys
 from bengal.config.directory_loader import ConfigDirectoryLoader, ConfigLoadError
 from bengal.config.validators import ConfigValidationError, ConfigValidator
 from bengal.errors.session import get_session, reset_session
@@ -55,38 +53,6 @@ class TestConfigErrorSessionTracking:
 
         assert summary["total_errors"] == 1
         assert "C004" in summary["errors_by_code"]
-
-    def test_deprecation_warning_tracked_in_session(self):
-        """Verify deprecation warnings are recorded in error session."""
-        config = {"minify_assets": True}
-
-        # This should record a warning in the session
-        deprecated = check_deprecated_keys(config, source="test.yaml", warn=True)
-
-        assert len(deprecated) == 1
-
-        session = get_session()
-        summary = session.get_summary()
-
-        assert summary["total_errors"] == 1
-        assert "C008" in summary["errors_by_code"]
-
-    def test_multiple_errors_tracked(self, tmp_path):
-        """Verify multiple errors are accumulated in session."""
-        # First error: validation
-        validator = ConfigValidator()
-        with pytest.raises(ConfigValidationError):
-            validator.validate({"parallel": "invalid"})
-
-        # Second error: deprecation warning
-        check_deprecated_keys({"generate_rss": True}, source="test.yaml", warn=True)
-
-        session = get_session()
-        summary = session.get_summary()
-
-        assert summary["total_errors"] == 2
-        assert "C004" in summary["errors_by_code"]
-        assert "C008" in summary["errors_by_code"]
 
     def test_file_path_recorded_in_session(self, tmp_path):
         """Verify file paths are recorded with errors."""
