@@ -107,14 +107,13 @@ class TestIconDirectiveEdgeCases:
         assert "bengal-icon-error" in result or "⚠️" in result
 
     def test_invalid_size(self, parser):
-        """Test invalid size falls back to default."""
+        """Test invalid size shows error."""
         markdown = """:::{icon} terminal
 :size: invalid
 :::"""
         result = parser.parse(markdown, {})
-        # Should fall back to default size 24
-        assert 'width="24"' in result
-        assert 'height="24"' in result
+        # Patitas raises ValueError for invalid int, shown as error
+        assert "markdown-error" in result or "Invalid integer" in result
 
     def test_special_chars_in_aria_label(self, parser):
         """Test special characters in aria-label are escaped."""
@@ -172,7 +171,7 @@ class TestIconDirectiveIntegration:
         Use the terminal for commands.
         """)
         result = parser.parse(markdown, {})
-        assert "<h2>" in result
+        assert "<h2" in result  # h2 may have id attribute
         assert "<svg" in result
 
     def test_icon_in_paragraph(self, parser):
