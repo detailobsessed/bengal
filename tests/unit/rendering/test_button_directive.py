@@ -250,7 +250,7 @@ class TestButtonIntegration:
         :::
         """)
         result = parser.parse(markdown, {})
-        assert "<h2>" in result
+        assert "<h2" in result  # h2 may have id attribute
         assert "button-pill" in result
 
     def test_buttons_in_list(self, parser):

@@ -95,6 +95,7 @@ class ButtonDirective:
     token_type: ClassVar[str] = "button"
     contract: ClassVar[DirectiveContract | None] = None
     options_class: ClassVar[type[ButtonOptions]] = ButtonOptions
+    preserves_raw_content: ClassVar[bool] = True  # Need raw content for button text
 
     def parse(
         self,
@@ -124,6 +125,7 @@ class ButtonDirective:
             title=title,
             options=computed_opts,  # Pass typed options with computed attributes
             children=(),  # Buttons don't have parsed children
+            raw_content=content,  # Preserve raw content for button text
         )
 
     def render(
