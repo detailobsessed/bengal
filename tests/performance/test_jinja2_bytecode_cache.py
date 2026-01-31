@@ -43,12 +43,19 @@ cache_templates = true
         site = Site.from_config(temp_dir)
         site.build(BuildOptions(force_sequential=True, incremental=False))
 
-        # Check cache directory exists (new location: .bengal/templates/)
-        cache_dir = temp_dir / ".bengal" / "templates"
-        assert cache_dir.exists(), "Template cache directory should be created"
+        # Check cache directory exists
+        # Kida uses .bengal/cache/kida/, Jinja2 uses output_dir/.bengal-cache/templates/
+        kida_cache_dir = temp_dir / ".bengal" / "cache" / "kida"
+        jinja_cache_dir = site.output_dir / ".bengal-cache" / "templates"
 
-        # Check cache files exist
-        cache_files = list(cache_dir.glob("*.cache"))
+        cache_dir = kida_cache_dir if kida_cache_dir.exists() else jinja_cache_dir
+        assert cache_dir.exists(), (
+            f"Template cache directory should be created. "
+            f"Checked: {kida_cache_dir}, {jinja_cache_dir}"
+        )
+
+        # Check cache files exist (Kida uses .pyc, Jinja2 uses .cache)
+        cache_files = list(cache_dir.glob("*"))
         assert len(cache_files) > 0, "Template cache files should be created"
 
         print(f"\n✅ Cache directory created: {cache_dir}")
