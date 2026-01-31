@@ -104,3 +104,11 @@ repos:
         files: ^tests/.*\.py$
         pass_filenames: true
         priority: 2
+
+      - id: check-global-state
+        name: Check for unregistered global state (test pollution)
+        entry: uv run scripts/check_global_state.py
+        language: system
+        files: ^bengal/.*\.py$
+        pass_filenames: true
+        priority: 2

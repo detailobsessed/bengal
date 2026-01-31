@@ -283,6 +283,30 @@ def clear_cache() -> None:
         _not_found_cache.clear()
 
 
+def reset_resolver() -> None:
+    """
+    Reset resolver state for test isolation.
+
+    Clears all caches and search paths to prevent state leaking between tests.
+    Called automatically via cache registry during test cleanup.
+    """
+    global _search_paths, _initialized
+    with _icon_lock:
+        _search_paths = []
+        _icon_cache.clear()
+        _not_found_cache.clear()
+        _initialized = False
+
+
+# Register with cache registry for automatic test cleanup
+try:
+    from bengal.utils.cache_registry import register_cache
+
+    register_cache("icon_resolver", reset_resolver)
+except ImportError:
+    pass
+
+
 def _preload_all_icons() -> None:
     """
     Preload all icons from search paths (production optimization).

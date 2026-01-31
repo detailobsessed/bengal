@@ -4,7 +4,11 @@ from bengal.assets.manifest import AssetManifest
 
 
 def test_manifest_roundtrip(tmp_path: Path) -> None:
-    """Asset manifests should serialize deterministically and reload cleanly."""
+    """Asset manifests should serialize deterministically and reload cleanly.
+
+    Note: updated_at is intentionally NOT persisted to ensure build idempotency.
+    The fingerprint is sufficient for cache-busting.
+    """
     manifest = AssetManifest()
     manifest.set_entry(
         logical_path="css/style.css",
@@ -24,4 +28,5 @@ def test_manifest_roundtrip(tmp_path: Path) -> None:
     assert entry.output_path == "assets/css/style.12345678.css"
     assert entry.fingerprint == "12345678"
     assert entry.size_bytes == 1024
-    assert entry.updated_at.endswith("Z")
+    # updated_at is NOT persisted for build idempotency (fingerprint suffices)
+    assert entry.updated_at is None

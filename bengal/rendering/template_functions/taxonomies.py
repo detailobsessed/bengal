@@ -30,7 +30,18 @@ logger = get_logger(__name__)
 
 
 # Store site reference for filter access
+# Thread-safe: simple assignment is atomic in Python
 _site_ref: SiteLike | None = None
+
+
+def reset_taxonomy_state() -> None:
+    """Reset module state for test isolation.
+
+    Clears the site reference to prevent state leaking between tests.
+    Called automatically via cache registry during test cleanup.
+    """
+    global _site_ref
+    _site_ref = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -420,3 +431,13 @@ def has_tag(page: Any, tag: str) -> bool:
     # Filter out None tags (YAML parses 'null' as None)
     page_tags = [str(t).lower() for t in page.tags if t is not None]
     return str(tag).lower() in page_tags
+
+
+# Register with cache registry for automatic test cleanup
+try:
+    from bengal.utils.cache_registry import register_cache
+
+    register_cache("taxonomy_state", reset_taxonomy_state)
+except ImportError:
+    # Cache registry not available (shouldn't happen in normal usage)
+    pass

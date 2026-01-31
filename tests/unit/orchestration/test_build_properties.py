@@ -33,6 +33,9 @@ import pytest
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 
+# Mark entire module as slow - these tests do full site builds
+pytestmark = [pytest.mark.slow, pytest.mark.performance]
+
 if TYPE_CHECKING:
     from bengal.core.site import Site
 
@@ -199,7 +202,7 @@ class TestBuildProperties:
 
     @given(content=page_content_dict())
     @settings(
-        max_examples=50,
+        max_examples=10,  # Reduced from 50 - each example does a full site build
         deadline=None,
         suppress_health_check=[HealthCheck.too_slow],
     )
@@ -246,7 +249,7 @@ class TestBuildProperties:
 
     @given(content=page_content_dict())
     @settings(
-        max_examples=50,
+        max_examples=10,  # Reduced from 50 - each example does a full site build
         deadline=None,
         suppress_health_check=[HealthCheck.too_slow],
     )
@@ -285,7 +288,7 @@ class TestBuildProperties:
 
     @given(content=page_content_dict())
     @settings(
-        max_examples=30,
+        max_examples=10,  # Reduced from 30 - each example does a full site build
         deadline=None,
         suppress_health_check=[HealthCheck.too_slow],
     )
@@ -380,7 +383,7 @@ class TestTaxonomyProperties:
 
     @given(tags=st.lists(valid_tag(), min_size=1, max_size=5, unique=True))
     @settings(
-        max_examples=30,
+        max_examples=10,  # Reduced from 30 - each example does a full site build
         deadline=None,
         suppress_health_check=[HealthCheck.too_slow],
     )

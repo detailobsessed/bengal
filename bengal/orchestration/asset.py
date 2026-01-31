@@ -300,9 +300,15 @@ class AssetOrchestrator:
                 indent=1,
             )
 
-        minify = self.site.config.get("minify_assets", True)
-        optimize = self.site.config.get("optimize_assets", True)
-        fingerprint = self.site.config.get("fingerprint_assets", True)
+        # Read asset settings from [assets] section (assets_config) with fallback to top-level
+        # The [assets] section is the canonical location: assets.minify, assets.optimize, etc.
+        minify = assets_cfg.get("minify", self.site.config.get("minify_assets", True))
+        optimize = assets_cfg.get(
+            "optimize", self.site.config.get("optimize_assets", True)
+        )
+        fingerprint = assets_cfg.get(
+            "fingerprint", self.site.config.get("fingerprint_assets", True)
+        )
 
         # Log asset processing configuration
         logger.info(

@@ -23,6 +23,9 @@ Usage:
 
     # Run with verbose output to see efficiency metrics
     pytest tests/performance/test_incremental_efficiency.py -v -s
+
+Note: These tests are marked @pytest.mark.slow because they perform real
+site builds with the full theme. They are skipped in normal CI runs.
 """
 
 import json
@@ -215,7 +218,8 @@ def efficiency_site(tmp_path: Path):
         site_dir = tmp_path / "site"
         site_dir.mkdir(exist_ok=True)
 
-        # Config
+        # Config - disable expensive operations for fast tests
+        # Note: theme still defaults to "default" but we disable asset processing
         config = """
 [site]
 title = "Efficiency Test Site"
@@ -223,6 +227,14 @@ baseURL = "/"
 
 [build]
 output_dir = "public"
+
+[assets]
+minify = false
+optimize = false
+fingerprint = false
+
+[social_cards]
+enabled = false
 """
         if with_tags:
             config += '\n[taxonomies]\ntags = "tags"\n'
@@ -270,6 +282,8 @@ output_dir = "public"
 # =============================================================================
 
 
+@pytest.mark.slow
+@pytest.mark.performance
 class TestWarmCacheEfficiency:
     """Tests that verify warm cache efficiency."""
 
@@ -412,6 +426,8 @@ class TestWarmCacheEfficiency:
         )
 
 
+@pytest.mark.slow
+@pytest.mark.performance
 class TestSectionEfficiency:
     """Tests for section-aware incremental builds."""
 
@@ -459,6 +475,8 @@ class TestSectionEfficiency:
         )
 
 
+@pytest.mark.slow
+@pytest.mark.performance
 class TestTaxonomyEfficiency:
     """Tests for taxonomy-aware incremental builds."""
 

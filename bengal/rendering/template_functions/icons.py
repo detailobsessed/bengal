@@ -195,3 +195,27 @@ def clear_icon_cache() -> None:
     _clear_directive_icon_cache()
     with _warned_lock:
         _warned_icons.clear()
+
+
+def reset_icon_state() -> None:
+    """Reset module state for test isolation.
+
+    Clears the site instance and warned icons to prevent state leaking between tests.
+    Called automatically via cache registry during test cleanup.
+    """
+    global _site_instance
+    with _site_lock:
+        _site_instance = None
+    with _warned_lock:
+        _warned_icons.clear()
+    _clear_directive_icon_cache()
+
+
+# Register with cache registry for automatic test cleanup
+try:
+    from bengal.utils.cache_registry import register_cache
+
+    register_cache("icon_state", reset_icon_state)
+except ImportError:
+    # Cache registry not available (shouldn't happen in normal usage)
+    pass

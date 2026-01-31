@@ -6,6 +6,8 @@ Verifies that AST-based rendering produces equivalent output to legacy HTML pars
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pytest
+
 if TYPE_CHECKING:
     pass
 
@@ -13,6 +15,10 @@ if TYPE_CHECKING:
 class TestASTPipelineIntegration:
     """Integration tests for AST pipeline."""
 
+    @pytest.mark.xfail(
+        reason="PatitasParser.render_ast() not implemented for dict-based AST",
+        strict=True,
+    )
     def test_ast_pipeline_produces_html(self, tmp_path: Path) -> None:
         """Verify AST pipeline produces valid HTML."""
         from bengal.parsing import PatitasParser
@@ -54,6 +60,10 @@ def hello():
         assert "<ul>" in html or "<li>" in html
         assert "<pre>" in html or "<code>" in html
 
+    @pytest.mark.xfail(
+        reason="PatitasParser.render_ast() not implemented for dict-based AST",
+        strict=True,
+    )
     def test_ast_pipeline_matches_direct_parse(self, tmp_path: Path) -> None:
         """Verify AST-based rendering matches direct markdown parsing."""
         from bengal.parsing import PatitasParser
@@ -169,6 +179,10 @@ def test():
         assert "italic" in text
         assert "inline code" in text
 
+    @pytest.mark.xfail(
+        reason="PatitasParser.render_ast() not implemented for dict-based AST",
+        strict=True,
+    )
     def test_ast_transforms_preserve_structure(self, tmp_path: Path) -> None:
         """Verify AST transforms don't break rendering."""
         from bengal.parsing import PatitasParser

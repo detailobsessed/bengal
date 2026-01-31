@@ -296,7 +296,18 @@ def _extract_github(value: str) -> str:
 
 
 # Store site reference for filter access
+# Thread-safe: simple assignment is atomic in Python
 _site_ref: SiteLike | None = None
+
+
+def reset_author_state() -> None:
+    """Reset module state for test isolation.
+
+    Clears the site reference to prevent state leaking between tests.
+    Called automatically via cache registry during test cleanup.
+    """
+    global _site_ref
+    _site_ref = None
 
 
 def author_view_filter(page: Any) -> AuthorView | None:
@@ -383,3 +394,13 @@ def register(env: TemplateEnvironment, site: SiteLike) -> None:
             "authors": authors_filter,
         }
     )
+
+
+# Register with cache registry for automatic test cleanup
+try:
+    from bengal.utils.cache_registry import register_cache
+
+    register_cache("author_state", reset_author_state)
+except ImportError:
+    # Cache registry not available (shouldn't happen in normal usage)
+    pass
