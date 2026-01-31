@@ -46,7 +46,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
-    from bengal.protocols import TemplateEngineProtocol as TemplateEngine
+    from bengal.protocols import TemplateEngine
 
 
 class TemplateValidationService(Protocol):

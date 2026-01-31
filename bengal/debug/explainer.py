@@ -85,8 +85,7 @@ def _source_info_from_content(source_path: Path, content: str | None) -> SourceI
 if TYPE_CHECKING:
     from bengal.cache.build_cache import BuildCache
     from bengal.core.page import Page
-    from bengal.protocols import SiteLike
-    from bengal.protocols import TemplateEngine as TemplateEngineProtocol
+    from bengal.protocols import SiteLike, TemplateEngine
 
 logger = get_logger(__name__)
 
@@ -115,7 +114,7 @@ class PageExplainer:
     Attributes:
         site: Site instance with pages and configuration
         cache: Optional BuildCache for cache status
-        template_engine: Optional TemplateEngineProtocol for template resolution
+        template_engine: Optional TemplateEngine for template resolution
 
     Thread Safety:
         Thread-safe. Read-only operations only.
@@ -131,7 +130,7 @@ class PageExplainer:
         self,
         site: SiteLike,
         cache: BuildCache | None = None,
-        template_engine: TemplateEngineProtocol | None = None,
+        template_engine: TemplateEngine | None = None,
     ) -> None:
         """
         Initialize the page explainer.
@@ -139,7 +138,7 @@ class PageExplainer:
         Args:
             site: Site instance with pages and configuration
             cache: Optional BuildCache for cache status introspection
-            template_engine: Optional TemplateEngineProtocol for template resolution
+            template_engine: Optional TemplateEngine for template resolution
         """
         self.site = site
         self.cache = cache

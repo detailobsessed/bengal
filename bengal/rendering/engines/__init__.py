@@ -16,7 +16,7 @@ Kida Template Engine:
 Public API:
 - create_engine(): Factory function (required for engine creation)
 - register_engine(): Register custom/third-party engines
-- TemplateEngineProtocol: Interface for custom implementations
+- TemplateEngine: Interface for custom implementations
 - TemplateError: Base exception for template errors
 - TemplateNotFoundError: Template file not found
 - TemplateRenderError: Template rendering failed
@@ -28,7 +28,7 @@ Usage:
     >>> html = engine.render("page.html", {"page": page, "site": site})
 
 Custom Engines:
-To add a third-party engine, implement TemplateEngineProtocol and register:
+To add a third-party engine, implement TemplateEngine and register:
 
     >>> from bengal.rendering.engines import register_engine
     >>> register_engine("myengine", MyTemplateEngine)
@@ -51,7 +51,7 @@ from typing import TYPE_CHECKING
 from bengal.errors import BengalConfigError, ErrorCode
 
 # Import from canonical location (bengal.protocols)
-from bengal.protocols import TemplateEngine as TemplateEngineProtocol
+from bengal.protocols import TemplateEngine
 from bengal.rendering.engines.errors import (
     TemplateError,
     TemplateNotFoundError,
@@ -62,16 +62,16 @@ if TYPE_CHECKING:
     from bengal.core import Site
 
 # Third-party engine registry (for plugins)
-_ENGINES: dict[str, type[TemplateEngineProtocol]] = {}
+_ENGINES: dict[str, type[TemplateEngine]] = {}
 
 
-def register_engine(name: str, engine_class: type[TemplateEngineProtocol]) -> None:
+def register_engine(name: str, engine_class: type[TemplateEngine]) -> None:
     """
     Register a third-party template engine.
 
     Args:
         name: Engine identifier (used in bengal.yaml)
-        engine_class: Class implementing TemplateEngineProtocol
+        engine_class: Class implementing TemplateEngine
 
     """
     _ENGINES[name] = engine_class
@@ -81,7 +81,7 @@ def create_engine(
     site: Site,
     *,
     profile: bool = False,
-) -> TemplateEngineProtocol:
+) -> TemplateEngine:
     """
     Create a template engine based on site configuration.
 
@@ -92,7 +92,7 @@ def create_engine(
         profile: Enable template profiling
 
     Returns:
-        Engine implementing TemplateEngineProtocol
+        Engine implementing TemplateEngine
 
     Raises:
         BengalConfigError: If engine is unknown
@@ -119,7 +119,7 @@ def create_engine(
 # Public API
 __all__ = [
     # Protocol
-    "TemplateEngineProtocol",
+    "TemplateEngine",
     # Errors
     "TemplateError",
     "TemplateNotFoundError",

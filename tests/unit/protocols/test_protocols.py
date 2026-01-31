@@ -139,18 +139,6 @@ class TestDeprecationWarnings:
 class TestBackwardsCompatibility:
     """Tests for backwards compatibility aliases."""
 
-    def test_highlight_backend_alias(self) -> None:
-        """HighlightBackend is an alias for HighlightService."""
-        from bengal.protocols import HighlightBackend, HighlightService
-
-        assert HighlightBackend is HighlightService
-
-    def test_template_engine_protocol_alias(self) -> None:
-        """TemplateEngineProtocol is an alias for TemplateEngine."""
-        from bengal.protocols import TemplateEngine, TemplateEngineProtocol
-
-        assert TemplateEngineProtocol is TemplateEngine
-
     def test_new_import_no_warning(self) -> None:
         """New import path does not emit deprecation warning."""
         with warnings.catch_warnings(record=True) as w:

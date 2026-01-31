@@ -45,6 +45,7 @@ dependencies = [
     "httpx>=0.27.0",                           # Async HTTP client for link checking
     "uvloop>=0.21.0; sys_platform != 'win32'", # Rust-based event loop (Linux/macOS)
     "packaging>=23.0",                         # Version parsing for upgrade checks
+    "python-dateutil>=2.9.0.post0",
 ]
 
 [project.optional-dependencies]
@@ -148,13 +149,7 @@ dev = [
     # Test Utilities
     "beautifulsoup4>=4.12.0", # HTML validation in integration tests
     "markdown>=3.5.0",        # Optional python-markdown parser for tests
-    "tomli-w>=1.0.0",         # TOML writing (pairs with stdlib tomllib)
-    # Type Stubs
-    "types-pyyaml>=6.0.12",
-    "types-psutil>=5.9.0",
-    "types-pygments>=2.18.0",
-    "types-python-dateutil>=2.9.0",
-    "types-markdown>=3.5.0",
+    "tomli-w>=1.0.0",
     "pytest-benchmark>=5.2.3",
     "radon>=6.0.1",
     "poethepoet>=0.35.0",

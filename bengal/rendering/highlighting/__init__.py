@@ -40,10 +40,6 @@ from bengal.rendering.highlighting.theme_resolver import (
     resolve_syntax_theme,
 )
 
-# Backwards compatibility alias
-HighlightBackend = HighlightService
-
-
 if TYPE_CHECKING:
     from bengal.rendering.highlighting.deferred import (
         disable_deferred_highlighting,
@@ -53,9 +49,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "PALETTE_INHERITANCE",
-    # Protocol (backwards compatibility alias)
-    "HighlightBackend",
-    # Protocol (new canonical name)
+    # Protocol
     "HighlightService",
     # Deferred highlighting for parallel batch processing
     "disable_deferred_highlighting",
@@ -105,10 +99,10 @@ def register_backend(name: str, backend_class: type[HighlightService]) -> None:
 
     Args:
         name: Backend identifier (used in config, e.g., "rosettes", "my-custom-backend")
-        backend_class: Class implementing HighlightBackend protocol
+        backend_class: Class implementing HighlightService protocol
 
     Raises:
-        TypeError: If backend_class doesn't implement HighlightBackend
+        TypeError: If backend_class doesn't implement HighlightService
 
     Example:
             >>> from bengal.rendering.highlighting import register_backend
@@ -134,7 +128,7 @@ def get_highlighter(name: str | None = None) -> HighlightService:
             - 'rosettes': Built-in, lock-free, 55 languages
 
     Returns:
-        Backend instance implementing HighlightBackend
+        Backend instance implementing HighlightService
 
     Raises:
         BengalConfigError: If backend name is unknown

@@ -5,7 +5,7 @@ Template engine protocol definitions.
     Import from :mod:`bengal.protocols` instead::
 
         # Old (deprecated)
-        from bengal.rendering.engines.protocol import TemplateEngineProtocol
+        from bengal.rendering.engines.protocol import TemplateEngine
 
         # New (preferred)
         from bengal.protocols import TemplateEngine, TemplateRenderer
@@ -13,8 +13,7 @@ Template engine protocol definitions.
 This module re-exports protocols from :mod:`bengal.protocols` for
 backwards compatibility. Deprecation warnings are emitted on import.
 
-New Composable Protocols:
-    The monolithic TemplateEngineProtocol has been split into focused protocols:
+Composable Protocols:
     - TemplateRenderer: Core rendering (render_template, render_string)
     - TemplateIntrospector: Discovery (template_exists, get_template_path, list_templates)
     - TemplateValidator: Validation (validate)
@@ -39,9 +38,6 @@ from bengal.protocols.rendering import (
     TemplateEngine as _TemplateEngine,
 )
 from bengal.protocols.rendering import (
-    TemplateEngineProtocol as _TemplateEngineProtocol,
-)
-from bengal.protocols.rendering import (
     TemplateEnvironment as _TemplateEnvironment,
 )
 from bengal.protocols.rendering import (
@@ -59,7 +55,6 @@ if TYPE_CHECKING:
     from bengal.protocols.rendering import (
         EngineCapability,
         TemplateEngine,
-        TemplateEngineProtocol,
         TemplateEnvironment,
         TemplateIntrospector,
         TemplateRenderer,
@@ -72,7 +67,6 @@ def __getattr__(name: str):
     _exports = {
         "TemplateEnvironment": _TemplateEnvironment,
         "EngineCapability": _EngineCapability,
-        "TemplateEngineProtocol": _TemplateEngineProtocol,
         "TemplateEngine": _TemplateEngine,
         "TemplateRenderer": _TemplateRenderer,
         "TemplateIntrospector": _TemplateIntrospector,
@@ -95,7 +89,6 @@ def __getattr__(name: str):
 __all__ = [
     "EngineCapability",
     "TemplateEngine",
-    "TemplateEngineProtocol",
     "TemplateEnvironment",
     "TemplateIntrospector",
     "TemplateRenderer",
