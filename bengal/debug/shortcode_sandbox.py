@@ -285,7 +285,7 @@ class ShortcodeSandbox(DebugTool):
         """
         Get or create markdown parser.
 
-        Lazily initializes the markdown parser with mistune engine
+        Lazily initializes the markdown parser with patitas engine
         and caches it for subsequent renders.
 
         Returns:
@@ -294,7 +294,7 @@ class ShortcodeSandbox(DebugTool):
         if self._markdown_parser is None:
             from bengal.parsing import create_markdown_parser
 
-            self._markdown_parser = create_markdown_parser(engine="mistune")
+            self._markdown_parser = create_markdown_parser(engine="patitas")
         return self._markdown_parser
 
     def run(

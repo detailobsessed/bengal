@@ -1,4 +1,4 @@
-"""Type definitions for markdown AST nodes (mistune-compatible)."""
+"""Type definitions for markdown AST nodes."""
 
 from __future__ import annotations
 

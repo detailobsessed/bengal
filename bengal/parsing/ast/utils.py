@@ -19,7 +19,7 @@ AST walks have better constant factors than regex:
 Related:
 - bengal/parsing/ast/types.py: ASTNode type definitions
 - bengal/core/page/content.py: PageContentMixin uses these utilities
-- bengal/parsing/backends/mistune/ast.py: AST parsing
+- bengal/parsing/backends/patitas/: Patitas parser implementation
 
 See Also:
 - plan/drafted/rfc-ast-content-pipeline.md: RFC for AST-based pipeline
@@ -212,7 +212,7 @@ def extract_links_from_ast(ast: list[ASTNode]) -> list[str]:
             # Try direct url field first (our typed LinkNode)
             url = node.get("url")
 
-            # Fallback: Mistune 3.x stores URL in attrs.url
+            # Fallback: Some parsers store URL in attrs.url
             if not url:
                 attrs = node.get("attrs", {})
                 if isinstance(attrs, dict):

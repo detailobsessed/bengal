@@ -171,7 +171,7 @@ def render_math(node: Math, sb: StringBuilder, render_children: Callable) -> Non
 def render_footnote_ref(
     node: FootnoteRef, sb: StringBuilder, render_children: Callable
 ) -> None:
-    """Render footnote reference (links to footnote definition, Mistune-compatible)."""
+    """Render footnote reference (links to footnote definition)."""
     identifier = escape_attr(node.identifier)
     sb.append(
         f'<sup class="footnote-ref" id="fnref-{identifier}">'
