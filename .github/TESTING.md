@@ -178,6 +178,55 @@ tests/
 
 ---
 
+## Pytest UX Plugins
+
+We use several pytest plugins for better developer experience:
+
+### pytest-sugar
+Automatically provides a better progress bar with instant failure display. No configuration needed - just run `pytest` and enjoy the improved output.
+
+To disable temporarily: `pytest -p no:sugar`
+
+### pytest-icdiff
+Provides side-by-side colored diffs for assertion failures. Automatically activates when assertions fail.
+
+### pytest-subtests
+Use the `subtests` fixture for better reporting when a single test has multiple assertions:
+
+```python
+def test_multiple_cases(subtests):
+    cases = [("input1", "expected1"), ("input2", "expected2")]
+    for input_val, expected in cases:
+        with subtests.test(msg=f"case: {input_val}"):
+            assert process(input_val) == expected
+```
+
+Each subtest is reported separately, so you see exactly which cases failed.
+
+### pytest-lazy-fixtures
+Use fixtures directly in `@pytest.mark.parametrize` with the `lf()` helper:
+
+```python
+from pytest_lazy_fixtures import lf
+
+@pytest.fixture
+def admin_user():
+    return User(role="admin")
+
+@pytest.fixture
+def guest_user():
+    return User(role="guest")
+
+@pytest.mark.parametrize("user,expected", [
+    (lf("admin_user"), True),
+    (lf("guest_user"), False),
+])
+def test_can_delete(user, expected):
+    assert user.can_delete() == expected
+```
+
+---
+
 ## Contributing
 
 ### Writing New Tests
