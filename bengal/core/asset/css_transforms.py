@@ -176,73 +176,11 @@ def lossless_minify_css(css: str) -> str:
     Returns:
         Minified CSS with comments and extra whitespace removed
 
+    Note:
+        Delegates to bengal.assets.css_minifier.minify_css which provides
+        a more sophisticated implementation with proper context tracking.
+
     """
-    result: list[str] = []
-    length = len(css)
-    i = 0
-    in_string = False
-    string_char = ""
-    pending_whitespace = False
+    from bengal.assets.css_minifier import minify_css
 
-    def needs_space(next_char: str) -> bool:
-        if not result:
-            return False
-        prev = result[-1]
-        separators = set(",:;>{}()[+-*/")
-        return prev not in separators and next_char not in separators
-
-    while i < length:
-        char = css[i]
-
-        if in_string:
-            result.append(char)
-            if char == "\\" and i + 1 < length:
-                i += 1
-                result.append(css[i])
-            elif char == string_char:
-                in_string = False
-                string_char = ""
-            i += 1
-            continue
-
-        if char in {"'", '"'}:
-            if pending_whitespace and needs_space(char):
-                result.append(" ")
-            pending_whitespace = False
-            in_string = True
-            string_char = char
-            result.append(char)
-            i += 1
-            continue
-
-        if char == "/" and i + 1 < length and css[i + 1] == "*":
-            i += 2
-            while i + 1 < length and not (css[i] == "*" and css[i + 1] == "/"):
-                i += 1
-            i += 2
-            continue
-
-        if char in {" ", "\t", "\n", "\r", "\f"}:
-            pending_whitespace = True
-            i += 1
-            continue
-
-        # Preserve space before number sequences ending in % (for CSS functions like color-mix)
-        # Check if current char is digit and look ahead to see if % follows the number
-        if char.isdigit() and pending_whitespace:
-            # Look ahead to find where the number sequence ends
-            j = i
-            while j < length and (css[j].isdigit() or css[j] == "."):
-                j += 1
-            # If the sequence ends with %, preserve the space
-            if j < length and css[j] == "%":
-                result.append(" ")
-                pending_whitespace = False
-
-        if pending_whitespace and needs_space(char):
-            result.append(" ")
-        pending_whitespace = False
-        result.append(char)
-        i += 1
-
-    return "".join(result)
+    return minify_css(css)
