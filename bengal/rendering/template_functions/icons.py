@@ -15,7 +15,6 @@ Performance:
 
 from __future__ import annotations
 
-import re
 import threading
 from typing import TYPE_CHECKING
 
@@ -24,11 +23,16 @@ from kida import Markup
 if TYPE_CHECKING:
     from bengal.protocols import SiteLike, TemplateEnvironment
 
-from bengal.directives._icons import ICON_MAP
+from bengal.directives._icons import (
+    ICON_MAP,
+    render_svg_icon,
+)
+from bengal.directives._icons import (
+    clear_icon_cache as _clear_directive_icon_cache,
+)
 from bengal.errors import ErrorCode
 from bengal.icons import resolver as icon_resolver
 from bengal.utils.observability.logger import get_logger
-from bengal.utils.primitives.lru_cache import LRUCache
 
 logger = get_logger(__name__)
 
@@ -84,90 +88,6 @@ def _get_mapped_icon_name(name: str) -> str:
     return ICON_MAP.get(name, name)
 
 
-def _escape_attr(value: str) -> str:
-    """Escape HTML attribute value."""
-    return (
-        value.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
-        .replace("'", "&#x27;")
-    )
-
-
-# Regex patterns compiled once at module load
-_RE_WIDTH_HEIGHT = re.compile(r'\s+(width|height)="[^"]*"')
-_RE_CLASS = re.compile(r'\s+class="[^"]*"')
-_RE_SVG_TAG = re.compile(r"<svg\s")
-
-# Thread-safe LRU cache for icon rendering (replaces @lru_cache for free-threading)
-_icon_render_cache: LRUCache[tuple[str, int, str, str], str] = LRUCache(
-    maxsize=512, name="icon_render"
-)
-
-
-def _render_icon_cached(
-    name: str,
-    size: int,
-    css_class: str,
-    aria_label: str,
-) -> str:
-    """
-    Render an icon with LRU caching for repeated calls.
-
-    The cache key is (name, size, css_class, aria_label). This captures
-    the vast majority of repeated icon renders (e.g., navigation icons
-    appear on every page with the same parameters).
-
-    Thread-safe: Uses LRUCache with RLock for safe concurrent access
-    under free-threading (PEP 703).
-
-    Args:
-        name: Icon name (already mapped through ICON_MAP)
-        size: Icon size in pixels
-        css_class: Additional CSS classes
-        aria_label: Accessibility label
-
-    Returns:
-        Rendered SVG HTML string, or empty string if icon not found
-
-    """
-    key = (name, size, css_class, aria_label)
-
-    def _render_impl() -> str:
-        # Load icon via theme-aware resolver
-        svg_content = icon_resolver.load_icon(name)
-        if svg_content is None:
-            return ""
-
-        # Build class list
-        classes = ["bengal-icon", f"icon-{name}"]
-        if css_class:
-            classes.extend(css_class.split())
-        class_attr = " ".join(classes)
-
-        # Accessibility attributes
-        if aria_label:
-            aria_attrs = f'aria-label="{_escape_attr(aria_label)}" role="img"'
-        else:
-            aria_attrs = 'aria-hidden="true"'
-
-        # Remove existing width/height/class attributes from SVG
-        svg_modified = _RE_WIDTH_HEIGHT.sub("", svg_content)
-        svg_modified = _RE_CLASS.sub("", svg_modified)
-
-        # Add our attributes to <svg> tag
-        svg_modified = _RE_SVG_TAG.sub(
-            f'<svg width="{size}" height="{size}" class="{class_attr}" {aria_attrs} ',
-            svg_modified,
-            count=1,
-        )
-
-        return svg_modified
-
-    return _icon_render_cache.get_or_set(key, _render_impl)
-
-
 def icon(
     name: str, size: int = 24, css_class: str = "", aria_label: str = ""
 ) -> Markup:
@@ -203,12 +123,12 @@ def icon(
     # Thread-safe: copy all needed values under lock to prevent TOCTOU race
     mapped_name = _get_mapped_icon_name(name)
 
-    # Try the mapped name first (uses LRU cache)
-    svg_html = _render_icon_cached(mapped_name, size, css_class, aria_label)
+    # Try the mapped name first (uses shared render_svg_icon with LRU cache)
+    svg_html = render_svg_icon(mapped_name, size, css_class, aria_label)
 
     # If mapped name didn't work and it's different from original, try the original
     if not svg_html and mapped_name != name:
-        svg_html = _render_icon_cached(name, size, css_class, aria_label)
+        svg_html = render_svg_icon(name, size, css_class, aria_label)
 
     # Warn if icon not found (deduplicated per icon name, thread-safe)
     if not svg_html:
@@ -255,16 +175,11 @@ def get_icon_cache_stats() -> dict[str, int]:
     Get icon cache statistics for debugging/profiling.
 
     Returns:
-        Dictionary with cache hit/miss information
+        Dictionary with available icon count
 
     """
-    stats = _icon_render_cache.stats()
     return {
         "available_icons": len(icon_resolver.get_available_icons()),
-        "cache_hits": stats["hits"],
-        "cache_misses": stats["misses"],
-        "cache_size": stats["size"],
-        "cache_maxsize": stats["max_size"],
     }
 
 
@@ -277,7 +192,6 @@ def clear_icon_cache() -> None:
     Thread-safe: Protected by lock.
 
     """
-    _icon_render_cache.clear()
+    _clear_directive_icon_cache()
     with _warned_lock:
         _warned_icons.clear()
-    icon_resolver.clear_cache()
