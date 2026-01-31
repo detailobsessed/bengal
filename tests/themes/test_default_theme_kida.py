@@ -115,23 +115,6 @@ class TestKidaNativeFeatures:
         # Block renders default content when not extended
         assert "default" in tmpl.render()
 
-    @pytest.mark.skip(
-        reason="Kida does not support {% do %} statement - use capture or other patterns"
-    )
-    def test_do_statement(self, env: Environment):
-        """Test {% do %} for side effects.
-
-        Note: Kida doesn't support the do statement. Use capture, set with filters,
-        or other declarative patterns instead.
-        """
-        tmpl = env.from_string("""
-{%- set items = [] -%}
-{%- do items.append(1) -%}
-{%- do items.append(2) -%}
-{{ items | length }}
-""")
-        assert tmpl.render().strip() == "2"
-
     def test_compact_filter(self, env: Environment):
         """Test | compact for declarative list building (replaces {% do %} patterns)."""
         # Basic: remove all falsy values

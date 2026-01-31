@@ -449,8 +449,9 @@ generate_rss = false
     assert len(proxy.plain_text) > 0
 
 
-@pytest.mark.skip(
-    reason="Known issue: PageProxy uses cached title instead of re-parsing modified file. Incremental build detects file change but proxy still returns old frontmatter."
+@pytest.mark.xfail(
+    reason="Known issue: PageProxy uses cached title instead of re-parsing modified file. Incremental build detects file change but proxy still returns old frontmatter.",
+    strict=False,
 )
 def test_modified_page_becomes_full_page_not_proxy(tmp_path):
     """

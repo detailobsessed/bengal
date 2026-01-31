@@ -509,25 +509,6 @@ class TestTaxonomyEfficiency:
         )
 
 
-class TestEfficiencyRegression:
-    """
-    Regression tests for known efficiency issues.
-
-    These tests document specific efficiency bugs that were fixed
-    and ensure they don't regress.
-    """
-
-    @pytest.mark.skip(reason="Add when specific regressions are identified")
-    def test_autodoc_pages_not_always_rebuilt(self, efficiency_site) -> None:
-        """
-        REGRESSION: Autodoc pages should not rebuild on every build.
-
-        Bug: 845 autodoc pages were rebuilding even when source didn't change.
-        Fix: Proper fingerprinting of autodoc source files.
-        """
-        # TODO: Add test when autodoc efficiency is fixed
-
-
 # =============================================================================
 # METRICS EXPORT (for CI tracking)
 # =============================================================================

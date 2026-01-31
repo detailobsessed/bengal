@@ -181,34 +181,6 @@ items:
         # Build should succeed
         assert stats2.total_pages >= 1
 
-    @pytest.mark.skip(reason="i18n not fully implemented")
-    def test_i18n_translation_change(self, tmp_path: Path) -> None:
-        """
-        Translation file change triggers correct rebuilds.
-
-        Scenario:
-        1. Build with i18n (en, es)
-        2. Modify i18n/es.yaml
-        3. Incremental build
-        4. Assert: Spanish pages rebuilt, English not
-
-        Note: Skipped until i18n is fully implemented.
-        """
-
-    @pytest.mark.skip(reason="Versioned docs not fully implemented")
-    def test_versioned_docs_incremental(self, tmp_path: Path) -> None:
-        """
-        Version-specific changes handled correctly.
-
-        Scenario:
-        1. Build with versions: [1.0, 2.0]
-        2. Modify only 2.0 content
-        3. Incremental build
-        4. Assert: Only 2.0 pages rebuilt
-
-        Note: Skipped until versioned docs are fully implemented.
-        """
-
     def test_collection_with_taxonomy(self, tmp_path: Path) -> None:
         """
         Collection items with taxonomy updates.

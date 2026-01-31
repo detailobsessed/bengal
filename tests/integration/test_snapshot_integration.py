@@ -101,8 +101,9 @@ def test_snapshot_rendering_produces_html(site, build_site):
             )
 
 
-@pytest.mark.skip(
-    reason="Flaky: parallel vs sequential builds may have different asset fingerprints due to build timing"
+@pytest.mark.xfail(
+    reason="Flaky: parallel vs sequential builds may have different asset fingerprints due to build timing",
+    strict=False,
 )
 @pytest.mark.bengal(testroot="test-taxonomy")
 def test_snapshot_vs_sequential_rendering(site, build_site):
