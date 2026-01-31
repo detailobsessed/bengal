@@ -61,9 +61,9 @@ some code
 """
         html = parser.parse(content, {})
 
-        # Should fall back gracefully
+        # Should fall back gracefully (may have class attribute)
         assert "<pre>" in html
-        assert "<code>" in html
+        assert "<code" in html
 
     def test_short_code_block_no_line_numbers(self, parser):
         """Test that short code blocks (<3 lines) don't have line numbers."""

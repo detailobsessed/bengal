@@ -373,6 +373,7 @@ class BlockRendererMixin:
         """Try to highlight a source range using internal rosettes.
 
         Uses rosettes_available from RenderConfig (computed once at module import).
+        Parses line highlight syntax from info string (e.g., "python {1,3}" or "python {1-5}").
         """
         if not self._rosettes_available:
             return None
@@ -380,6 +381,16 @@ class BlockRendererMixin:
         lang = info.split()[0] if info else ""
         if not lang:
             return None
+
+        # Parse line highlights from info string (e.g., "python {1,3}" or "python {1-5}")
+        hl_lines: set[int] | None = None
+        import re
+
+        hl_match = re.search(r"\{([^}]+)\}", info)
+        if hl_match:
+            from bengal.rendering.highlighting.deferred import parse_hl_lines
+
+            hl_lines = set(parse_hl_lines(hl_match.group(1)))
 
         try:
             from rosettes import highlight
@@ -390,6 +401,7 @@ class BlockRendererMixin:
                 css_class_style=self._highlight_style,
                 start=start,
                 end=end,
+                hl_lines=hl_lines,
             )
         except (LookupError, ValueError):
             return None
