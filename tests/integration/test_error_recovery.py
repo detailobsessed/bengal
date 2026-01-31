@@ -12,6 +12,7 @@ import contextlib
 
 import pytest
 
+from bengal.config.directory_loader import ConfigLoadError
 from bengal.core.site import Site
 from bengal.orchestration.build.options import BuildOptions
 from bengal.utils.io.file_io import write_text_file
@@ -292,9 +293,7 @@ title = "Broken TOML"
         )
 
         # Should raise appropriate error about TOML parsing
-        with pytest.raises(
-            (ValueError, OSError, RuntimeError), match=r"(?i)(toml|config|parse|syntax)"
-        ):
+        with pytest.raises(ConfigLoadError, match=r"(?i)(toml|config|parse)"):
             Site.from_config(tmp_path, config_path=config_file)
 
     def test_missing_required_config(self, tmp_path):
