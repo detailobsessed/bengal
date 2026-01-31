@@ -30,7 +30,7 @@ import threading
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from bengal.core.nav_tree import NavTreeCache
+from bengal.core.nav_tree import NavNodeProxyMixin, NavTreeCache
 from bengal.utils.concurrency.concurrent_locks import PerKeyLockManager
 from bengal.utils.primitives.lru_cache import LRUCache
 
@@ -190,7 +190,7 @@ class NavScaffoldCache:
         return cls._cache.stats()
 
 
-class ScaffoldNodeProxy:
+class ScaffoldNodeProxy(NavNodeProxyMixin):
     """
     Proxy for NavNode that always returns False for active state.
 
@@ -198,6 +198,7 @@ class ScaffoldNodeProxy:
     per-page active classes.
 
     PERFORMANCE: Properties are cached to avoid repeated computation.
+    Inherits __getitem__ and get() from NavNodeProxyMixin.
 
     """
 
@@ -284,31 +285,6 @@ class ScaffoldNodeProxy:
         if name in ("href", "_path"):
             return self._node._path
         return getattr(self._node, name)
-
-    def __getitem__(self, key: str) -> Any:
-        """Dict-like access for templates."""
-        if key == "href":
-            return self.href
-        if key == "_path":
-            return self._path
-        if key == "is_current":
-            return self.is_current
-        if key == "is_in_trail":
-            return self.is_in_trail
-        if key == "is_expanded":
-            return self.is_expanded
-        if key == "is_section":
-            return self.is_section
-        if key == "children":
-            return self.children
-        return self._node[key]
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Safe dict-like access."""
-        try:
-            return self[key]
-        except KeyError:
-            return default
 
 
 class ScaffoldContext:
