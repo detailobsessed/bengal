@@ -45,6 +45,24 @@ import textwrap
 from typing import Any
 
 
+def _append_exception(
+    raises: list[dict[str, str]], exc_type: str | None, desc_parts: list[str]
+) -> None:
+    """
+    Append an exception entry to the raises list if exc_type is set.
+
+    Used by _parse_raises_section in both Google and NumPy parsers.
+
+    Args:
+        raises: List to append to
+        exc_type: Exception type name (or None to skip)
+        desc_parts: Description parts to join
+
+    """
+    if exc_type:
+        raises.append({"type": exc_type, "description": " ".join(desc_parts).strip()})
+
+
 class ParsedDocstring:
     """
     Container for structured docstring data extracted by parsers.
@@ -417,13 +435,7 @@ class GoogleDocstringParser:
             match = re.match(r"^\s*(\w+)\s*:\s*(.+)?", line)
             if match:
                 # Save previous exception
-                if current_exc:
-                    raises.append(
-                        {
-                            "type": current_exc,
-                            "description": " ".join(current_desc).strip(),
-                        }
-                    )
+                _append_exception(raises, current_exc, current_desc)
 
                 # Start new exception
                 current_exc = match.group(1)
@@ -433,10 +445,7 @@ class GoogleDocstringParser:
                 current_desc.append(line.strip())
 
         # Save last exception
-        if current_exc:
-            raises.append(
-                {"type": current_exc, "description": " ".join(current_desc).strip()}
-            )
+        _append_exception(raises, current_exc, current_desc)
 
         return raises
 
@@ -678,13 +687,7 @@ class NumpyDocstringParser:
         for line in lines:
             if not line.startswith(" ") and line.strip():
                 # Save previous exception
-                if current_exc:
-                    raises.append(
-                        {
-                            "type": current_exc,
-                            "description": " ".join(current_desc).strip(),
-                        }
-                    )
+                _append_exception(raises, current_exc, current_desc)
 
                 # New exception type
                 current_exc = line.strip()
@@ -693,10 +696,7 @@ class NumpyDocstringParser:
                 current_desc.append(line.strip())
 
         # Save last exception
-        if current_exc:
-            raises.append(
-                {"type": current_exc, "description": " ".join(current_desc).strip()}
-            )
+        _append_exception(raises, current_exc, current_desc)
 
         return raises
 
