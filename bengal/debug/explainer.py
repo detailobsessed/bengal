@@ -56,6 +56,33 @@ from bengal.debug.models import (
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
+    from bengal.core.page import Page
+
+
+def _source_info_from_content(source_path: Path, content: str | None) -> SourceInfo:
+    """
+    Create SourceInfo from in-memory page content.
+
+    Used for virtual pages and as fallback when file cannot be read.
+
+    Args:
+        source_path: Path to the source file
+        content: Page content string (may be None)
+
+    Returns:
+        SourceInfo with size and line count from content
+
+    """
+    return SourceInfo(
+        path=source_path,
+        size_bytes=len(content.encode()) if content else 0,
+        line_count=content.count("\n") + 1 if content else 0,
+        modified=None,
+        encoding="UTF-8",
+    )
+
+
+if TYPE_CHECKING:
     from bengal.cache.build_cache import BuildCache
     from bengal.core.page import Page
     from bengal.protocols import SiteLike
@@ -222,13 +249,7 @@ class PageExplainer:
 
         # Handle virtual pages
         if page.is_virtual:
-            return SourceInfo(
-                path=source_path,
-                size_bytes=len(page._source.encode()) if page._source else 0,
-                line_count=page._source.count("\n") + 1 if page._source else 0,
-                modified=None,
-                encoding="UTF-8",
-            )
+            return _source_info_from_content(source_path, page._source)
 
         # Regular file
         try:
@@ -252,13 +273,7 @@ class PageExplainer:
             logger.warning("source_info_error", path=str(source_path), error=str(e))
 
         # Fallback: use content from page object
-        return SourceInfo(
-            path=source_path,
-            size_bytes=len(page._source.encode()) if page._source else 0,
-            line_count=page._source.count("\n") + 1 if page._source else 0,
-            modified=None,
-            encoding="UTF-8",
-        )
+        return _source_info_from_content(source_path, page._source)
 
     def _resolve_template_chain(self, page: Page) -> list[TemplateInfo]:
         """
