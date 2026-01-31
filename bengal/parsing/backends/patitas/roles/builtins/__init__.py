@@ -9,11 +9,13 @@ Provides commonly-used roles out of the box:
 - sub: Subscript
 - sup: Superscript
 - icon: Inline SVG icons
+- bdg: Inline badges/pills
 
 """
 
 from __future__ import annotations
 
+from bengal.parsing.backends.patitas.roles.builtins.badges import BadgeRole
 from bengal.parsing.backends.patitas.roles.builtins.formatting import (
     AbbrRole,
     KbdRole,
@@ -26,6 +28,7 @@ from bengal.parsing.backends.patitas.roles.builtins.reference import DocRole, Re
 
 __all__ = [
     "AbbrRole",
+    "BadgeRole",
     "DocRole",
     "IconRole",
     "KbdRole",
