@@ -436,10 +436,6 @@ def reset_bengal_state(request):
     With the LazyLogger pattern, module-level logger references automatically
     refresh when reset_loggers() is called, eliminating orphaned logger issues.
 
-    Note: Directive factory reload is NOT done here for performance reasons.
-    Tests that need fresh directive registration should use the
-    `reload_directives_factory` fixture explicitly.
-
     See: docs/cache-registry-system.md for details on the cache registry system.
 
     """
@@ -457,6 +453,19 @@ def reset_bengal_state(request):
             reset_parser_cache()
         except ImportError:
             logger.debug("Parser cache reset skipped: reset_parser_cache not available")
+
+    # Setup: Force reload directives factory to pick up any new directives
+    # This is needed because directive imports happen at module load time
+    try:
+        import importlib
+
+        import bengal.directives.factory
+
+        importlib.reload(bengal.directives.factory)
+    except ImportError:
+        logger.debug("Directives factory reload skipped: module not available")
+    except AttributeError as e:
+        logger.debug("Directives factory reload failed: %s", e)
 
     yield
 

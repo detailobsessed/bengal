@@ -72,10 +72,6 @@ def _create_mock_page(**kwargs: object) -> Mock:
     return Mock(**defaults)  # type: ignore[arg-type]
 
 
-@pytest.mark.skip(
-    reason="base.html template uses `config.site.favicon` which requires nil-resilient "
-    "access (config?.site?.favicon) for Kida strict mode. TODO: Update base.html template."
-)
 def test_default_favicon_inclusion(site_from_config):
     # Arrange: No favicon in config, use default theme
     engine = TemplateEngine(site_from_config)
