@@ -204,6 +204,9 @@ class PatitasParser(BaseMarkdownParser):
 
         # Extract page context for directives (child-cards, breadcrumbs, etc.)
         page_context = context.get("page")
+        # Extract xref_index and site for link resolution and site-wide context
+        xref_index = context.get("xref_index")
+        site = context.get("site")
 
         try:
             # 1. Preprocess: handle {{/* escaped syntax */}}
@@ -216,6 +219,8 @@ class PatitasParser(BaseMarkdownParser):
                 content,
                 text_transformer=var_plugin.substitute_variables,
                 page_context=page_context,
+                xref_index=xref_index,
+                site=site,
             )
 
             # 3. Restore placeholders: restore BENGALESCAPED placeholders
