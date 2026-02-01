@@ -129,6 +129,7 @@ def render_svg_icon(
 
     def _render_impl() -> str:
         # Map semantic name to actual icon name (e.g., "alert" -> "warning")
+        # This is idempotent - mapping an already-mapped name returns the same name
         icon_name = ICON_MAP.get(name, name)
 
         svg_content = icon_resolver.load_icon(icon_name)

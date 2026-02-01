@@ -195,8 +195,8 @@ class TestIconThreadSafety:
 
     def test_icon_cache_thread_safety(self) -> None:
         """Verify icon render cache is thread-safe."""
+        from bengal.directives._icons import _svg_icon_cache
         from bengal.rendering.template_functions.icons import (
-            _icon_render_cache,
             clear_icon_cache,
             icon,
         )
@@ -219,7 +219,7 @@ class TestIconThreadSafety:
 
         assert not errors, f"Thread safety errors: {errors}"
         # Cache should have been used (high hit rate after initial miss)
-        stats = _icon_render_cache.stats()
+        stats = _svg_icon_cache.stats()
         assert stats["hits"] > 0
 
 
