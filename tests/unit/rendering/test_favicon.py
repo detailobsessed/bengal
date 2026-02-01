@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from bengal.config.loader import ConfigLoader
+from bengal.config import ConfigLoader
 from bengal.core.site import Site
 from bengal.rendering.template_engine import TemplateEngine
 
