@@ -157,6 +157,11 @@ dev = [
     "vulture>=2.14",
     "pytest-randomly>=4.0.1",
     "pytest-repeat>=0.9.4",
+    # UX improvements (auto-activate, see .github/TESTING.md for usage)
+    "pytest-sugar>=1.1.1",         # Better progress bar, instant failure display
+    "pytest-icdiff>=0.9",          # Side-by-side colored assertion diffs
+    "pytest-subtests>=0.15.0",     # subtests fixture for granular test reporting
+    "pytest-lazy-fixtures>=1.4.0", # lf() helper for fixtures in @parametrize
 ]
 
 [tool.poe.tasks]
