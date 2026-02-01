@@ -10,8 +10,6 @@ Performance Target: ~160ms savings per incremental build for typical sites
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
-
 from bengal.cache.taxonomy_index import TaxonomyIndex
 from bengal.core.site import Site
 from bengal.orchestration.build import BuildOrchestrator
@@ -154,9 +152,6 @@ Content here.
             tag_page_files = list(output_dir.glob("tags/*/index.html"))
             assert len(tag_page_files) > 0, "Should have tag pages in incremental build"
 
-    @pytest.mark.xfail(
-        reason="Incremental builds don't generate new taxonomy pages yet"
-    )
     def test_modified_page_regenerates_affected_tags(self):
         """Test that modifying a page regenerates its tags"""
         with TemporaryDirectory() as tmpdir:
@@ -375,9 +370,6 @@ class TestWarmBuildTaxonomyHtml:
     Extends existing TaxonomyIndex tests with actual HTML output checks.
     """
 
-    @pytest.mark.xfail(
-        reason="Incremental builds don't generate new taxonomy pages yet"
-    )
     def test_new_tag_renders_in_taxonomy_page_html(self):
         """
         Adding tag to page should render in taxonomy list page HTML.

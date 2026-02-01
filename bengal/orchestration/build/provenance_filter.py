@@ -69,7 +69,9 @@ def phase_incremental_filter_provenance(
 
         # Initialize provenance cache
         provenance_cache = ProvenanceCache(site.root_path / ".bengal" / "provenance")
-        provenance_filter = ProvenanceFilter(site, provenance_cache)
+        # Pass build cache for data file dependency lookup
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 2)
+        provenance_filter = ProvenanceFilter(site, provenance_cache, build_cache=cache)
 
         # Combine changed sources
         forced_changed = set()

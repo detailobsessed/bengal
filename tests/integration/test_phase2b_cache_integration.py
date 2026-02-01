@@ -166,8 +166,9 @@ class TestPageDiscoveryCacheSaving:
 
         assert post1_path is not None, "Post 1 not found in cache"
 
-        # Verify metadata
-        metadata = cache.get_metadata(Path(post1_path))
+        # Verify metadata - pass absolute path for mtime validation
+        abs_post1_path = site_with_content.root_path / post1_path
+        metadata = cache.get_metadata(Path(post1_path), absolute_path=abs_post1_path)
         assert metadata is not None
         assert metadata.title == "Python Tips"
         assert "python" in metadata.tags

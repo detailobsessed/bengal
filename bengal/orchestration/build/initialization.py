@@ -474,11 +474,14 @@ def phase_cache_metadata(orchestrator: BuildOrchestrator) -> None:
 
             # Extract metadata from discovered pages (AFTER cascades applied)
             for page in orchestrator.site.pages:
+                # Store absolute source_path before normalization (for mtime tracking)
+                # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+                abs_source_path = page.source_path
                 # Normalize paths to relative before caching (prevents absolute path leakage)
                 page.normalize_core_paths()
                 # THE BIG PAYOFF: Just use page.core directly! (PageMetadata = PageCore)
                 if page.core is not None:
-                    page_cache.add_metadata(page.core)
+                    page_cache.add_metadata(page.core, source_path=abs_source_path)
 
             # Persist cache to disk
             page_cache.save_to_disk()

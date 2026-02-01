@@ -538,17 +538,25 @@ def phase_update_pages_list(
                 )  # Include affected tag pages
             )
 
-            # RFC: Output Cache Architecture - Check if page actually needs regeneration
-            # This is the KEY optimization: skip if member content hasn't changed
+            # RFC: rfc-incremental-build-dependency-gaps (Gap 3) - Simplified approach
+            # Hybrid strategy: Accept over-rebuilding for correctness (Eleventy style)
+            # If this tag is in affected_tags, rebuild it. Don't try to optimize further.
+            # The GeneratedPageCache optimization was causing stale content bugs because
+            # content_hash_lookup has stale hashes for pages currently being rebuilt.
+            #
+            # For large sites, the cost of rebuilding a few extra tag pages is minimal
+            # compared to the complexity and bugs of precise invalidation.
             if (
                 should_include
                 and incremental
                 and generated_page_cache
                 and page_type == "tag"
+                and tag_slug not in affected_tags
             ):
+                # Only use cache optimization for tags NOT in affected_tags
+                # (i.e., tags whose member pages haven't changed at all)
                 member_pages = page.metadata.get("_posts", [])
                 if member_pages and content_hash_lookup:
-                    # Check if this tag page needs regeneration based on member hashes
                     needs_regen = generated_page_cache.should_regenerate(
                         page_type="tag",
                         page_id=tag_slug or "",

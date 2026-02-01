@@ -626,6 +626,15 @@ class RenderingPipeline:
         # Store rendered output in cache
         self._cache_checker.cache_rendered_output(page, template)
 
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+        # Track taxonomy dependencies for member→term page mapping
+        if self.dependency_tracker:
+            tags = page.metadata.get("tags", [])
+            categories = page.metadata.get("categories", [])
+            all_terms = list(tags or []) + list(categories or [])
+            if all_terms:
+                self.dependency_tracker.track_page_taxonomy(page.source_path, all_terms)
+
         # Write output (sync or async via write-behind)
         write_output(
             page,

@@ -116,6 +116,11 @@ class BuildCache(
     tag_to_pages: dict[str, set[str]] = field(default_factory=dict)
     known_tags: set[str] = field(default_factory=set)
 
+    # Member page → term pages mapping for taxonomy metadata propagation
+    # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+    # When a member page's metadata changes, these term pages need rebuilding
+    member_to_term_pages: dict[str, set[str]] = field(default_factory=dict)
+
     parsed_content: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     # Rendered output cache: fully rendered HTML (after template rendering)
@@ -192,6 +197,11 @@ class BuildCache(
         # Convert known_tags list back to set
         if isinstance(self.known_tags, list):
             self.known_tags = set(self.known_tags)
+        # Convert member_to_term_pages lists back to sets (RFC: Gap 3)
+        self.member_to_term_pages = {
+            k: set(v) if isinstance(v, list) else v
+            for k, v in self.member_to_term_pages.items()
+        }
         # Convert autodoc_dependencies lists back to sets
         self.autodoc_dependencies = {
             k: set(v) if isinstance(v, list) else v
@@ -312,6 +322,14 @@ class BuildCache(
 
             if "page_tags" in data:
                 data["page_tags"] = {k: set(v) for k, v in data["page_tags"].items()}
+
+            # Convert member_to_term_pages lists back to sets (RFC: Gap 3)
+            if "member_to_term_pages" in data:
+                data["member_to_term_pages"] = {
+                    k: set(v) for k, v in data["member_to_term_pages"].items()
+                }
+            else:
+                data["member_to_term_pages"] = {}
 
             # Validation results (new in VERSION 2, tolerate missing)
             if "validation_results" not in data:
@@ -569,6 +587,9 @@ class BuildCache(
                 k: list(v) for k, v in self.tag_to_pages.items()
             },  # Save tag index
             "known_tags": list(self.known_tags),  # Save known tags
+            "member_to_term_pages": {
+                k: list(v) for k, v in self.member_to_term_pages.items()
+            },  # RFC: Gap 3 - taxonomy metadata propagation
             "parsed_content": self.parsed_content,  # Already in dict format
             "rendered_output": self.rendered_output,  # Already in dict format (Optimization #3)
             "validation_results": self.validation_results,  # Already in dict format
@@ -637,6 +658,7 @@ class BuildCache(
         self.autodoc_content_cache.clear()
         self.discovered_assets.clear()
         self.url_claims.clear()
+        self.member_to_term_pages.clear()
         self.config_hash = None
         self.last_build = None
 
