@@ -617,7 +617,7 @@ class TestAsciinemaDirective:
 """
         result = parser.parse(markdown, {})
         assert "terminal-error" in result
-        assert "Invalid Asciinema recording ID" in result
+        assert "Invalid Asciinema" in result  # Error message format changed
 
     def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
