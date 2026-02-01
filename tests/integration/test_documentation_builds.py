@@ -172,7 +172,7 @@ output_dir = "public"
 theme = "default"
 
 [markdown]
-parser = "mistune"
+parser = "patitas"
 """)
 
     yield site_dir

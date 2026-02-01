@@ -662,6 +662,8 @@ class Markdown:
         source: str,
         text_transformer: Callable[[str], str] | None = None,
         page_context: Any | None = None,
+        xref_index: Any | None = None,
+        site: Any | None = None,
     ) -> tuple[str, str, list[dict[str, Any]]]:
         """Render AST to HTML with single-pass TOC extraction.
 
@@ -675,6 +677,8 @@ class Markdown:
             source: Original source buffer
             text_transformer: Optional callback to transform plain text
             page_context: Optional page object for directives that need page/section info
+            xref_index: Optional cross-reference index for link resolution
+            site: Optional site object for site-wide context
 
         Returns:
             Tuple of (HTML with heading IDs, TOC HTML, TOC items list)
@@ -694,6 +698,8 @@ class Markdown:
                 delegate=self._delegate,
                 directive_cache=directive_cache if cache_enabled else None,
                 page_context=page_context,
+                xref_index=xref_index,
+                site=site,
             )
 
             # Render HTML - headings collected during this walk
