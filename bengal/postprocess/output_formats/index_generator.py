@@ -362,12 +362,20 @@ class SiteIndexGenerator:
             "title": data.title,
             "description": data.description,
             "excerpt": data.excerpt,
-            "section": data.section,
-            "tags": data.tags,
             "word_count": data.word_count,
             "reading_time": data.reading_time,
             "dir": data.dir,
         }
+
+        # Only include section if it has a value (matches page_to_summary behavior)
+        if data.section:
+            summary["section"] = data.section
+
+        # Only include tags if non-empty (matches page_to_summary behavior)
+        if data.tags:
+            summary["tags"] = (
+                list(data.tags) if isinstance(data.tags, (list, tuple)) else []
+            )
 
         # Optional date
         if data.date:

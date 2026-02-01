@@ -262,7 +262,7 @@ class TestBuildProperties:
         tmp_path = tmp_path_factory.mktemp("unique_urls")
         site = _create_site_with_content(tmp_path, content)
 
-        options = BuildOptions(incremental=False, quiet=True)
+        options = BuildOptions(incremental=False, quiet=True, force_sequential=True)
         site.build(options=options)
 
         # Collect all URLs
@@ -301,7 +301,7 @@ class TestBuildProperties:
         tmp_path = tmp_path_factory.mktemp("all_output")
         site = _create_site_with_content(tmp_path, content)
 
-        options = BuildOptions(incremental=False, quiet=True)
+        options = BuildOptions(incremental=False, quiet=True, force_sequential=True)
         site.build(options=options)
 
         # Get all source pages (excluding _index which becomes index.html)
@@ -448,7 +448,7 @@ tags = "tags"
         site.discover_content()
         site.discover_assets()
 
-        options = BuildOptions(incremental=False, quiet=True)
+        options = BuildOptions(incremental=False, quiet=True, force_sequential=True)
         site.build(options=options)
 
         # PROPERTY: Each tag should have a page in output

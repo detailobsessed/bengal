@@ -99,7 +99,7 @@ output_dir = "public"
     site.discover_content()
     site.discover_assets()
 
-    options = BuildOptions(incremental=False, quiet=True)
+    options = BuildOptions(incremental=False, quiet=True, force_sequential=True)
     site.build(options=options)
 
     return site_dir, content_dir, page_paths
@@ -131,6 +131,7 @@ def _build_site(site_dir: Path, *, incremental: bool = True):
         quiet=True,
         explain=True,
         profile=BuildProfile.WRITER,
+        force_sequential=True,
     )
     return site.build(options=options), site
 
