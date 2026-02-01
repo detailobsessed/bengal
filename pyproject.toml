@@ -159,6 +159,11 @@ dev = [
     "pytest-repeat>=0.9.4",         # Repeat tests for flaky test detection
     "pytest-icdiff>=0.9",          # Side-by-side colored assertion diffs
     "pytest-subtests>=0.15.0", # subtests fixture for granular test reporting
+    "pytest-metadata>=3.1.1",
+    "pytest-rerunfailures>=16.1",
+    "pytest-html>=4.2.0",
+    "pytest-env>=1.2.0",
+    "pytest-instafail>=0.5.0",
 ]
 
 # =============================================================================
@@ -267,6 +272,17 @@ console_output_style = "progress"
 # Note: 300s matches original project - integration tests need time for scaffolding/building
 timeout = 300
 timeout_method = "thread"
+
+# pytest-rerunfailures: auto-retry flaky tests (timing-based tests, network issues)
+# Use @pytest.mark.flaky(reruns=3) on specific tests, or --reruns=N globally
+reruns = 0  # Disabled by default, enable with --reruns=2 when needed
+
+# pytest-html: generate HTML test reports
+# Run with: pytest --html=reports/test-report.html --self-contained-html
+
+# pytest-instafail: show failures instantly (enabled by default, no config needed)
+
+# pytest-env: use [tool.pytest_env] section below for TOML-native config
 
 # Temporary directory retention (keep failed test dirs for debugging)
 tmp_path_retention_count = 3
