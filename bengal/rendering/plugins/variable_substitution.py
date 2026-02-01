@@ -81,7 +81,10 @@ class VariableSubstitutionPlugin:
 
     """
 
-    VARIABLE_PATTERN = re.compile(r"\{\{\s*([^}]+)\s*\}\}")
+    # Match {{ expression }} - non-greedy to handle single-level nested braces
+    # e.g., {{ {"a": 1} }} works, but {{ {"a": {"b": 1}} }} does NOT (regex limitation)
+    # Deeply nested braces would require a brace-counting parser, not regex
+    VARIABLE_PATTERN = re.compile(r"\{\{\s*(.+?)\s*\}\}")
     # Capture everything between {{/* and */}} without stripping whitespace
     ESCAPE_PATTERN = re.compile(r"\{\{/\*(.+?)\*/\}\}")
 

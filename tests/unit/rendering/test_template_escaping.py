@@ -141,6 +141,52 @@ class TestVariableSubstitutionEscaping:
         # Should leave it unchanged if pattern is incomplete
         assert "{{/*" in result or result == text
 
+    def test_variable_pattern_with_dict_literal(self):
+        """Test VARIABLE_PATTERN matches expressions with dict literals."""
+
+        from bengal.rendering.plugins import VariableSubstitutionPlugin
+
+        # The pattern should match the full expression including nested braces
+        pattern = VariableSubstitutionPlugin.VARIABLE_PATTERN
+        match = pattern.search('{{ {"a": 1} }}')
+        assert match is not None
+        assert match.group(1) == '{"a": 1}'
+
+    def test_variable_pattern_with_dict_argument(self):
+        """Test VARIABLE_PATTERN matches expressions with dict as argument."""
+
+        from bengal.rendering.plugins import VariableSubstitutionPlugin
+
+        pattern = VariableSubstitutionPlugin.VARIABLE_PATTERN
+        match = pattern.search('{{ func({"key": val}) }}')
+        assert match is not None
+        assert match.group(1) == 'func({"key": val})'
+
+    def test_variable_pattern_with_empty_dict_in_filter(self):
+        """Test VARIABLE_PATTERN matches expressions with empty dict in filter."""
+
+        from bengal.rendering.plugins import VariableSubstitutionPlugin
+
+        pattern = VariableSubstitutionPlugin.VARIABLE_PATTERN
+        match = pattern.search("{{ obj | filter({}) }}")
+        assert match is not None
+        assert match.group(1) == "obj | filter({})"
+
+    def test_variable_pattern_deeply_nested_braces_limitation(self):
+        """Document known limitation: deeply nested braces (2+ levels) don't work.
+
+        This is a regex limitation. The non-greedy .+? stops at the first }}
+        it encounters. A brace-counting parser would be needed for full support.
+        """
+        from bengal.rendering.plugins import VariableSubstitutionPlugin
+
+        pattern = VariableSubstitutionPlugin.VARIABLE_PATTERN
+        # Two levels of nesting - regex stops at inner }}
+        match = pattern.search('{{ func({"a": {"b": 1}}) }}')
+        assert match is not None
+        # Known limitation: captures truncated expression
+        assert match.group(1) == 'func({"a": {"b": 1'  # Missing }}) at end
+
 
 class TestDocumentationPages:
     """Integration tests for documentation pages with template examples."""
