@@ -83,8 +83,8 @@ ALLOWED_VIOLATIONS: set[tuple[str, str]] = {
     ("bengal.core.site.core", "bengal.cache"),  # BengalPaths, QueryIndexRegistry
     ("bengal.core.site.core", "bengal.utils"),  # file_io, url_strategy, dotdict
     ("bengal.core.site.core", "bengal.content.discovery"),  # discover_content/assets
-    ("bengal.core.site.core", "bengal.config"),  # UnifiedConfigLoader, hash
-    ("bengal.core.site.core", "bengal.collections"),  # load_collections
+    # Note: bengal.config and bengal.collections are not in LAYER_ORDER,
+    # so imports from them don't need allowlist entries (they're "unknown" layer)
     # Asset is a core domain model that delegates to asset utilities (by design)
     ("bengal.core.asset.asset_core", "bengal.assets"),  # manifest, css_minifier
     ("bengal.core.asset.asset_core", "bengal.utils.io"),  # atomic_write
@@ -153,8 +153,9 @@ def extract_imports(file_path: Path) -> Iterator[tuple[str, str, int, bool]]:
             if isinstance(test, ast.Name) and test.id == "TYPE_CHECKING":
                 # Mark all lines in this block as TYPE_CHECKING
                 for child in ast.walk(node):
-                    if hasattr(child, "lineno"):
-                        type_checking_lines.add(child.lineno)
+                    lineno = getattr(child, "lineno", None)
+                    if isinstance(lineno, int):
+                        type_checking_lines.add(lineno)
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
