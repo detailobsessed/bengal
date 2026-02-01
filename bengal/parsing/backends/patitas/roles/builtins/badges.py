@@ -108,16 +108,9 @@ class BadgeRole:
             return
 
         # Extract color from role name (bdg-primary -> primary)
+        # Only registered names reach this handler (see `names` tuple)
         name = node.name
-        if name == "bdg":
-            color = "secondary"
-        elif name.startswith("bdg-"):
-            color = name[4:]  # Remove "bdg-" prefix
-            # Fall back to secondary for unknown colors
-            if color not in self.KNOWN_COLORS:
-                color = "secondary"
-        else:
-            color = "secondary"
+        color = "secondary" if name == "bdg" else name[4:]  # Remove "bdg-" prefix
 
         sb.append(f'<span class="badge badge-{html_escape(color)}">')
         sb.append(html_escape(content))
