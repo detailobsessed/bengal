@@ -15,6 +15,8 @@ Invariants tested:
 - Consecutive builds without changes skip all pages
 """
 
+from __future__ import annotations
+
 import subprocess
 import sys
 import time

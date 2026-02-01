@@ -10,6 +10,8 @@ RFC: Addresses gap identified in Python 3.14 import scoping bug
 where cache loading failed silently, causing all pages to rebuild.
 """
 
+from __future__ import annotations
+
 import json
 import subprocess
 import sys
