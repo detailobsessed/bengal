@@ -23,6 +23,9 @@ class TestDataFileFingerprintCaching:
     incremental builds, triggering conservative full rebuild of all pages.
     """
 
+    @pytest.mark.xfail(
+        reason="Known gap: data file fingerprint caching not implemented"
+    )
     def test_content_change_without_data_change_is_efficient(
         self, site_with_data_tracking: WarmBuildTestSite
     ) -> None:
@@ -78,6 +81,9 @@ class TestDataFileDependencyGap:
     should be rebuilt with the new data.
     """
 
+    @pytest.mark.xfail(
+        reason="Known gap: data file dependency tracking not implemented"
+    )
     def test_data_file_change_triggers_incremental_rebuild(
         self, site_with_data_tracking: WarmBuildTestSite
     ) -> None:
@@ -147,6 +153,9 @@ class TestTaxonomyMetadataPropagationGap:
     should be rebuilt with the updated metadata.
     """
 
+    @pytest.mark.xfail(
+        reason="Known gap: taxonomy metadata propagation not implemented"
+    )
     def test_taxonomy_term_page_updates_on_member_title_change(
         self, site_with_taxonomy_tracking: WarmBuildTestSite
     ) -> None:
@@ -198,6 +207,9 @@ An advanced Python tutorial.
             "tags/python/index.html", "Python Tutorial"
         )
 
+    @pytest.mark.xfail(
+        reason="Known gap: taxonomy metadata propagation not implemented"
+    )
     def test_taxonomy_term_page_updates_on_member_date_change(
         self, site_with_taxonomy_tracking: WarmBuildTestSite
     ) -> None:

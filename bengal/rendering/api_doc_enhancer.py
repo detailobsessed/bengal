@@ -185,3 +185,18 @@ def get_enhancer() -> APIDocEnhancer:
     if _enhancer is None:
         _enhancer = APIDocEnhancer()
     return _enhancer
+
+
+def reset_enhancer() -> None:
+    """Reset the singleton enhancer for test isolation."""
+    global _enhancer
+    _enhancer = None
+
+
+# Register with cache registry for automatic test cleanup
+try:
+    from bengal.utils.cache_registry import register_cache
+
+    register_cache("api_doc_enhancer", reset_enhancer)
+except ImportError:
+    pass

@@ -15,6 +15,76 @@ import re
 from re import Match
 
 
+def _find_balanced_braces(css: str, start: int) -> int | None:
+    """
+    Find the position of the closing brace that balances the opening brace at start.
+
+    Args:
+        css: CSS content string
+        start: Position of the opening brace '{'
+
+    Returns:
+        Position of the matching closing brace, or None if not found
+
+    """
+    if start >= len(css) or css[start] != "{":
+        return None
+
+    depth = 1
+    pos = start + 1
+    while pos < len(css) and depth > 0:
+        if css[pos] == "{":
+            depth += 1
+        elif css[pos] == "}":
+            depth -= 1
+        pos += 1
+
+    return pos - 1 if depth == 0 else None
+
+
+def _extract_css_rules(css: str) -> list[tuple[str, str, int, int]]:
+    """
+    Extract CSS rules as (selector, block_content, start, end) tuples.
+
+    Uses iterative brace matching to avoid regex catastrophic backtracking.
+
+    Args:
+        css: CSS content string
+
+    Returns:
+        List of (selector, block_content, rule_start, rule_end) tuples
+
+    """
+    rules: list[tuple[str, str, int, int]] = []
+    pos = 0
+
+    while pos < len(css):
+        # Find next opening brace
+        brace_pos = css.find("{", pos)
+        if brace_pos == -1:
+            break
+
+        # Extract selector (text before the brace)
+        selector = css[pos:brace_pos].strip()
+
+        # Find matching closing brace
+        close_pos = _find_balanced_braces(css, brace_pos)
+        if close_pos is None:
+            # Unbalanced braces, skip this brace and continue
+            pos = brace_pos + 1
+            continue
+
+        # Extract block content (between braces)
+        block_content = css[brace_pos + 1 : close_pos]
+
+        if selector:  # Only add if there's a selector
+            rules.append((selector, block_content, pos, close_pos + 1))
+
+        pos = close_pos + 1
+
+    return rules
+
+
 def transform_css_nesting(css: str) -> str:
     """
     Transform CSS nesting syntax (&:hover, &.class, etc.) to traditional selectors.
@@ -40,18 +110,25 @@ def transform_css_nesting(css: str) -> str:
         Transformed CSS with nesting syntax expanded
 
     """
-    result = css
+    # Pattern to find nested & selectors within a block
+    # This is safe because it only matches within already-extracted block content
+    nested_pattern = re.compile(r"&\s*([:.#\[\w\s-]+)\s*\{")
 
-    # Pattern to match CSS rule blocks
-    rule_pattern = r"([^{]+)\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}"
+    def transform_block(selector: str, block_content: str) -> tuple[str, list[str]]:
+        """
+        Transform a single CSS block, extracting nested rules.
 
-    def transform_rule(match: Match[str]) -> str:
-        selector = match.group(1).strip()
-        block_content = match.group(2)
+        Returns (remaining_content, list_of_extracted_rules).
+        """
+        # For @layer blocks, recursively transform the content inside
+        if selector.strip().startswith("@layer"):
+            # Recursively transform the content inside the @layer block
+            transformed_content = transform_css_nesting(block_content)
+            return transformed_content, []
 
-        # Skip @rules
+        # Skip other @rules (like @media, @keyframes, etc.)
         if selector.strip().startswith("@"):
-            return match.group(0)
+            return block_content, []
 
         # Clean @layer prefixes
         selector_clean = re.sub(r"^@layer\s+\w+\s*", "", selector).strip()
@@ -63,15 +140,28 @@ def transform_css_nesting(css: str) -> str:
                 layer_decl = layer_match.group(1) + " "
 
         if not selector_clean or selector_clean.startswith("@"):
-            return match.group(0)
+            return block_content, []
 
-        # Find nested & selectors
-        nested_pattern = r"&\s*([:.#\[\w\s-]+)\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}"
         nested_rules: list[str] = []
+        remaining = block_content
+        search_start = 0
 
-        def extract_nested(m: Match[str]) -> str:
-            nested_selector_part = m.group(1).strip()
-            nested_block = m.group(2)
+        while True:
+            match = nested_pattern.search(remaining, search_start)
+            if not match:
+                break
+
+            # Find the opening brace position in remaining
+            brace_pos = match.end() - 1
+            close_pos = _find_balanced_braces(remaining, brace_pos)
+
+            if close_pos is None:
+                # Unbalanced, skip this match
+                search_start = match.end()
+                continue
+
+            nested_selector_part = match.group(1).strip()
+            nested_block = remaining[brace_pos + 1 : close_pos]
 
             # Build full selector
             if nested_selector_part.startswith((":", ".", "[", " ")):
@@ -83,26 +173,51 @@ def transform_css_nesting(css: str) -> str:
                 nested_rules.append(f"{layer_decl}{full_selector} {{{nested_block}}}")
             else:
                 nested_rules.append(f"{full_selector} {{{nested_block}}}")
-            return ""
 
-        remaining_content = re.sub(
-            nested_pattern, extract_nested, block_content, flags=re.MULTILINE
-        )
-        remaining_content = re.sub(r"\n\s*\n\s*\n", "\n\n", remaining_content)
+            # Remove the nested rule from remaining content
+            remaining = remaining[: match.start()] + remaining[close_pos + 1 :]
+            # Don't advance search_start since we removed content
 
-        if nested_rules:
-            return f"{selector}{{{remaining_content}}}\n" + "\n".join(nested_rules)
-        else:
-            return match.group(0)
+        # Clean up extra newlines
+        remaining = re.sub(r"\n\s*\n\s*\n", "\n\n", remaining)
+
+        return remaining, nested_rules
 
     # Process iteratively to handle deeply nested cases
+    result = css
     for _ in range(10):
-        new_result = re.sub(
-            rule_pattern, transform_rule, result, flags=re.MULTILINE | re.DOTALL
-        )
-        if new_result == result:
+        rules = _extract_css_rules(result)
+        if not rules:
             break
-        result = new_result
+
+        # Process rules in reverse order to preserve positions
+        new_parts: list[str] = []
+        last_end = 0
+        any_changes = False
+
+        for selector, block_content, rule_start, rule_end in rules:
+            remaining, nested_rules = transform_block(selector, block_content)
+
+            # Check if content was transformed (either nested rules extracted or content changed)
+            content_changed = remaining != block_content
+            if nested_rules or content_changed:
+                any_changes = True
+                # Add content before this rule
+                new_parts.append(result[last_end:rule_start])
+                # Add transformed rule
+                new_parts.append(f"{selector}{{{remaining}}}")
+                if nested_rules:
+                    new_parts.append("\n")
+                    new_parts.append("\n".join(nested_rules))
+                last_end = rule_end
+            # If no changes, we'll include it unchanged via last_end tracking
+
+        if not any_changes:
+            break
+
+        # Add remaining content after last processed rule
+        new_parts.append(result[last_end:])
+        result = "".join(new_parts)
 
     return result
 

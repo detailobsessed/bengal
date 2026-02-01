@@ -166,8 +166,16 @@ def is_heading(node: ASTNode) -> bool:
 
 
 def is_text(node: ASTNode) -> bool:
-    """Type guard for text nodes."""
-    return node.get("type") == "text"
+    """Type guard for text nodes.
+
+    Handles both typed nodes (type='text') and patitas inline nodes
+    (no type field, just 'content').
+    """
+    node_type = node.get("type")
+    if node_type == "text":
+        return True
+    # Patitas inline text nodes have no type, just content
+    return bool(node_type is None and "content" in node)
 
 
 def is_code_block(node: ASTNode) -> bool:
@@ -176,8 +184,15 @@ def is_code_block(node: ASTNode) -> bool:
 
 
 def is_link(node: ASTNode) -> bool:
-    """Type guard for link nodes."""
-    return node.get("type") == "link"
+    """Type guard for link nodes.
+
+    Handles both typed nodes (type='link') and patitas inline nodes
+    (no type field, but has 'url').
+    """
+    if node.get("type") == "link":
+        return True
+    # Patitas link nodes may not have type, but have url
+    return bool(node.get("type") is None and "url" in node)
 
 
 def is_image(node: ASTNode) -> bool:
@@ -201,4 +216,6 @@ def get_node_text(node: ASTNode) -> str:
     """Extract text content from a node."""
     if "raw" in node:
         return node["raw"]  # type: ignore[typeddict-item]
+    if "content" in node:
+        return node["content"]  # type: ignore[typeddict-item]
     return ""

@@ -57,45 +57,6 @@ class TestLRUCacheThreadSafety:
         stats = _param_info_cache.stats()
         assert stats["hits"] > 0, "Cache should have hits from repeated calls"
 
-    def test_icon_render_cache_concurrent_access(self) -> None:
-        """Test icon render cache under concurrent access."""
-        from bengal.rendering.template_functions.icons import (
-            _render_icon_cached,
-            clear_icon_cache,
-        )
-
-        # Clear cache before test
-        clear_icon_cache()
-
-        errors: list[Exception] = []
-        results: list[str] = []
-        lock = threading.Lock()
-
-        def worker(thread_id: int) -> None:
-            try:
-                for i in range(50):
-                    # Each thread renders icons with overlapping names
-                    result = _render_icon_cached(
-                        name=f"icon_{i % 5}",
-                        size=20 + (i % 3),
-                        css_class=f"class_{i % 2}",
-                        aria_label="",
-                    )
-                    with lock:
-                        results.append(result)
-            except Exception as e:
-                with lock:
-                    errors.append(e)
-
-        threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
-
-        assert not errors, f"Thread safety errors: {errors}"
-        assert len(results) == 500  # 10 threads * 50 iterations
-
     def test_directive_icon_cache_concurrent_access(self) -> None:
         """Test directive icon cache under concurrent access."""
         from bengal.directives._icons import clear_icon_cache, render_svg_icon

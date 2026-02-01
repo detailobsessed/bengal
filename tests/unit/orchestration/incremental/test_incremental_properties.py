@@ -36,6 +36,9 @@ from hypothesis import strategies as st  # noqa: E402
 if TYPE_CHECKING:
     pass
 
+# Mark entire module as slow - these tests do full site builds
+pytestmark = [pytest.mark.slow, pytest.mark.performance]
+
 
 # =============================================================================
 # STRATEGIES

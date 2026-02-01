@@ -30,8 +30,8 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from collections.abc import Iterator
-from typing import Any, cast
+from collections.abc import Iterator, Sequence
+from typing import Any
 
 from bengal.parsing.ast.types import ASTNode, is_heading, is_link, is_text
 
@@ -58,10 +58,14 @@ def walk_ast(ast: list[ASTNode]) -> Iterator[ASTNode]:
     """
     for node in ast:
         yield node
-        # Check for children in various formats
+        # Check for children in various formats (list or tuple)
         children = node.get("children")
-        if children and isinstance(children, list):
-            yield from walk_ast(cast("list[ASTNode]", children))
+        if (
+            children
+            and isinstance(children, Sequence)
+            and not isinstance(children, str)
+        ):
+            yield from walk_ast(list(children))
 
 
 def generate_heading_id(node: ASTNode) -> str:
@@ -99,11 +103,14 @@ def extract_text_from_node(node: ASTNode) -> str:
     """
     parts: list[str] = []
 
+    # Handle both 'raw' (legacy) and 'content' (patitas) text fields
     if "raw" in node:
         parts.append(node["raw"])  # type: ignore[typeddict-item]
+    elif "content" in node:
+        parts.append(node["content"])  # type: ignore[typeddict-item]
 
     children = node.get("children")
-    if children and isinstance(children, list):
+    if children and isinstance(children, Sequence) and not isinstance(children, str):
         parts.extend(extract_text_from_node(child) for child in children)
 
     return "".join(parts)
@@ -253,21 +260,26 @@ def extract_plain_text(ast: list[ASTNode]) -> str:
         for node in nodes:
             node_type = node.get("type", "")
 
-            # Extract raw text
-            if is_text(node) or node_type == "codespan":
-                raw = node.get("raw", "")
+            # Extract raw text (handle 'raw', 'content', and 'code' fields)
+            # Patitas inline code nodes have no type, just 'code' field
+            if is_text(node) or node_type == "codespan" or "code" in node:
+                raw = node.get("raw") or node.get("content") or node.get("code", "")
                 if raw:
                     parts.append(raw)
             elif node_type == "block_code":
                 # Include code block content for search
-                raw = node.get("raw", "")
+                raw = node.get("raw") or node.get("content", "")
                 if raw:
                     parts.append(raw)
 
-            # Recurse into children
+            # Recurse into children (handle both list and tuple)
             children = node.get("children")
-            if children and isinstance(children, list):
-                _walk_for_text(cast("list[ASTNode]", children))
+            if (
+                children
+                and isinstance(children, Sequence)
+                and not isinstance(children, str)
+            ):
+                _walk_for_text(list(children))
 
             # Add spacing for block elements
             if node_type in (
