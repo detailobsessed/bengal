@@ -283,7 +283,7 @@ def render_icon(name: str, size: int = 20) -> str:
         "home": "house",
         "house": "house",
         "arrow-up": "arrow-up",
-        "arrow-down": "arrow-down",
+        "arrow-down": "caret-down",  # arrow-down.svg doesn't exist
         "arrow-left": "arrow-left",
         "arrow-right": "arrow-right",
     }
