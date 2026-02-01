@@ -1,11 +1,16 @@
 """Helper utilities for accurate memory profiling."""
 
 import gc
+import sys
 import tracemalloc
 from contextlib import contextmanager
 from dataclasses import dataclass
 
 import psutil
+
+# Detect free-threaded Python (3.13t, 3.14t, etc.)
+# tracemalloc has severe performance issues with free-threaded builds
+_IS_FREE_THREADED = hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled()
 
 
 @dataclass
@@ -83,8 +88,11 @@ class MemoryProfiler:
         gc.collect()  # Run twice to catch circular refs
         gc.collect()  # Third time for good measure
 
-        # Start tracemalloc
-        tracemalloc.start()
+        # Start tracemalloc (skip on free-threaded Python - causes hangs)
+        self._tracemalloc_active = False
+        if not _IS_FREE_THREADED:
+            tracemalloc.start()
+            self._tracemalloc_active = True
 
         # Take initial snapshot
         self.before = self._take_snapshot()
@@ -96,22 +104,26 @@ class MemoryProfiler:
         # Take final snapshot
         self.after = self._take_snapshot()
 
-        # Stop tracemalloc
-        tracemalloc.stop()
+        # Stop tracemalloc if it was started
+        if self._tracemalloc_active:
+            tracemalloc.stop()
 
         return False  # Don't suppress exceptions
 
     def _take_snapshot(self) -> MemorySnapshot:
         """Capture current memory state."""
-        # Get Python heap info
-        current, peak = tracemalloc.get_traced_memory()
+        # Get Python heap info (0 if tracemalloc not active)
+        if self._tracemalloc_active:
+            current, peak = tracemalloc.get_traced_memory()
+        else:
+            current, peak = 0, 0
 
         # Get process memory info
         mem_info = self.process.memory_info()
 
-        # Capture detailed snapshot if requested
+        # Capture detailed snapshot if requested (and tracemalloc active)
         snapshot = None
-        if self.track_allocations:
+        if self.track_allocations and self._tracemalloc_active:
             snapshot = tracemalloc.take_snapshot()
 
         return MemorySnapshot(
@@ -145,7 +157,11 @@ class MemoryProfiler:
 
         # Get top allocators
         top_allocators = []
-        if self.track_allocations and self.before.tracemalloc_snapshot:
+        if (
+            self.track_allocations
+            and self.before.tracemalloc_snapshot is not None
+            and self.after.tracemalloc_snapshot is not None
+        ):
             top_stats = self.after.tracemalloc_snapshot.compare_to(
                 self.before.tracemalloc_snapshot, "lineno"
             )

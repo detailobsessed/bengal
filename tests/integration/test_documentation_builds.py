@@ -80,7 +80,7 @@ content_dir = "content"
 output_dir = "public"
 
 [markdown]
-parser = "mistune"
+parser = "patitas"
 """)
 
         # Create multiple doc pages

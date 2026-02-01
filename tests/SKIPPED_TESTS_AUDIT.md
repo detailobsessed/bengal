@@ -47,3 +47,4 @@ These skip when preconditions aren't met:
 - **Conditional skips**: Pillow, pytest-benchmark, Windows - correct behavior
 - **Runtime skips**: autodoc tests require `bengal build` first - expected for integration tests
 - **Template dependency**: `test_template_chain.py:125` - waiting on RFC implementation
+- **Memory profiling**: `test_memory_profiling.py` - FIXED: disabled tracemalloc on free-threaded Python (causes hangs), uses psutil RSS instead

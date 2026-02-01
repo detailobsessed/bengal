@@ -157,8 +157,10 @@ class UnifiedConfigLoader:
             try:
                 user_config = self._load_file(single_file)
             except Exception as e:
-                # Add context so callers/tests can assert on config parse errors
-                raise type(e)(f"Config parse error: {e}") from e
+                # Re-raise with context. Use ConfigLoadError wrapper to avoid
+                # issues with exception types that require specific arguments
+                # (e.g., TOMLDecodeError in Python 3.14+ requires msg/doc/pos)
+                raise ConfigLoadError(f"Config parse error: {e}") from e
             user_baseurl = extract_baseurl(user_config)
             config = deep_merge(config, user_config)
             if self.origin_tracker:
