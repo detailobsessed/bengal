@@ -221,8 +221,8 @@ This is the featured tab
         assert 'data-icon="star"' in result
         # Check badge
         assert "tab-badge" in result or "Pro" in result
-        # Check selected state
-        assert 'data-selected="true"' in result
+        # Check selected state (uses class="active")
+        assert 'class="active"' in result
 
     def test_disabled_with_badge(self, parser):
         """Test disabled tab with badge (e.g., deprecated)."""
