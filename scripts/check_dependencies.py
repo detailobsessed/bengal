@@ -45,6 +45,8 @@ LAYER_ORDER = {
     "bengal.utils.primitives": 1,
     "bengal.protocols": 2,
     "bengal.errors": 3,
+    "bengal.config": 4,
+    "bengal.collections": 4,
     "bengal.core": 4,
     "bengal.cache": 5,
     "bengal.assets": 5,
@@ -63,9 +65,15 @@ LAYER_ORDER = {
 # Acceptable cross-layer imports (documented exceptions)
 # Format: (importer_prefix, imported_prefix) - if import matches, it's allowed
 ALLOWED_VIOLATIONS: set[tuple[str, str]] = {
-    # Logging is a cross-cutting concern - error modules need logging
+    # Logging is a cross-cutting concern - all modules need logging
     ("bengal.errors", "bengal.utils.observability.logger"),
     ("bengal.errors", "bengal.utils.observability.rich_console"),
+    ("bengal.config", "bengal.utils.observability.logger"),
+    ("bengal.config", "bengal.utils.observability.rich_console"),
+    ("bengal.config", "bengal.utils.io"),  # file_io for config loading
+    ("bengal.collections", "bengal.utils.observability.logger"),
+    # BuildOptions resolver creates orchestration objects (coupling by design)
+    ("bengal.config.build_options_resolver", "bengal.orchestration.build.options"),
     # Error aggregation needs error types from all modules (by design)
     ("bengal.errors.aggregation", "bengal.rendering.errors"),
     # CLI naturally imports server for coordination
@@ -83,8 +91,6 @@ ALLOWED_VIOLATIONS: set[tuple[str, str]] = {
     ("bengal.core.site.core", "bengal.cache"),  # BengalPaths, QueryIndexRegistry
     ("bengal.core.site.core", "bengal.utils"),  # file_io, url_strategy, dotdict
     ("bengal.core.site.core", "bengal.content.discovery"),  # discover_content/assets
-    # Note: bengal.config and bengal.collections are not in LAYER_ORDER,
-    # so imports from them don't need allowlist entries (they're "unknown" layer)
     # Asset is a core domain model that delegates to asset utilities (by design)
     ("bengal.core.asset.asset_core", "bengal.assets"),  # manifest, css_minifier
     ("bengal.core.asset.asset_core", "bengal.utils.io"),  # atomic_write
