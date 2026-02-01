@@ -137,7 +137,7 @@ class GoogleFontsDownloader:
 
     Note:
         The User-Agent string determines the font format Google returns.
-        Modern browsers get WOFF2, legacy browsers get TTF.
+        A modern User-Agent gets WOFF2, an old User-Agent gets TTF.
 
     """
 
@@ -149,11 +149,10 @@ class GoogleFontsDownloader:
         "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     )
 
-    # Very old User-Agent → Google returns TTF (needed for Pillow image generation)
-    # Modern browsers get WOFF2, old browsers get WOFF, ancient browsers get TTF
+    # Old User-Agent → Google returns TTF (needed for Pillow image generation)
     USER_AGENT_TTF = "Mozilla/3.0 (compatible)"
 
-    # Default to WOFF2 for backwards compatibility
+    # Default to WOFF2 for web fonts
     USER_AGENT = USER_AGENT_WOFF2
 
     def download_font(
@@ -433,22 +432,13 @@ class GoogleFontsDownloader:
         for weight in weights:
             for style in styles:
                 style_suffix = "-italic" if style == "italic" else ""
-                # Check for woff2 first (preferred), then ttf
                 woff2_filename = f"{safe_name}-{weight}{style_suffix}.woff2"
-                ttf_filename = f"{safe_name}-{weight}{style_suffix}.ttf"
-
                 woff2_path = output_dir / woff2_filename
-                ttf_path = output_dir / ttf_filename
 
                 if woff2_path.exists():
                     # Create variant with placeholder URL (not needed for cached files)
                     variant = FontVariant(
                         family, weight, style, f"cached://{woff2_filename}"
-                    )
-                    cached_variants.append(variant)
-                elif ttf_path.exists():
-                    variant = FontVariant(
-                        family, weight, style, f"cached://{ttf_filename}"
                     )
                     cached_variants.append(variant)
                 else:

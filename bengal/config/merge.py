@@ -33,7 +33,6 @@ mutating inputs, except where explicitly documented (e.g., ``set_nested_key``,
 
 See Also:
 - :mod:`bengal.config.directory_loader`: Uses batch_deep_merge for config layering.
-- :mod:`bengal.config.deprecation`: Uses nested key functions for migration.
 
 """
 
