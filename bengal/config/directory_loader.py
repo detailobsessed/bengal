@@ -339,9 +339,17 @@ class ConfigDirectoryLoader:
                     file=str(yaml_file),
                     keys=list(file_config.keys()),
                 )
-            except BengalConfigError:
-                # Re-raise config errors immediately (critical)
-                raise
+            except BengalConfigError as e:
+                # Wrap in ConfigLoadError for consistent error type from this loader
+                # BengalError always has code, file_path, line_number, suggestion attrs
+                raise ConfigLoadError(
+                    message=str(e),
+                    code=e.code,
+                    file_path=e.file_path or yaml_file,
+                    line_number=e.line_number,
+                    suggestion=e.suggestion,
+                    original_error=e,
+                ) from e
             except Exception as e:
                 # Enrich error with context for better error messages
                 context = ErrorContext(

@@ -204,9 +204,10 @@ class PatitasParser(BaseMarkdownParser):
 
         # Extract page context for directives (child-cards, breadcrumbs, etc.)
         page_context = context.get("page")
-        # Extract xref_index and site for link resolution and site-wide context
-        xref_index = context.get("xref_index")
+        # Extract site for link resolution and site-wide context
         site = context.get("site")
+        # xref_index is on site object, not in context dict
+        xref_index = getattr(site, "xref_index", None) if site else None
 
         try:
             # 1. Preprocess: handle {{/* escaped syntax */}}
@@ -271,6 +272,10 @@ class PatitasParser(BaseMarkdownParser):
 
         # Extract page context for directives (child-cards, breadcrumbs, etc.)
         page_context = context.get("page")
+        # Extract site for link resolution and site-wide context
+        site = context.get("site")
+        # xref_index is on site object, not in context dict
+        xref_index = getattr(site, "xref_index", None) if site else None
 
         try:
             # 1. Preprocess: handle {{/* escaped syntax */}}
@@ -288,6 +293,8 @@ class PatitasParser(BaseMarkdownParser):
                 content,
                 text_transformer=var_plugin.substitute_variables,
                 page_context=page_context,
+                xref_index=xref_index,
+                site=site,
             )
 
             # 4. Restore placeholders
