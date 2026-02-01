@@ -382,25 +382,29 @@ class DocElement:
                 suggestion="Clear the cache with: rm -rf .bengal/cache/",
             )
 
+        def _to_parsed_docstring(pd: dict[str, Any], context: str) -> ParsedDocstring:
+            """Convert parsed_doc dict to ParsedDocstring dataclass."""
+            params = tuple(
+                _to_param_info(p, f"{context}.params") for p in pd.get("params", ())
+            )
+            raises = tuple(
+                _to_raises_info(r, f"{context}.raises") for r in pd.get("raises", ())
+            )
+            return ParsedDocstring(
+                summary=pd.get("summary", ""),
+                description=pd.get("description", ""),
+                params=params,
+                returns=pd.get("returns"),
+                raises=raises,
+                examples=tuple(pd.get("examples", ())),
+            )
+
         # Handle nested dataclasses
         if type_name == "PythonClassMetadata" and type_data.get("parsed_doc"):
             pd = type_data["parsed_doc"]
             if pd:
-                params = tuple(
-                    _to_param_info(p, "PythonClassMetadata.parsed_doc.params")
-                    for p in pd.get("params", ())
-                )
-                raises = tuple(
-                    _to_raises_info(r, "PythonClassMetadata.parsed_doc.raises")
-                    for r in pd.get("raises", ())
-                )
-                type_data["parsed_doc"] = ParsedDocstring(
-                    summary=pd.get("summary", ""),
-                    description=pd.get("description", ""),
-                    params=params,
-                    returns=pd.get("returns"),
-                    raises=raises,
-                    examples=tuple(pd.get("examples", ())),
+                type_data["parsed_doc"] = _to_parsed_docstring(
+                    pd, "PythonClassMetadata.parsed_doc"
                 )
 
         if type_name == "PythonFunctionMetadata":
@@ -414,21 +418,8 @@ class DocElement:
             if type_data.get("parsed_doc"):
                 pd = type_data["parsed_doc"]
                 if pd:
-                    params = tuple(
-                        _to_param_info(p, "PythonFunctionMetadata.parsed_doc.params")
-                        for p in pd.get("params", ())
-                    )
-                    raises = tuple(
-                        _to_raises_info(r, "PythonFunctionMetadata.parsed_doc.raises")
-                        for r in pd.get("raises", ())
-                    )
-                    type_data["parsed_doc"] = ParsedDocstring(
-                        summary=pd.get("summary", ""),
-                        description=pd.get("description", ""),
-                        params=params,
-                        returns=pd.get("returns"),
-                        raises=raises,
-                        examples=tuple(pd.get("examples", ())),
+                    type_data["parsed_doc"] = _to_parsed_docstring(
+                        pd, "PythonFunctionMetadata.parsed_doc"
                     )
 
         if type_name == "OpenAPIEndpointMetadata":
