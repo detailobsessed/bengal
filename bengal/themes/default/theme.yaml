@@ -49,7 +49,7 @@ icons:
     arrow-right: arrow-right
     arrow-left: arrow-left
     arrow-up: arrow-up
-    arrow-down: arrow-down
+    arrow-down: caret-down  # arrow-down.svg doesn't exist
     chevron-right: chevron-right
     chevron-left: chevron-left
     chevron-up: chevron-up
