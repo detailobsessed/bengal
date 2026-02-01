@@ -18,7 +18,6 @@ while validate_templates() provides CLI integration.
 
 Related:
 - bengal/health/validators/__init__.py: Validator exports
-- bengal/rendering/engines/jinja.py: JinjaTemplateEngine.validate()
 - bengal/rendering/engines/kida.py: KidaTemplateEngine.validate()
 - bengal/protocols/rendering.py: TemplateValidator protocol
 
