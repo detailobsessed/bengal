@@ -228,6 +228,9 @@ ICON_MAP: dict[str, str] = {
     "terminal": "terminal",
     "docs": "file-text",
     "notepad": "note",
+    # Data visualization
+    "graph": "chart-line",
+    "chart": "chart-line",
     # Mid-century modern (Bengal custom icons)
     "atomic": "atomic",
     "starburst": "starburst",
@@ -275,8 +278,6 @@ def render_icon(name: str, size: int = 20) -> str:
         "graduation-cap": "graduation-cap",
         "mortar-board": "graduation-cap",
         "package": "package",
-        "graph": "chart-line",
-        "chart": "chart-line",
         "shield-lock": "lock",
         "lock": "lock",
         "github": "github-logo",
