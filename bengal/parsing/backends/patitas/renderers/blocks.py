@@ -156,7 +156,7 @@ class BlockRendererMixin:
         Tight list items unwrap paragraphs but still render block elements with newlines.
         """
         if item.checked is not None:
-            # Task list item - match Mistune's class names
+            # Task list item
             sb.append('<li class="task-list-item">')
             checked_attr = " checked" if item.checked else ""
             sb.append(
@@ -231,7 +231,7 @@ class BlockRendererMixin:
         sb: StringBuilder,
         is_header: bool,
     ) -> None:
-        """Render a table row with pretty-printing (matching Mistune)."""
+        """Render a table row with pretty-printing."""
         sb.append("<tr>\n")
         tag = "th" if is_header else "td"
 

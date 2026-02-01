@@ -19,7 +19,7 @@ parser_cache = ThreadLocalCache(
 parser = parser_cache.get()
 
 # Get parser with a specific key (e.g., engine type)
-mistune_parser = parser_cache.get("mistune")
+patitas_parser = parser_cache.get("patitas")
 ```
 
 Related Modules:

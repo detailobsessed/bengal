@@ -30,7 +30,7 @@ class BaseMarkdownParser(ABC):
             True if parser can return AST tokens via parse_to_ast()
 
         Note:
-            Override in subclasses that support AST (e.g., MistuneParser).
+            Override in subclasses that support AST.
         """
         return False
 
@@ -67,7 +67,7 @@ class BaseMarkdownParser(ABC):
         Parse Markdown content to AST tokens.
 
         Optional method for parsers that support true AST output.
-        Override in subclasses (e.g., MistuneParser).
+        Override in subclasses.
 
         Args:
             content: Raw Markdown content
@@ -93,7 +93,7 @@ class BaseMarkdownParser(ABC):
         Render AST tokens to HTML.
 
         Optional method for parsers that support true AST output.
-        Override in subclasses (e.g., MistuneParser).
+        Override in subclasses.
 
         Args:
             ast: List of AST token dictionaries

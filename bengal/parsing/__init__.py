@@ -71,8 +71,6 @@ See Also:
 
 from __future__ import annotations
 
-import warnings
-
 from bengal.parsing.backends.patitas.wrapper import PatitasParser
 from bengal.parsing.base import BaseMarkdownParser
 from bengal.parsing.python_markdown import PythonMarkdownParser
@@ -121,15 +119,7 @@ def create_markdown_parser(engine: str | None = None) -> BaseMarkdownParser:
     """
     engine = (engine or "patitas").lower()
 
-    if engine == "mistune":
-        warnings.warn(
-            "MistuneParser has been removed. Using PatitasParser instead. "
-            "Update your config to use parser = 'patitas'.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return PatitasParser()
-    elif engine == "patitas":
+    if engine == "patitas":
         return PatitasParser()
     elif engine in ("python-markdown", "python_markdown", "markdown"):
         try:
