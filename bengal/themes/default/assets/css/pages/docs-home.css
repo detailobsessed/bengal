@@ -2,8 +2,8 @@
  * Bengal SSG Default Theme
  * Documentation Home Page Components
  *
- * Styles for the doc/home.html template.
- * Provides a clean, focused layout for documentation landing pages.
+ * Styles for the doc/home.html template - documentation landing pages.
+ * Aligned with Bengal's neumorphic design system.
  *
  * Uses tokens from: tokens/semantic.css, tokens/foundation.css
  */
@@ -29,21 +29,22 @@
 }
 
 .docs-home-hero-content {
-  max-width: var(--container-lg);
+  max-width: var(--container-md);
   margin-inline: auto;
 }
 
 .docs-home-title {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-4) 0;
   font-size: clamp(var(--text-3xl), 5vw, var(--text-5xl));
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-extrabold);
   line-height: var(--leading-tight);
+  letter-spacing: var(--letter-spacing-tight);
   color: var(--color-text-primary);
 }
 
 .docs-home-subtitle {
   margin: 0;
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   line-height: var(--leading-relaxed);
   color: var(--color-text-secondary);
   max-width: var(--container-prose, 65ch);
@@ -55,12 +56,22 @@
    ============================================ */
 
 .docs-home-content {
-  max-width: var(--container-prose, 65ch);
+  max-width: var(--container-lg);
   margin: var(--space-8) auto;
+  padding: 0;
+}
+
+/* When docs-home-content has prose class, constrain text blocks for readability */
+.docs-home-content.prose > p,
+.docs-home-content.prose > ul,
+.docs-home-content.prose > ol,
+.docs-home-content.prose > blockquote {
+  max-width: var(--container-prose, 65ch);
+  margin-inline: auto;
 }
 
 /* ============================================
-   DOCUMENTATION SECTIONS GRID
+   DOCUMENTATION SECTIONS - Grid of Section Cards
    ============================================ */
 
 .docs-home-sections {
@@ -68,11 +79,11 @@
 }
 
 .docs-home-sections-title {
-  text-align: center;
-  margin-bottom: var(--space-8);
+  margin: 0 0 var(--space-8) 0;
   font-size: var(--text-2xl);
   font-weight: var(--weight-bold);
   color: var(--color-text-primary);
+  text-align: center;
 }
 
 .docs-home-sections-grid {
@@ -81,24 +92,31 @@
   gap: var(--space-6);
 }
 
-/* Section Card - Neumorphic style matching landing page */
+/* Section Card - Neumorphic clickable style */
 .docs-home-section-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-6);
 
-  /* Neumorphic background */
+  /* Neumorphic background gradient */
   background: linear-gradient(180deg,
     var(--color-surface, var(--color-bg-elevated)),
     var(--color-bg-secondary));
+
+  /* Standard border */
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
+
+  /* Neumorphic shadow */
   box-shadow: var(--neumorphic-base);
 
+  /* Link styling */
   text-decoration: none;
   color: inherit;
 
+  /* Smooth transitions */
   transition:
     transform var(--motion-medium) var(--ease-out),
     box-shadow var(--motion-medium) var(--ease-out),
@@ -106,7 +124,7 @@
 }
 
 .docs-home-section-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--color-primary);
   box-shadow: var(--neumorphic-hover);
 }
@@ -137,9 +155,13 @@
 }
 
 .docs-home-section-count {
+  display: inline-flex;
+  align-items: center;
+  margin-top: auto;
+  padding-top: var(--space-2);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -149,15 +171,15 @@
    ============================================ */
 
 .docs-home-quick-links {
-  padding: var(--space-10) 0;
+  padding: var(--space-10) 0 var(--space-12);
 }
 
 .docs-home-quick-links-title {
-  text-align: center;
-  margin-bottom: var(--space-8);
+  margin: 0 0 var(--space-8) 0;
   font-size: var(--text-2xl);
   font-weight: var(--weight-bold);
   color: var(--color-text-primary);
+  text-align: center;
 }
 
 .docs-home-quick-links-grid {
@@ -166,20 +188,20 @@
   gap: var(--space-6);
 }
 
-/* Quick Link Card */
+/* Quick Link Card - Neumorphic clickable style */
 .docs-home-quick-link-card {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-5);
+  padding: var(--space-6);
 
   /* Neumorphic background */
   background: linear-gradient(180deg,
     var(--color-surface, var(--color-bg-elevated)),
     var(--color-bg-secondary));
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--neumorphic-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--neumorphic-base);
 
   text-decoration: none;
   color: inherit;
@@ -191,9 +213,9 @@
 }
 
 .docs-home-quick-link-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: var(--color-primary);
-  box-shadow: var(--neumorphic-base);
+  box-shadow: var(--neumorphic-hover);
 }
 
 .docs-home-quick-link-card:active {
@@ -201,11 +223,12 @@
   box-shadow: var(--neumorphic-pressed);
 }
 
+/* Quick Link Icon - Neumorphic badge */
 .docs-home-quick-link-icon {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,7 +237,7 @@
     var(--color-surface, var(--color-bg-elevated)),
     var(--color-bg-tertiary));
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--neumorphic-subtle);
 
   transition: transform var(--motion-fast), box-shadow var(--motion-fast);
@@ -222,12 +245,12 @@
 
 .docs-home-quick-link-card:hover .docs-home-quick-link-icon {
   transform: scale(1.05);
-  box-shadow: var(--neumorphic-base);
+  box-shadow: var(--neumorphic-hover);
 }
 
 .docs-home-quick-link-card h3 {
   margin: 0;
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   color: var(--color-text-primary);
   transition: color var(--motion-fast);
@@ -277,9 +300,23 @@
     padding: var(--space-8) 0 var(--space-6);
   }
 
+  .docs-home-title {
+    font-size: var(--text-3xl);
+  }
+
+  .docs-home-subtitle {
+    font-size: var(--text-lg);
+  }
+
   .docs-home-sections,
   .docs-home-quick-links {
     padding: var(--space-8) 0;
+  }
+
+  .docs-home-sections-title,
+  .docs-home-quick-links-title {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-6);
   }
 
   .docs-home-sections-grid,
@@ -298,6 +335,17 @@
   .docs-home-quick-links-grid {
     grid-template-columns: 1fr;
   }
+
+  .docs-home-section-card,
+  .docs-home-quick-link-card {
+    padding: var(--space-4);
+  }
+
+  .docs-home-quick-link-icon {
+    font-size: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
 }
 
 /* ============================================
@@ -305,6 +353,15 @@
    ============================================ */
 
 @media print {
+  .docs-home {
+    max-width: none;
+    padding: 0;
+  }
+
+  .docs-home-hero {
+    padding: 1rem 0;
+  }
+
   .docs-home-sections,
   .docs-home-quick-links {
     padding: 1rem 0;
