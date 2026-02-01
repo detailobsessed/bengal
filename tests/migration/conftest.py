@@ -210,18 +210,40 @@ def normalize_html(html_content: str) -> str:
 
 @pytest.fixture
 def render_with_mistune() -> Callable[[str], str]:
-    """Create a function to render markdown using the mistune backend.
+    """Create a function to render markdown using PatitasParser.
+
+    Note: This fixture was originally for Mistune but now uses PatitasParser
+    since Mistune was removed. It's kept for backward compatibility with
+    parity tests that compare two rendering approaches.
 
     Returns:
         Function that takes markdown source and returns HTML
 
     """
-    from bengal.parsing import PatitasParser
+    from bengal.parsing.backends.patitas import create_markdown
+    from bengal.parsing.backends.patitas.directives.registry import (
+        create_default_registry,
+    )
 
-    parser = PatitasParser(enable_highlighting=False)
+    registry = create_default_registry()
+    md = create_markdown(
+        plugins=["table", "strikethrough", "task_lists", "math"],
+        highlight=False,
+    )
 
     def _render(source: str) -> str:
-        return parser.parse(source, {})
+        from bengal.parsing.backends.patitas import (
+            RenderConfig,
+            render_config_context,
+        )
+        from bengal.parsing.backends.patitas.renderers.html import HtmlRenderer
+
+        ast = md.parse_to_ast(source)
+        with render_config_context(
+            RenderConfig(highlight=False, directive_registry=registry)
+        ):
+            renderer = HtmlRenderer(source)
+            return renderer.render(ast)
 
     return _render
 
@@ -239,26 +261,20 @@ def render_with_patitas() -> Callable[[str], str]:
         create_default_registry,
     )
 
-    # Get registry with all Phase A directives
     registry = create_default_registry()
-
-    # Create markdown instance with directives enabled
     md = create_markdown(
         plugins=["table", "strikethrough", "task_lists", "math"],
         highlight=False,
     )
 
     def _render(source: str) -> str:
-        # Parse to AST
-        ast = md.parse_to_ast(source)
-
-        # Render with directive registry (via ContextVar config)
         from bengal.parsing.backends.patitas import (
             RenderConfig,
             render_config_context,
         )
         from bengal.parsing.backends.patitas.renderers.html import HtmlRenderer
 
+        ast = md.parse_to_ast(source)
         with render_config_context(
             RenderConfig(highlight=False, directive_registry=registry)
         ):
