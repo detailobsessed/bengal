@@ -382,6 +382,11 @@ class IncrementalOrchestrator:
         template_affected = self._detect_template_affected_pages()
         pages_to_rebuild.update(template_affected)
 
+        # Handle data file changes - rebuild pages that depend on changed data files
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 1 & 2)
+        data_affected = self._detect_data_file_changes(verbose=verbose)
+        pages_to_rebuild.update(data_affected)
+
         # Content changed = intersection of changed and markdown files
         content_changed = {p for p in all_changed if p.suffix == ".md"}
 
@@ -514,6 +519,70 @@ class IncrementalOrchestrator:
                         break
 
         return nav_rebuild
+
+    def _detect_data_file_changes(
+        self,
+        *,
+        verbose: bool = False,
+    ) -> set[Path]:
+        """
+        Detect pages affected by data file changes.
+
+        When a data file (data/*.yaml, etc.) changes, pages that accessed
+        that data file during previous builds should be rebuilt.
+
+        Uses DependencyTracker's track_data_file() records to find
+        affected pages.
+
+        RFC: rfc-incremental-build-dependency-gaps (Gap 1 & 2)
+
+        Args:
+            verbose: Whether to log detailed info
+
+        Returns:
+            Set of page source paths that need rebuilding due to data changes
+        """
+        data_rebuild: set[Path] = set()
+
+        if not self.cache or not self.tracker:
+            return data_rebuild
+
+        data_dir = self.site.root_path / "data"
+        if not data_dir.exists():
+            return data_rebuild
+
+        # Check each data file for changes
+        data_extensions = frozenset({".yaml", ".yml", ".json", ".toml"})
+
+        for data_file in data_dir.rglob("*"):
+            if not data_file.is_file():
+                continue
+            if data_file.suffix not in data_extensions:
+                continue
+
+            # Check if this data file has changed since last build
+            if not self.cache.is_changed(data_file):
+                continue
+
+            # Data file changed - find pages that depend on it
+            dependent_pages = self.tracker.get_pages_using_data_file(data_file)
+
+            if dependent_pages:
+                data_rebuild.update(dependent_pages)
+                if verbose:
+                    logger.info(
+                        "data_file_change_detected",
+                        data_file=str(data_file),
+                        dependent_pages=len(dependent_pages),
+                    )
+
+        if data_rebuild:
+            logger.debug(
+                "data_file_changes_total",
+                pages_affected=len(data_rebuild),
+            )
+
+        return data_rebuild
 
     def _convert_paths_to_objects(
         self, pages_to_rebuild: set[Path]

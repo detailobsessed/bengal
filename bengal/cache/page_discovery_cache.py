@@ -43,6 +43,7 @@ Related:
 
 from __future__ import annotations
 
+import contextlib
 import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -69,12 +70,16 @@ class PageDiscoveryCacheEntry:
     metadata: PageMetadata
     cached_at: str  # ISO timestamp when cached
     is_valid: bool = True  # Whether cache entry is still valid
+    # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+    # Store file mtime to detect stale entries
+    file_mtime: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "metadata": self.metadata.to_cache_dict(),
             "cached_at": self.cached_at,
             "is_valid": self.is_valid,
+            "file_mtime": self.file_mtime,
         }
 
     @staticmethod
@@ -85,6 +90,7 @@ class PageDiscoveryCacheEntry:
             metadata=metadata,
             cached_at=data["cached_at"],
             is_valid=data.get("is_valid", True),
+            file_mtime=data.get("file_mtime"),
         )
 
 
@@ -225,15 +231,25 @@ class PageDiscoveryCache:
         entry = self.pages[path_str]
         return entry.is_valid
 
-    def get_metadata(self, source_path: Path) -> PageMetadata | None:
+    def get_metadata(
+        self, source_path: Path, absolute_path: Path | None = None
+    ) -> PageMetadata | None:
         """
         Get cached metadata for a page.
 
         Args:
-            source_path: Path to source file
+            source_path: Path to source file (used for cache key lookup)
+            absolute_path: Optional absolute path for mtime validation.
+                          If not provided, source_path is used for stat().
 
         Returns:
             PageMetadata if found and valid, None otherwise
+
+        Note:
+            RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+            This method now validates the cache entry against the file's mtime.
+            If the file has been modified since caching, returns None to force
+            re-parsing with fresh metadata.
         """
         path_str = str(source_path)
         if path_str not in self.pages:
@@ -243,19 +259,54 @@ class PageDiscoveryCache:
         if not entry.is_valid:
             return None
 
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+        # Validate mtime to detect stale entries
+        if entry.file_mtime is not None:
+            # Use absolute_path for stat() if provided (relative paths won't work)
+            stat_path = absolute_path if absolute_path is not None else source_path
+            try:
+                current_mtime = stat_path.stat().st_mtime
+                if current_mtime != entry.file_mtime:
+                    # File has been modified - cache is stale
+                    logger.debug(
+                        "page_cache_mtime_mismatch",
+                        path=path_str,
+                        cached_mtime=entry.file_mtime,
+                        current_mtime=current_mtime,
+                    )
+                    return None
+            except OSError:
+                # File doesn't exist or can't be accessed - cache is stale
+                return None
+
         return entry.metadata
 
-    def add_metadata(self, metadata: PageMetadata) -> None:
+    def add_metadata(
+        self, metadata: PageMetadata, source_path: Path | None = None
+    ) -> None:
         """
         Add or update metadata in cache.
 
         Args:
             metadata: PageMetadata to cache
+            source_path: Optional path to source file (for mtime tracking).
+                        If not provided, uses metadata.source_path.
+
+        Note:
+            RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+            Now stores file mtime for staleness detection.
         """
+        # Get file mtime for staleness detection
+        file_mtime: float | None = None
+        path_to_check = source_path or Path(metadata.source_path)
+        with contextlib.suppress(OSError):
+            file_mtime = path_to_check.stat().st_mtime
+
         entry = PageDiscoveryCacheEntry(
             metadata=metadata,
             cached_at=datetime.now(UTC).isoformat(),
             is_valid=True,
+            file_mtime=file_mtime,
         )
         self.pages[metadata.source_path] = entry
 

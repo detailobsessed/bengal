@@ -23,9 +23,6 @@ class TestDataFileFingerprintCaching:
     incremental builds, triggering conservative full rebuild of all pages.
     """
 
-    @pytest.mark.xfail(
-        reason="Known gap: data file fingerprint caching not implemented"
-    )
     def test_content_change_without_data_change_is_efficient(
         self, site_with_data_tracking: WarmBuildTestSite
     ) -> None:
@@ -45,7 +42,7 @@ class TestDataFileFingerprintCaching:
         """
         # Build 1: Full build - should cache fingerprints for ALL files including data
         stats1 = site_with_data_tracking.full_build()
-        initial_page_count = stats1.pages_built
+        initial_page_count = stats1.total_pages
         assert initial_page_count >= 2, "Should have at least home + about pages"
 
         # Modify ONLY a content file (not the data file)
@@ -66,9 +63,14 @@ title: Home - Updated
 
         # Assert: Should rebuild only 1 page (the modified home page)
         # NOT all pages due to data file fingerprint miss
-        assert stats2.pages_built < initial_page_count, (
+        # Check incremental_decision.pages_to_build for actual rebuild count
+        assert stats2.incremental_decision is not None, (
+            "Incremental build should have decision"
+        )
+        pages_rebuilt = len(stats2.incremental_decision.pages_to_build)
+        assert pages_rebuilt < initial_page_count, (
             f"Content-only change should trigger minimal rebuild. "
-            f"Expected 1 page, got {stats2.pages_built}. "
+            f"Expected 1 page, got {pages_rebuilt}. "
             f"This indicates data file fingerprints may not be cached properly."
         )
 
@@ -81,9 +83,6 @@ class TestDataFileDependencyGap:
     should be rebuilt with the new data.
     """
 
-    @pytest.mark.xfail(
-        reason="Known gap: data file dependency tracking not implemented"
-    )
     def test_data_file_change_triggers_incremental_rebuild(
         self, site_with_data_tracking: WarmBuildTestSite
     ) -> None:
@@ -101,7 +100,7 @@ class TestDataFileDependencyGap:
         """
         # Build 1: Full build
         stats1 = site_with_data_tracking.full_build()
-        initial_page_count = stats1.pages_built
+        initial_page_count = stats1.total_pages
         assert initial_page_count >= 1, "Initial build should create pages"
 
         # Verify initial content
@@ -130,7 +129,12 @@ members:
         )
 
         # Assert: At least the about page was rebuilt (not skipped)
-        assert stats2.pages_built >= 1, (
+        # Check incremental_decision for actual rebuild count
+        assert stats2.incremental_decision is not None, (
+            "Incremental build should have decision"
+        )
+        pages_rebuilt = len(stats2.incremental_decision.pages_to_build)
+        assert pages_rebuilt >= 1, (
             "Data file change should trigger rebuild of dependent pages"
         )
 
@@ -138,9 +142,9 @@ members:
         # This catches the bug where data files always appear "changed"
         # due to missing fingerprints, triggering conservative full rebuild.
         # With proper data file fingerprinting, only dependent pages rebuild.
-        assert stats2.pages_built < initial_page_count, (
+        assert pages_rebuilt < initial_page_count, (
             f"Data file change should trigger targeted rebuild, not full. "
-            f"Expected < {initial_page_count} pages, got {stats2.pages_built}. "
+            f"Expected < {initial_page_count} pages, got {pages_rebuilt}. "
             f"This may indicate data file fingerprints aren't being cached."
         )
 
@@ -153,9 +157,6 @@ class TestTaxonomyMetadataPropagationGap:
     should be rebuilt with the updated metadata.
     """
 
-    @pytest.mark.xfail(
-        reason="Known gap: taxonomy metadata propagation not implemented"
-    )
     def test_taxonomy_term_page_updates_on_member_title_change(
         self, site_with_taxonomy_tracking: WarmBuildTestSite
     ) -> None:
@@ -207,9 +208,6 @@ An advanced Python tutorial.
             "tags/python/index.html", "Python Tutorial"
         )
 
-    @pytest.mark.xfail(
-        reason="Known gap: taxonomy metadata propagation not implemented"
-    )
     def test_taxonomy_term_page_updates_on_member_date_change(
         self, site_with_taxonomy_tracking: WarmBuildTestSite
     ) -> None:

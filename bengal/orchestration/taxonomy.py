@@ -202,10 +202,20 @@ class TaxonomyOrchestrator:
             if page.metadata.get("_generated"):
                 continue
 
-            # Update cache and get affected tags
+            # Update cache and get affected tags (tags that were added/removed)
             new_tags = set(page.tags) if page.tags else set()
             page_affected = cache.update_page_tags(page.source_path, new_tags)
             affected_tags.update(page_affected)
+
+            # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+            # METADATA CASCADE: When a page's metadata changes (title, date, summary),
+            # ALL its tags need rebuilding, not just tags that changed.
+            # This ensures tag listing pages show updated metadata.
+            if new_tags:
+                for tag in new_tags:
+                    if tag is not None:
+                        tag_slug = str(tag).lower().replace(" ", "-")
+                        affected_tags.add(tag_slug)
 
         # STEP 2: Rebuild taxonomy structure from current Page objects
         # RFC: rfc-incremental-build-dependency-gaps - Phase 2 fix
@@ -524,18 +534,16 @@ class TaxonomyOrchestrator:
                     if tag_slug in locale_tags:
                         tag_data = locale_tags[tag_slug]
 
-                        # PHASE 2C.2 OPTIMIZATION: Skip regenerating tags with unchanged pages
-                        if taxonomy_index:
-                            page_paths = [str(p.source_path) for p in tag_data["pages"]]
-                            if not taxonomy_index.pages_changed(tag_slug, page_paths):
-                                logger.debug(
-                                    "tag_page_generation_skipped",
-                                    tag_slug=tag_slug,
-                                    reason="pages_unchanged",
-                                    page_count=len(page_paths),
-                                )
-                                skipped_count += 1
-                                continue
+                        # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+                        # REMOVED: TaxonomyIndex.pages_changed optimization
+                        # This optimization was causing stale content because it only checks
+                        # if the SET of page paths changed, not if page METADATA changed.
+                        # When a post's title/date changes but tags stay the same, the tag
+                        # page needs rebuilding to show updated metadata.
+                        #
+                        # The cost of regenerating a few extra tag pages is minimal compared
+                        # to the complexity of tracking metadata changes per-page.
+                        # (Eleventy-style: accept over-rebuilding for correctness)
 
                         # Route through _create_tag_pages so tests that patch it can count calls
                         pages = self._create_tag_pages(

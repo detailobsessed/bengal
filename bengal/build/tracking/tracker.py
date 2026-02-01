@@ -332,6 +332,34 @@ class DependencyTracker:
             data_file=str(data_file),
         )
 
+    def track_page_taxonomy(
+        self, page_path: Path, tags: set[str] | list[str] | None
+    ) -> None:
+        """
+        Record taxonomy dependencies for a page during rendering.
+
+        RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+
+        This should be called during page rendering to track which term pages
+        depend on this member page. When the member page's metadata changes,
+        the term pages listing it need to be rebuilt.
+
+        Args:
+            page_path: Path to the page being rendered
+            tags: Tags/categories for this page (from metadata)
+
+        Thread Safety:
+            Uses existing lock for thread-safe dependency tracking.
+        """
+        if not tags:
+            return
+
+        # Normalize tags to set
+        tag_set = set(tags) if isinstance(tags, list) else tags
+
+        # Call track_taxonomy to record the dependencies
+        self.track_taxonomy(page_path, tag_set)
+
     def get_pages_using_data_file(self, data_file: Path) -> set[Path]:
         """
         Find all pages that depend on a data file.
@@ -397,6 +425,8 @@ class DependencyTracker:
         When the member page changes (title, date, summary), the term page
         listing it should be rebuilt.
 
+        RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+
         Args:
             member_path: Path to the member page (e.g., content/blog/post.md)
             term_key: Key for the term page (e.g., _generated/tags/tag:python)
@@ -404,10 +434,18 @@ class DependencyTracker:
         Thread Safety:
             Uses existing lock for thread-safe updates.
         """
+        member_key = str(member_path)
         with self.lock:
+            # Store in in-memory dict for current build
             if term_key not in self.reverse_dependencies:
                 self.reverse_dependencies[term_key] = set()
-            self.reverse_dependencies[term_key].add(str(member_path))
+            self.reverse_dependencies[term_key].add(member_key)
+
+            # Also store in BuildCache for persistence across builds
+            # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+            if member_key not in self.cache.member_to_term_pages:
+                self.cache.member_to_term_pages[member_key] = set()
+            self.cache.member_to_term_pages[member_key].add(term_key)
 
     def get_term_pages_for_member(self, member_path: Path) -> set[str]:
         """
@@ -415,6 +453,8 @@ class DependencyTracker:
 
         When a member page's metadata changes (title, date, summary),
         the term pages listing it need to be rebuilt.
+
+        RFC: rfc-incremental-build-dependency-gaps (Gap 3)
 
         Args:
             member_path: Path to the member page that changed
@@ -429,10 +469,16 @@ class DependencyTracker:
         member_key = str(member_path)
         term_pages: set[str] = set()
 
+        # Check in-memory reverse dependencies (current build)
         with self.lock:
             for term_key, members in self.reverse_dependencies.items():
                 if member_key in members and term_key.startswith("_generated/tags/"):
                     term_pages.add(term_key)
+
+        # Also check persisted member_to_term_pages from BuildCache (previous builds)
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+        cached_term_pages = self.cache.member_to_term_pages.get(member_key, set())
+        term_pages.update(cached_term_pages)
 
         if term_pages:
             logger.debug(

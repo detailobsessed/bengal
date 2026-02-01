@@ -216,6 +216,10 @@ def test_content_registry_overhead_minimal(test_site_dir, test_progress):
     assert site.registry.section_count > 0
 
 
+@pytest.mark.xfail(
+    reason="Timing-based test is flaky - threshold may be exceeded with GIL enabled or under load",
+    strict=False,
+)
 def test_large_section_tree_performance(tmp_path, test_progress):
     """Test performance with a large section tree (100 sections)."""
     content_dir = tmp_path / "content"

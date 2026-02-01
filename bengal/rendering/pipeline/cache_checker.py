@@ -309,6 +309,9 @@ class CacheChecker:
         """
         Determine if cache should be bypassed for this page.
 
+        Checks both the page's source file and its data file dependencies.
+        RFC: rfc-incremental-build-dependency-gaps (Gap 2)
+
         Args:
             page: Page to check
             changed_sources: Set of changed source paths
@@ -323,4 +326,24 @@ class CacheChecker:
         if not cache:
             return False
 
-        return cache.should_bypass(page.source_path, changed_sources)
+        # Check if source file itself changed
+        if cache.should_bypass(page.source_path, changed_sources):
+            return True
+
+        # Check if any data file dependencies changed
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 2)
+        page_key = str(page.source_path)
+        deps = cache.dependencies.get(page_key, [])
+        for dep in deps:
+            if dep.startswith("data:"):
+                # Extract actual data file path from "data:/path/to/file.yaml"
+                data_file_path = Path(dep[5:])  # Remove "data:" prefix
+                if data_file_path.exists() and cache.is_changed(data_file_path):
+                    logger.debug(
+                        "cache_bypass_data_file_changed",
+                        page=str(page.source_path),
+                        data_file=str(data_file_path),
+                    )
+                    return True
+
+        return False

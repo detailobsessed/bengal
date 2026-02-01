@@ -29,6 +29,11 @@ def built_site(tmp_path_factory):
     # Copy showcase example to tmp
     tmp_path = tmp_path_factory.mktemp("showcase_site")
     showcase = Path("examples/showcase")
+
+    # Skip if showcase example doesn't exist (not all checkouts have examples/)
+    if not showcase.exists() or not (showcase / "content").exists():
+        pytest.skip("examples/showcase not available - skipping output quality tests")
+
     site_dir = tmp_path / "site"
 
     # Copy content and config

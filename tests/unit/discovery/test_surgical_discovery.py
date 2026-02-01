@@ -197,7 +197,9 @@ class TestSurgicalDiscoveryNoDoubleParsing:
         """Discovery should handle mix of cache hits and misses."""
 
         # Set up cache to hit for some files, miss for others
-        def get_metadata(path: Path) -> PageCore | None:
+        def get_metadata(
+            path: Path, absolute_path: Path | None = None
+        ) -> PageCore | None:
             if "getting-started" in str(path):
                 return make_page_core(path, "Cached Getting Started")
             return None  # Cache miss for others

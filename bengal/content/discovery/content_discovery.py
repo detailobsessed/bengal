@@ -372,11 +372,16 @@ class ContentDiscovery:
         """
         # Check cache
         cache_lookup_path = file_path
+        absolute_path = file_path  # Keep absolute path for mtime validation
         if self.site and file_path.is_absolute():
             with contextlib.suppress(ValueError):
                 cache_lookup_path = file_path.relative_to(self.site.root_path)
 
-        cached_metadata = cache.get_metadata(cache_lookup_path)
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+        # Pass absolute_path for mtime validation (relative paths can't be stat'd)
+        cached_metadata = cache.get_metadata(
+            cache_lookup_path, absolute_path=absolute_path
+        )
 
         if cached_metadata:
             # Validate cache entry using mtime (fastest disk check)

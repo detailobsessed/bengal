@@ -104,9 +104,13 @@ class ProvenanceFilter:
         self,
         site: Site,
         cache: ProvenanceCache,
+        build_cache: Any = None,
     ) -> None:
         self.site = site
         self.cache = cache
+        # Reference to in-memory build cache for data file dependencies
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 2)
+        self._build_cache = build_cache
 
         # Precompute site config hash (affects all pages)
         self._config_hash = hash_dict(dict(site.config))
@@ -234,6 +238,13 @@ class ProvenanceFilter:
                 changed_page_paths.add(page.source_path)
                 self._collect_affected(page, affected_tags, affected_sections)
 
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+        # Cascade changes from member pages to their term pages
+        # When a member page changes, term pages listing it need rebuilding
+        pages_to_build = self._cascade_taxonomy_changes(
+            pages, pages_to_build, pages_skipped, changed_page_paths
+        )
+
         # For assets, check file modification
         assets_to_process: list[Asset] = [
             asset
@@ -264,14 +275,19 @@ class ProvenanceFilter:
             page: The page that was built
             output_hash: Hash of the rendered output (optional)
         """
-        # OPTIMIZATION: Use already computed provenance if available from filter phase
         page_path = self._get_page_key(page)
 
-        # Thread-safe access to session cache
-        provenance = self._computed_provenance.get(page_path)
+        # IMPORTANT: Always recompute provenance after build to include
+        # data file dependencies that were tracked during rendering.
+        # The filter phase computes provenance BEFORE rendering, so it
+        # doesn't know about data file access. After rendering, the
+        # build cache has the data file dependencies recorded.
+        # RFC: rfc-incremental-build-dependency-gaps (Gap 2)
+        with self._session_lock:
+            # Clear cached provenance to force recomputation with data deps
+            self._computed_provenance.pop(page_path, None)
 
-        if provenance is None:
-            provenance = self._compute_provenance(page)
+        provenance = self._compute_provenance(page)
 
         # Skip pages with no meaningful provenance (fallback only)
         if provenance.input_count <= 1:  # Only config, no real source
@@ -368,6 +384,10 @@ class ProvenanceFilter:
         provenance = provenance.with_input(
             "config", CacheKey("site_config"), self._config_hash
         )
+
+        # Include data file dependencies (RFC: rfc-incremental-build-dependency-gaps)
+        # This is critical for correct cache invalidation when data files change
+        provenance = self._add_data_file_dependencies(page, provenance)
 
         # Cache for later (record_build) - thread-safe
         with self._session_lock:
@@ -498,11 +518,158 @@ class ProvenanceFilter:
             "config", CacheKey("site_config"), self._config_hash
         )
 
+        # 3. Data file dependencies (RFC: rfc-incremental-build-dependency-gaps)
+        # Include hashes of data files that this page depends on
+        provenance = self._add_data_file_dependencies(page, provenance)
+
         # Cache for later - thread-safe
         with self._session_lock:
             if page_path not in self._computed_provenance:
                 self._computed_provenance[page_path] = provenance
             return self._computed_provenance[page_path]
+
+    def _cascade_taxonomy_changes(
+        self,
+        all_pages: list[Page],
+        pages_to_build: list[Page],
+        pages_skipped: list[Page],
+        changed_page_paths: set[Path],
+    ) -> list[Page]:
+        """
+        Cascade changes from member pages to their term pages.
+
+        RFC: rfc-incremental-build-dependency-gaps (Gap 3)
+
+        When a member page (e.g., blog post) changes, the term pages
+        (e.g., /tags/python/) that list it need to be rebuilt to show
+        updated metadata (title, date, summary).
+
+        Args:
+            all_pages: All pages in the site
+            pages_to_build: Pages already marked for rebuild
+            pages_skipped: Pages that were skipped (cache hits)
+            changed_page_paths: Paths of pages that changed
+
+        Returns:
+            Updated pages_to_build list with term pages added
+        """
+        if not self._build_cache or not changed_page_paths:
+            return pages_to_build
+
+        # Find term pages that need rebuilding due to member changes
+        term_pages_to_rebuild: set[str] = set()
+
+        for changed_path in changed_page_paths:
+            # Look up term pages that list this member page
+            member_key = str(changed_path)
+            term_keys = self._build_cache.member_to_term_pages.get(member_key, set())
+            term_pages_to_rebuild.update(term_keys)
+
+        if not term_pages_to_rebuild:
+            return pages_to_build
+
+        # Find the actual Page objects for these term pages
+        # Term pages are virtual pages with paths like "_generated/tags/tag:python"
+        pages_to_build_set = {p.source_path for p in pages_to_build}
+
+        for page in pages_skipped[:]:  # Copy to allow modification
+            # Check if this page matches any term page key
+            page_key = str(page.source_path)
+
+            for term_key in term_pages_to_rebuild:
+                # Term keys are like "_generated/tags/tag:python"
+                # Page source paths are like ".bengal/generated/tags/python/page_1/index.md"
+                # or ".bengal/generated/tags/python/index.md"
+                # We need to match by tag name
+                if term_key.startswith("_generated/tags/tag:"):
+                    tag_name = term_key.split("tag:")[-1]
+                    # Match paths containing /tags/{tag_name}/ or /tags/{tag_name}/page_
+                    if (
+                        f"/tags/{tag_name}/" in page_key
+                        or f"/tags/{tag_name}/page_" in page_key
+                    ):
+                        if page.source_path not in pages_to_build_set:
+                            pages_to_build.append(page)
+                            pages_to_build_set.add(page.source_path)
+                            pages_skipped.remove(page)
+                            logger.debug(
+                                "taxonomy_cascade_rebuild",
+                                term_page=str(page.source_path),
+                                tag_name=tag_name,
+                                reason="member_page_changed",
+                            )
+                        break
+
+        return pages_to_build
+
+    def _add_data_file_dependencies(
+        self, page: Page, provenance: Provenance
+    ) -> Provenance:
+        """
+        Add data file dependencies to provenance.
+
+        RFC: rfc-incremental-build-dependency-gaps (Gap 2)
+
+        Looks up data file dependencies from the build cache and includes
+        their hashes in the provenance. This ensures pages are rebuilt
+        when their data file dependencies change.
+
+        Args:
+            page: Page to check dependencies for
+            provenance: Current provenance to extend
+
+        Returns:
+            Provenance with data file dependencies added
+        """
+        # Try to get dependencies from build cache
+        # Prefer in-memory build cache (set during build) over loading from disk
+        try:
+            build_cache = self._build_cache
+            if build_cache is None:
+                # Fallback to loading from disk (for filter phase before build)
+                from bengal.cache import BuildCache
+
+                cache_path = self.site.root_path / ".bengal" / "cache.json"
+                if (
+                    not cache_path.exists()
+                    and not (cache_path.parent / "cache.json.zst").exists()
+                ):
+                    return provenance
+
+                build_cache = BuildCache.load(cache_path)
+
+            page_key = str(page.source_path)
+            deps = build_cache.dependencies.get(page_key, [])
+
+            for dep in deps:
+                if dep.startswith("data:"):
+                    # Extract actual data file path from "data:/path/to/file.yaml"
+                    data_file_path = Path(dep[5:])  # Remove "data:" prefix
+                    if data_file_path.exists():
+                        try:
+                            data_hash = self._get_file_hash(data_file_path)
+                            # Use relative path for cache key stability
+                            try:
+                                rel_path = str(
+                                    data_file_path.relative_to(self.site.root_path)
+                                )
+                            except ValueError:
+                                rel_path = str(data_file_path)
+                            provenance = provenance.with_input(
+                                "data_file",
+                                CacheKey(f"data:{rel_path}"),
+                                data_hash,
+                            )
+                        except OSError:
+                            pass  # Skip files that can't be hashed
+        except Exception as e:
+            logger.debug(
+                "data_file_dependency_lookup_failed",
+                page=str(page.source_path),
+                error=str(e),
+            )
+
+        return provenance
 
     def _get_page_key(self, page: Page) -> CacheKey:
         """Get canonical page key for cache lookups."""
