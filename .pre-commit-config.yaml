@@ -112,3 +112,12 @@ repos:
         files: ^bengal/.*\.py$
         pass_filenames: true
         priority: 2
+
+      # Template CSS validation
+      # Ensures CSS classes used in templates have corresponding definitions
+      - id: check-template-css
+        name: Check template CSS classes have definitions
+        entry: uv run scripts/check_template_css.py
+        language: system
+        files: ^bengal/themes/.*\.(html|css)$
+        pass_filenames: false
