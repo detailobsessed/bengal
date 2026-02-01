@@ -481,7 +481,62 @@ class NavTreeContext:
         return NavNodeProxy(node, self)
 
 
-class NavNodeProxy:
+class NavNodeProxyMixin:
+    """
+    Mixin providing dict-like access for navigation node proxies.
+
+    Used by NavNodeProxy and ScaffoldNodeProxy to provide consistent
+    __getitem__ and get() methods for template access.
+
+    Subclasses must define:
+    - href property
+    - _path property
+    - is_current property
+    - is_in_trail property
+    - is_expanded property
+    - is_section property
+    - children property
+    - _node attribute (underlying NavNode)
+
+    """
+
+    # Type hints for required attributes (implemented by subclasses)
+    href: str
+    _path: str
+    is_current: bool
+    is_in_trail: bool
+    is_expanded: bool
+    is_section: bool
+    children: list[Any]
+    _node: Any
+
+    def __getitem__(self, key: str) -> Any:
+        """Dict-like access for templates."""
+        if key == "href":
+            return self.href
+        if key == "_path":
+            return self._path
+        if key == "is_current":
+            return self.is_current
+        if key == "is_in_trail":
+            return self.is_in_trail
+        if key == "is_expanded":
+            return self.is_expanded
+        if key == "is_section":
+            return self.is_section
+        if key == "children":
+            return self.children
+        return self._node[key]
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Safe dict-like access."""
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+
+class NavNodeProxy(NavNodeProxyMixin):
     """
     Transient proxy for NavNode that injects page-specific state.
 
@@ -660,29 +715,11 @@ class NavNodeProxy:
         return getattr(self._node, name)
 
     def __getitem__(self, key: str) -> Any:
-        if key == "href":
-            return self.href
-        if key == "_path":
-            return self._path
+        # Handle absolute_href which is specific to NavNodeProxy
         if key == "absolute_href":
             return self.absolute_href
-        if key == "is_current":
-            return self.is_current
-        if key == "is_in_trail":
-            return self.is_in_trail
-        if key == "is_expanded":
-            return self.is_expanded
-        if key == "is_section":
-            return self.is_section
-        if key == "children":
-            return self.children
-        return self._node[key]
-
-    def get(self, key: str, default: Any = None) -> Any:
-        try:
-            return self[key]
-        except KeyError:
-            return default
+        # Delegate common keys to mixin
+        return NavNodeProxyMixin.__getitem__(self, key)
 
 
 class NavTreeCache:
