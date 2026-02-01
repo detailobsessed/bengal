@@ -49,6 +49,33 @@ from typing import TYPE_CHECKING, Any
 from bengal.debug.base import DebugRegistry, DebugReport, DebugTool, Severity
 from bengal.utils.io.atomic_write import atomic_write_text
 
+
+def _classify_node(path: str) -> str:
+    """
+    Classify a dependency node by its file type.
+
+    Used by to_mermaid and to_dot for consistent node styling.
+
+    Args:
+        path: File path to classify
+
+    Returns:
+        Node type: 'page', 'template', 'partial', 'data', 'config', or 'unknown'
+
+    """
+    if path.endswith((".md", ".markdown", ".rst")):
+        return "page"
+    if "template" in path.lower() or path.endswith((".html", ".jinja2")):
+        return "template"
+    if "partial" in path.lower() or "include" in path.lower():
+        return "partial"
+    if path.endswith((".yaml", ".yml", ".json")):
+        if "config" in path.lower():
+            return "config"
+        return "data"
+    return "unknown"
+
+
 if TYPE_CHECKING:
     pass
 
@@ -283,6 +310,7 @@ class DependencyGraph:
         lines.append("    classDef partial fill:#f3e5f5,stroke:#7b1fa2")
         lines.append("    classDef data fill:#e8f5e9,stroke:#2e7d32")
         lines.append("    classDef config fill:#ffebee,stroke:#c62828")
+        lines.append("    classDef unknown fill:#f5f5f5,stroke:#9e9e9e")
         lines.append("")
 
         visited: set[str] = set()
@@ -293,26 +321,13 @@ class DependencyGraph:
                 node_ids[path] = f"n{len(node_ids)}"
             return node_ids[path]
 
-        def classify_node(path: str) -> str:
-            if path.endswith((".md", ".markdown", ".rst")):
-                return "page"
-            if "template" in path.lower() or path.endswith((".html", ".jinja2")):
-                return "template"
-            if "partial" in path.lower() or "include" in path.lower():
-                return "partial"
-            if path.endswith((".yaml", ".yml", ".json")):
-                if "config" in path.lower():
-                    return "config"
-                return "data"
-            return "page"
-
         def add_node_and_deps(path: str, depth: int) -> None:
             if depth > max_depth or path in visited:
                 return
 
             visited.add(path)
             node_id = get_node_id(path)
-            node_type = classify_node(path)
+            node_type = _classify_node(path)
             short_name = Path(path).name
 
             # Add node definition
@@ -365,28 +380,16 @@ class DependencyGraph:
 
         visited: set[str] = set()
 
-        def classify_node(path: str) -> str:
-            if path.endswith((".md", ".markdown", ".rst")):
-                return "page"
-            if "template" in path.lower() or path.endswith((".html", ".jinja2")):
-                return "template"
-            if "partial" in path.lower() or "include" in path.lower():
-                return "partial"
-            if path.endswith((".yaml", ".yml", ".json")):
-                if "config" in path.lower():
-                    return "config"
-                return "data"
-            return "unknown"
-
         def escape_label(s: str) -> str:
-            return s.replace('"', '\\"').replace("\\", "\\\\")
+            # Escape backslashes first, then quotes to avoid double-escaping
+            return s.replace("\\", "\\\\").replace('"', '\\"')
 
         def add_node_and_deps(path: str, depth: int) -> None:
             if depth > max_depth or path in visited:
                 return
 
             visited.add(path)
-            node_type = classify_node(path)
+            node_type = _classify_node(path)
             color = colors.get(node_type, colors["unknown"])
             short_name = Path(path).name
 
