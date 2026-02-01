@@ -1,6 +1,6 @@
 """Kida template engine integration for Bengal.
 
-Implements TemplateEngineProtocol for Kida, making it available
+Implements TemplateEngine protocol for Kida, making it available
 as a BYOR (Bring Your Own Renderer) option.
 
 Configuration:
@@ -35,7 +35,7 @@ from bengal.errors import BengalRenderingError, ErrorCode
 from bengal.protocols import (
     EngineCapability,
     SiteLike,
-    TemplateEngineProtocol,
+    TemplateEngine,
     TemplateEnvironment,
 )
 from bengal.rendering.engines.errors import TemplateError, TemplateNotFoundError
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 class KidaTemplateEngine:
     """Bengal integration for Kida template engine.
 
-    Implements TemplateEngineProtocol for seamless integration
+    Implements TemplateEngine protocol for seamless integration
     with Bengal's rendering pipeline.
 
     Example:
@@ -840,8 +840,8 @@ class KidaTemplateEngine:
 
 # Verify protocol compliance
 def _check_protocol() -> None:
-    """Verify KidaTemplateEngine implements TemplateEngineProtocol."""
+    """Verify KidaTemplateEngine implements TemplateEngine."""
     import typing
 
     if typing.TYPE_CHECKING:
-        _: TemplateEngineProtocol = KidaTemplateEngine(...)  # type: ignore
+        _: TemplateEngine = KidaTemplateEngine(...)  # type: ignore

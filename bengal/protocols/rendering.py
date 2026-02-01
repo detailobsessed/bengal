@@ -334,10 +334,6 @@ class TemplateEngine(
         ...
 
 
-# Backwards compatibility alias
-TemplateEngineProtocol = TemplateEngine
-
-
 # =============================================================================
 # Syntax Highlighting Protocol
 # =============================================================================
@@ -431,10 +427,6 @@ class HighlightService(Protocol):
             - SHOULD handle common aliases (js -> javascript)
         """
         ...
-
-
-# Backwards compatibility alias
-HighlightBackend = HighlightService
 
 
 # =============================================================================
@@ -560,13 +552,11 @@ __all__ = [
     "DirectiveHandler",
     # Engine capabilities
     "EngineCapability",
-    "HighlightBackend",  # Backwards compatibility
     # Highlighting
     "HighlightService",
     # Roles and directives
     "RoleHandler",
     "TemplateEngine",
-    "TemplateEngineProtocol",  # Backwards compatibility
     # Template environment
     "TemplateEnvironment",
     "TemplateIntrospector",

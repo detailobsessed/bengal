@@ -15,14 +15,14 @@ from typing import TYPE_CHECKING
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
-    from bengal.protocols import TemplateEngine as TemplateEngineProtocol
+    from bengal.protocols import TemplateEngine
 
 logger = get_logger(__name__)
 
 
 def resolve_template_cascade(
     candidates: list[str],
-    template_engine: TemplateEngineProtocol | None,
+    template_engine: TemplateEngine | None,
     fallback: str = "single.html",
 ) -> str:
     """

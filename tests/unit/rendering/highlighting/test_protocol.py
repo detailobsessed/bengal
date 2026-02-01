@@ -1,5 +1,5 @@
 """
-Tests for the HighlightBackend protocol.
+Tests for the HighlightService protocol.
 
 Validates that the protocol is properly defined and can be used
 for type checking and runtime verification.
@@ -7,20 +7,20 @@ for type checking and runtime verification.
 
 from typing import TYPE_CHECKING
 
-from bengal.rendering.highlighting import HighlightBackend
+from bengal.rendering.highlighting import HighlightService
 from bengal.rendering.highlighting.rosettes import RosettesBackend
 
 if TYPE_CHECKING:
     pass
 
 
-class TestHighlightBackendProtocol:
-    """Test the HighlightBackend protocol definition."""
+class TestHighlightServiceProtocol:
+    """Test the HighlightService protocol definition."""
 
     def test_protocol_is_runtime_checkable(self) -> None:
         """Protocol should be usable with isinstance()."""
         backend = RosettesBackend()
-        assert isinstance(backend, HighlightBackend)
+        assert isinstance(backend, HighlightService)
 
     def test_rosettes_backend_implements_protocol(self) -> None:
         """RosettesBackend should implement all protocol methods."""
@@ -80,7 +80,7 @@ class TestCustomBackendProtocolCompliance:
                 return True
 
         backend = MinimalBackend()
-        assert isinstance(backend, HighlightBackend)
+        assert isinstance(backend, HighlightService)
 
     def test_incomplete_backend_not_protocol_compliant(self) -> None:
         """A backend missing methods should not pass isinstance check."""
@@ -93,4 +93,4 @@ class TestCustomBackendProtocolCompliance:
             # Missing highlight() and supports_language()
 
         backend = IncompleteBackend()
-        assert not isinstance(backend, HighlightBackend)
+        assert not isinstance(backend, HighlightService)

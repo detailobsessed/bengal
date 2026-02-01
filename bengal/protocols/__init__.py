@@ -77,11 +77,9 @@ from bengal.protocols.infrastructure import (
 from bengal.protocols.rendering import (
     DirectiveHandler,
     EngineCapability,
-    HighlightBackend,
     HighlightService,
     RoleHandler,
     TemplateEngine,
-    TemplateEngineProtocol,
     TemplateEnvironment,
     TemplateIntrospector,
     TemplateRenderer,
@@ -110,7 +108,6 @@ __all__ = [
     "HasConfigChangedSignal",
     "HasErrors",
     "HasWalk",
-    "HighlightBackend",  # Backwards compatibility
     # Rendering - Highlighting
     "HighlightService",
     # Analysis
@@ -132,7 +129,6 @@ __all__ = [
     "SectionLike",
     "SiteLike",
     "TemplateEngine",
-    "TemplateEngineProtocol",  # Backwards compatibility
     # Rendering - Template
     "TemplateEnvironment",
     "TemplateIntrospector",

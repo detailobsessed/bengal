@@ -5,13 +5,10 @@ Syntax highlighting backend protocol definition.
     Import from :mod:`bengal.protocols` instead::
 
         # Old (deprecated)
-        from bengal.rendering.highlighting.protocol import HighlightBackend
+        from bengal.rendering.highlighting.protocol import HighlightService
 
         # New (preferred)
         from bengal.protocols import HighlightService
-
-    Note: HighlightBackend has been renamed to HighlightService for consistency.
-    Both names are exported from bengal.protocols for backwards compatibility.
 
 This module re-exports protocols from :mod:`bengal.protocols` for
 backwards compatibility. Deprecation warnings are emitted on import.
@@ -29,16 +26,12 @@ from typing import TYPE_CHECKING
 
 # Re-export from canonical location
 from bengal.protocols.rendering import (
-    HighlightBackend as _HighlightBackend,
-)
-from bengal.protocols.rendering import (
     HighlightService as _HighlightService,
 )
 
 if TYPE_CHECKING:
     # For type checkers, provide direct access without warnings
     from bengal.protocols.rendering import (
-        HighlightBackend,
         HighlightService,
     )
 
@@ -46,7 +39,6 @@ if TYPE_CHECKING:
 def __getattr__(name: str):
     """Emit deprecation warning for old import paths."""
     _exports = {
-        "HighlightBackend": _HighlightBackend,
         "HighlightService": _HighlightService,
     }
 
@@ -64,6 +56,5 @@ def __getattr__(name: str):
 
 
 __all__ = [
-    "HighlightBackend",
     "HighlightService",
 ]

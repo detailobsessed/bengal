@@ -15,13 +15,13 @@ from typing import TYPE_CHECKING
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
-    from bengal.protocols import TemplateEngine as TemplateEngineProtocol
+    from bengal.protocols import TemplateEngine
 
 logger = get_logger(__name__)
 
 
 def safe_template_exists(
-    template_engine: TemplateEngineProtocol | None,
+    template_engine: TemplateEngine | None,
     name: str,
     *,
     log_failures: bool = False,
