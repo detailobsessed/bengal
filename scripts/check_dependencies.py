@@ -75,6 +75,38 @@ ALLOWED_VIOLATIONS: set[tuple[str, str]] = {
     ("bengal.core", "bengal.utils.lru_cache"),
     ("bengal.core", "bengal.utils.concurrency"),
     ("bengal.core", "bengal.utils.observability.logger"),
+    # Site is a facade that delegates to higher layers (by design)
+    # These are lazy imports inside methods, not top-level dependencies
+    ("bengal.core.site.core", "bengal.orchestration"),  # Site.build() facade
+    ("bengal.core.site.core", "bengal.server"),  # Site.serve() facade
+    ("bengal.core.site.core", "bengal.rendering"),  # reset_ephemeral_state, version_url
+    ("bengal.core.site.core", "bengal.cache"),  # BengalPaths, QueryIndexRegistry
+    ("bengal.core.site.core", "bengal.utils"),  # file_io, url_strategy, dotdict
+    ("bengal.core.site.core", "bengal.content.discovery"),  # discover_content/assets
+    ("bengal.core.site.core", "bengal.config"),  # UnifiedConfigLoader, hash
+    ("bengal.core.site.core", "bengal.collections"),  # load_collections
+    # Asset is a core domain model that delegates to asset utilities (by design)
+    ("bengal.core.asset.asset_core", "bengal.assets"),  # manifest, css_minifier
+    ("bengal.core.asset.asset_core", "bengal.utils.io"),  # atomic_write
+    ("bengal.core.asset.asset_core", "bengal.rendering"),  # url_helpers
+    ("bengal.core.asset.css_transforms", "bengal.assets"),  # css_minifier
+    # Page/Section are core domain models that delegate to utilities (by design)
+    ("bengal.core.page", "bengal.rendering"),  # page_operations, pipeline
+    ("bengal.core.section", "bengal.utils.paths"),  # url_normalization
+    # NavTree delegates to autodoc utilities for symbol resolution
+    ("bengal.core.nav_tree", "bengal.utils.autodoc"),
+    # URLOwnership uses URL strategy utilities
+    ("bengal.core.url_ownership", "bengal.utils.paths"),
+    # Theme config delegates to theme utilities
+    ("bengal.core.theme", "bengal.themes"),
+    # Rendering modules delegate to health/orchestration for validation and context
+    ("bengal.rendering.page_operations", "bengal.health"),  # link validation
+    ("bengal.rendering.pipeline", "bengal.orchestration"),  # build_context
+    # Cache modules delegate to health/orchestration for reports and constants
+    ("bengal.cache.build_cache", "bengal.health"),  # validation reports
+    ("bengal.cache.build_cache", "bengal.orchestration"),  # constants
+    # Themes swizzle needs rendering engines for template operations
+    ("bengal.themes.swizzle", "bengal.rendering"),  # engines
 }
 
 
