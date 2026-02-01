@@ -237,10 +237,10 @@ class TestParserParityForChildCards:
 
     @pytest.fixture
     def mistune_parser(self):
-        """Create a MistuneParser instance."""
-        from bengal.parsing import MistuneParser
+        """Create a PatitasParser instance."""
+        from bengal.parsing import PatitasParser
 
-        return MistuneParser()
+        return PatitasParser()
 
     @pytest.fixture
     def patitas_parser(self) -> PatitasParser:

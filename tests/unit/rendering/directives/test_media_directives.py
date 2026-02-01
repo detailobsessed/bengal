@@ -16,18 +16,18 @@ Related:
 
 import pytest
 
-from bengal.parsing import MistuneParser
+from bengal.parsing import PatitasParser
 
 
 class TestYouTubeDirective:
     """Test YouTube directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_embed(self, parser: MistuneParser) -> None:
+    def test_basic_embed(self, parser: PatitasParser) -> None:
         """Test basic YouTube embed with required title."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -41,7 +41,7 @@ class TestYouTubeDirective:
         assert "video-embed" in result
         assert "youtube" in result
 
-    def test_privacy_disabled(self, parser: MistuneParser) -> None:
+    def test_privacy_disabled(self, parser: PatitasParser) -> None:
         """Test YouTube embed with privacy mode disabled."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -53,7 +53,7 @@ class TestYouTubeDirective:
         assert "youtube.com/embed" in result
         assert "youtube-nocookie.com" not in result
 
-    def test_start_time(self, parser: MistuneParser) -> None:
+    def test_start_time(self, parser: PatitasParser) -> None:
         """Test YouTube embed with start time."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -64,7 +64,7 @@ class TestYouTubeDirective:
         result = parser.parse(markdown, {})
         assert "start=30" in result
 
-    def test_end_time(self, parser: MistuneParser) -> None:
+    def test_end_time(self, parser: PatitasParser) -> None:
         """Test YouTube embed with end time."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -75,7 +75,7 @@ class TestYouTubeDirective:
         result = parser.parse(markdown, {})
         assert "end=60" in result
 
-    def test_autoplay_with_mute(self, parser: MistuneParser) -> None:
+    def test_autoplay_with_mute(self, parser: PatitasParser) -> None:
         """Test YouTube embed with autoplay and mute."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -88,7 +88,7 @@ class TestYouTubeDirective:
         assert "autoplay=1" in result
         assert "mute=1" in result
 
-    def test_loop(self, parser: MistuneParser) -> None:
+    def test_loop(self, parser: PatitasParser) -> None:
         """Test YouTube embed with loop."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -100,7 +100,7 @@ class TestYouTubeDirective:
         assert "loop=1" in result
         assert "playlist=dQw4w9WgXcQ" in result
 
-    def test_no_controls(self, parser: MistuneParser) -> None:
+    def test_no_controls(self, parser: PatitasParser) -> None:
         """Test YouTube embed without controls."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -111,7 +111,7 @@ class TestYouTubeDirective:
         result = parser.parse(markdown, {})
         assert "controls=0" in result
 
-    def test_custom_aspect(self, parser: MistuneParser) -> None:
+    def test_custom_aspect(self, parser: PatitasParser) -> None:
         """Test YouTube embed with custom aspect ratio."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -122,7 +122,7 @@ class TestYouTubeDirective:
         result = parser.parse(markdown, {})
         assert 'data-aspect="4/3"' in result
 
-    def test_invalid_id_shows_error(self, parser: MistuneParser) -> None:
+    def test_invalid_id_shows_error(self, parser: PatitasParser) -> None:
         """Test that invalid YouTube IDs show error message."""
         markdown = """\
 :::{youtube} invalid
@@ -133,7 +133,7 @@ class TestYouTubeDirective:
         assert "video-error" in result
         assert "Invalid YouTube video ID" in result
 
-    def test_missing_title_shows_error(self, parser: MistuneParser) -> None:
+    def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -143,7 +143,7 @@ class TestYouTubeDirective:
         assert "video-error" in result
         assert "Missing required :title:" in result
 
-    def test_noscript_fallback(self, parser: MistuneParser) -> None:
+    def test_noscript_fallback(self, parser: PatitasParser) -> None:
         """Test that noscript fallback is included."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -159,11 +159,11 @@ class TestVimeoDirective:
     """Test Vimeo directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_embed(self, parser: MistuneParser) -> None:
+    def test_basic_embed(self, parser: PatitasParser) -> None:
         """Test basic Vimeo embed with required title."""
         markdown = """\
 :::{vimeo} 123456789
@@ -177,7 +177,7 @@ class TestVimeoDirective:
         assert "video-embed" in result
         assert "vimeo" in result
 
-    def test_privacy_disabled(self, parser: MistuneParser) -> None:
+    def test_privacy_disabled(self, parser: PatitasParser) -> None:
         """Test Vimeo embed with DNT mode disabled."""
         markdown = """\
 :::{vimeo} 123456789
@@ -188,7 +188,7 @@ class TestVimeoDirective:
         result = parser.parse(markdown, {})
         assert "dnt=1" not in result
 
-    def test_custom_color(self, parser: MistuneParser) -> None:
+    def test_custom_color(self, parser: PatitasParser) -> None:
         """Test Vimeo embed with custom color."""
         markdown = """\
 :::{vimeo} 123456789
@@ -199,7 +199,7 @@ class TestVimeoDirective:
         result = parser.parse(markdown, {})
         assert "color=ff0000" in result
 
-    def test_background_mode(self, parser: MistuneParser) -> None:
+    def test_background_mode(self, parser: PatitasParser) -> None:
         """Test Vimeo embed in background mode."""
         markdown = """\
 :::{vimeo} 123456789
@@ -210,7 +210,7 @@ class TestVimeoDirective:
         result = parser.parse(markdown, {})
         assert "background=1" in result
 
-    def test_invalid_id_shows_error(self, parser: MistuneParser) -> None:
+    def test_invalid_id_shows_error(self, parser: PatitasParser) -> None:
         """Test that invalid Vimeo IDs show error message."""
         markdown = """\
 :::{vimeo} invalid
@@ -221,7 +221,7 @@ class TestVimeoDirective:
         assert "video-error" in result
         assert "Invalid Vimeo video ID" in result
 
-    def test_missing_title_shows_error(self, parser: MistuneParser) -> None:
+    def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
         markdown = """\
 :::{vimeo} 123456789
@@ -236,11 +236,11 @@ class TestSelfHostedVideoDirective:
     """Test self-hosted video directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_embed(self, parser: MistuneParser) -> None:
+    def test_basic_embed(self, parser: PatitasParser) -> None:
         """Test basic self-hosted video embed."""
         markdown = """\
 :::{video} /assets/demo.mp4
@@ -256,7 +256,7 @@ class TestSelfHostedVideoDirective:
         assert "video-embed" in result
         assert "self-hosted" in result
 
-    def test_with_poster(self, parser: MistuneParser) -> None:
+    def test_with_poster(self, parser: PatitasParser) -> None:
         """Test self-hosted video with poster image."""
         markdown = """\
 :::{video} /assets/demo.mp4
@@ -267,7 +267,7 @@ class TestSelfHostedVideoDirective:
         result = parser.parse(markdown, {})
         assert 'poster="/assets/poster.jpg"' in result
 
-    def test_autoplay_with_mute(self, parser: MistuneParser) -> None:
+    def test_autoplay_with_mute(self, parser: PatitasParser) -> None:
         """Test self-hosted video with autoplay and mute."""
         markdown = """\
 :::{video} /assets/demo.mp4
@@ -280,7 +280,7 @@ class TestSelfHostedVideoDirective:
         assert "autoplay" in result
         assert "muted" in result
 
-    def test_no_controls(self, parser: MistuneParser) -> None:
+    def test_no_controls(self, parser: PatitasParser) -> None:
         """Test self-hosted video without controls."""
         markdown = """\
 :::{video} /assets/demo.mp4
@@ -292,7 +292,7 @@ class TestSelfHostedVideoDirective:
         # controls should not appear as an attribute
         assert "controls" not in result or 'controls="' not in result
 
-    def test_webm_format(self, parser: MistuneParser) -> None:
+    def test_webm_format(self, parser: PatitasParser) -> None:
         """Test self-hosted video with WebM format."""
         markdown = """\
 :::{video} /assets/demo.webm
@@ -302,7 +302,7 @@ class TestSelfHostedVideoDirective:
         result = parser.parse(markdown, {})
         assert 'type="video/webm"' in result
 
-    def test_invalid_path_shows_error(self, parser: MistuneParser) -> None:
+    def test_invalid_path_shows_error(self, parser: PatitasParser) -> None:
         """Test that invalid video paths show error message."""
         markdown = """\
 :::{video} invalid.txt
@@ -313,7 +313,7 @@ class TestSelfHostedVideoDirective:
         assert "video-error" in result
         assert "Invalid video path" in result
 
-    def test_missing_title_shows_error(self, parser: MistuneParser) -> None:
+    def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
         markdown = """\
 :::{video} /assets/demo.mp4
@@ -323,7 +323,7 @@ class TestSelfHostedVideoDirective:
         assert "video-error" in result
         assert "Missing required :title:" in result
 
-    def test_fallback_content(self, parser: MistuneParser) -> None:
+    def test_fallback_content(self, parser: PatitasParser) -> None:
         """Test that fallback content is included."""
         markdown = """\
 :::{video} /assets/demo.mp4
@@ -339,11 +339,11 @@ class TestGistDirective:
     """Test GitHub Gist directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_embed(self, parser: MistuneParser) -> None:
+    def test_basic_embed(self, parser: PatitasParser) -> None:
         """Test basic Gist embed."""
         markdown = """\
 :::{gist} octocat/12345678901234567890123456789012
@@ -354,7 +354,7 @@ class TestGistDirective:
         assert "gist-embed" in result
         assert "<script" in result
 
-    def test_with_file(self, parser: MistuneParser) -> None:
+    def test_with_file(self, parser: PatitasParser) -> None:
         """Test Gist embed with specific file."""
         markdown = """\
 :::{gist} octocat/12345678901234567890123456789012
@@ -364,7 +364,7 @@ class TestGistDirective:
         result = parser.parse(markdown, {})
         assert "file=example.py" in result
 
-    def test_noscript_fallback(self, parser: MistuneParser) -> None:
+    def test_noscript_fallback(self, parser: PatitasParser) -> None:
         """Test that noscript fallback is included."""
         markdown = """\
 :::{gist} octocat/12345678901234567890123456789012
@@ -374,7 +374,7 @@ class TestGistDirective:
         assert "<noscript>" in result
         assert "View gist:" in result
 
-    def test_invalid_format_shows_error(self, parser: MistuneParser) -> None:
+    def test_invalid_format_shows_error(self, parser: PatitasParser) -> None:
         """Test that invalid gist format shows error."""
         markdown = """\
 :::{gist} invalid
@@ -389,11 +389,11 @@ class TestCodePenDirective:
     """Test CodePen directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_embed(self, parser: MistuneParser) -> None:
+    def test_basic_embed(self, parser: PatitasParser) -> None:
         """Test basic CodePen embed."""
         markdown = """\
 :::{codepen} chriscoyier/pen/abc123
@@ -406,7 +406,7 @@ class TestCodePenDirective:
         assert "code-embed" in result
         assert "codepen" in result
 
-    def test_default_tab(self, parser: MistuneParser) -> None:
+    def test_default_tab(self, parser: PatitasParser) -> None:
         """Test CodePen embed with custom default tab."""
         markdown = """\
 :::{codepen} chriscoyier/abc123
@@ -417,7 +417,7 @@ class TestCodePenDirective:
         result = parser.parse(markdown, {})
         assert "default-tab=html" in result
 
-    def test_custom_height(self, parser: MistuneParser) -> None:
+    def test_custom_height(self, parser: PatitasParser) -> None:
         """Test CodePen embed with custom height."""
         markdown = """\
 :::{codepen} chriscoyier/abc123
@@ -428,7 +428,7 @@ class TestCodePenDirective:
         result = parser.parse(markdown, {})
         assert "height: 500px" in result
 
-    def test_missing_title_shows_error(self, parser: MistuneParser) -> None:
+    def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
         markdown = """\
 :::{codepen} chriscoyier/abc123
@@ -443,11 +443,11 @@ class TestCodeSandboxDirective:
     """Test CodeSandbox directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_embed(self, parser: MistuneParser) -> None:
+    def test_basic_embed(self, parser: PatitasParser) -> None:
         """Test basic CodeSandbox embed."""
         markdown = """\
 :::{codesandbox} abcde12345
@@ -460,7 +460,7 @@ class TestCodeSandboxDirective:
         assert "code-embed" in result
         assert "codesandbox" in result
 
-    def test_with_module(self, parser: MistuneParser) -> None:
+    def test_with_module(self, parser: PatitasParser) -> None:
         """Test CodeSandbox embed with specific module."""
         markdown = """\
 :::{codesandbox} abcde12345
@@ -471,7 +471,7 @@ class TestCodeSandboxDirective:
         result = parser.parse(markdown, {})
         assert "module=/src/App.js" in result
 
-    def test_view_option(self, parser: MistuneParser) -> None:
+    def test_view_option(self, parser: PatitasParser) -> None:
         """Test CodeSandbox embed with view option."""
         markdown = """\
 :::{codesandbox} abcde12345
@@ -482,7 +482,7 @@ class TestCodeSandboxDirective:
         result = parser.parse(markdown, {})
         assert "view=preview" in result
 
-    def test_missing_title_shows_error(self, parser: MistuneParser) -> None:
+    def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
         markdown = """\
 :::{codesandbox} abcde12345
@@ -497,11 +497,11 @@ class TestStackBlitzDirective:
     """Test StackBlitz directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_embed(self, parser: MistuneParser) -> None:
+    def test_basic_embed(self, parser: PatitasParser) -> None:
         """Test basic StackBlitz embed."""
         markdown = """\
 :::{stackblitz} angular-quickstart
@@ -514,7 +514,7 @@ class TestStackBlitzDirective:
         assert "code-embed" in result
         assert "stackblitz" in result
 
-    def test_with_file(self, parser: MistuneParser) -> None:
+    def test_with_file(self, parser: PatitasParser) -> None:
         """Test StackBlitz embed with specific file."""
         markdown = """\
 :::{stackblitz} angular-quickstart
@@ -525,7 +525,7 @@ class TestStackBlitzDirective:
         result = parser.parse(markdown, {})
         assert "file=src/app.component.ts" in result
 
-    def test_view_option(self, parser: MistuneParser) -> None:
+    def test_view_option(self, parser: PatitasParser) -> None:
         """Test StackBlitz embed with view option."""
         markdown = """\
 :::{stackblitz} angular-quickstart
@@ -536,7 +536,7 @@ class TestStackBlitzDirective:
         result = parser.parse(markdown, {})
         assert "view=preview" in result
 
-    def test_missing_title_shows_error(self, parser: MistuneParser) -> None:
+    def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
         markdown = """\
 :::{stackblitz} angular-quickstart
@@ -551,11 +551,11 @@ class TestAsciinemaDirective:
     """Test Asciinema directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_embed(self, parser: MistuneParser) -> None:
+    def test_basic_embed(self, parser: PatitasParser) -> None:
         """Test basic Asciinema embed."""
         markdown = """\
 :::{asciinema} 590029
@@ -569,7 +569,7 @@ class TestAsciinemaDirective:
         assert "asciinema" in result
         assert 'role="img"' in result
 
-    def test_custom_size(self, parser: MistuneParser) -> None:
+    def test_custom_size(self, parser: PatitasParser) -> None:
         """Test Asciinema embed with custom size."""
         markdown = """\
 :::{asciinema} 590029
@@ -582,7 +582,7 @@ class TestAsciinemaDirective:
         assert 'data-cols="120"' in result
         assert 'data-rows="30"' in result
 
-    def test_playback_options(self, parser: MistuneParser) -> None:
+    def test_playback_options(self, parser: PatitasParser) -> None:
         """Test Asciinema embed with playback options."""
         markdown = """\
 :::{asciinema} 590029
@@ -597,7 +597,7 @@ class TestAsciinemaDirective:
         assert 'data-autoplay="true"' in result
         assert 'data-loop="true"' in result
 
-    def test_noscript_fallback(self, parser: MistuneParser) -> None:
+    def test_noscript_fallback(self, parser: PatitasParser) -> None:
         """Test that noscript fallback is included."""
         markdown = """\
 :::{asciinema} 590029
@@ -608,7 +608,7 @@ class TestAsciinemaDirective:
         assert "<noscript>" in result
         assert "View recording:" in result
 
-    def test_invalid_id_shows_error(self, parser: MistuneParser) -> None:
+    def test_invalid_id_shows_error(self, parser: PatitasParser) -> None:
         """Test that invalid recording IDs show error."""
         markdown = """\
 :::{asciinema} invalid
@@ -619,7 +619,7 @@ class TestAsciinemaDirective:
         assert "terminal-error" in result
         assert "Invalid Asciinema recording ID" in result
 
-    def test_missing_title_shows_error(self, parser: MistuneParser) -> None:
+    def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
         markdown = """\
 :::{asciinema} 590029
@@ -634,11 +634,11 @@ class TestFigureDirective:
     """Test Figure directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_figure(self, parser: MistuneParser) -> None:
+    def test_basic_figure(self, parser: PatitasParser) -> None:
         """Test basic figure with alt text."""
         markdown = """\
 :::{figure} /images/test.png
@@ -651,7 +651,7 @@ class TestFigureDirective:
         assert 'loading="lazy"' in result
         assert "</figure>" in result
 
-    def test_figure_with_caption(self, parser: MistuneParser) -> None:
+    def test_figure_with_caption(self, parser: PatitasParser) -> None:
         """Test figure with caption renders figcaption."""
         markdown = """\
 :::{figure} /images/test.png
@@ -664,7 +664,7 @@ class TestFigureDirective:
         assert "This is the caption text" in result
         assert "</figcaption>" in result
 
-    def test_decorative_image(self, parser: MistuneParser) -> None:
+    def test_decorative_image(self, parser: PatitasParser) -> None:
         """Test decorative image with empty alt."""
         markdown = """\
 :::{figure} /images/decorative.png
@@ -674,7 +674,7 @@ class TestFigureDirective:
         result = parser.parse(markdown, {})
         assert 'alt=""' in result
 
-    def test_alignment(self, parser: MistuneParser) -> None:
+    def test_alignment(self, parser: PatitasParser) -> None:
         """Test figure alignment classes."""
         markdown = """\
 :::{figure} /images/test.png
@@ -685,7 +685,7 @@ class TestFigureDirective:
         result = parser.parse(markdown, {})
         assert "align-center" in result
 
-    def test_width(self, parser: MistuneParser) -> None:
+    def test_width(self, parser: PatitasParser) -> None:
         """Test figure with width."""
         markdown = """\
 :::{figure} /images/test.png
@@ -696,7 +696,7 @@ class TestFigureDirective:
         result = parser.parse(markdown, {})
         assert "width: 80%" in result
 
-    def test_with_link(self, parser: MistuneParser) -> None:
+    def test_with_link(self, parser: PatitasParser) -> None:
         """Test figure with link."""
         markdown = """\
 :::{figure} /images/test.png
@@ -708,7 +708,7 @@ class TestFigureDirective:
         assert '<a href="https://example.com"' in result
         assert "</a>" in result
 
-    def test_link_with_blank_target(self, parser: MistuneParser) -> None:
+    def test_link_with_blank_target(self, parser: PatitasParser) -> None:
         """Test figure link with blank target."""
         markdown = """\
 :::{figure} /images/test.png
@@ -721,7 +721,7 @@ class TestFigureDirective:
         assert 'target="_blank"' in result
         assert 'rel="noopener noreferrer"' in result
 
-    def test_invalid_path_shows_error(self, parser: MistuneParser) -> None:
+    def test_invalid_path_shows_error(self, parser: PatitasParser) -> None:
         """Test that invalid image paths show error."""
         markdown = """\
 :::{figure} invalid.txt
@@ -737,11 +737,11 @@ class TestAudioDirective:
     """Test Audio directive rendering and validation."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_basic_audio(self, parser: MistuneParser) -> None:
+    def test_basic_audio(self, parser: PatitasParser) -> None:
         """Test basic audio embed."""
         markdown = """\
 :::{audio} /assets/podcast.mp3
@@ -756,7 +756,7 @@ class TestAudioDirective:
         assert "controls" in result
         assert "audio-embed" in result
 
-    def test_no_controls(self, parser: MistuneParser) -> None:
+    def test_no_controls(self, parser: PatitasParser) -> None:
         """Test audio without controls."""
         markdown = """\
 :::{audio} /assets/podcast.mp3
@@ -768,7 +768,7 @@ class TestAudioDirective:
         # controls should not appear as an attribute
         assert result.count("controls") == 0 or "controls=" not in result
 
-    def test_ogg_format(self, parser: MistuneParser) -> None:
+    def test_ogg_format(self, parser: PatitasParser) -> None:
         """Test audio with OGG format."""
         markdown = """\
 :::{audio} /assets/podcast.ogg
@@ -778,7 +778,7 @@ class TestAudioDirective:
         result = parser.parse(markdown, {})
         assert 'type="audio/ogg"' in result
 
-    def test_fallback_content(self, parser: MistuneParser) -> None:
+    def test_fallback_content(self, parser: PatitasParser) -> None:
         """Test that fallback content is included."""
         markdown = """\
 :::{audio} /assets/podcast.mp3
@@ -788,7 +788,7 @@ class TestAudioDirective:
         result = parser.parse(markdown, {})
         assert "Download the audio" in result
 
-    def test_invalid_path_shows_error(self, parser: MistuneParser) -> None:
+    def test_invalid_path_shows_error(self, parser: PatitasParser) -> None:
         """Test that invalid audio paths show error."""
         markdown = """\
 :::{audio} invalid.txt
@@ -799,7 +799,7 @@ class TestAudioDirective:
         assert "audio-error" in result
         assert "Invalid audio path" in result
 
-    def test_missing_title_shows_error(self, parser: MistuneParser) -> None:
+    def test_missing_title_shows_error(self, parser: PatitasParser) -> None:
         """Test that missing title produces error."""
         markdown = """\
 :::{audio} /assets/podcast.mp3
@@ -814,9 +814,9 @@ class TestMediaDirectivesSecurity:
     """Security tests for media embed directives."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
     @pytest.mark.parametrize(
         "malicious_id",
@@ -829,7 +829,7 @@ class TestMediaDirectivesSecurity:
         ],
     )
     def test_youtube_id_sanitization(
-        self, parser: MistuneParser, malicious_id: str
+        self, parser: PatitasParser, malicious_id: str
     ) -> None:
         """Test that malicious YouTube IDs are rejected or sanitized."""
         markdown = f"""\
@@ -856,7 +856,7 @@ class TestMediaDirectivesSecurity:
         ],
     )
     def test_figure_path_sanitization(
-        self, parser: MistuneParser, malicious_path: str
+        self, parser: PatitasParser, malicious_path: str
     ) -> None:
         """Test that malicious image paths are rejected."""
         markdown = f"""\
@@ -876,11 +876,11 @@ class TestMediaDirectivesIntegration:
     """Integration tests for media directives in documents."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_multiple_embeds_in_document(self, parser: MistuneParser) -> None:
+    def test_multiple_embeds_in_document(self, parser: PatitasParser) -> None:
         """Test multiple different embeds in one document."""
         markdown = """\
 # Media Demo
@@ -910,7 +910,7 @@ class TestMediaDirectivesIntegration:
         assert ":::{figure}" not in result
         assert ":::{audio}" not in result
 
-    def test_embeds_in_admonitions(self, parser: MistuneParser) -> None:
+    def test_embeds_in_admonitions(self, parser: PatitasParser) -> None:
         """Test embeds nested in admonitions."""
         markdown = """\
 :::{note}
@@ -927,7 +927,7 @@ Check out this video:
         assert "admonition" in result
         assert "youtube-nocookie.com" in result
 
-    def test_embeds_in_tabs(self, parser: MistuneParser) -> None:
+    def test_embeds_in_tabs(self, parser: PatitasParser) -> None:
         """Test embeds nested in tabs."""
         markdown = """\
 ::::{tab-set}
@@ -952,7 +952,7 @@ Check out this video:
         assert "youtube-nocookie.com" in result
         assert "<figure" in result
 
-    def test_embeds_in_cards(self, parser: MistuneParser) -> None:
+    def test_embeds_in_cards(self, parser: PatitasParser) -> None:
         """Test embeds nested in cards."""
         markdown = """\
 ::::{cards}
@@ -975,11 +975,11 @@ class TestMediaDirectivesEdgeCases:
     """Edge case tests for media directives."""
 
     @pytest.fixture
-    def parser(self) -> MistuneParser:
+    def parser(self) -> PatitasParser:
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
-    def test_youtube_short_url_format(self, parser: MistuneParser) -> None:
+    def test_youtube_short_url_format(self, parser: PatitasParser) -> None:
         """Test YouTube with short URL video ID."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -990,7 +990,7 @@ class TestMediaDirectivesEdgeCases:
         assert "dQw4w9WgXcQ" in result
         assert "youtube-nocookie.com" in result
 
-    def test_youtube_all_options_combined(self, parser: MistuneParser) -> None:
+    def test_youtube_all_options_combined(self, parser: PatitasParser) -> None:
         """Test YouTube with all options enabled."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -1016,7 +1016,7 @@ class TestMediaDirectivesEdgeCases:
         assert 'data-aspect="21/9"' in result
         assert "custom-class" in result
 
-    def test_vimeo_all_options_combined(self, parser: MistuneParser) -> None:
+    def test_vimeo_all_options_combined(self, parser: PatitasParser) -> None:
         """Test Vimeo with all options enabled."""
         markdown = """\
 :::{vimeo} 123456789
@@ -1035,7 +1035,7 @@ class TestMediaDirectivesEdgeCases:
         assert "color=ff5500" in result
         assert "background=1" in result
 
-    def test_figure_webp_format(self, parser: MistuneParser) -> None:
+    def test_figure_webp_format(self, parser: PatitasParser) -> None:
         """Test figure with WebP format."""
         markdown = """\
 :::{figure} /images/test.webp
@@ -1045,7 +1045,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "/images/test.webp" in result
 
-    def test_figure_svg_format(self, parser: MistuneParser) -> None:
+    def test_figure_svg_format(self, parser: PatitasParser) -> None:
         """Test figure with SVG format."""
         markdown = """\
 :::{figure} /images/diagram.svg
@@ -1055,7 +1055,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "/images/diagram.svg" in result
 
-    def test_figure_avif_format(self, parser: MistuneParser) -> None:
+    def test_figure_avif_format(self, parser: PatitasParser) -> None:
         """Test figure with AVIF format."""
         markdown = """\
 :::{figure} /images/test.avif
@@ -1065,7 +1065,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "/images/test.avif" in result
 
-    def test_figure_external_url(self, parser: MistuneParser) -> None:
+    def test_figure_external_url(self, parser: PatitasParser) -> None:
         """Test figure with external HTTPS URL."""
         markdown = """\
 :::{figure} https://example.com/image.png
@@ -1075,7 +1075,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "https://example.com/image.png" in result
 
-    def test_figure_relative_path(self, parser: MistuneParser) -> None:
+    def test_figure_relative_path(self, parser: PatitasParser) -> None:
         """Test figure with relative path."""
         markdown = """\
 :::{figure} ./images/local.png
@@ -1085,7 +1085,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "./images/local.png" in result
 
-    def test_video_mov_format(self, parser: MistuneParser) -> None:
+    def test_video_mov_format(self, parser: PatitasParser) -> None:
         """Test video with MOV format."""
         markdown = """\
 :::{video} /assets/demo.mov
@@ -1095,7 +1095,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert '/assets/demo.mov"' in result
 
-    def test_audio_wav_format(self, parser: MistuneParser) -> None:
+    def test_audio_wav_format(self, parser: PatitasParser) -> None:
         """Test audio with WAV format."""
         markdown = """\
 :::{audio} /assets/sound.wav
@@ -1105,7 +1105,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert 'type="audio/wav"' in result
 
-    def test_audio_m4a_format(self, parser: MistuneParser) -> None:
+    def test_audio_m4a_format(self, parser: PatitasParser) -> None:
         """Test audio with M4A format."""
         markdown = """\
 :::{audio} /assets/podcast.m4a
@@ -1116,7 +1116,7 @@ class TestMediaDirectivesEdgeCases:
         assert "/assets/podcast.m4a" in result
 
     def test_gist_with_special_characters_in_filename(
-        self, parser: MistuneParser
+        self, parser: PatitasParser
     ) -> None:
         """Test gist with special characters in filename."""
         markdown = """\
@@ -1127,7 +1127,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "file=test-file_v1.2.py" in result
 
-    def test_codesandbox_editor_view(self, parser: MistuneParser) -> None:
+    def test_codesandbox_editor_view(self, parser: PatitasParser) -> None:
         """Test CodeSandbox with editor-only view."""
         markdown = """\
 :::{codesandbox} abcde12345
@@ -1138,7 +1138,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "view=editor" in result
 
-    def test_stackblitz_preview_view(self, parser: MistuneParser) -> None:
+    def test_stackblitz_preview_view(self, parser: PatitasParser) -> None:
         """Test StackBlitz with preview-only view."""
         markdown = """\
 :::{stackblitz} react-starter
@@ -1149,7 +1149,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert "view=preview" in result
 
-    def test_asciinema_with_playback_options(self, parser: MistuneParser) -> None:
+    def test_asciinema_with_playback_options(self, parser: PatitasParser) -> None:
         """Test Asciinema with playback options."""
         markdown = """\
 :::{asciinema} 590029
@@ -1162,7 +1162,7 @@ class TestMediaDirectivesEdgeCases:
         assert 'data-speed="1.5"' in result
         assert 'data-loop="true"' in result
 
-    def test_youtube_aspect_ratio_4_3(self, parser: MistuneParser) -> None:
+    def test_youtube_aspect_ratio_4_3(self, parser: PatitasParser) -> None:
         """Test YouTube with 4:3 aspect ratio."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -1173,7 +1173,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert 'data-aspect="4/3"' in result
 
-    def test_youtube_aspect_ratio_1_1(self, parser: MistuneParser) -> None:
+    def test_youtube_aspect_ratio_1_1(self, parser: PatitasParser) -> None:
         """Test YouTube with 1:1 aspect ratio."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ
@@ -1184,7 +1184,7 @@ class TestMediaDirectivesEdgeCases:
         result = parser.parse(markdown, {})
         assert 'data-aspect="1/1"' in result
 
-    def test_figure_all_options(self, parser: MistuneParser) -> None:
+    def test_figure_all_options(self, parser: PatitasParser) -> None:
         """Test figure with all options."""
         markdown = """\
 :::{figure} /images/test.png
@@ -1211,7 +1211,7 @@ class TestMediaDirectivesEdgeCases:
         assert 'loading="eager"' in result
         assert "featured-image" in result
 
-    def test_special_characters_in_title_escaped(self, parser: MistuneParser) -> None:
+    def test_special_characters_in_title_escaped(self, parser: PatitasParser) -> None:
         """Test that special characters in title are properly escaped."""
         markdown = """\
 :::{youtube} dQw4w9WgXcQ

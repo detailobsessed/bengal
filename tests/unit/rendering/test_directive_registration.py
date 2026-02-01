@@ -23,7 +23,7 @@ from bengal.directives.dropdown import DropdownDirective
 from bengal.directives.list_table import ListTableDirective
 from bengal.directives.rubric import RubricDirective
 from bengal.directives.tabs import TabItemDirective, TabSetDirective
-from bengal.parsing import MistuneParser
+from bengal.parsing import PatitasParser
 
 
 class TestDirectiveRegistration:
@@ -48,7 +48,7 @@ class TestDirectiveRegistration:
 
     def test_data_table_directive_registered(self):
         """Test that data-table directive is registered and works."""
-        parser = MistuneParser()
+        parser = PatitasParser()
 
         # Test that the directive syntax is recognized (not treated as code)
         # Bengal uses colon-fenced syntax (:::{directive}) to avoid conflicts with code blocks
@@ -66,7 +66,7 @@ class TestDirectiveRegistration:
 
     def test_all_core_directives_registered(self):
         """Test that all core directives are properly registered with Mistune."""
-        parser = MistuneParser()
+        parser = PatitasParser()
 
         # Test cases for each directive type
         # Bengal uses colon-fenced syntax (:::{directive}) to avoid conflicts with code blocks
@@ -105,7 +105,7 @@ class TestDirectiveRegistration:
 
     def test_myst_colon_syntax_registered(self):
         """Test that MyST colon syntax works for directives."""
-        parser = MistuneParser()
+        parser = PatitasParser()
 
         # Test colon-fenced directive
         content = """
@@ -121,7 +121,7 @@ This is a MyST-style note.
 
     def test_data_table_with_myst_syntax(self):
         """Test that data-table works with MyST colon syntax."""
-        parser = MistuneParser()
+        parser = PatitasParser()
 
         content = """
 :::{data-table} data/test.yaml
@@ -190,7 +190,7 @@ class TestRealWorldDirectiveUsage:
     @pytest.fixture
     def parser(self):
         """Create a Mistune parser instance."""
-        return MistuneParser()
+        return PatitasParser()
 
     def test_data_table_directive_with_options(self, parser):
         """Test data-table directive with various options."""

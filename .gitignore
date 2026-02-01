@@ -88,3 +88,6 @@ benchmarks/scenarios/*/output/
 
 # Test artifacts (leaked mocks)
 MagicMock/
+
+# Byterover
+.brv
