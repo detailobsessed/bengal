@@ -743,8 +743,7 @@ class Site:
         2. If section index exists → return section index URL
         3. Otherwise → return version root URL
 
-        This is engine-agnostic and works with any template engine (Jinja2,
-        Mako, or any BYORenderer).
+        This is engine-agnostic and works with any template engine.
 
         Args:
             page: Current page object (may be None for edge cases)
@@ -760,10 +759,10 @@ class Site:
             </option>
             {% endfor %}
 
-        Example (Mako):
+        Example (alternative syntax):
             % for v in versions:
-            <option data-target="${site.get_version_target_url(page, v)}">
-              ${v['label']}
+            <option data-target="{{ site.get_version_target_url(page, v) }}">
+              {{ v['label'] }}
             </option>
             % endfor
         """

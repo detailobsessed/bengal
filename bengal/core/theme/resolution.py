@@ -156,7 +156,7 @@ def resolve_theme_templates_path(
 
     Checks site themes, installed themes, and bundled themes in order.
     This is the canonical function for finding theme template directories,
-    used by all template engines (Jinja2, Mako, etc.) for cross-theme extends.
+    used by template engines for cross-theme extends.
 
     Args:
         theme_name: Theme name to look up (e.g., "default", "docs")
@@ -173,9 +173,8 @@ def resolve_theme_templates_path(
         PosixPath('/path/to/bengal/themes/default/templates')
 
     Used by:
-        - bengal.rendering.engines.jinja: PrefixLoader for cross-theme extends
-        - bengal.rendering.engines.mako: (future) similar functionality
-        - Any custom engine implementing TemplateEngineProtocol
+        - bengal.rendering.engines.kida: Template loader for cross-theme extends
+        - Any custom engine implementing TemplateEngine protocol
 
     """
     # Site-level theme directory
