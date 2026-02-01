@@ -133,7 +133,7 @@ class TracebackConfig:
         if style_env in {s.value for s in TracebackStyle}:
             style = TracebackStyle(style_env)
         else:
-            # Auto defaults: prefer compact for terminals, minimal in CI.
+            # Default to compact - balances detail with readability
             style = TracebackStyle.COMPACT
 
         # Base heuristics by style
