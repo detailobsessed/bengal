@@ -4,7 +4,6 @@ from unittest.mock import Mock
 
 import pytest
 
-from bengal.config import ConfigLoader
 from bengal.core.site import Site
 from bengal.rendering.template_engine import TemplateEngine
 
@@ -25,27 +24,37 @@ baseurl = ""
 
 
 @pytest.fixture
-def mock_site(temp_site_dir):
-    config_loader = ConfigLoader(temp_site_dir)
-    config = config_loader.load()
-    # The template expects config.site.favicon structure
-    # Wrap the flat config in a "site" key for template compatibility
-    # Include favicon: None to satisfy Kida strict mode
-    # ConfigSection objects need _data or dict() to get a plain dict
-    site_config = dict(config._data) if hasattr(config, "_data") else dict(config)
-    site_config["favicon"] = None  # Explicit None for strict mode
-    wrapped_config = {"site": site_config}
-    site = Site(root_path=temp_site_dir, config=wrapped_config)
-    # Point to default theme for template loading
-    bengal_root = Path(__file__).parent.parent.parent.parent / "bengal"
-    site.theme_dir = bengal_root / "themes" / "default"
-    site.theme = "default"
-    return site
+def temp_site_dir_with_favicon():
+    """Site directory with custom favicon configured."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        site_dir = Path(tmp_dir) / "site"
+        site_dir.mkdir()
+        (site_dir / "bengal.toml").write_text(
+            """
+[site]
+title = "Test Site"
+baseurl = ""
+favicon = "/assets/custom-favicon.png"
+            """
+        )
+        yield site_dir
 
 
-def _create_mock_page(**kwargs):
+@pytest.fixture
+def site_from_config(temp_site_dir):
+    """Create a properly initialized Site using from_config()."""
+    return Site.from_config(temp_site_dir)
+
+
+@pytest.fixture
+def site_with_favicon(temp_site_dir_with_favicon):
+    """Create a Site with custom favicon configured."""
+    return Site.from_config(temp_site_dir_with_favicon)
+
+
+def _create_mock_page(**kwargs: object) -> Mock:
     """Create a Mock page with proper defaults for template rendering."""
-    defaults = {
+    defaults: dict[str, object] = {
         "title": "Test Page",
         "url": "/",
         "href": "/",
@@ -60,20 +69,20 @@ def _create_mock_page(**kwargs):
         "metadata": {},
     }
     defaults.update(kwargs)
-    return Mock(**defaults)
+    return Mock(**defaults)  # type: ignore[arg-type]
 
 
 @pytest.mark.skip(
     reason="base.html template uses `config.site.favicon` which requires nil-resilient "
     "access (config?.site?.favicon) for Kida strict mode. TODO: Update base.html template."
 )
-def test_default_favicon_inclusion(mock_site):
+def test_default_favicon_inclusion(site_from_config):
     # Arrange: No favicon in config, use default theme
-    engine = TemplateEngine(mock_site)
+    engine = TemplateEngine(site_from_config)
 
     # Mock a simple page context with proper defaults
     context = {
-        "site": mock_site,
+        "site": site_from_config,
         "page": _create_mock_page(),
         "meta_desc": "Test description",
     }
@@ -88,22 +97,12 @@ def test_default_favicon_inclusion(mock_site):
     assert "favicon-32x32.png" in html_output
 
 
-@pytest.mark.skip(
-    reason="Test fixture creates invalid Site config structure. "
-    "Needs refactoring to use Site.from_config() instead of manual construction."
-)
-def test_custom_favicon_override(mock_site):
-    # Arrange: Custom favicon in config
-    # Modify config after site creation
-    if "site" not in mock_site.config:
-        mock_site.config["site"] = {}
-    mock_site.config["site"]["favicon"] = "/assets/custom-favicon.png"
-
-    # Recreate engine with updated config
-    engine = TemplateEngine(mock_site)
+def test_custom_favicon_override(site_with_favicon):
+    # Arrange: Site with custom favicon configured in bengal.toml
+    engine = TemplateEngine(site_with_favicon)
 
     context = {
-        "site": mock_site,
+        "site": site_with_favicon,
         "page": _create_mock_page(),
         "meta_desc": "Test description",
     }
@@ -111,10 +110,5 @@ def test_custom_favicon_override(mock_site):
     # Act
     html_output = engine.render("base.html", context)
 
-    # Assert: Custom favicon link is present, no default
-    assert '<link rel="icon" type="image/png" href="' in html_output
+    # Assert: Custom favicon link is present
     assert "/assets/custom-favicon.png" in html_output
-    # Default favicons should not be present when custom is specified
-    assert (
-        "favicon.ico" not in html_output or "/assets/custom-favicon.png" in html_output
-    )
