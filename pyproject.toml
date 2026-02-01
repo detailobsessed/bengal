@@ -156,11 +156,9 @@ dev = [
     "pyupgrade>=3.21.2",
     "vulture>=2.14",
     "pytest-randomly>=4.0.1",
-    "pytest-repeat>=0.9.4",
-    # UX improvements (auto-activate, see .github/TESTING.md for usage)
-    "pytest-sugar>=1.1.1",         # Better progress bar, instant failure display
+    "pytest-repeat>=0.9.4",         # Repeat tests for flaky test detection
     "pytest-icdiff>=0.9",          # Side-by-side colored assertion diffs
-    "pytest-subtests>=0.15.0", # lf() helper for fixtures in @parametrize
+    "pytest-subtests>=0.15.0", # subtests fixture for granular test reporting
 ]
 
 # =============================================================================
@@ -178,15 +176,14 @@ build = { cmd = "bengal site build site", help = "Build the documentation site" 
 build-prod = { cmd = "bengal build -e production", help = "Build with production config", cwd = "site" }
 
 # Testing
-# Note: -p no:sugar disables pytest-sugar to avoid fork segfaults on macOS with free-threading
-test = { cmd = "pytest -p no:sugar", help = "Run full test suite" }
+test = { cmd = "pytest", help = "Run full test suite" }
 test-unit = { cmd = "pytest tests/unit/ -x -q", help = "Run unit tests only (fast)" }
-test-integration = { cmd = "pytest tests/integration/ -x -q -p no:sugar", help = "Run integration tests" }
+test-integration = { cmd = "pytest tests/integration/ -x -q", help = "Run integration tests" }
 test-fast = { cmd = "pytest tests/ -x -q --ignore=tests/e2e --ignore=tests/integration", help = "Fast feedback loop (unit only)" }
-test-cov = { cmd = "pytest tests/ --cov=bengal --cov-report=term-missing -p no:sugar", help = "Run tests with coverage" }
-test-parallel = { cmd = "pytest tests/ -n auto -x -q -p no:sugar", help = "Run tests in parallel (pytest-xdist)" }
-test-random = { cmd = "pytest tests/ -p randomly --randomly-seed=random -x -q -p no:sugar", help = "Run tests in random order" }
-test-verbose = { cmd = "pytest tests/ -v --tb=long -p no:sugar", help = "Run tests with verbose output" }
+test-cov = { cmd = "pytest tests/ --cov=bengal --cov-report=term-missing", help = "Run tests with coverage" }
+test-parallel = { cmd = "pytest tests/ -n auto -x -q", help = "Run tests in parallel (pytest-xdist)" }
+test-random = { cmd = "pytest tests/ -p randomly --randomly-seed=random -x -q", help = "Run tests in random order" }
+test-verbose = { cmd = "pytest tests/ -v --tb=long", help = "Run tests with verbose output" }
 
 # Type Checking
 ty = { cmd = "ty check bengal/", help = "Run ty type checker (fast, Rust-based)" }
@@ -261,9 +258,7 @@ asyncio_default_fixture_loop_scope = "function"
 # --junitxml: output test results to XML for CI/parsing
 # --strict-markers: fail on unknown markers (redundant with strict_markers but explicit)
 # -n auto: parallel execution via pytest-xdist (each worker is fresh process)
-# -p no:sugar: disable pytest-sugar to avoid fork segfaults on macOS with free-threading
-#              (pytest-sugar initializes terminal state that corrupts on fork())
-addopts = "-n auto -p no:sugar --tb=short -ra --durations=10 -m 'not performance and not stateful' --junitxml=reports/pytest-report.xml --strict-markers"
+addopts = "-n auto --tb=short -ra --durations=10 -m 'not performance and not stateful' --junitxml=reports/pytest-report.xml --strict-markers"
 
 # Console output
 console_output_style = "progress"

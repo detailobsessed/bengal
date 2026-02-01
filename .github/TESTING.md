@@ -182,11 +182,6 @@ tests/
 
 We use several pytest plugins for better developer experience:
 
-### pytest-sugar
-Automatically provides a better progress bar with instant failure display. No configuration needed - just run `pytest` and enjoy the improved output.
-
-To disable temporarily: `pytest -p no:sugar`
-
 ### pytest-icdiff
 Provides side-by-side colored diffs for assertion failures. Automatically activates when assertions fail.
 
