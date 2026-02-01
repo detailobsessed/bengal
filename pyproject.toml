@@ -201,3 +201,92 @@ complexity = "radon cc bengal/ -a -s"
 
 # Cleanup
 clean = "rm -rf dist build .pytest_cache .coverage htmlcov .ruff_cache .bengal public"
+
+[tool.pytest.ini_options]
+# Minimum pytest version required
+minversion = "8.0"
+
+# Test discovery
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+norecursedirs = ["bengal", ".git", ".tox", "dist", "build", "*.egg", ".hypothesis", ".pytest_cache"]
+
+# Strict mode: catch typos in markers, config errors, etc.
+strict_markers = true
+strict_config = true
+
+# Async test support
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+# Pytest options (fast PR default: exclude long-running suites)
+# --tb=short: concise tracebacks (shows file:line for each frame)
+# -ra: show summary of all test outcomes (passed, failed, skipped, etc.)
+# --durations=10: show 10 slowest tests
+# --junitxml: output test results to XML for CI/parsing
+# --strict-markers: fail on unknown markers (redundant with strict_markers but explicit)
+#
+# NOTE: -n auto is NOT included by default because xdist worker startup overhead
+# (~2s) only pays off for large test runs (1000+ tests). For smaller runs or
+# single-file testing, it makes things slower. Use `make test` or add `-n auto`
+# manually for full suite runs.
+addopts = "--tb=short -ra --durations=10 -m 'not performance and not stateful' --junitxml=reports/pytest-report.xml --strict-markers"
+
+# Console output
+console_output_style = "progress"
+
+# Timeout configuration (prevent hanging tests)
+timeout = 30
+timeout_method = "thread"
+
+# Temporary directory retention (keep failed test dirs for debugging)
+tmp_path_retention_count = 3
+tmp_path_retention_policy = "failed"
+
+# Warnings - treat deprecations as errors to catch issues early
+filterwarnings = [
+    "error::DeprecationWarning",
+    "error::PendingDeprecationWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore::pytest_benchmark.logger.PytestBenchmarkWarning",
+]
+
+# Markers - all custom markers must be registered (strict_markers enforced)
+markers = [
+    "unit: Unit tests (fast, isolated)",
+    "integration: Integration tests (slower, multiple components)",
+    "e2e: End-to-end tests (full workflows)",
+    "cli: CLI command tests",
+    "requires_network: Tests requiring internet access",
+    "parallel_unsafe: Tests that cannot run in parallel with pytest-xdist (uses ThreadPoolExecutor/ProcessPoolExecutor internally, global state conflicts)",
+    "memory_intensive: Tests using >500MB RAM",
+    "hypothesis: Property-based tests using Hypothesis",
+    "serial: tests that must run sequentially (no parallel, similar to parallel_unsafe)",
+    "slow: Slow tests (long-running, typically >10s)",
+    "performance: Performance/benchmark or high-scale tests (exclude by default)",
+    "stateful: Long-running state-machine/workflow tests (exclude by default)",
+]
+
+[tool.coverage.run]
+source = ["bengal"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+    "@abc.abstractmethod",
+]
