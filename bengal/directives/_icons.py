@@ -171,12 +171,12 @@ ICON_MAP: dict[str, str] = {
     "arrow-right": "arrow-right",
     "arrow-left": "arrow-left",
     "arrow-up": "arrow-up",
-    "arrow-down": "arrow-down",
+    "arrow-down": "caret-down",  # arrow-down.svg doesn't exist, use caret-down
     "chevron-right": "chevron-right",
     "chevron-left": "chevron-left",
     "chevron-up": "chevron-up",
     "chevron-down": "chevron-down",
-    "external": "arrow-square-out",
+    "external": "external",
     "link": "link",
     "search": "magnifying-glass",
     "menu": "list",
@@ -186,7 +186,7 @@ ICON_MAP: dict[str, str] = {
     "info": "info",
     "warning": "warning",
     "alert": "warning",  # Alias for warning
-    "error": "x-circle",
+    "error": "error",  # error.svg exists in default theme
     "check": "check",
     "success": "check-circle",
     "question": "question",  # Help/question icon
@@ -210,7 +210,7 @@ ICON_MAP: dict[str, str] = {
     "tag": "tag",
     "calendar": "calendar",
     "clock": "clock",
-    "pin": "map-pin",
+    "pin": "pin",  # pin.svg exists in default theme
     "user": "user",
     "arrow-clockwise": "arrow-clockwise",
     # Theme
