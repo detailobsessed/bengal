@@ -10,8 +10,6 @@ This module tests:
 
 import warnings
 
-import pytest
-
 
 class TestCoreProtocols:
     """Tests for core protocols (PageLike, SectionLike, SiteLike)."""
@@ -88,52 +86,6 @@ class TestRenderingProtocols:
         # TemplateEngine has additional methods
         assert hasattr(TemplateEngine, "template_exists")
         assert hasattr(TemplateEngine, "validate")
-
-
-@pytest.mark.skip(reason="Deprecation import paths not yet implemented")
-class TestDeprecationWarnings:
-    """Tests for deprecation warnings on old import paths.
-
-    TODO: These tests are incomplete stubs. The actual deprecated import
-    paths need to be implemented before these tests can run.
-    """
-
-    def test_section_protocols_deprecation_warning(self) -> None:
-        """Old import path for SectionLike emits deprecation warning."""
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-
-            # Import from old path
-
-            # Should emit exactly one deprecation warning
-            assert len(w) == 1
-            assert issubclass(w[0].category, DeprecationWarning)
-            assert "bengal.protocols" in str(w[0].message)
-            assert "SectionLike" in str(w[0].message)
-
-    def test_highlighting_protocol_deprecation_warning(self) -> None:
-        """Old import path for HighlightBackend emits deprecation warning."""
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-
-            # Import from old path
-
-            # Should emit exactly one deprecation warning
-            assert len(w) == 1
-            assert issubclass(w[0].category, DeprecationWarning)
-            assert "bengal.protocols" in str(w[0].message)
-
-    def test_engine_protocol_deprecation_warning(self) -> None:
-        """Old import path for TemplateEngineProtocol emits deprecation warning."""
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-
-            # Import from old path
-
-            # Should emit exactly one deprecation warning
-            assert len(w) == 1
-            assert issubclass(w[0].category, DeprecationWarning)
-            assert "bengal.protocols" in str(w[0].message)
 
 
 class TestBackwardsCompatibility:
