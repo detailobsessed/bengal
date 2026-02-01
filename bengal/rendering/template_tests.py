@@ -22,9 +22,28 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from bengal.rendering.jinja_utils import has_value, safe_get
+from bengal.utils.observability.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+def safe_get(obj: Any, attr: str, default: Any = None) -> Any:
+    """Safely get attribute from object, returning default if missing."""
+    try:
+        if isinstance(obj, str | int | float | bool | bytes):
+            return default
+        value = getattr(obj, attr, default)
+        return value if value is not None else default
+    except (AttributeError, TypeError):
+        return default
+
+
+def has_value(value: Any) -> bool:
+    """Check if value is defined and not None/empty."""
+    return bool(value) if value is not None else False
+
 
 if TYPE_CHECKING:
     from bengal.protocols import SiteLike, TemplateEnvironment

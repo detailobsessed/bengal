@@ -577,13 +577,11 @@ def phase_finalize(
     # Clear per-key locks from caches to prevent unbounded growth across build sessions
     try:
         from bengal.core.nav_tree import NavTreeCache
-        from bengal.rendering.engines.jinja import clear_template_locks
         from bengal.rendering.template_functions.navigation.scaffold import (
             NavScaffoldCache,
         )
 
         NavTreeCache.clear_locks()
         NavScaffoldCache.clear_locks()
-        clear_template_locks()
     except ImportError:
         pass  # Modules not available

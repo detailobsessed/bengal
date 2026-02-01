@@ -1,14 +1,13 @@
 """
-Engine-agnostic adapter layer for template functions.
+Engine adapter layer for template functions.
 
 This module provides adapters that bridge pure Python template functions
-to engine-specific mechanisms (like Jinja2's @pass_context).
+to engine-specific mechanisms.
 
 Architecture:
 Template functions are pure Python functions that take explicit parameters.
 Adapters wrap these functions for each engine's context mechanism:
 
-- Jinja2: Uses @pass_context decorator to extract page from ctx
 - Kida: Uses render-time context injection
 - Generic: For unknown engines, provides page as explicit parameter
 
@@ -40,23 +39,16 @@ def detect_adapter_type(env: Any) -> str:
     Uses class name inspection as primary detection method.
 
     Args:
-        env: Template environment instance (Jinja2, Kida, etc.)
+        env: Template environment instance (Kida, etc.)
 
     Returns:
-        Engine type string: "jinja", "kida", or "generic"
+        Engine type string: "kida" or "generic"
 
     """
     class_name = type(env).__name__.lower()
     module_name = (
         type(env).__module__.lower() if hasattr(type(env), "__module__") else ""
     )
-
-    # Check for Jinja2 environment
-    if "jinja" in class_name or "jinja" in module_name:
-        return "jinja"
-    # Jinja2's Environment class is just called "Environment"
-    if class_name == "environment" and "jinja2" in module_name:
-        return "jinja"
 
     # Check for Kida environment
     if "kida" in class_name or "kida" in module_name:
@@ -110,13 +102,7 @@ def register_context_functions(
     if adapter_type is None:
         adapter_type = get_adapter_type(env, site)
 
-    if adapter_type == "jinja":
-        from bengal.rendering.adapters.jinja import (
-            register_context_functions as jinja_register,
-        )
-
-        jinja_register(env, site)
-    elif adapter_type == "kida":
+    if adapter_type == "kida":
         from bengal.rendering.adapters.kida import (
             register_context_functions as kida_register,
         )
