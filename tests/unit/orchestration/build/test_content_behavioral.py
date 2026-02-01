@@ -216,10 +216,7 @@ class TestSectionsBehavior:
         """BEHAVIOR: Each section has an index page."""
         site = site_with_sections
 
-        for section in site.sections:
-            assert section.index_page is not None, (
-                f"Section '{section.name}' missing index page"
-            )
+        assert all(s.index_page is not None for s in site.sections)
 
     def test_section_pages_are_rendered(self, site_with_sections: Site) -> None:
         """BEHAVIOR: Section pages produce output files."""
@@ -283,8 +280,7 @@ class TestTaxonomiesBehavior:
         tags = taxonomies["tags"]
         expected_tags = {"python", "rust", "go", "tutorial"}
 
-        for tag in expected_tags:
-            assert tag in tags, f"Tag '{tag}' should exist in taxonomy"
+        assert all(tag in tags for tag in expected_tags)
 
     def test_taxonomy_pages_list_correct_content(
         self, site_with_taxonomies: Site

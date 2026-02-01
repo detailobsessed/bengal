@@ -283,10 +283,7 @@ class TestErrorCodeIntegration:
             "build",
         }
 
-        for code in ErrorCode:
-            assert code.category in valid_categories, (
-                f"ErrorCode {code.name} has invalid category: {code.category}"
-            )
+        assert all(code.category in valid_categories for code in ErrorCode)
 
     def test_all_error_codes_have_docs_urls(self) -> None:
         """Test that all error codes generate valid docs URLs."""

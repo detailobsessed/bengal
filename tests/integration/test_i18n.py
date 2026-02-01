@@ -101,11 +101,11 @@ class TestI18nTemplateFunctions:
         translate = _make_t(site)
 
         # Test English translation
-        en_home = translate("ui.home", lang="en")
+        en_home = translate("ui.home", None, "en", None)
         assert en_home == "Home", f"Expected 'Home', got '{en_home}'"
 
         # Test French translation
-        fr_home = translate("ui.home", lang="fr")
+        fr_home = translate("ui.home", None, "fr", None)
         assert fr_home == "Accueil", f"Expected 'Accueil', got '{fr_home}'"
 
     def test_t_function_fallback(self, site) -> None:
@@ -116,7 +116,7 @@ class TestI18nTemplateFunctions:
 
         # Request a key that might only exist in one language
         # or fall back to key if not found at all
-        result = translate("nonexistent.key", lang="fr")
+        result = translate("nonexistent.key", None, "fr", None)
 
         # Should return the key itself as fallback
         assert result == "nonexistent.key", (
@@ -236,9 +236,8 @@ class TestI18nAlternateLinks:
         # If translations exist, should have alternates
         if alternates:
             # Check structure
-            for alt in alternates:
-                assert "hreflang" in alt, "Alternate should have hreflang"
-                assert "href" in alt, "Alternate should have href"
+            assert all("hreflang" in alt for alt in alternates)
+            assert all("href" in alt for alt in alternates)
 
 
 @pytest.mark.bengal(testroot="test-i18n-content")

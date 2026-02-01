@@ -44,8 +44,7 @@ def test_snapshot_enables_parallel_rendering(site, build_site, tmp_path):
     assert len(html_files) > 0, "No HTML files were written"
 
     # Verify files are not empty
-    for html_file in html_files:
-        assert html_file.stat().st_size > 0, f"HTML file is empty: {html_file}"
+    assert all(f.stat().st_size > 0 for f in html_files)
 
 
 @pytest.mark.bengal(testroot="test-taxonomy")

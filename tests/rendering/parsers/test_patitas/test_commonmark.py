@@ -178,11 +178,12 @@ class TestBlockQuotes:
 class TestListItems:
     """CommonMark list item tests (5.2)."""
 
-    def test_bullet_list_marker(self):
+    def test_bullet_list_marker(self, subtests):
         """Bullet list markers."""
         for marker in ["-", "*", "+"]:
-            html = parse(f"{marker} item")
-            assert "<li>" in html
+            with subtests.test(msg=f"marker={marker}"):
+                html = parse(f"{marker} item")
+                assert "<li>" in html
 
     def test_ordered_list_marker(self):
         """Ordered list marker."""

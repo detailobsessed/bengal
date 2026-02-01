@@ -68,8 +68,7 @@ class TestPageInvalidationReason:
             "FULL_BUILD",
             "OUTPUT_MISSING",
         ]
-        for reason in expected:
-            assert hasattr(PageInvalidationReason, reason)
+        assert all(hasattr(PageInvalidationReason, r) for r in expected)
 
     def test_reasons_are_unique(self):
         """All reasons have unique values."""

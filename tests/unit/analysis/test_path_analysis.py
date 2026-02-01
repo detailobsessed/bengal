@@ -364,6 +364,7 @@ class TestPathAnalyzer:
 
         assert len(result.paths) == 1
         assert result.complete is False
+        assert result.termination_reason is not None
         assert "max_paths" in result.termination_reason
 
     def test_find_all_paths_timeout(self):
@@ -502,15 +503,14 @@ class TestApproximation:
         results2 = analyzer2.analyze()
 
         # Results should be identical
-        for page in pages:
-            assert (
-                results1.betweenness_centrality[page]
-                == results2.betweenness_centrality[page]
-            )
-            assert (
-                results1.closeness_centrality[page]
-                == results2.closeness_centrality[page]
-            )
+        assert all(
+            results1.betweenness_centrality[p] == results2.betweenness_centrality[p]
+            for p in pages
+        )
+        assert all(
+            results1.closeness_centrality[p] == results2.closeness_centrality[p]
+            for p in pages
+        )
 
     def test_different_seeds_give_different_results(self):
         """Test that different seeds can give different results."""

@@ -160,8 +160,7 @@ class TestPageLikeStability:
 
     def test_has_required_properties(self) -> None:
         """PageLike must have these properties."""
-        for prop in self.REQUIRED_PROPERTIES:
-            assert hasattr(PageLike, prop), f"PageLike missing property: {prop}"
+        assert all(hasattr(PageLike, p) for p in self.REQUIRED_PROPERTIES)
 
 
 class TestSectionLikeStability:
@@ -180,8 +179,7 @@ class TestSectionLikeStability:
 
     def test_has_required_properties(self) -> None:
         """SectionLike must have these properties."""
-        for prop in self.REQUIRED_PROPERTIES:
-            assert hasattr(SectionLike, prop), f"SectionLike missing property: {prop}"
+        assert all(hasattr(SectionLike, p) for p in self.REQUIRED_PROPERTIES)
 
 
 class TestSiteLikeStability:
@@ -199,8 +197,7 @@ class TestSiteLikeStability:
 
     def test_has_required_properties(self) -> None:
         """SiteLike must have these properties."""
-        for prop in self.REQUIRED_PROPERTIES:
-            assert hasattr(SiteLike, prop), f"SiteLike missing property: {prop}"
+        assert all(hasattr(SiteLike, p) for p in self.REQUIRED_PROPERTIES)
 
 
 class TestTemplateProtocolsStability:
@@ -261,8 +258,7 @@ class TestOutputTargetStability:
 
     def test_has_required_methods(self) -> None:
         """OutputTarget must have these methods."""
-        for method in self.REQUIRED_METHODS:
-            assert hasattr(OutputTarget, method), f"OutputTarget missing: {method}"
+        assert all(hasattr(OutputTarget, m) for m in self.REQUIRED_METHODS)
 
 
 class TestRoleAndDirectiveStability:

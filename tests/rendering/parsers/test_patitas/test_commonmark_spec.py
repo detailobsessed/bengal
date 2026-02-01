@@ -242,11 +242,10 @@ class TestBaseline:
 
     def test_example_structure(self) -> None:
         """Verify example structure is correct."""
-        for ex in SPEC_TESTS:
-            assert "markdown" in ex
-            assert "html" in ex
-            assert "example" in ex
-            assert "section" in ex
+        assert all("markdown" in ex for ex in SPEC_TESTS)
+        assert all("html" in ex for ex in SPEC_TESTS)
+        assert all("example" in ex for ex in SPEC_TESTS)
+        assert all("section" in ex for ex in SPEC_TESTS)
 
 
 # =============================================================================

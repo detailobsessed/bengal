@@ -177,8 +177,7 @@ class TestLoggingIntegration:
             "health_check",
         ]
 
-        for phase in expected_phases:
-            assert phase in phases, f"Phase '{phase}' should be logged"
+        assert all(phase in phases for phase in expected_phases)
 
     def test_phase_timings_captured(self, temp_site):
         """Test that phase timings are captured."""
@@ -197,9 +196,8 @@ class TestLoggingIntegration:
 
         # Verify timings are reasonable (> 0ms, < 60 seconds)
         # CI environments can be slower, so we use a generous threshold
-        for phase, duration in timings.items():
-            assert duration > 0, f"Phase '{phase}' should have positive duration"
-            assert duration < 60000, f"Phase '{phase}' duration should be reasonable"
+        assert all(d > 0 for d in timings.values())
+        assert all(d < 60000 for d in timings.values())
 
     def test_content_discovery_logging(self, temp_site):
         """Test that content discovery logs detailed information."""
@@ -291,9 +289,8 @@ title: Invalid Page
         warning_events = [e for e in events if e.level == "WARNING"]
         # May or may not have warnings depending on content
         # Just verify the system can capture them
-        for event in warning_events:
-            assert event.level == "WARNING"
-            assert "context" in event.__dict__
+        assert all(e.level == "WARNING" for e in warning_events)
+        assert all("context" in e.__dict__ for e in warning_events)
 
     def test_log_file_format(self, temp_site):
         """Test that log file contains valid JSON."""

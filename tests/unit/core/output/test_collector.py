@@ -41,17 +41,21 @@ class TestOutputRecord:
         assert record_js.output_type == OutputType.JS
         assert record_mjs.output_type == OutputType.JS
 
-    def test_from_path_image(self) -> None:
+    def test_from_path_image(self, subtests) -> None:
         """Auto-detect IMAGE from image extensions."""
         for ext in [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico"]:
-            record = OutputRecord.from_path(Path(f"images/photo{ext}"), phase="asset")
-            assert record.output_type == OutputType.IMAGE
+            with subtests.test(msg=ext):
+                record = OutputRecord.from_path(
+                    Path(f"images/photo{ext}"), phase="asset"
+                )
+                assert record.output_type == OutputType.IMAGE
 
-    def test_from_path_font(self) -> None:
+    def test_from_path_font(self, subtests) -> None:
         """Auto-detect FONT from font extensions."""
         for ext in [".woff", ".woff2", ".ttf", ".otf", ".eot"]:
-            record = OutputRecord.from_path(Path(f"fonts/font{ext}"), phase="asset")
-            assert record.output_type == OutputType.FONT
+            with subtests.test(msg=ext):
+                record = OutputRecord.from_path(Path(f"fonts/font{ext}"), phase="asset")
+                assert record.output_type == OutputType.FONT
 
     def test_from_path_xml(self) -> None:
         """Auto-detect XML from .xml extension."""

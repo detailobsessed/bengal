@@ -124,10 +124,9 @@ def test_live_server_section_changes(test_site_dir):
     blog_posts = [p for p in site.pages if "blog" in str(p.source_path)]
     assert len(blog_posts) >= 2  # At least the 2 posts (+ _index)
 
-    for post in blog_posts:
-        assert post._section == blog_section
-        # Note: URL generation happens during build/render phase, not discovery
-        # The section reference is correct, which is what we're testing
+    assert all(post._section == blog_section for post in blog_posts)
+    # Note: URL generation happens during build/render phase, not discovery
+    # The section reference is correct, which is what we're testing
 
 
 def test_dev_server_index_edit_preserves_cascades(test_site_dir):
@@ -317,11 +316,11 @@ Content for post {i + 10}.
     blog_section = next(s for s in site.sections if s.name == "blog")
     blog_pages = [p for p in site.pages if "blog" in str(p.source_path)]
 
-    for page in blog_pages:
-        assert page._section == blog_section
-        # Each lookup should be O(1)
+    assert all(page._section == blog_section for page in blog_pages)
+    # Each lookup should be O(1) - spot check one page
+    if blog_pages:
         lookup_start = time.perf_counter()
-        _ = page._section
+        _ = blog_pages[0]._section
         lookup_elapsed = time.perf_counter() - lookup_start
         assert lookup_elapsed < 0.001, f"Lookup too slow: {lookup_elapsed:.6f}s"
 
@@ -337,9 +336,11 @@ def test_section_rename_treated_as_delete_create(test_site_dir):
     assert len(blog_posts) >= 2
 
     # Verify pages have section references
-    for post in blog_posts:
-        assert post._section is not None
-        assert post._section.name == "blog"
+    assert all(post._section is not None for post in blog_posts)
+    assert all(
+        post._section is not None and post._section.name == "blog"
+        for post in blog_posts
+    )
 
     # Simulate section rename (move blog to articles)
     blog_dir = test_site_dir / "content" / "blog"
@@ -356,8 +357,7 @@ def test_section_rename_treated_as_delete_create(test_site_dir):
 
     # Posts should now have the new section
     articles_section = next(s for s in site.sections if s.name == "articles")
-    for post in articles_posts:
-        assert post._section == articles_section
+    assert all(post._section == articles_section for post in articles_posts)
 
 
 def test_section_move_detection(test_site_dir):
@@ -401,8 +401,7 @@ Archive section.
 
     # Blog posts should reference the moved section
     blog_posts = [p for p in site.pages if "blog" in str(p.source_path)]
-    for post in blog_posts:
-        assert post._section == blog_subsection
+    assert all(post._section == blog_subsection for post in blog_posts)
 
 
 def test_section_delete_graceful_fallback(test_site_dir):

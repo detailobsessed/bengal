@@ -86,17 +86,19 @@ class TestClassifyOutput:
         path = Path("public/custom/style.css")
         assert classify_output(path) == OutputType.ASSET
 
-    def test_image_is_asset(self) -> None:
+    def test_image_is_asset(self, subtests) -> None:
         """Image files are classified as ASSET."""
         for ext in [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"]:
-            path = Path(f"public/images/logo{ext}")
-            assert classify_output(path) == OutputType.ASSET
+            with subtests.test(msg=ext):
+                path = Path(f"public/images/logo{ext}")
+                assert classify_output(path) == OutputType.ASSET
 
-    def test_font_is_asset(self) -> None:
+    def test_font_is_asset(self, subtests) -> None:
         """Font files are classified as ASSET."""
         for ext in [".woff", ".woff2", ".ttf", ".eot", ".otf"]:
-            path = Path(f"public/fonts/inter{ext}")
-            assert classify_output(path) == OutputType.ASSET
+            with subtests.test(msg=ext):
+                path = Path(f"public/fonts/inter{ext}")
+                assert classify_output(path) == OutputType.ASSET
 
     # Static files
     def test_favicon_is_static(self) -> None:

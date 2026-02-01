@@ -273,9 +273,8 @@ class TestRealWorldScenarios:
             paths = list(executor.map(write_file, range(20)))
 
         # All files should exist with correct content
-        for i, path in enumerate(paths):
-            assert path.exists()
-            assert path.read_text() == f"content {i}"
+        assert all(p.exists() for p in paths)
+        assert all(paths[i].read_text() == f"content {i}" for i in range(len(paths)))
 
         # No temp files left
         assert len(list(tmp_path.glob("*.tmp"))) == 0

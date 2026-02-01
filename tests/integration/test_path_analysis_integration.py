@@ -204,8 +204,7 @@ class TestPathAnalysisIntegration:
 
         assert len(bridges) <= 3
         # Each result is (page, score)
-        for _page, score in bridges:
-            assert score >= 0.0
+        assert all(score >= 0.0 for _, score in bridges)
 
         # Scores should be in descending order
         scores = [score for _, score in bridges]
@@ -221,8 +220,7 @@ class TestPathAnalysisIntegration:
 
         assert len(accessible) <= 3
         # Each result is (page, score)
-        for _page, score in accessible:
-            assert score >= 0.0
+        assert all(score >= 0.0 for _, score in accessible)
 
         # Scores should be in descending order
         scores = [score for _, score in accessible]
@@ -289,8 +287,9 @@ class TestPathAnalysisScalability:
             results.betweenness_centrality
         )
 
-        for bridge in bridge_pages:
-            assert results.betweenness_centrality[bridge] >= avg_betweenness
+        assert all(
+            results.betweenness_centrality[b] >= avg_betweenness for b in bridge_pages
+        )
 
     def test_sparse_graph(self):
         """Test path analysis on sparse graph (few connections)."""

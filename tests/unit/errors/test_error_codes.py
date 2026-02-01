@@ -77,10 +77,7 @@ class TestErrorCodeCategories:
             "build",
         }
 
-        for code in ErrorCode:
-            assert code.category in valid_categories, (
-                f"{code.name} has unknown category: {code.category}"
-            )
+        assert all(code.category in valid_categories for code in ErrorCode)
 
     def test_code_prefix_matches_category(self) -> None:
         """Error code prefix letter should match its category."""

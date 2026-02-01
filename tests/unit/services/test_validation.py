@@ -9,7 +9,7 @@ Covers:
 - TemplateError conversion tests
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
@@ -194,11 +194,7 @@ class TestMockValidationService:
 
         @dataclass
         class RecordingService:
-            calls: list = None
-
-            def __post_init__(self):
-                if self.calls is None:
-                    self.calls = []
+            calls: list = field(default_factory=list)
 
             def validate(self, site: Any) -> int:
                 self.calls.append(site)
@@ -436,31 +432,14 @@ class TestEngineProtocolCompliance:
         result = engine.validate()
         assert isinstance(result, list)
 
-    def test_jinja_engine_has_validate_method(self, minimal_site):
-        """Jinja engine must implement validate() method."""
-        minimal_site.config["template_engine"] = "jinja2"
+    def test_engines_have_get_template_path_method(self, minimal_site):
+        """Engines must implement get_template_path() for error context."""
+        # Kida is now the only built-in template engine
+        minimal_site.config["template_engine"] = "kida"
 
         from bengal.rendering.engines import create_engine
 
         engine = create_engine(minimal_site)
 
-        assert hasattr(engine, "validate")
-        assert callable(engine.validate)
-
-        # validate() should return list of TemplateError
-        result = engine.validate()
-        assert isinstance(result, list)
-
-    def test_engines_have_get_template_path_method(self, minimal_site):
-        """Engines must implement get_template_path() for error context."""
-        for engine_name in ["kida", "jinja2"]:
-            minimal_site.config["template_engine"] = engine_name
-
-            from bengal.rendering.engines import create_engine
-
-            engine = create_engine(minimal_site)
-
-            assert hasattr(engine, "get_template_path"), (
-                f"{engine_name} missing get_template_path"
-            )
-            assert callable(engine.get_template_path)
+        assert hasattr(engine, "get_template_path"), "kida missing get_template_path"
+        assert callable(engine.get_template_path)

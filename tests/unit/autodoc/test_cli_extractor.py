@@ -186,8 +186,7 @@ class TestCLIExtractor:
         assert not root.description.startswith("\n")
 
         # Commands should also have sanitized descriptions
-        for cmd in root.children:
-            assert not cmd.description.startswith(" ")
+        assert all(not c.description.startswith(" ") for c in root.children)
 
     def test_qualified_names(self):
         """Test that qualified names are built correctly."""
@@ -320,9 +319,8 @@ class TestCLIExtractorMetadata:
         process_cmd = next(c for c in root.children if c.name == "process")
 
         # Check parameter types
-        for param in process_cmd.children:
-            assert "type" in param.metadata
-            assert "param_type" in param.metadata
+        assert all("type" in p.metadata for p in process_cmd.children)
+        assert all("param_type" in p.metadata for p in process_cmd.children)
 
 
 class TestNestedCommandGroups:

@@ -81,21 +81,11 @@ class TestContentOrchestratorOutputPathSetting:
         orchestrator.discover()
 
         # Verify ALL pages have output_path set
-        for page in test_site.pages:
-            assert page.output_path is not None, (
-                f"Page {page.source_path.name} has no output_path after discovery! "
-                f"This will cause incorrect URLs."
-            )
-
-            # Verify output_path is absolute
-            assert page.output_path.is_absolute(), (
-                f"Page {page.source_path.name} has relative output_path: {page.output_path}"
-            )
-
-            # Verify output_path is under output_dir
-            assert page.output_path.is_relative_to(test_site.output_dir), (
-                f"Page {page.source_path.name} output_path not under output_dir: {page.output_path}"
-            )
+        assert all(p.output_path is not None for p in test_site.pages)
+        assert all(p.output_path.is_absolute() for p in test_site.pages)
+        assert all(
+            p.output_path.is_relative_to(test_site.output_dir) for p in test_site.pages
+        )
 
     def test_child_pages_have_correct_urls_after_discovery(self, test_site):
         """
@@ -121,16 +111,8 @@ class TestContentOrchestratorOutputPathSetting:
         # Verify URLs include section prefix
         for page in reference_pages:
             url = page.href
-            assert url.startswith("/reference/"), (
-                f"Page {page.source_path.name} has wrong URL: {url} "
-                f"(should start with /reference/, not /{page.slug}/)"
-            )
-
-            # Verify URL is not just the slug
-            assert url != f"/{page.slug}/", (
-                f"Page {page.source_path.name} URL is slug-only fallback: {url} "
-                f"(this means output_path was not set correctly)"
-            )
+            assert url.startswith("/reference/")
+            assert url != f"/{page.slug}/"
 
     def test_nested_section_pages_have_correct_urls(self, test_site):
         """Test that pages in nested sections have correct full paths."""
@@ -254,10 +236,9 @@ class TestContentOrchestratorOutputPathSetting:
         test_site._set_output_paths()
 
         # Verify paths unchanged
-        for page in test_site.pages:
-            assert page.output_path == original_paths[page.source_path], (
-                f"Page {page.source_path.name} output_path changed on re-call"
-            )
+        assert all(
+            p.output_path == original_paths[p.source_path] for p in test_site.pages
+        )
 
 
 class TestRegressionScenarios:
@@ -310,12 +291,7 @@ class TestRegressionScenarios:
 
             # The bug: these would have URLs /installation/ and /quickstart/
             # Fixed: they should have /getting-started/installation/ etc.
-            for page in child_pages:
-                assert page.href.startswith("/getting-started/"), (
-                    f"Child page {page.source_path.name} has incorrect URL: {page.href}\n"
-                    f"Expected to start with /getting-started/, got {page.href}\n"
-                    f"This is the original bug - child pages missing section prefix!"
-                )
+            assert all(p.href.startswith("/getting-started/") for p in child_pages)
 
     def test_showcase_example_urls(self):
         """Test that showcase example has correct URLs."""

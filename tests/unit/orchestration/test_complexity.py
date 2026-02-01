@@ -229,8 +229,7 @@ class TestSortByComplexity:
         sorted_pages = sort_by_complexity(pages)
 
         # Python's Timsort is stable
-        for i, page in enumerate(pages):
-            assert sorted_pages[i] is page
+        assert all(sorted_pages[i] is pages[i] for i in range(len(pages)))
 
     def test_does_not_modify_input(self):
         """Original list should remain unchanged."""
@@ -342,8 +341,12 @@ class TestComplexityStats:
 
         assert "top_5_scores" in stats
         assert "bottom_5_scores" in stats
-        assert len(stats["top_5_scores"]) == 5
-        assert len(stats["bottom_5_scores"]) == 5
+        top_5 = stats["top_5_scores"]
+        bottom_5 = stats["bottom_5_scores"]
+        assert isinstance(top_5, list)
+        assert len(top_5) == 5
+        assert isinstance(bottom_5, list)
+        assert len(bottom_5) == 5
 
     def test_variance_ratio_high_for_mixed_content(self):
         """Variance ratio is high when pages have different complexities."""
@@ -357,9 +360,15 @@ class TestComplexityStats:
 
         # Heavy pages have ~300 score (30 code blocks * 10)
         # Light pages have ~0 score
-        assert stats["variance_ratio"] > 50
-        assert stats["max"] > 200  # Heavy pages
-        assert stats["min"] < 5  # Light pages
+        variance_ratio = stats["variance_ratio"]
+        max_val = stats["max"]
+        min_val = stats["min"]
+        assert isinstance(variance_ratio, (int, float))
+        assert variance_ratio > 50
+        assert isinstance(max_val, (int, float))
+        assert max_val > 200  # Heavy pages
+        assert isinstance(min_val, (int, float))
+        assert min_val < 5  # Light pages
 
     def test_variance_ratio_low_for_uniform_content(self):
         """Variance ratio is low when pages have similar complexities."""

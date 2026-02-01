@@ -76,15 +76,16 @@ class TestGetSuggestionDict:
 class TestSearchSuggestions:
     """Tests for search_suggestions function."""
 
-    def test_search_returns_matching_suggestions(self) -> None:
+    def test_search_returns_matching_suggestions(self, subtests) -> None:
         """Search finds suggestions matching query."""
         results = search_suggestions("template")
         assert len(results) > 0
         # Results are (category, key, suggestion) tuples
         for category, key, suggestion in results:
-            assert isinstance(category, str)
-            assert isinstance(key, str)
-            assert isinstance(suggestion, ActionableSuggestion)
+            with subtests.test(msg=f"{category}/{key}"):
+                assert isinstance(category, str)
+                assert isinstance(key, str)
+                assert isinstance(suggestion, ActionableSuggestion)
 
     def test_search_is_case_insensitive(self) -> None:
         """Search is case insensitive."""
@@ -167,21 +168,22 @@ class TestGetAttributeErrorSuggestion:
 class TestGetAllSuggestionsForCategory:
     """Tests for get_all_suggestions_for_category function."""
 
-    def test_returns_dict_of_suggestions(self) -> None:
+    def test_returns_dict_of_suggestions(self, subtests) -> None:
         """Returns dict mapping keys to suggestions."""
         suggestions = get_all_suggestions_for_category("template")
         assert isinstance(suggestions, dict)
         assert len(suggestions) > 0
         for key, suggestion in suggestions.items():
-            assert isinstance(key, str)
-            assert isinstance(suggestion, ActionableSuggestion)
+            with subtests.test(msg=key):
+                assert isinstance(key, str)
+                assert isinstance(suggestion, ActionableSuggestion)
 
     def test_invalid_category_returns_empty_dict(self) -> None:
         """Returns empty dict for invalid category."""
         suggestions = get_all_suggestions_for_category("nonexistent")
         assert suggestions == {}
 
-    def test_all_categories_exist(self) -> None:
+    def test_all_categories_exist(self, subtests) -> None:
         """All documented categories have suggestions."""
         expected_categories = [
             "directive",
@@ -198,8 +200,9 @@ class TestGetAllSuggestionsForCategory:
             "build",
         ]
         for category in expected_categories:
-            suggestions = get_all_suggestions_for_category(category)
-            assert len(suggestions) > 0, f"Category {category!r} has no suggestions"
+            with subtests.test(msg=category):
+                suggestions = get_all_suggestions_for_category(category)
+                assert len(suggestions) > 0
 
 
 class TestEnhanceErrorContext:

@@ -15,7 +15,7 @@ import pytest
 try:
     import psutil
 except ImportError:
-    psutil = None
+    psutil = None  # type: ignore[assignment]
 
 
 @pytest.fixture

@@ -134,10 +134,7 @@ class TestParallelAssetProcessing:
 
         # Compare files
         assert parallel_files.keys() == sequential_files.keys()
-        for filename in parallel_files:
-            assert parallel_files[filename] == sequential_files[filename], (
-                f"File {filename} differs"
-            )
+        assert all(parallel_files[f] == sequential_files[f] for f in parallel_files)
 
     def test_asset_processing_with_errors(self, temp_site_dir):
         """Test that errors in one asset don't crash entire build."""
@@ -348,8 +345,7 @@ class TestThreadSafety:
             results = [f.result() for f in futures]
 
         # All directories should exist
-        for result in results:
-            assert result.exists()
+        assert all(r.exists() for r in results)
 
         shutil.rmtree(temp_dir)
 
@@ -371,9 +367,10 @@ class TestThreadSafety:
             results = [f.result() for f in futures]
 
         # All files should exist with correct content
-        for i, file_path in enumerate(results):
-            assert file_path.exists()
-            assert file_path.read_text() == f"Content {i}"
+        assert all(fp.exists() for fp in results)
+        assert all(
+            results[i].read_text() == f"Content {i}" for i in range(len(results))
+        )
 
         shutil.rmtree(temp_dir)
 

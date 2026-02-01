@@ -344,9 +344,8 @@ class TestSiteWideLLMFullGeneration:
 
         # Assert
         content = (output_dir / "llm-full.txt").read_text()
-        for i in range(5):
-            assert f"Page {i}" in content
-            assert f"Content for page {i}" in content
+        assert all(f"Page {i}" in content for i in range(5))
+        assert all(f"Content for page {i}" in content for i in range(5))
 
     def test_llm_full_includes_page_numbers(self, tmp_path):
         """Test that llm-full.txt includes page numbers (PAGE X/Y)."""

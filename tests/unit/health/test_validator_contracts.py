@@ -178,10 +178,7 @@ class TestValidatorReturnTypeContracts:
 
         results = validator.validate(minimal_mock_site)
 
-        for i, result in enumerate(results):
-            assert isinstance(result, CheckResult), (
-                f"{validator_class.name} returned non-CheckResult at index {i}: {type(result)}"
-            )
+        assert all(isinstance(r, CheckResult) for r in results)
 
 
 class TestValidatorRobustnessContracts:
@@ -243,10 +240,7 @@ class TestValidatorCheckResultContracts:
 
         results = validator.validate(minimal_mock_site)
 
-        for result in results:
-            assert isinstance(result.status, CheckStatus), (
-                f"{validator_class.name} returned result with invalid status: {result.status}"
-            )
+        assert all(isinstance(r.status, CheckStatus) for r in results)
 
     @pytest.mark.parametrize("validator_class", get_all_validator_classes())
     def test_results_have_message(self, validator_class, minimal_mock_site):
@@ -258,11 +252,8 @@ class TestValidatorCheckResultContracts:
 
         results = validator.validate(minimal_mock_site)
 
-        for result in results:
-            assert result.message, (
-                f"{validator_class.name} returned result without message"
-            )
-            assert isinstance(result.message, str)
+        assert all(r.message for r in results)
+        assert all(isinstance(r.message, str) for r in results)
 
     @pytest.mark.parametrize("validator_class", get_all_validator_classes())
     def test_error_results_have_code(self, validator_class, minimal_mock_site):

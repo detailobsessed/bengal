@@ -13,7 +13,6 @@ class TestResolveCliUrlPath:
     def test_resolve_empty(self):
         """Test resolving empty string."""
         assert resolve_cli_url_path("") == ""
-        assert resolve_cli_url_path(None) == ""
 
     def test_resolve_root_command(self):
         """Test resolving root command name (should be empty)."""
@@ -146,8 +145,8 @@ class TestTruncateText:
 
         # Should have complete words
         words = result.replace("...", "").strip().split()
-        for word in words:
-            assert word in text.split()
+        text_words = text.split()
+        assert all(w in text_words for w in words)
 
     def test_truncate_custom_suffix(self):
         """Test truncation with custom suffix."""

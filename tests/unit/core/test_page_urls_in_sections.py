@@ -90,8 +90,7 @@ class TestPageURLsInSections:
         assert pages[2].href == "/docs/api/"
 
         # Accessing pages via section.pages should also work
-        for page in section.pages:
-            assert page.href.startswith("/docs/")
+        assert all(p.href.startswith("/docs/") for p in section.pages)
 
     def test_nested_section_page_urls(self):
         """Test page URLs in nested sections."""
@@ -223,8 +222,7 @@ class TestNavigationLinkGeneration:
         assert nav_links[2]["url"] == "/guides/advanced/"
 
         # None should be missing the section prefix
-        for link in nav_links:
-            assert link["url"].startswith("/guides/")
+        assert all(link["url"].startswith("/guides/") for link in nav_links)
 
 
 class TestEdgeCases:

@@ -415,8 +415,7 @@ class TestIncrementalOrchestrator:
             pages_to_build, _, _ = orchestrator.find_work_early()
 
         # Should not include the generated page (tags.md)
-        for page in pages_to_build:
-            assert not page.metadata.get("_generated")
+        assert all(not p.metadata.get("_generated") for p in pages_to_build)
 
     def test_find_work_early_with_asset_changes(self, orchestrator, mock_site):
         """Test find_work_early detects changed assets."""

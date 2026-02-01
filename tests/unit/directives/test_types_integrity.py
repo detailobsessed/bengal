@@ -86,10 +86,7 @@ class TestTypedDictInheritance:
 
         for typed_dict in directive_types:
             hints = get_type_hints(typed_dict)
-            for field in base_fields:
-                assert field in hints, (
-                    f"{typed_dict.__name__} missing base field '{field}'"
-                )
+            assert all(field in hints for field in base_fields)
 
 
 class TestDirectiveTokenIntegrity:
@@ -253,10 +250,7 @@ class TestTypeHintConsistency:
         # All should have the same type for title
         if title_types:
             first_type = title_types[0][1]
-            for name, hint in title_types[1:]:
-                assert hint == first_type, (
-                    f"Inconsistent title type: {name} has {hint}, expected {first_type}"
-                )
+            assert all(hint == first_type for _, hint in title_types[1:])
 
     def test_class_field_consistent(self):
         """All TypedDicts should use class_ (not classes) for CSS class."""

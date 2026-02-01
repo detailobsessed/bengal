@@ -119,9 +119,8 @@ class TestPageRankIntegration:
         assert top_pages[0][0] == hub_page
 
         # All should have scores
-        for _page, score in top_pages:
-            assert score > 0
-            assert isinstance(score, float)
+        assert all(score > 0 for _, score in top_pages)
+        assert all(isinstance(score, float) for _, score in top_pages)
 
     def test_get_pagerank_score(self, sample_site):
         """Test getting PageRank score for specific page."""

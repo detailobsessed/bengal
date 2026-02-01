@@ -743,10 +743,7 @@ class TestNavNodeProxy:
         root_proxy = context._wrap_node(tree.root)
 
         # Check children if any
-        for child in root_proxy.children:
-            assert child.href.startswith("/bengal/"), (
-                f"Child proxy href should include baseurl. Got: {child.href}"
-            )
+        assert all(c.href.startswith("/bengal/") for c in root_proxy.children)
 
 
 class TestNavTreeCache:

@@ -73,11 +73,12 @@ appearance:
         assert exc_info.value.suggestion is not None
         assert "theme.yaml" in exc_info.value.suggestion.lower()
 
-    def test_valid_appearance_modes(self) -> None:
+    def test_valid_appearance_modes(self, subtests) -> None:
         """Verify all valid appearance modes are accepted."""
         for mode in ("light", "dark", "system"):
-            config = AppearanceConfig(default_mode=mode)
-            assert config.default_mode == mode
+            with subtests.test(msg=mode):
+                config = AppearanceConfig(default_mode=mode)
+                assert config.default_mode == mode
 
     def test_invalid_palette_has_error_code(self) -> None:
         """Verify AppearanceConfig raises BengalConfigError with C003 for invalid palette."""
@@ -87,7 +88,7 @@ appearance:
         assert exc_info.value.code == ErrorCode.C003
         assert "default_palette" in str(exc_info.value)
 
-    def test_valid_palettes_accepted(self) -> None:
+    def test_valid_palettes_accepted(self, subtests) -> None:
         """Verify all valid palette names are accepted."""
         valid_palettes = [
             "",  # Empty string = no override
@@ -99,8 +100,9 @@ appearance:
             "snow-lynx",
         ]
         for palette in valid_palettes:
-            config = AppearanceConfig(default_palette=palette)
-            assert config.default_palette == palette
+            with subtests.test(msg=palette or "empty"):
+                config = AppearanceConfig(default_palette=palette)
+                assert config.default_palette == palette
 
     def test_invalid_palette_suggestion_lists_valid_options(self) -> None:
         """Verify invalid palette error includes valid options in suggestion."""

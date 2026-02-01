@@ -198,10 +198,9 @@ class TestShortcodeSandbox:
         assert len(directives) > 0
 
         # Each directive should have names and description
-        for directive in directives:
-            assert "names" in directive
-            assert "description" in directive
-            assert "class" in directive
+        assert all("names" in d for d in directives)
+        assert all("description" in d for d in directives)
+        assert all("class" in d for d in directives)
 
     def test_get_directive_help_existing(self, sandbox):
         """Test getting help for existing directive."""
@@ -289,8 +288,7 @@ class TestShortcodeSandbox:
 
         assert len(results) == 3
         # All should be RenderResult objects
-        for result in results:
-            assert isinstance(result, RenderResult)
+        assert all(isinstance(r, RenderResult) for r in results)
 
     def test_batch_test_with_expected(self, sandbox):
         """Test batch testing with expected output."""

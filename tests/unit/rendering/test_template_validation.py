@@ -160,7 +160,7 @@ base_url = "https://example.com"
         site = Site.from_config(valid_template_site, None)
         engine = create_engine(site)
 
-        errors = engine.validate_templates()
+        errors = engine.validate_templates()  # type: ignore[attr-defined]
 
         assert errors == [], f"Expected no errors, got: {errors}"
 
@@ -172,7 +172,7 @@ base_url = "https://example.com"
         site = Site.from_config(broken_template_site, None)
         engine = create_engine(site)
 
-        errors = engine.validate_templates()
+        errors = engine.validate_templates()  # type: ignore[attr-defined]
 
         assert len(errors) >= 1, "Expected at least one error"
 
@@ -191,15 +191,14 @@ base_url = "https://example.com"
         site = Site.from_config(multiple_broken_templates_site, None)
         engine = create_engine(site)
 
-        errors = engine.validate_templates()
+        errors = engine.validate_templates()  # type: ignore[attr-defined]
 
         # Should have at least 2 errors (one for each broken template)
         assert len(errors) >= 2, f"Expected at least 2 errors, got {len(errors)}"
 
         # All should have error messages and template_context
-        for error in errors:
-            assert hasattr(error, "message")
-            assert hasattr(error, "template_context")
+        assert all(hasattr(e, "message") for e in errors)
+        assert all(hasattr(e, "template_context") for e in errors)
 
     def test_include_patterns_filters_validation(self, broken_template_site: Path):
         """Test that patterns limits which templates are validated."""
@@ -210,12 +209,12 @@ base_url = "https://example.com"
         engine = create_engine(site)
 
         # Validate only page.html (which is valid)
-        errors = engine.validate_templates(include_patterns=["page.html"])
+        errors = engine.validate_templates(include_patterns=["page.html"])  # type: ignore[attr-defined]
 
         assert len(errors) == 0, "Expected no errors when validating only page.html"
 
         # Validate only broken.html (which has syntax error)
-        errors = engine.validate_templates(include_patterns=["broken.html"])
+        errors = engine.validate_templates(include_patterns=["broken.html"])  # type: ignore[attr-defined]
 
         assert len(errors) >= 1, "Expected error when validating broken.html"
 
@@ -227,7 +226,7 @@ base_url = "https://example.com"
         site = Site.from_config(broken_template_site, None)
         engine = create_engine(site)
 
-        errors = engine.validate_templates()
+        errors = engine.validate_templates()  # type: ignore[attr-defined]
 
         assert len(errors) >= 1
 
@@ -277,7 +276,7 @@ base_url = "https://example.com"
         engine = create_engine(site)
 
         # Should not raise - validates bundled theme templates
-        errors = engine.validate_templates()
+        errors = engine.validate_templates()  # type: ignore[attr-defined]
 
         # All bundled theme templates should be valid (no syntax errors)
         # Note: This tests that our bundled theme has no syntax errors

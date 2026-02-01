@@ -259,8 +259,7 @@ class TestDefaults:
     def test_has_essential_sections(self):
         """DEFAULTS has essential configuration sections."""
         essential_sections = ["site", "build", "theme", "content", "assets"]
-        for section in essential_sections:
-            assert section in DEFAULTS, f"Missing section: {section}"
+        assert all(s in DEFAULTS for s in essential_sections)
         # Check essential nested keys
         assert "title" in DEFAULTS["site"]
         assert "baseurl" in DEFAULTS["site"]

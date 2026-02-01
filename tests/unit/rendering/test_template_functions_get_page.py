@@ -1,7 +1,9 @@
 """Tests for get_page template function used by tracks feature."""
 
 import threading
+from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
@@ -13,6 +15,17 @@ from bengal.rendering.template_functions.get_page import (
     register,
 )
 from bengal.utils.io.file_io import write_text_file
+
+if TYPE_CHECKING:
+    from bengal.core.page import Page
+
+# Type alias for get_page function
+GetPageFunc = Callable[[str], "Page | None"]
+
+
+def _get_page_func(env) -> GetPageFunc:
+    """Helper to get typed get_page function from environment."""
+    return cast(GetPageFunc, env.globals["get_page"])
 
 
 @pytest.fixture
@@ -76,8 +89,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # Test exact path match
         page = get_page("docs/getting-started/installation.md")
@@ -94,8 +107,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         page = get_page("docs/getting-started/installation")
         assert page is not None
@@ -106,8 +119,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         page = get_page("docs/nonexistent/page.md")
         assert page is None
@@ -120,8 +133,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         assert get_page("") is None
         assert get_page(None) is None  # type: ignore
@@ -131,8 +144,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # Test Windows-style path separators
         page = get_page("docs\\getting-started\\installation.md")
@@ -152,8 +165,8 @@ class TestGetPageFunction:
         clear_get_page_cache()
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # First call should create maps (field exists but is None before first use)
         assert site_with_content._page_lookup_maps is None
@@ -173,8 +186,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         page = get_page("index.md")
         assert page is not None
@@ -185,8 +198,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # Should still work (though not ideal)
         get_page("docs/getting-started/installation.md/")
@@ -198,8 +211,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # Exact case should work
         page = get_page("docs/getting-started/installation.md")
@@ -215,8 +228,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # Get a page that hasn't been parsed yet
         page = get_page("docs/getting-started/writer-quickstart.md")
@@ -236,8 +249,8 @@ class TestGetPageFunction:
         from jinja2 import Environment
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # Get a page and parse it manually first
         page = get_page("docs/getting-started/installation.md")
@@ -306,7 +319,7 @@ class TestPerRenderCache:
     def test_cache_cleared_properly(self):
         """Test that clear_get_page_cache() clears the cache."""
         cache = _get_render_cache()
-        cache["test_key"] = "test_value"
+        cache["test_key"] = None
         assert "test_key" in cache
 
         clear_get_page_cache()
@@ -320,8 +333,8 @@ class TestPerRenderCache:
         clear_get_page_cache()
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # First call populates cache
         page1 = get_page("docs/getting-started/installation.md")
@@ -338,8 +351,8 @@ class TestPerRenderCache:
         clear_get_page_cache()
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # First call for non-existent page
         page1 = get_page("nonexistent/page.md")
@@ -360,8 +373,8 @@ class TestPerRenderCache:
         clear_get_page_cache()
 
         env = Environment()
-        register(env, site_with_content)
-        get_page = env.globals["get_page"]
+        register(env, site_with_content)  # type: ignore[arg-type]
+        get_page = _get_page_func(env)
 
         # These should all resolve to the same page and cache entry
         page1 = get_page("docs/getting-started/installation.md")
@@ -388,7 +401,7 @@ class TestCacheThreadSafety:
                 cache = _get_render_cache()
 
                 # Store a thread-specific value
-                cache["test"] = f"thread-{thread_id}"
+                cache["test"] = f"thread-{thread_id}"  # type: ignore[assignment]
 
                 # Small delay to allow interleaving
                 import time
@@ -396,7 +409,7 @@ class TestCacheThreadSafety:
                 time.sleep(0.01)
 
                 # Read back the value - should still be our value
-                results[thread_id] = cache.get("test")
+                results[thread_id] = cache.get("test")  # type: ignore[assignment]
             except Exception as e:
                 errors.append(f"Thread {thread_id}: {e}")
 
@@ -411,10 +424,7 @@ class TestCacheThreadSafety:
         assert not errors, f"Thread errors: {errors}"
 
         # Each thread should have its own value
-        for i in range(5):
-            assert results[i] == f"thread-{i}", (
-                f"Thread {i} got wrong value: {results[i]}"
-            )
+        assert all(results[i] == f"thread-{i}" for i in range(5))
 
     def test_cache_clearing_is_thread_local(self):
         """Test that clearing cache in one thread doesn't affect others."""
@@ -425,18 +435,18 @@ class TestCacheThreadSafety:
         def thread1_work() -> None:
             nonlocal thread1_value_after_clear
             cache = _get_render_cache()
-            cache["shared_key"] = "thread1_value"
+            cache["shared_key"] = "thread1_value"  # type: ignore[assignment]
             barrier.wait()  # Wait for thread2 to set its value
             barrier.wait()  # Wait for thread2 to read its value
             clear_get_page_cache()  # Clear thread1's cache
             cache = _get_render_cache()
-            thread1_value_after_clear = cache.get("shared_key")
+            thread1_value_after_clear = cache.get("shared_key")  # type: ignore[assignment]
             barrier.wait()  # Signal thread2 to check its value
 
         def thread2_work() -> None:
             nonlocal thread2_value_after_t1_clear
             cache = _get_render_cache()
-            cache["shared_key"] = "thread2_value"
+            cache["shared_key"] = "thread2_value"  # type: ignore[assignment]
             barrier.wait()  # Signal thread1 we've set our value
             # Verify we have our own value
             assert cache.get("shared_key") == "thread2_value"
@@ -444,7 +454,7 @@ class TestCacheThreadSafety:
             barrier.wait()  # Wait for thread1 to clear
             # Our cache should still have our value
             cache = _get_render_cache()
-            thread2_value_after_t1_clear = cache.get("shared_key")
+            thread2_value_after_t1_clear = cache.get("shared_key")  # type: ignore[assignment]
 
         t1 = threading.Thread(target=thread1_work)
         t2 = threading.Thread(target=thread2_work)

@@ -10,6 +10,7 @@ Progress feedback is provided for long-running state machine tests.
 import os
 import string
 import sys
+from pathlib import Path
 
 import pytest
 from hypothesis import settings
@@ -77,9 +78,9 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
 
     def __init__(self):
         super().__init__()
-        self.site_dir = None
-        self.pages = {}  # name -> {"exists": bool, "title": str}
-        self.last_build_output = None
+        self.site_dir: Path | None = None
+        self.pages: dict = {}  # name -> {"exists": bool, "title": str}
+        self.last_build_output: dict | None = None
         self.build_count = 0
         # Only run invariants immediately after a build rule executes
         self.last_action_was_build = False
@@ -110,6 +111,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
         }
 
         # Write the actual file
+        assert self.site_dir is not None
         write_page(self.site_dir, name, title, content=f"Content for {title}")
         # Not a build action
         self.last_action_was_build = False
@@ -138,6 +140,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
         self.pages[name]["title"] = new_title
 
         # Update the file
+        assert self.site_dir is not None
         write_page(
             self.site_dir,
             name,
@@ -164,6 +167,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
         name = existing[0]
 
         self.pages[name]["exists"] = False
+        assert self.site_dir is not None
         delete_page(self.site_dir, name)
         # Not a build action
         self.last_action_was_build = False
@@ -179,6 +183,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
         _status(
             f"[PageLifecycle] Full build #{self.build_count + 1} ({len(self.pages)} pages)"
         )
+        assert self.site_dir is not None
         result = run_build(self.site_dir, incremental=False)
         self.last_build_output = result
         self.build_count += 1
@@ -190,6 +195,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
             if not meta["exists"]:
                 expected_stem = name.replace(".md", "")
                 expected_output = f"{expected_stem}/index.html"
+                assert self.site_dir is not None
                 actual_path = self.site_dir / "public" / expected_output
 
                 assert not actual_path.exists(), (
@@ -206,6 +212,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
         This simulates `bengal build` after initial build.
         """
         _status(f"[PageLifecycle] Incremental build #{self.build_count + 1}")
+        assert self.site_dir is not None
         result = run_build(self.site_dir, incremental=True)
         self.last_build_output = result
         self.build_count += 1
@@ -216,6 +223,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
             if not meta["exists"]:
                 expected_stem = name.replace(".md", "")
                 expected_output = f"{expected_stem}/index.html"
+                assert self.site_dir is not None
                 actual_path = self.site_dir / "public" / expected_output
 
                 assert not actual_path.exists(), (
@@ -262,6 +270,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
                 expected_output = f"{expected_stem}/index.html"
 
                 # Check if the file exists on disk, not just in our tracked list
+                assert self.site_dir is not None
                 actual_path = self.site_dir / "public" / expected_output
 
                 assert actual_path.exists(), (
@@ -296,6 +305,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
             # Deleted pages should not have output
             expected_stem = name.replace(".md", "")
             expected_output = f"{expected_stem}/index.html"
+            assert self.site_dir is not None
             actual_path = self.site_dir / "public" / expected_output
 
             assert not actual_path.exists(), (
@@ -317,6 +327,7 @@ class PageLifecycleWorkflow(RuleBasedStateMachine):
             and self.last_build_output
             and self.last_build_output["success"]
         ):
+            assert self.site_dir is not None
             assert cache_exists(self.site_dir), (
                 "Build cache should exist after successful build"
             )
@@ -350,10 +361,10 @@ class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
 
     def __init__(self):
         super().__init__()
-        self.site_dir = None
-        self.pages = {}
-        self.full_build_hashes = None
-        self.incremental_build_hashes = None
+        self.site_dir: Path | None = None
+        self.pages: dict = {}
+        self.full_build_hashes: dict | None = None
+        self.incremental_build_hashes: dict | None = None
         self.content_version = 0  # Track content state changes
 
     @initialize()
@@ -367,9 +378,11 @@ class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
             name = f"page-{i}.md"
             title = f"Page {i}"
             self.pages[name] = {"title": title}
+            assert self.site_dir is not None
             write_page(self.site_dir, name, title)
 
         # Do initial build
+        assert self.site_dir is not None
         run_build(self.site_dir, incremental=False)
 
     @rule()
@@ -383,6 +396,7 @@ class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
         name = next(iter(self.pages.keys()))
         new_title = f"{self.pages[name]['title']} (modified)"
         self.pages[name]["title"] = new_title
+        assert self.site_dir is not None
         write_page(self.site_dir, name, new_title)
 
         # Content changed - invalidate old hashes
@@ -394,6 +408,7 @@ class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
     def full_build_and_snapshot(self):
         """Run full build and save output hashes."""
         _status(f"[IncrementalConsistency] Full build (version {self.content_version})")
+        assert self.site_dir is not None
         run_build(self.site_dir, incremental=False)
         self.full_build_hashes = hash_outputs(self.site_dir)
         self.full_build_content_version = self.content_version
@@ -404,6 +419,7 @@ class IncrementalConsistencyWorkflow(RuleBasedStateMachine):
         _status(
             f"[IncrementalConsistency] Incremental build (version {self.content_version})"
         )
+        assert self.site_dir is not None
         run_build(self.site_dir, incremental=True)
         self.incremental_build_hashes = hash_outputs(self.site_dir)
         self.incremental_build_content_version = self.content_version

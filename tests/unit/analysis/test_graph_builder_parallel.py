@@ -205,7 +205,7 @@ class TestParallelErrorHandling:
         site.pages = pages
 
         # Should not raise
-        builder = GraphBuilder(site, parallel=True)
+        builder = GraphBuilder(site, parallel=True)  # type: ignore[arg-type]
         builder.build()
 
         # Should have no links
@@ -216,7 +216,7 @@ class TestParallelErrorHandling:
         site = Site(root_path=tmp_path, config={})
         site.pages = []
 
-        builder = GraphBuilder(site, parallel=True)
+        builder = GraphBuilder(site, parallel=True)  # type: ignore[arg-type]
         builder.build()
 
         assert len(builder.incoming_refs) == 0
@@ -236,10 +236,9 @@ class TestParallelMetrics:
         assert len(builder.link_metrics) > 0
 
         # Check that metrics are valid LinkMetrics objects
-        for metrics in builder.link_metrics.values():
-            assert hasattr(metrics, "explicit")
-            assert hasattr(metrics, "related")
-            assert hasattr(metrics, "total_links")
+        assert all(hasattr(m, "explicit") for m in builder.link_metrics.values())
+        assert all(hasattr(m, "related") for m in builder.link_metrics.values())
+        assert all(hasattr(m, "total_links") for m in builder.link_metrics.values())
 
 
 class TestParallelTaxonomyAndMenus:

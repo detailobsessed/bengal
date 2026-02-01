@@ -460,8 +460,7 @@ class TestPhaseRelatedPosts:
         )
 
         # Should set empty related_posts, not build index
-        for page in orchestrator.site.pages:
-            assert page.related_posts == []
+        assert all(p.related_posts == [] for p in orchestrator.site.pages)
 
     def test_skips_when_no_tags(self, tmp_path):
         """Skips related posts when no tags exist."""
@@ -474,8 +473,7 @@ class TestPhaseRelatedPosts:
         )
 
         # Should set empty related_posts
-        for page in orchestrator.site.pages:
-            assert page.related_posts == []
+        assert all(p.related_posts == [] for p in orchestrator.site.pages)
 
     def test_incremental_passes_affected_pages(self, tmp_path):
         """Passes affected pages for incremental builds."""

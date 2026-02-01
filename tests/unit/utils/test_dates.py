@@ -60,7 +60,7 @@ class TestParseDate:
         assert result is not None
         assert result.year == 2025
 
-    def test_common_formats(self):
+    def test_common_formats(self, subtests):
         """Test parsing of common date formats."""
         test_cases = [
             ("2025-10-09", datetime(2025, 10, 9, 0, 0)),
@@ -72,8 +72,9 @@ class TestParseDate:
         ]
 
         for date_str, expected in test_cases:
-            result = parse_date(date_str)
-            assert result == expected, f"Failed to parse: {date_str}"
+            with subtests.test(msg=date_str):
+                result = parse_date(date_str)
+                assert result == expected
 
     def test_custom_formats(self):
         """Test custom format strings."""
