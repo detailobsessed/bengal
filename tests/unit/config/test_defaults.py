@@ -1,60 +1,25 @@
 """Tests for config defaults and feature helpers.
 
 Tests config/defaults.py:
-- get_max_workers: auto-detection and config value handling
 - get_default: nested key access and fallbacks
 - get_pagination_per_page: pagination defaults
 - normalize_bool_or_dict: bool/dict normalization
 - is_feature_enabled: feature enable checks
 - get_feature_config: full feature config access
+
+Note: get_max_workers tests removed - function is deprecated.
+Use bengal.utils.workers.get_optimal_workers() instead.
 """
 
 from bengal.config.defaults import (
     BOOL_OR_DICT_KEYS,
-    DEFAULT_MAX_WORKERS,
     DEFAULTS,
     get_default,
     get_feature_config,
-    get_max_workers,
     get_pagination_per_page,
     is_feature_enabled,
     normalize_bool_or_dict,
 )
-
-
-class TestGetMaxWorkers:
-    """Tests for get_max_workers function."""
-
-    def test_none_returns_default(self):
-        """None config value returns auto-detected default."""
-        result = get_max_workers(None)
-        assert result == DEFAULT_MAX_WORKERS
-        assert result >= 4  # Minimum is 4
-
-    def test_zero_returns_default(self):
-        """Zero config value returns auto-detected default."""
-        result = get_max_workers(0)
-        assert result == DEFAULT_MAX_WORKERS
-
-    def test_positive_value_used(self):
-        """Positive config value is used directly."""
-        result = get_max_workers(8)
-        assert result == 8
-
-    def test_small_value_clamped_to_one(self):
-        """Values less than 1 are clamped to 1."""
-        result = get_max_workers(-5)
-        assert result == 1
-
-    def test_one_is_minimum(self):
-        """Value of 1 is returned as-is."""
-        result = get_max_workers(1)
-        assert result == 1
-
-    def test_large_value_accepted(self):
-        """Large values are accepted without clamping."""
-        result = get_max_workers(100)
-        assert result == 100
 
 
 class TestGetDefault:

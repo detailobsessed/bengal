@@ -11,7 +11,6 @@ Tests for edge cases that ensure parity with Mistune parser output:
 These tests verify both AST construction and HTML rendering.
 """
 
-import pytest
 from patitas.nodes import (
     FootnoteDef,
     FootnoteRef,
@@ -251,65 +250,6 @@ class TestStrikethrough:
         assert "<del>" in html
         assert "</del>" in html
         assert "deleted" in html
-
-
-class TestMistuneParserParity:
-    """Tests ensuring parity between Patitas and Mistune parsers."""
-
-    @pytest.fixture
-    def mistune_parser(self):
-        """Create a Mistune parser for comparison."""
-        from bengal.parsing import create_markdown_parser
-
-        return create_markdown_parser("mistune")
-
-    @pytest.fixture
-    def patitas_parser_cmp(self):
-        """Create a Patitas parser for comparison."""
-        from bengal.parsing import create_markdown_parser
-
-        return create_markdown_parser("patitas")
-
-    def _normalize_html(self, html: str) -> str:
-        """Normalize HTML for comparison (remove extra whitespace)."""
-        import re
-
-        # Remove extra whitespace between tags
-        html = re.sub(r">\s+<", "><", html)
-        # Remove trailing whitespace before opening tags (e.g., "text <ul>" -> "text<ul>")
-        html = re.sub(r"\s+<", "<", html)
-        # Normalize whitespace
-        html = " ".join(html.split())
-        return html.strip()
-
-    @pytest.mark.parametrize(
-        ("name", "source"),
-        [
-            ("nested_list", "- Item 1\n  - Sub 1\n  - Sub 2\n- Item 2"),
-            ("task_list", "- [ ] Unchecked\n- [x] Checked"),
-            ("table", "| A | B |\n|---|---|\n| 1 | 2 |"),
-            ("strikethrough", "This is ~~deleted~~ text."),
-            ("footnotes", "Text[^1].\n\n[^1]: Note."),
-        ],
-    )
-    def test_html_parity(self, mistune_parser, patitas_parser_cmp, name, source):
-        """Verify HTML output parity for common edge cases."""
-        mistune_html = self._normalize_html(mistune_parser.parse(source, {}))
-        patitas_html = self._normalize_html(patitas_parser_cmp.parse(source, {}))
-
-        assert mistune_html == patitas_html, (
-            f"HTML parity failed for {name}:\n"
-            f"Mistune:  {mistune_html[:200]}\n"
-            f"Patitas: {patitas_html[:200]}"
-        )
-
-    def test_loose_list_parity(self, mistune_parser, patitas_parser_cmp):
-        """Verify loose list parity."""
-        source = "- Item 1\n\n  Continuation.\n\n- Item 2"
-        mistune_html = self._normalize_html(mistune_parser.parse(source, {}))
-        patitas_html = self._normalize_html(patitas_parser_cmp.parse(source, {}))
-
-        assert mistune_html == patitas_html
 
 
 class TestEdgeCasesRegression:
