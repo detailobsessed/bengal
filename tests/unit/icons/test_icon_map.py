@@ -59,6 +59,8 @@ class TestIconMapValidity:
             "success",
             "tip",
             "note",
+            "graph",
+            "chart",
         ],
     )
     def test_common_semantic_icons_render(self, icon_name: str) -> None:
