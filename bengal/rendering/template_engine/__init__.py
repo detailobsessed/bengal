@@ -24,12 +24,12 @@ The factory function ``create_engine()`` reads the configured engine
 from ``bengal.yaml`` and returns the appropriate implementation.
 
 This shim maintains backward compatibility by aliasing ``TemplateEngine``
-to ``JinjaTemplateEngine``. It uses lazy imports to avoid circular
+to ``KidaTemplateEngine``. It uses lazy imports to avoid circular
 dependency issues during module loading.
 
 Related Modules:
-- bengal.rendering.engines: New engine factory (use this)
-- bengal.rendering.engines.jinja: Jinja2 implementation
+- bengal.rendering.engines: Engine factory (use this)
+- bengal.rendering.engines.kida: Kida implementation (default)
 - bengal.rendering.engines.protocol: Engine interface protocol
 
 """
