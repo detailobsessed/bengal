@@ -20,7 +20,9 @@ from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from bengal.analysis.graph.metrics import GraphMetrics
+    from bengal.analysis.graph.page_rank import PageRankResults
     from bengal.analysis.links.types import LinkMetrics, LinkType
+    from bengal.analysis.performance.path_analysis import PathAnalysisResults
     from bengal.protocols.core import PageLike, SiteLike
 
 
@@ -58,6 +60,10 @@ class KnowledgeGraphProtocol(Protocol):
 
     # Metrics (set after build)
     metrics: GraphMetrics | None
+
+    # Cached analysis results (optional, may be None)
+    _pagerank_results: PageRankResults | None
+    _path_results: PathAnalysisResults | None
 
     # Core methods
     def build(self) -> None:
@@ -99,6 +105,45 @@ class KnowledgeGraphProtocol(Protocol):
 
         Returns:
             List of leaf pages
+        """
+        ...
+
+    # Analysis methods
+    def compute_pagerank(
+        self,
+        damping: float = 0.85,
+        max_iterations: int = 100,
+        force_recompute: bool = False,
+    ) -> PageRankResults:
+        """Compute PageRank scores for all pages.
+
+        Args:
+            damping: Probability of following links vs random jump
+            max_iterations: Maximum iterations before stopping
+            force_recompute: If True, recompute even if cached
+
+        Returns:
+            PageRankResults with scores and metadata
+        """
+        ...
+
+    def analyze_paths(
+        self,
+        force_recompute: bool = False,
+        k_pivots: int = 100,
+        seed: int = 42,
+        auto_approximate_threshold: int = 500,
+    ) -> PathAnalysisResults:
+        """Analyze navigation paths and centrality metrics.
+
+        Args:
+            force_recompute: If True, recompute even if cached
+            k_pivots: Number of pivot nodes for approximation
+            seed: Random seed for deterministic results
+            auto_approximate_threshold: Use exact if pages <= this
+
+        Returns:
+            PathAnalysisResults with centrality metrics
         """
         ...
 

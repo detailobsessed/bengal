@@ -198,7 +198,7 @@ class LinkSuggestionEngine:
                 hasattr(self.graph, "_pagerank_results")
                 and self.graph._pagerank_results
             ):
-                pagerank_scores = self.graph._pagerank_results.scores  # type: ignore[attr-defined]
+                pagerank_scores = self.graph._pagerank_results.scores
         except (AttributeError, TypeError):
             pass
 
@@ -206,7 +206,7 @@ class LinkSuggestionEngine:
         betweenness_scores: dict[PageLike, float] = {}
         try:
             if hasattr(self.graph, "_path_results") and self.graph._path_results:
-                betweenness_scores = self.graph._path_results.betweenness_centrality  # type: ignore[attr-defined]
+                betweenness_scores = self.graph._path_results.betweenness_centrality
         except (AttributeError, TypeError):
             pass
 

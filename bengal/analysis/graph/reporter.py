@@ -31,14 +31,9 @@ See Also:
 
 """
 
-from typing import TYPE_CHECKING
-
 from bengal.errors import BengalGraphError, ErrorCode
-from bengal.protocols import PageLike
+from bengal.protocols import KnowledgeGraphProtocol, PageLike
 from bengal.utils.observability.logger import get_logger
-
-if TYPE_CHECKING:
-    from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
 
 logger = get_logger(__name__)
 
@@ -62,7 +57,7 @@ class GraphReporter:
 
     """
 
-    def __init__(self, graph: KnowledgeGraph) -> None:
+    def __init__(self, graph: KnowledgeGraphProtocol) -> None:
         """
         Initialize the graph reporter.
 
@@ -214,26 +209,24 @@ class GraphReporter:
                 # Compute PageRank if not already computed
                 self._graph.compute_pagerank()
 
-            if self._graph._pagerank_results is None:
-                return []
+            if self._graph._pagerank_results is not None:
+                # Get average PageRank to identify high-value pages
+                all_scores = list(self._graph._pagerank_results.scores.values())
+                avg_score = sum(all_scores) / len(all_scores) if all_scores else 0
 
-            # Get average PageRank to identify high-value pages
-            all_scores = list(self._graph._pagerank_results.scores.values())
-            avg_score = sum(all_scores) / len(all_scores) if all_scores else 0
-
-            # Find orphans with above-average PageRank (these are valuable but unlinked)
-            high_pagerank_orphans = [
-                p
-                for p in orphans
-                if self._graph._pagerank_results.get_score(p) > avg_score * 1.5
-            ]
-            if high_pagerank_orphans and len(high_pagerank_orphans) < len(orphans):
-                top_underlinked = high_pagerank_orphans[:3]
-                titles = ", ".join(p.title for p in top_underlinked)
-                recommendations.append(
-                    f"⭐ {len(high_pagerank_orphans)} high-value pages are underlinked. "
-                    f"Consider adding navigation or cross-links: {titles}"
-                )
+                # Find orphans with above-average PageRank (these are valuable but unlinked)
+                high_pagerank_orphans = [
+                    p
+                    for p in orphans
+                    if self._graph._pagerank_results.get_score(p) > avg_score * 1.5
+                ]
+                if high_pagerank_orphans and len(high_pagerank_orphans) < len(orphans):
+                    top_underlinked = high_pagerank_orphans[:3]
+                    titles = ", ".join(p.title for p in top_underlinked)
+                    recommendations.append(
+                        f"⭐ {len(high_pagerank_orphans)} high-value pages are underlinked. "
+                        f"Consider adding navigation or cross-links: {titles}"
+                    )
         except (ValueError, RuntimeError, AttributeError) as e:
             logger.debug(
                 "pagerank_recommendation_skipped",
@@ -259,17 +252,15 @@ class GraphReporter:
                 # Compute path analysis if not already computed
                 self._graph.analyze_paths()
 
-            if self._graph._path_results is None:
-                return []
-
-            bridges = self._graph._path_results.get_top_bridges(5)
-            if bridges and bridges[0][1] > 0.001:
-                top_bridges = bridges[:3]
-                bridge_titles = ", ".join(p.title for p, _ in top_bridges)
-                recommendations.append(
-                    f"🌉 Top bridge pages: {bridge_titles}. "
-                    f"These are critical for navigation - ensure they're prominent in menus."
-                )
+            if self._graph._path_results is not None:
+                bridges = self._graph._path_results.get_top_bridges(5)
+                if bridges and bridges[0][1] > 0.001:
+                    top_bridges = bridges[:3]
+                    bridge_titles = ", ".join(p.title for p, _ in top_bridges)
+                    recommendations.append(
+                        f"🌉 Top bridge pages: {bridge_titles}. "
+                        f"These are critical for navigation - ensure they're prominent in menus."
+                    )
         except (ValueError, RuntimeError, AttributeError) as e:
             logger.debug(
                 "path_analysis_recommendation_skipped",
@@ -352,25 +343,23 @@ class GraphReporter:
             if not self._graph._pagerank_results:
                 self._graph.compute_pagerank()
 
-            if self._graph._pagerank_results is None:
-                return []
+            if self._graph._pagerank_results is not None:
+                # Find pages with high PageRank but few outgoing links
+                high_pagerank_low_outgoing = []
+                for page in analysis_pages:
+                    pagerank = self._graph._pagerank_results.get_score(page)
+                    outgoing = len(self._graph.outgoing_refs.get(page, set()))
+                    if pagerank > 0.001 and outgoing < 3:
+                        high_pagerank_low_outgoing.append((page, pagerank, outgoing))
 
-            # Find pages with high PageRank but few outgoing links
-            high_pagerank_low_outgoing = []
-            for page in analysis_pages:
-                pagerank = self._graph._pagerank_results.get_score(page)
-                outgoing = len(self._graph.outgoing_refs.get(page, set()))
-                if pagerank > 0.001 and outgoing < 3:
-                    high_pagerank_low_outgoing.append((page, pagerank, outgoing))
-
-            if high_pagerank_low_outgoing:
-                high_pagerank_low_outgoing.sort(key=lambda x: x[1], reverse=True)
-                top_pages = high_pagerank_low_outgoing[:3]
-                titles = ", ".join(p.title for p, _, _ in top_pages)
-                insights.append(
-                    f"🔗 {len(high_pagerank_low_outgoing)} pages should pass more link equity "
-                    f"(high PageRank, few outgoing links): {titles}"
-                )
+                if high_pagerank_low_outgoing:
+                    high_pagerank_low_outgoing.sort(key=lambda x: x[1], reverse=True)
+                    top_pages = high_pagerank_low_outgoing[:3]
+                    titles = ", ".join(p.title for p, _, _ in top_pages)
+                    insights.append(
+                        f"🔗 {len(high_pagerank_low_outgoing)} pages should pass more link equity "
+                        f"(high PageRank, few outgoing links): {titles}"
+                    )
         except (ValueError, RuntimeError, AttributeError) as e:
             logger.debug(
                 "link_equity_analysis_skipped",

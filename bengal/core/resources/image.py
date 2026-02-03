@@ -257,7 +257,21 @@ class ImageResource:
                 return None
 
             processor = ImageProcessor(self.site)
-            return processor.process(self.source_path, operation, spec)
+            result = processor.process(self.source_path, operation, spec)
+
+            if result is None:
+                return None
+
+            # Wrap ProcessedImageData into ProcessedImage with source reference
+            return ProcessedImage(
+                source=self,
+                output_path=result.output_path,
+                rel_permalink=result.rel_permalink,
+                width=result.width,
+                height=result.height,
+                format=result.format,
+                file_size=result.file_size,
+            )
 
         except ImportError as e:
             logger.warning(
