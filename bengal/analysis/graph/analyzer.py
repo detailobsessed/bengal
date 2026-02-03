@@ -34,14 +34,11 @@ See Also:
 from typing import TYPE_CHECKING
 
 from bengal.errors import BengalGraphError, ErrorCode
+from bengal.protocols import KnowledgeGraphProtocol, PageLike
 
 if TYPE_CHECKING:
-    from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
     from bengal.analysis.graph.metrics import PageConnectivity
     from bengal.analysis.results import PageLayers
-    from bengal.protocols import PageLike
-else:
-    from bengal.protocols import PageLike
 
 
 class GraphAnalyzer:
@@ -65,7 +62,7 @@ class GraphAnalyzer:
 
     """
 
-    def __init__(self, graph: KnowledgeGraph) -> None:
+    def __init__(self, graph: KnowledgeGraphProtocol) -> None:
         """
         Initialize the graph analyzer.
 

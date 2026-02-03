@@ -55,10 +55,10 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from bengal.protocols import KnowledgeGraphProtocol
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
-    from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
     from bengal.protocols import PageLike
 
 logger = get_logger(__name__)
@@ -178,7 +178,7 @@ class PathAnalyzer:
 
     def __init__(
         self,
-        graph: KnowledgeGraph,
+        graph: KnowledgeGraphProtocol,
         k_pivots: int = DEFAULT_K_PIVOTS,
         seed: int = DEFAULT_SEED,
         auto_approximate_threshold: int = DEFAULT_AUTO_THRESHOLD,
@@ -650,7 +650,7 @@ class PathAnalyzer:
 
 
 def analyze_paths(
-    graph: KnowledgeGraph,
+    graph: KnowledgeGraphProtocol,
     k_pivots: int = PathAnalyzer.DEFAULT_K_PIVOTS,
     seed: int = PathAnalyzer.DEFAULT_SEED,
     auto_approximate_threshold: int = PathAnalyzer.DEFAULT_AUTO_THRESHOLD,

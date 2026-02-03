@@ -16,12 +16,12 @@ Note:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
+    from bengal.analysis.graph.metrics import GraphMetrics
     from bengal.analysis.links.types import LinkMetrics, LinkType
-    from bengal.core.page import Page
-    from bengal.core.site import Site
+    from bengal.protocols.core import PageLike, SiteLike
 
 
 @runtime_checkable
@@ -41,12 +41,12 @@ class KnowledgeGraphProtocol(Protocol):
     """
 
     # Core data structures
-    site: Site
-    incoming_refs: dict[Page, float]
-    outgoing_refs: dict[Page, set[Page]]
-    link_metrics: dict[Page, LinkMetrics]
-    link_types: dict[tuple[Page | None, Page], LinkType]
-    incoming_edges: dict[Page, list[Page]]
+    site: SiteLike
+    incoming_refs: dict[Any, float]  # PageLike -> float
+    outgoing_refs: dict[Any, set[Any]]  # PageLike -> set[PageLike]
+    link_metrics: dict[Any, LinkMetrics]  # PageLike -> LinkMetrics
+    link_types: dict[tuple[Any, Any], LinkType]  # (PageLike|None, PageLike) -> LinkType
+    incoming_edges: dict[Any, list[Any]]  # PageLike -> list[PageLike]
 
     # Configuration
     hub_threshold: int
@@ -56,12 +56,23 @@ class KnowledgeGraphProtocol(Protocol):
     # State
     _built: bool
 
+    # Metrics (set after build)
+    metrics: GraphMetrics | None
+
     # Core methods
     def build(self) -> None:
         """Build the knowledge graph from site data."""
         ...
 
-    def get_hubs(self, threshold: int | None = None) -> list[Page]:
+    def get_analysis_pages(self) -> list[PageLike]:
+        """Get list of pages to analyze.
+
+        Returns:
+            List of pages included in analysis
+        """
+        ...
+
+    def get_hubs(self, threshold: int | None = None) -> list[PageLike]:
         """Get pages with high incoming references (hubs).
 
         Args:
@@ -72,7 +83,7 @@ class KnowledgeGraphProtocol(Protocol):
         """
         ...
 
-    def get_orphans(self) -> list[Page]:
+    def get_orphans(self) -> list[PageLike]:
         """Get pages with no incoming references.
 
         Returns:
@@ -80,7 +91,7 @@ class KnowledgeGraphProtocol(Protocol):
         """
         ...
 
-    def get_leaves(self, threshold: int | None = None) -> list[Page]:
+    def get_leaves(self, threshold: int | None = None) -> list[PageLike]:
         """Get pages with low connectivity (leaf nodes).
 
         Args:
@@ -88,47 +99,6 @@ class KnowledgeGraphProtocol(Protocol):
 
         Returns:
             List of leaf pages
-        """
-        ...
-
-    def get_bridges(self) -> list[Page]:
-        """Get pages that connect different parts of the graph.
-
-        Returns:
-            List of bridge pages
-        """
-        ...
-
-    def get_page_connectivity(self, page: Page) -> tuple[float, str]:
-        """Get connectivity score and level for a page.
-
-        Args:
-            page: Page to analyze
-
-        Returns:
-            Tuple of (score, level_name)
-        """
-        ...
-
-    def get_incoming_links(self, page: Page) -> list[Page]:
-        """Get pages that link TO the given page.
-
-        Args:
-            page: Target page
-
-        Returns:
-            List of pages linking to this page
-        """
-        ...
-
-    def get_outgoing_links(self, page: Page) -> set[Page]:
-        """Get pages that this page links TO.
-
-        Args:
-            page: Source page
-
-        Returns:
-            Set of pages this page links to
         """
         ...
 

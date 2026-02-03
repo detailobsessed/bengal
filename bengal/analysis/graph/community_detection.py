@@ -45,10 +45,10 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from bengal.protocols import KnowledgeGraphProtocol
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
-    from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
     from bengal.protocols import PageLike
 
 logger = get_logger(__name__)
@@ -149,7 +149,7 @@ class LouvainCommunityDetector:
 
     def __init__(
         self,
-        graph: KnowledgeGraph,
+        graph: KnowledgeGraphProtocol,
         resolution: float = 1.0,
         random_seed: int | None = None,
     ):
@@ -423,7 +423,9 @@ class LouvainCommunityDetector:
 
 
 def detect_communities(
-    graph: KnowledgeGraph, resolution: float = 1.0, random_seed: int | None = None
+    graph: KnowledgeGraphProtocol,
+    resolution: float = 1.0,
+    random_seed: int | None = None,
 ) -> CommunityDetectionResults:
     """
     Convenience function to detect communities.
