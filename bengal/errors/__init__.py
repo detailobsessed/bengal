@@ -360,10 +360,11 @@ __all__ = [
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     # Context
     "BuildPhase": ("bengal.errors.context", "BuildPhase"),
-    "ErrorSeverity": ("bengal.errors.context", "ErrorSeverity"),
     "ErrorContext": ("bengal.errors.context", "ErrorContext"),
-    "ErrorDebugPayload": ("bengal.errors.context", "ErrorDebugPayload"),
-    "RelatedFile": ("bengal.errors.context", "RelatedFile"),
+    # Types (shared between context and exceptions)
+    "ErrorSeverity": ("bengal.errors.types", "ErrorSeverity"),
+    "ErrorDebugPayload": ("bengal.errors.types", "ErrorDebugPayload"),
+    "RelatedFile": ("bengal.errors.types", "RelatedFile"),
     "enrich_error": ("bengal.errors.context", "enrich_error"),
     "get_context_from_exception": (
         "bengal.errors.context",

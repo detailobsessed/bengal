@@ -70,14 +70,18 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+# Import shared types from types.py to avoid circular imports with context.py
+from bengal.errors.types import (
+    ErrorDebugPayload,
+    ErrorSeverity,
+    RelatedFile,
+)
+
+# Import BuildPhase from protocols (canonical location)
+from bengal.protocols.build import BuildPhase
+
 if TYPE_CHECKING:
     from bengal.errors.codes import ErrorCode
-    from bengal.errors.context import (
-        BuildPhase,
-        ErrorDebugPayload,
-        ErrorSeverity,
-        RelatedFile,
-    )
 
 
 class BengalError(Exception):
@@ -237,14 +241,11 @@ class BengalError(Exception):
                     pass
 
         # Template error specific suggestions
-        if self.build_phase:
-            from bengal.errors.context import BuildPhase
-
-            if self.build_phase == BuildPhase.RENDERING:
-                commands.append("# Check rendering pipeline")
-                commands.append(
-                    "grep -rn 'render_page\\|render_template' bengal/rendering/"
-                )
+        if self.build_phase and self.build_phase == BuildPhase.RENDERING:
+            commands.append("# Check rendering pipeline")
+            commands.append(
+                "grep -rn 'render_page\\|render_template' bengal/rendering/"
+            )
 
         # Show the problematic file
         if self.file_path:
@@ -338,8 +339,6 @@ class BengalError(Exception):
 
         # Default: search based on build phase
         if self.build_phase:
-            from bengal.errors.context import BuildPhase
-
             phase_tests = {
                 BuildPhase.RENDERING: [
                     "tests/unit/rendering/",
@@ -389,8 +388,6 @@ class BengalError(Exception):
             path: Path to the file
             line_number: Optional line number of interest
         """
-        from bengal.errors.context import RelatedFile
-
         self.related_files.append(
             RelatedFile(role=role, path=path, line_number=line_number)
         )
@@ -425,8 +422,6 @@ class BengalConfigError(BengalError):
     def __init__(self, message: str, **kwargs: Any) -> None:
         # Set default build phase if not provided
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.INITIALIZATION
         super().__init__(message, **kwargs)
 
@@ -464,8 +459,6 @@ class BengalContentError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.PARSING
         super().__init__(message, **kwargs)
 
@@ -542,8 +535,6 @@ class BengalRenderingError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.RENDERING
         super().__init__(message, **kwargs)
 
@@ -575,8 +566,6 @@ class BengalDiscoveryError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.DISCOVERY
         super().__init__(message, **kwargs)
 
@@ -608,8 +597,6 @@ class BengalCacheError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.CACHE
         super().__init__(message, **kwargs)
 
@@ -640,8 +627,6 @@ class BengalServerError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.SERVER
         super().__init__(message, **kwargs)
 
@@ -673,8 +658,6 @@ class BengalAssetError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.ASSET_PROCESSING
         super().__init__(message, **kwargs)
 
@@ -705,8 +688,6 @@ class BengalGraphError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.ANALYSIS
         super().__init__(message, **kwargs)
 
@@ -739,8 +720,6 @@ class BengalParsingError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.PARSING
         super().__init__(message, **kwargs)
 
@@ -772,8 +751,6 @@ class BengalAutodocError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.DISCOVERY
         super().__init__(message, **kwargs)
 
@@ -804,8 +781,6 @@ class BengalValidatorError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.ANALYSIS
         super().__init__(message, **kwargs)
 
@@ -840,8 +815,6 @@ class BengalBuildError(BengalError):
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         if "build_phase" not in kwargs:
-            from bengal.errors.context import BuildPhase
-
             kwargs["build_phase"] = BuildPhase.POSTPROCESSING
         super().__init__(message, **kwargs)
 
