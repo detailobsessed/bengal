@@ -55,8 +55,8 @@ from pathlib import Path
 from rich.console import Console
 from rich.theme import Theme
 
-# Note: logger import moved to lazy to break logger ↔ rich_console cycle
-# See has_active_live_display() for usage
+# Note: This module intentionally does NOT import from logger.py to avoid
+# a circular dependency (logger.py imports rich_console for output).
 
 # Bengal color palette
 PALETTE = {
@@ -264,15 +264,8 @@ def is_live_display_active() -> bool:
         # Check if _live attribute exists and is not None
         # This is the most reliable way to detect an active Live display
         return getattr(console, "_live", None) is not None
-    except Exception as e:
+    except Exception:
         # Fallback: assume no live display if we can't determine
-        # Lazy import to break logger ↔ rich_console cycle
-        from bengal.utils.observability.logger import get_logger
-
-        get_logger(__name__).debug(
-            "rich_console_live_display_check_failed",
-            error=str(e),
-            error_type=type(e).__name__,
-            action="assuming_no_live_display",
-        )
+        # Note: We intentionally don't log here to avoid logger ↔ rich_console cycle.
+        # The getattr() call above is extremely unlikely to raise, so silent fallback is safe.
         return False
