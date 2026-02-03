@@ -42,10 +42,10 @@ See Also:
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from bengal.protocols import KnowledgeGraphProtocol
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
-    from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
     from bengal.protocols import PageLike
 
 logger = get_logger(__name__)
@@ -139,7 +139,7 @@ class LinkSuggestionEngine:
 
     def __init__(
         self,
-        graph: KnowledgeGraph,
+        graph: KnowledgeGraphProtocol,
         min_score: float = 0.3,
         max_suggestions_per_page: int = 10,
     ):
@@ -191,21 +191,22 @@ class LinkSuggestionEngine:
         }
 
         # Get PageRank scores (if available)
-        pagerank_scores = {}
+        # These are optional cached results on the concrete KnowledgeGraph
+        pagerank_scores: dict[PageLike, float] = {}
         try:
             if (
                 hasattr(self.graph, "_pagerank_results")
                 and self.graph._pagerank_results
             ):
-                pagerank_scores = self.graph._pagerank_results.scores
+                pagerank_scores = self.graph._pagerank_results.scores  # type: ignore[attr-defined]
         except (AttributeError, TypeError):
             pass
 
         # Get centrality scores (if available)
-        betweenness_scores = {}
+        betweenness_scores: dict[PageLike, float] = {}
         try:
             if hasattr(self.graph, "_path_results") and self.graph._path_results:
-                betweenness_scores = self.graph._path_results.betweenness_centrality
+                betweenness_scores = self.graph._path_results.betweenness_centrality  # type: ignore[attr-defined]
         except (AttributeError, TypeError):
             pass
 
@@ -465,7 +466,9 @@ class LinkSuggestionEngine:
 
 
 def suggest_links(
-    graph: KnowledgeGraph, min_score: float = 0.3, max_suggestions_per_page: int = 10
+    graph: KnowledgeGraphProtocol,
+    min_score: float = 0.3,
+    max_suggestions_per_page: int = 10,
 ) -> LinkSuggestionResults:
     """
     Convenience function for link suggestions.

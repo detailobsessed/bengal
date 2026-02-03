@@ -49,10 +49,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from bengal.errors import BengalGraphError, ErrorCode
+from bengal.protocols import KnowledgeGraphProtocol
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
-    from bengal.analysis.graph.knowledge_graph import KnowledgeGraph
     from bengal.protocols import PageLike
 
 logger = get_logger(__name__)
@@ -140,7 +140,7 @@ class PageRankCalculator:
 
     def __init__(
         self,
-        graph: KnowledgeGraph,
+        graph: KnowledgeGraphProtocol,
         damping: float = 0.85,
         max_iterations: int = 100,
         convergence_threshold: float = 1e-6,
@@ -311,7 +311,7 @@ class PageRankCalculator:
 
 
 def analyze_page_importance(
-    graph: KnowledgeGraph, damping: float = 0.85, top_n: int = 20
+    graph: KnowledgeGraphProtocol, damping: float = 0.85, top_n: int = 20
 ) -> list[tuple[PageLike, float]]:
     """
     Convenience function to analyze page importance.
