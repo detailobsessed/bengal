@@ -206,8 +206,11 @@ class PatitasParser(BaseMarkdownParser):
         page_context = context.get("page")
         # Extract site for link resolution and site-wide context
         site = context.get("site")
-        # xref_index is on site object, not in context dict
-        xref_index = getattr(site, "xref_index", None) if site else None
+        # xref_index can be passed directly in context (tests) or on site object (production)
+        # Use 'is None' check to allow explicit empty dict {} to disable link resolution
+        xref_index = context.get("xref_index")
+        if xref_index is None and site is not None:
+            xref_index = getattr(site, "xref_index", None)
 
         try:
             # 1. Preprocess: handle {{/* escaped syntax */}}
@@ -274,8 +277,11 @@ class PatitasParser(BaseMarkdownParser):
         page_context = context.get("page")
         # Extract site for link resolution and site-wide context
         site = context.get("site")
-        # xref_index is on site object, not in context dict
-        xref_index = getattr(site, "xref_index", None) if site else None
+        # xref_index can be passed directly in context (tests) or on site object (production)
+        # Use 'is None' check to allow explicit empty dict {} to disable link resolution
+        xref_index = context.get("xref_index")
+        if xref_index is None and site is not None:
+            xref_index = getattr(site, "xref_index", None)
 
         try:
             # 1. Preprocess: handle {{/* escaped syntax */}}

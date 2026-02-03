@@ -4,8 +4,6 @@ Test cards directive system (modern and Sphinx-Design compatibility).
 
 from unittest.mock import Mock
 
-import pytest
-
 from tests._testing.mocks import MockPage
 
 
@@ -505,9 +503,6 @@ Manual content
         assert "card-color-blue" in result
 
 
-@pytest.mark.skip(
-    reason="xref integration with card :pull: requires function-scoped parser fixture"
-)
 class TestCardPullWithXrefIndex:
     """Test :pull: option with actual xref_index (not graceful degradation)."""
 
@@ -534,7 +529,6 @@ class TestCardPullWithXrefIndex:
             "by_path": {},
             "by_slug": {},
         }
-        parser.enable_cross_references(xref_index)
 
         content = """
 ::::{cards}
@@ -546,7 +540,8 @@ Fallback content
 :::
 ::::
 """
-        result = parser.parse(content, {})
+        context = {"xref_index": xref_index}
+        result = parser.parse_with_context(content, {}, context)
 
         # Should have pulled the title
         assert "Writer Quickstart" in result
@@ -566,7 +561,6 @@ Fallback content
             "by_path": {},
             "by_slug": {},
         }
-        parser.enable_cross_references(xref_index)
 
         # Note: Empty card content should be replaced by pulled description
         content = """
@@ -577,7 +571,8 @@ Fallback content
 :::
 ::::
 """
-        result = parser.parse(content, {})
+        context = {"xref_index": xref_index}
+        result = parser.parse_with_context(content, {}, context)
 
         # Should use explicit title
         assert "Custom Title" in result
@@ -598,7 +593,6 @@ Fallback content
             "by_path": {},
             "by_slug": {},
         }
-        parser.enable_cross_references(xref_index)
 
         content = """
 ::::{cards}
@@ -610,7 +604,8 @@ Content
 :::
 ::::
 """
-        result = parser.parse(content, {})
+        context = {"xref_index": xref_index}
+        result = parser.parse_with_context(content, {}, context)
 
         # Should have pulled the icon
         assert 'data-icon="code"' in result
@@ -629,7 +624,6 @@ Content
             "by_path": {},
             "by_slug": {},
         }
-        parser.enable_cross_references(xref_index)
 
         content = """
 ::::{cards}
@@ -642,7 +636,8 @@ Content here
 :::
 ::::
 """
-        result = parser.parse(content, {})
+        context = {"xref_index": xref_index}
+        result = parser.parse_with_context(content, {}, context)
 
         # Explicit title should be used, not pulled
         assert "Explicit Title" in result
@@ -663,7 +658,6 @@ Content here
             "by_path": {"docs/installation": mock_page},
             "by_slug": {},
         }
-        parser.enable_cross_references(xref_index)
 
         content = """
 ::::{cards}
@@ -673,7 +667,8 @@ Content here
 :::
 ::::
 """
-        result = parser.parse(content, {})
+        context = {"xref_index": xref_index}
+        result = parser.parse_with_context(content, {}, context)
 
         # Link should be resolved via path
         assert 'href="/docs/installation/"' in result
@@ -690,7 +685,6 @@ Content here
             "by_path": {},
             "by_slug": {"quickstart": [mock_page]},
         }
-        parser.enable_cross_references(xref_index)
 
         content = """
 ::::{cards}
@@ -700,7 +694,8 @@ Content here
 :::
 ::::
 """
-        result = parser.parse(content, {})
+        context = {"xref_index": xref_index}
+        result = parser.parse_with_context(content, {}, context)
 
         # Link should be resolved via slug
         assert 'href="/docs/quickstart/"' in result
