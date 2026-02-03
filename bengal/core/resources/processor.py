@@ -38,6 +38,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from bengal.core.resources.types import ProcessedImageData
 from bengal.utils.observability.logger import get_logger
 
 if TYPE_CHECKING:
@@ -103,7 +104,7 @@ class ImageProcessor:
         source: Path,
         operation: str,
         spec: str,
-    ) -> Any | None:
+    ) -> ProcessedImageData | None:
         """Process image with caching.
 
         Checks cache first, processes only if cache miss.
@@ -114,15 +115,14 @@ class ImageProcessor:
             spec: Operation parameters
 
         Returns:
-            ProcessedImage on success, None on error
+            ProcessedImageData on success, None on error
 
         Cache key includes:
         - Schema version (for cache invalidation on format changes)
         - Source path + mtime
         - Operation + spec
         """
-        from bengal.core.resources.image import ProcessedImage
-        from bengal.core.resources.types import parse_spec
+        from bengal.core.resources.types import ProcessedImageData, parse_spec
 
         try:
             # Check if source exists
@@ -142,11 +142,8 @@ class ImageProcessor:
             # Check cache
             cached = self._get_cached(cache_key, params)
             if cached:
-                # Return cached result as ProcessedImage
-                from bengal.core.resources.image import ImageResource
-
-                return ProcessedImage(
-                    source=ImageResource(source_path=source, site=self.site),
+                # Return cached result as ProcessedImageData
+                return ProcessedImageData(
                     output_path=cached.output_path,
                     rel_permalink=cached.rel_permalink,
                     width=cached.width,
@@ -156,7 +153,7 @@ class ImageProcessor:
                 )
 
             # Process image
-            result = self._do_process(source, operation, params)
+            result = self._do_process(source, operation, params, spec)
             if result is None:
                 return None
 
@@ -265,21 +262,21 @@ class ImageProcessor:
         source: Path,
         operation: str,
         params: Any,
-    ) -> Any | None:
+        spec: str,
+    ) -> ProcessedImageData | None:
         """Actually process the image using Pillow.
 
         Args:
             source: Path to source image
             operation: Processing operation
             params: ProcessParams
+            spec: Original spec string for cache key generation
 
         Returns:
-            ProcessedImage on success, None on error
+            ProcessedImageData on success, None on error
         """
         try:
             from PIL import Image
-
-            from bengal.core.resources.image import ImageResource, ProcessedImage
         except ImportError:
             logger.error(
                 "Pillow required for image processing. Install: pip install bengal[images]",
@@ -323,7 +320,7 @@ class ImageProcessor:
             output_format = "jpeg"
 
         output_ext = "jpg" if output_format == "jpeg" else output_format
-        cache_key = self._cache_key(source, operation, str(params))
+        cache_key = self._cache_key(source, operation, spec)
         output_path = self.cache_dir / f"{cache_key}.{output_ext}"
 
         # Save image atomically
@@ -356,8 +353,7 @@ class ImageProcessor:
         # Build relative permalink
         rel_permalink = f"/assets/cache/{output_path.name}"
 
-        return ProcessedImage(
-            source=ImageResource(source_path=source, site=self.site),
+        return ProcessedImageData(
             output_path=output_path,
             rel_permalink=rel_permalink,
             width=img.width,
