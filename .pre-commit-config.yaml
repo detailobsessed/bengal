@@ -69,11 +69,10 @@ repos:
         priority: 2
 
       # Module coupling checks (RFC: rfc-remaining-coupling-fixes)
-      # Run as warnings - these report issues but don't block commits
-      # Remove '|| true' to make blocking once violations are resolved
+      # Circular imports are now fully resolved - this check blocks commits
       - id: check-cycles
-        name: Check circular imports (warning)
-        entry: bash -c 'uv run scripts/check_cycles.py --format=simple || true'
+        name: Check circular imports
+        entry: uv run scripts/check_cycles.py --format=simple
         language: system
         pass_filenames: false
         verbose: true
